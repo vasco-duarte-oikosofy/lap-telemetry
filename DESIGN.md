@@ -1,6 +1,6 @@
 # lap-telemetry — Design Spec
 
-Status: **v0.1 — approved, ready for M1** · 2026-05-09
+Status: **v0.1 — M1 complete, ready for M2** · 2026-05-09
 
 A telemetry recorder + lap-comparison tool for rFactor 2 and Le Mans Ultimate. Reads the same shared memory that TinyPedal reads, writes laps to a standard columnar format, and lets you overlay throttle/brake/speed/RPM/slip traces between two laps to find where time was lost or gained.
 
@@ -35,7 +35,7 @@ Pulled from the `pyRfactor2SharedMemory` and `pyLMUSharedMemory` modules that Ti
 - Shared memory updates run roughly at the sim's physics tick (~90–100 Hz for rF2/LMU). We poll on a fixed interval.
 - A `paused` flag in scoring info goes high when the game freezes (menu, pause). We must not record paused frames — or we'll get long flat segments that pollute lap detection.
 - Vehicle data lives in an array indexed by slot; the player's slot ID can change. Re-resolve the local-player index every frame via the scoring section.
-- Strings (track name, vehicle class) come back as bytes; tyre temps in Kelvin. Convert at the recorder boundary, not in analysis code.
+- Strings (track name, vehicle class) come back as bytes; tyre temps in Kelvin. Convert at the recorder boundary, not in analysis code. String decoding is UTF-8 with a latin-1 fallback for legacy mod content; hardcoded for v0.1, made configurable only if a user reports mojibake.
 - TinyPedal's own files in `deltabest/`, `trackmap/`, `pacenotes/` etc. use specific extensions (`.csv`, `.sector`, `.fuel`, `.energy`, `.svg`). We will not write any of those extensions in any TinyPedal-adjacent folder.
 
 ## 4. Architecture
@@ -56,6 +56,7 @@ Both are plain Python packages in this repo. The recorder depends on `pyRfactor2
 ### 4.1 Recorder
 
 - Connects to whichever sim is active (LMU first, fall back to rF2). Same probe order TinyPedal uses.
+- mmap access mode: M1 uses direct access (read-through, no buffer copy) since print-a-frame can tolerate occasional tearing. M2 switches to copy access with the writer's version-block check, so a recorded row never spans two sim ticks.
 - Polls at a fixed 50 Hz wall-clock interval (configurable). Sim updates faster; we deliberately downsample to keep files reasonable. 50 Hz × 2 hours ≈ 360k rows — fine for Parquet.
 - Each frame:
   1. Read scoring + player telemetry slot in one pass.
@@ -147,7 +148,7 @@ That's the whole thing. No config file in v0.1 — flags only.
 
 ## 7. Phasing
 
-- **M1 — recorder skeleton.** Submodule the SHM libs, connect, print a frame, exit cleanly on Ctrl+C. Verifies we read the same data TinyPedal does.
+- **M1 — recorder skeleton. ✅ done 2026-05-09.** Submodule the SHM libs, connect, print a frame, exit cleanly on Ctrl+C. Verified against a live LMU session (Bahrain, GT3) — same SHM regions TinyPedal reads.
 - **M2 — write loop.** Flush buffer → Parquet shards → final session file. Lap-boundary detection. Sidecar JSON.
 - **M3 — `list` command.** Read a session, print per-lap times. First time we exercise the read path.
 - **M4 — `compare` command, single-plot.** Overlay just speed-vs-distance for two laps. Validates resampling.
@@ -158,10 +159,13 @@ Each milestone ends in a runnable build. We don't move to the next until the pre
 
 ## 8. Open questions
 
-1. **Speed source.** `mLocalVel.z` is forward-axis velocity in vehicle frame; magnitude `||mLocalVel||` differs slightly during yaw. Pick `z` for canonical "speedo" speed, or magnitude for "ground" speed? Decide before M1 lands.
-2. **Slip angle definition.** We can compute it from `mLateralPatchVel / mLongitudinalPatchVel` per wheel, but TinyPedal's `wheels` module already does this; worth diffing against its formula to make sure we're consistent with what the user is used to seeing.
-3. **Lap invalidation on rF2.** rF2 telemetry doesn't expose `mLapInvalidated` directly — we'd need to derive it from track-cut warnings or skip the column. Default: leave null on rF2; revisit if it matters.
-4. **Naming.** `lap-telemetry` is a placeholder. If a better name emerges before M1, rename now while there are no consumers.
+1. **Slip angle definition.** We can compute it from `mLateralPatchVel / mLongitudinalPatchVel` per wheel, but TinyPedal's `wheels` module already does this; worth diffing against its formula to make sure we're consistent with what the user is used to seeing.
+2. **Lap invalidation on rF2.** rF2 telemetry doesn't expose `mLapInvalidated` directly — we'd need to derive it from track-cut warnings or skip the column. Default: leave null on rF2; revisit if it matters.
+3. **Naming.** `lap-telemetry` is a placeholder. If a better name emerges, rename while there are still no external consumers.
+
+### Resolved
+
+- **Speed source** (resolved 2026-05-09, M1). Use magnitude `‖mLocalVel‖`, not `mLocalVel.z`. Rationale: during yaw the car is moving sideways too, and `.z` understates true ground speed in slides and tight corners — exactly the moments we care about when comparing laps. Cost is one extra multiply + sqrt per frame, negligible.
 
 ## 9. Out-of-scope but worth noting
 

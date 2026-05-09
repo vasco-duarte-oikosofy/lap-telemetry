@@ -1,0 +1,23 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "lap-telemetry"
+version = "0.1.0a1"
+description = "Telemetry recorder + lap-comparison tool for rFactor 2 and Le Mans Ultimate."
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "GPL-3.0-or-later" }
+authors = [{ name = "Vasco Duarte" }]
+dependencies = []
+
+[project.optional-dependencies]
+dev = ["pytest>=7"]
+
+[project.scripts]
+lap-telemetry = "lap_telemetry.cli:main"
+
+[tool.setuptools.packages.find]
+include = ["lap_telemetry*"]
+exclude = ["pyRfactor2SharedMemory*", "pyLMUSharedMemory*", "tests*"]
