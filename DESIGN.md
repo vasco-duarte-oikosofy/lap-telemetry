@@ -1,8 +1,15 @@
 # lap-telemetry — Design Spec
 
-Status: **draft v0.1** · 2026-05-09
+Status: **v0.1 — approved, ready for M1** · 2026-05-09
 
 A telemetry recorder + lap-comparison tool for rFactor 2 and Le Mans Ultimate. Reads the same shared memory that TinyPedal reads, writes laps to a standard columnar format, and lets you overlay throttle/brake/speed/RPM/slip traces between two laps to find where time was lost or gained.
+
+### Approved decisions (locked for v0.1)
+
+1. **Storage format: Parquet (Snappy) + JSON sidecar.** Not CSV, not SQLite, not MoTeC `.ld`. Columnar, ~10× smaller than CSV, universally readable.
+2. **Separate process from TinyPedal.** Recorder and analyzer are standalone; SHM submodules are re-vendored from the same upstreams TinyPedal uses. No edits to TinyPedal's code or data folders.
+3. **Fixed 50 Hz sample rate.** Sim ticks ~90–100 Hz; we deliberately downsample. Configurable via `--rate` but 50 Hz is the canonical default.
+4. **Distance-aligned comparison only.** Time-aligned alignment is deferred past v0.1.
 
 ---
 
@@ -154,8 +161,7 @@ Each milestone ends in a runnable build. We don't move to the next until the pre
 1. **Speed source.** `mLocalVel.z` is forward-axis velocity in vehicle frame; magnitude `||mLocalVel||` differs slightly during yaw. Pick `z` for canonical "speedo" speed, or magnitude for "ground" speed? Decide before M1 lands.
 2. **Slip angle definition.** We can compute it from `mLateralPatchVel / mLongitudinalPatchVel` per wheel, but TinyPedal's `wheels` module already does this; worth diffing against its formula to make sure we're consistent with what the user is used to seeing.
 3. **Lap invalidation on rF2.** rF2 telemetry doesn't expose `mLapInvalidated` directly — we'd need to derive it from track-cut warnings or skip the column. Default: leave null on rF2; revisit if it matters.
-4. **Time-aligned vs distance-aligned comparison.** Distance is the right default for cornering analysis, but for race-craft (race start, restarts) time alignment is more useful. v0.1 ships distance only; flag it if the user wants the option.
-5. **Naming.** `lap-telemetry` is a placeholder. If a better name emerges before M1, rename now while there are no consumers.
+4. **Naming.** `lap-telemetry` is a placeholder. If a better name emerges before M1, rename now while there are no consumers.
 
 ## 9. Out-of-scope but worth noting
 
