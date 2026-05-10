@@ -679,6 +679,53 @@ function computeKeepIndices(lapTime, lapDist, start, end, trackLen) {
   return keep;
 }
 
+// Linearly interpolate across plateaus of identical lap_time_s. LMU's
+// `mCurrentET` updates at scoring rate (~5 Hz, 200 ms quantum), so a 50 Hz
+// recording holds the same `lap_time_s` value for ~10 consecutive frames
+// before stepping up by 0.2 s. Resampling that staircase onto 1 m bins and
+// subtracting two such staircases produces a ±200 ms saw-tooth in Δt every
+// time one lap's clock ticks before the other's. This bridges each plateau
+// by distributing the next tick's increment uniformly across the held
+// frames, using frame index as the 50 Hz wall-clock proxy.
+function smoothLapTime(lapTime, indices) {
+  const n = indices.length;
+  const out = new Float64Array(n);
+  for (let i = 0; i < n; i++) out[i] = lapTime[indices[i]];
+  let i = 0;
+  while (i < n) {
+    let j = i + 1;
+    while (j < n && out[j] === out[i]) j++;
+    if (j === n) break;  // trailing plateau — leave flat (sub-200 ms tail)
+    const v0 = out[i], v1 = out[j], span = j - i;
+    for (let k = 1; k < span; k++) out[i + k] = v0 + (v1 - v0) * k / span;
+    i = j;
+  }
+  return out;
+}
+
+// Bridge brief neutral (gear == 0) runs with the previous engaged gear.
+// Every shift passes through neutral for 1-3 frames as the clutch
+// disengages; rendering those as dips to zero turns a clean gear ladder
+// into a comb of teeth at every shift. Threshold of 5 frames (~100 ms at
+// 50 Hz) keeps genuine neutral periods (pit-out, coasting) intact.
+function smoothGear(gear, indices, maxNeutralRun = 5) {
+  const n = indices.length;
+  const out = new Float64Array(n);
+  for (let i = 0; i < n; i++) out[i] = gear[indices[i]];
+  let i = 0;
+  while (i < n) {
+    if (out[i] !== 0) { i++; continue; }
+    let j = i;
+    while (j < n && out[j] === 0) j++;
+    if (j - i <= maxNeutralRun && i > 0 && j < n) {
+      const prevG = out[i - 1];
+      for (let k = i; k < j; k++) out[k] = prevG;
+    }
+    i = j;
+  }
+  return out;
+}
+
 // ── Sector distance finder ────────────────────────────────────────────────────
 
 function deriveSectorDistances(entry, segIdx) {
@@ -1283,8 +1330,17 @@ function renderAll(sessionEntry, sessionSegIdx, refEntry, refSegIdx) {
         continue;
       }
       const distSlice = ch.trace === 'session' ? sDistRaw : rDistRaw;
-      const valSlice  = keep.map(i => raw[i]);
+      const valSlice  = ch.col === 'gear'
+        ? smoothGear(raw, keep)
+        : keep.map(i => raw[i]);
       const bins      = resample(distSlice, valSlice, maxDist);
+      // Snap gear back to integer steps — linear interp between adjacent
+      // gear samples produces fractional values across one-bin-wide
+      // shift transitions, which the step renderer then expands into a
+      // stack of micro-steps. Rounding gives a single clean step.
+      if (ch.col === 'gear') {
+        for (let k = 0; k < bins.length; k++) bins[k] = Math.round(bins[k]);
+      }
       if (ch.trace === 'session') currentSessionBins[ch.col] = bins;
       else                        currentRefBins[ch.col]     = bins;
     }
@@ -1311,15 +1367,16 @@ function renderAll(sessionEntry, sessionSegIdx, refEntry, refSegIdx) {
   }
 
   // Resample lap_time_s (drives the Δt computation; not a rendered panel).
+  // Smoothed across scoring-rate plateaus first — see smoothLapTime.
   // Stored on currentSessionBins/currentRefBins so __dtDebug and downstream
   // consumers can read the same arrays renderAll built.
   const sLapTime = sessionEntry.data.lap_time_s;
   const rLapTime = refEntry.data.lap_time_s;
   const sLapTimeBins = (sLapTime && sLapTime.length)
-    ? resample(sDistRaw, sKeep.map(i => sLapTime[i]), maxDist)
+    ? resample(sDistRaw, smoothLapTime(sLapTime, sKeep), maxDist)
     : new Float64Array(maxDist + 1);
   const rLapTimeBins = (rLapTime && rLapTime.length)
-    ? resample(rDistRaw, rKeep.map(i => rLapTime[i]), maxDist)
+    ? resample(rDistRaw, smoothLapTime(rLapTime, rKeep), maxDist)
     : new Float64Array(maxDist + 1);
   currentSessionBins['lap_time_s'] = sLapTimeBins;
   currentRefBins['lap_time_s']     = rLapTimeBins;
@@ -2093,8 +2150,8 @@ window.__dtDebug = function(sessionKey, sessionSeg, refKey, refSeg) {
   const sDist = sKeep.map(i => se.data.lap_distance_m[i]);
   const rDist = rKeep.map(i => re.data.lap_distance_m[i]);
   const maxD  = Math.max(Math.ceil(Math.max(...sDist)), Math.ceil(Math.max(...rDist)));
-  const sBins = resample(sDist, sKeep.map(i => se.data.lap_time_s[i]), maxD);
-  const rBins = resample(rDist, rKeep.map(i => re.data.lap_time_s[i]), maxD);
+  const sBins = resample(sDist, smoothLapTime(se.data.lap_time_s, sKeep), maxD);
+  const rBins = resample(rDist, smoothLapTime(re.data.lap_time_s, rKeep), maxD);
   return Array.from(computeDeltaT(sBins, rBins));
 };
 

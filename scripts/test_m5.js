@@ -104,6 +104,25 @@ def keep_indices(lap_time, lap_dist, track_len):
         out.append(i)
     return out
 
+# Mirror smoothLapTime in compare.html: linearly interpolate across the
+# 200 ms scoring-rate plateaus using frame index as the 50 Hz wall-clock
+# proxy. Trailing plateau (after the last tick) is left flat.
+def smooth_lap_time(vals):
+    out = list(vals)
+    n = len(out)
+    i = 0
+    while i < n:
+        j = i + 1
+        while j < n and out[j] == out[i]:
+            j += 1
+        if j == n:
+            break
+        v0, v1, span = out[i], out[j], j - i
+        for k in range(1, span):
+            out[i + k] = v0 + (v1 - v0) * k / span
+        i = j
+    return out
+
 def load_seg(path, seg_idx):
     t = pq.read_table(path, columns=['lap_number','lap_distance_m','lap_time_s'])
     laps  = t.column('lap_number').to_pylist()
@@ -119,7 +138,7 @@ def load_seg(path, seg_idx):
     seg = segs[seg_idx]
     keep = keep_indices(ltime[seg[1]:seg[2]], dist[seg[1]:seg[2]], track_len)
     d = [dist[seg[1] + k]  for k in keep]
-    s = [ltime[seg[1] + k] for k in keep]
+    s = smooth_lap_time([ltime[seg[1] + k] for k in keep])
     return d, s
 
 sd, ss = load_seg('${sessionPath.replace(/\\/g, '\\\\')}', ${sessionSeg})
