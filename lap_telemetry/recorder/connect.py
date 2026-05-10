@@ -47,6 +47,10 @@ class Frame:
     pos_z_m: float
     last_sector_1_s: float
     last_sector_2_s: float
+    slip_angle_fl_deg: float
+    slip_angle_fr_deg: float
+    slip_angle_rl_deg: float
+    slip_angle_rr_deg: float
     in_realtime: bool
     paused: bool
     track_name: str
@@ -84,6 +88,18 @@ def _sector_or_nan(value: float) -> float:
     """Sims report -1.0 for 'not yet set'. Map to NaN at the recorder boundary."""
     v = float(value)
     return math.nan if v < 0.0 else v
+
+
+def _slip_deg(wheel) -> float:
+    """Slip angle in degrees from patch velocities.
+
+    Formula: atan2(lateral, longitudinal) converted to degrees.
+    Both sims use the same mLateralPatchVel / mLongitudinalPatchVel fields.
+    Wheel order: [0]=FL, [1]=FR, [2]=RL, [3]=RR.
+    """
+    lat = float(wheel.mLateralPatchVel)
+    lon = float(wheel.mLongitudinalPatchVel)
+    return math.degrees(math.atan2(lat, lon))
 
 
 # ---------- LMU ---------------------------------------------------------------
@@ -156,6 +172,10 @@ class LMUConnection(_BaseConnection):
             pos_z_m=float(tele_v.mPos.z),
             last_sector_1_s=_sector_or_nan(scor_v.mLastSector1),
             last_sector_2_s=_sector_or_nan(scor_v.mLastSector2),
+            slip_angle_fl_deg=_slip_deg(tele_v.mWheels[0]),
+            slip_angle_fr_deg=_slip_deg(tele_v.mWheels[1]),
+            slip_angle_rl_deg=_slip_deg(tele_v.mWheels[2]),
+            slip_angle_rr_deg=_slip_deg(tele_v.mWheels[3]),
             in_realtime=bool(scor_info.mInRealtime),
             paused=False,
             track_name=_decode(bytes(scor_info.mTrackName)),
@@ -234,6 +254,10 @@ class RF2Connection(_BaseConnection):
             pos_z_m=float(tele_v.mPos.z),
             last_sector_1_s=_sector_or_nan(scor_v.mLastSector1),
             last_sector_2_s=_sector_or_nan(scor_v.mLastSector2),
+            slip_angle_fl_deg=_slip_deg(tele_v.mWheels[0]),
+            slip_angle_fr_deg=_slip_deg(tele_v.mWheels[1]),
+            slip_angle_rl_deg=_slip_deg(tele_v.mWheels[2]),
+            slip_angle_rr_deg=_slip_deg(tele_v.mWheels[3]),
             in_realtime=bool(scor_info.mInRealtime),
             paused=False,
             track_name=_decode(bytes(scor_info.mTrackName)),

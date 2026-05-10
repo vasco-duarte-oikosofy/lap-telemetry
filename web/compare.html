@@ -740,6 +740,7 @@ function renderAll(sessionEntry, sessionSegIdx, refEntry, refSegIdx) {
   const panelsDiv = document.getElementById('panels');
   panelsDiv.innerHTML = '';
 
+  const hasSlip = sessionEntry.hasSlip || refEntry.hasSlip;
   const lastIdx = PANEL_DEFS.length - 1;
   for (let pi = 0; pi < PANEL_DEFS.length; pi++) {
     const def = PANEL_DEFS[pi];
@@ -750,6 +751,17 @@ function renderAll(sessionEntry, sessionSegIdx, refEntry, refSegIdx) {
     labelEl.className = 'panel-label';
     labelEl.textContent = def.label;
     wrap.appendChild(labelEl);
+
+    // Skip slip panel with a placeholder when neither lap has slip data
+    // (old recordings pre-date the slip angle columns in the schema).
+    if (def.id === 'slip' && !hasSlip) {
+      const note = document.createElement('div');
+      note.style.cssText = `height:32px;line-height:32px;color:var(--muted);font-size:11px;padding-left:${PAD.left}px`;
+      note.textContent = 'no slip angle data — requires a new recording';
+      wrap.appendChild(note);
+      panelsDiv.appendChild(wrap);
+      continue;
+    }
 
     let svgHtml;
     if (def.id === 'dt') {
