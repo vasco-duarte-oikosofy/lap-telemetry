@@ -62,23 +62,43 @@ class _BaseConnection:
     sim: SimName = ""
 
     def __init__(self) -> None:
-        # State for speed-integrated distance (F4). mLapDist updates at ~4 Hz;
-        # we integrate speed between anchor ticks for 50 Hz position resolution.
+        # State for speed-integrated distance (F4). mLapDist and mCurrentET both
+        # update at scoring rate (~5 Hz), so we drive dt off wall clock — the
+        # recorder polls at 50 Hz and we integrate speed between anchor ticks.
+        # We also track the last wall-clock moment mCurrentET advanced; when it
+        # stalls (>0.3 s), the sim is paused and we must NOT integrate the
+        # stale velocity reported by the SHM.
         self._prev_lap_dist: float = math.nan
         self._prev_est_dist: float = 0.0
-        self._prev_session_time: float = math.nan
+        self._prev_wall_time: float = math.nan
+        self._prev_sim_time: float = math.nan
+        self._last_sim_tick_wall: float = math.nan
 
-    def _estimate_dist(self, raw_dist: float, speed_mps: float, session_time: float) -> float:
-        dt = session_time - self._prev_session_time
+    def _estimate_dist(self, raw_dist: float, speed_mps: float, sim_time: float) -> float:
+        now = time.monotonic()
+        dt = 0.0 if math.isnan(self._prev_wall_time) else now - self._prev_wall_time
+
+        # Track when mCurrentET last advanced. During a pause it freezes, so
+        # "no tick in >0.3 s" is our pause signal (scoring updates ~5 Hz, so
+        # the gap between ticks during normal driving is ~0.2 s).
+        if not math.isnan(self._prev_sim_time) and sim_time != self._prev_sim_time:
+            self._last_sim_tick_wall = now
+        sim_running = (
+            not math.isnan(self._last_sim_tick_wall)
+            and (now - self._last_sim_tick_wall) < 0.3
+        )
+
         use_anchor = (
-            math.isnan(self._prev_session_time)  # first frame
+            math.isnan(self._prev_wall_time)     # first frame
             or dt <= 0.0 or dt > 0.5             # large gap / time went backwards
+            or not sim_running                   # paused: SHM speed is stale, don't integrate
             or raw_dist != self._prev_lap_dist   # mLapDist ticked — use as ground truth
         )
         est = raw_dist if use_anchor else (self._prev_est_dist + speed_mps * dt)
         self._prev_lap_dist = raw_dist
         self._prev_est_dist = est
-        self._prev_session_time = session_time
+        self._prev_wall_time = now
+        self._prev_sim_time = sim_time
         return est
 
     def start(self) -> None: ...
@@ -174,13 +194,13 @@ class LMUConnection(_BaseConnection):
 
         vx, vy, vz = tele_v.mLocalVel.x, tele_v.mLocalVel.y, tele_v.mLocalVel.z
         speed_mps = (vx * vx + vy * vy + vz * vz) ** 0.5
-        session_time = float(scor_info.mCurrentET)
+        sim_time = float(scor_info.mCurrentET)
 
         return Frame(
             sim=self.sim,
-            session_time_s=session_time,
+            session_time_s=sim_time,
             lap_number=int(tele_v.mLapNumber),
-            lap_distance_m=self._estimate_dist(float(scor_v.mLapDist), speed_mps, session_time),
+            lap_distance_m=self._estimate_dist(float(scor_v.mLapDist), speed_mps, sim_time),
             lap_time_s=float(scor_info.mCurrentET - tele_v.mLapStartET),
             speed_kph=speed_mps * 3.6,
             throttle_norm=float(tele_v.mUnfilteredThrottle),
@@ -258,13 +278,13 @@ class RF2Connection(_BaseConnection):
 
         vx, vy, vz = tele_v.mLocalVel.x, tele_v.mLocalVel.y, tele_v.mLocalVel.z
         speed_mps = (vx * vx + vy * vy + vz * vz) ** 0.5
-        session_time = float(scor_info.mCurrentET)
+        sim_time = float(scor_info.mCurrentET)
 
         return Frame(
             sim=self.sim,
-            session_time_s=session_time,
+            session_time_s=sim_time,
             lap_number=int(tele_v.mLapNumber),
-            lap_distance_m=self._estimate_dist(float(scor_v.mLapDist), speed_mps, session_time),
+            lap_distance_m=self._estimate_dist(float(scor_v.mLapDist), speed_mps, sim_time),
             lap_time_s=float(scor_info.mCurrentET - tele_v.mLapStartET),
             speed_kph=speed_mps * 3.6,
             throttle_norm=float(tele_v.mUnfilteredThrottle),
