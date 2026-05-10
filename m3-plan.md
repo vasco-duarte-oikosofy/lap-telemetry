@@ -250,6 +250,62 @@ output during long idle periods (the user explicitly declined this).
 
 ---
 
+## Reader edge cases (post first-live-test addendum)
+
+These fixes live in the **reader/decoder** (`summary.py` and any future
+analysis layer), not the recorder. The recorder's job is to faithfully
+capture the sim's frame stream; the reader interprets it.
+
+### E1. Race restart resets `lap_number`
+
+**What happens.** The driver hits "Restart Session" mid-recording. The sim
+rewinds them to the grid/pit and resets `mLapNumber` to 0. The recorder
+keeps writing frames continuously, so the file ends up with a `lap_number`
+sequence like `… 6, 7, 0, 1`. The same file may also contain the original
+pre-recording lap 0 if the recorder was started early enough — i.e.
+`lap_number` is *not* a unique identifier for a chronological lap.
+
+**Where it bites.** The first M3 live test produced laps 0, 1, 3, 4, 5, 6, 7
+in that file. `summary.py` sorted by `lap_number`, so post-restart laps 0/1
+displayed *before* the chronologically-earlier laps 3–7. The `is_incomplete`
+check (`lap == min(laps) or lap == max(laps)`) misidentified which lap was
+actually the last one recorded — the chronological last (lap 1, 3.6 s of
+frames) showed `valid: yes` instead of `-`.
+
+**Fix.** Iterate **segments**, not unique lap numbers. A segment is a
+contiguous run of frames with the same `lap_number`. Segments are emitted
+in time order (the data is already time-ordered). The chronological first
+segment and chronological last segment get the dash-out treatment;
+everything in between is a real lap.
+
+If two segments share the same `lap_number` (legitimately possible after a
+restart), they appear as two rows. The user can tell them apart from
+context (`session_time_s` of first frame, distance traveled).
+
+### E2. Rolling start: pre-line frames inflate lap 0
+
+**What happens.** On a rolling start (or any restart that drops you on the
+grid/pit), the user drives across the start/finish line to begin the timed
+race. `mLapNumber` doesn't tick to 1 until the line is crossed, so all the
+formation/out-lap frames before the line carry `lap_number = 0`. Their
+`lap_time_s` is `mCurrentET - mLapStartET` where `mLapStartET` is whatever
+session-start value the sim picked — frequently a large number, not a real
+lap time.
+
+**Where it bites.** Lap 0's reported "duration" is the formation/out-lap
+length, not a meaningful timed lap. Sector splits for lap 0 are usually
+NaN (`mLastSector*` is `-1` until a real lap completes), but if the sim
+holds stale values from before the restart, they could be misleading.
+
+**Fix.** The chronological-first segment is already excluded from sector
+display by the existing dash-out rule for "first lap". Beyond that, no
+column-level change is needed for v0.1: the user can read `lap_time_s` /
+`lap_distance_m` and tell rolling-start frames from race frames. A future
+M4+ improvement could add a derived `phase` column (`out_lap`, `racing`,
+`pitting`) — out of scope for M3.
+
+---
+
 ## Backward compatibility
 
 - Old Parquet files (no `last_sector_*` columns): summary prints `-` in the
