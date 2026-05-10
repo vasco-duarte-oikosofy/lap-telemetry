@@ -1,4 +1,4 @@
-# F1 + F2 handoff — Circuit map + distance-range zoom
+# F1 + F2 handoff — Circuit map + distance-range zoom + two bug fixes
 
 Read these before writing any code, in this order:
 
@@ -129,6 +129,101 @@ Write `f1f2-test-report/REPORT.md` summarising what ran.
 If a test fails, diagnose and fix, then re-run. Only stop if you hit a genuine
 architectural decision that requires user input — in that case leave
 `f1f2-test-report/BLOCKED.md` with the question and what you tried.
+
+---
+
+---
+
+## Fix 3 — Tooltip follows the cursor, not the top of the plot
+
+**Symptom.** The info callout (distance / speed / Δt values) is rendered at a
+fixed `top: 20px` inside `#plot-area`, so it always appears near the top of the
+speed panel regardless of which panel the mouse is over. When hovering over the
+Brake or Δt panel the tooltip is far from the cursor.
+
+**What the user wants.** The tooltip should appear offset from the actual cursor
+position so it reads like a floating label attached to the crosshair, visible
+whichever panel the mouse is in.
+
+**Fix.** In the `mousemove` handler, replace the hardcoded `const ty = 20;`
+with a value derived from the mouse Y offset inside `#plot-area`, clamped so
+the tooltip never overflows the container:
+
+```javascript
+// follow cursor vertically, offset up by ~30 px, clamped inside plot-area
+const ty = Math.max(8, Math.min(e.clientY - rect.top - 30, rect.height - 130));
+```
+
+Adjust the offset and clamp margin to taste; the exact numbers are not
+critical. Also offset it a bit to the right of the cursor line (the `tx`
+calculation already does this; just ensure `ty` is no longer hardcoded).
+
+---
+
+## Fix 4 — Δt calculation is wrong for pre-F4 recordings
+
+**Symptom.** When comparing two laps that the sector display confirms are
+~0.1 s apart, the Δt trace shows swings of ±500 ms or more and oscillates
+wildly rather than growing smoothly. See `screenshots/DeltaT bug.png` — the
+bottom panel shows the oscillating Δt for a Barcelona LMP3 comparison.
+
+**Root cause.** The `lap_distance_m` column in recordings made before F4 was
+implemented updates at ~4 Hz (one new value every ~11 m at 130 km/h). When the
+resampler sorts frames by distance, up to ~50 consecutive frames cluster at the
+same distance value (they were all recorded during the 0.25 s between SHM
+ticks). The JavaScript `Array.sort` order among equal-distance frames is
+unspecified — different laps end up picking different frames from the cluster.
+In a braking zone, one lap might get speed 240 km/h from the entry frame and
+the other lap speed 80 km/h from the exit frame, both attributed to the same
+1 m bin. The Δt integration treats this as a real speed difference (3× actual)
+and the error accumulates and oscillates at every braking zone.
+
+**Diagnosis first.** Before patching anything, the agent should verify:
+
+1. Load a **post-F4 recording** (any session file recorded after the
+   `_estimate_dist` commit). Run the same comparison. If the Δt trace is smooth
+   and correct for the new file, the bug is purely in old data and the fix
+   should be a UI-side warning rather than a formula change. If the Δt is
+   still wrong on the new file, the formula itself is broken.
+
+2. Check the resampler output for a pre-F4 lap: call
+   `window.__resamplerDebug(key, segIdx)` on both the session and reference
+   laps and print the speed at every 10th bin for 100 bins around a known
+   braking zone (e.g. bins 900–1100). If the two speed arrays look erratic
+   (not matching the smooth speed graph), the cluster-aliasing is confirmed.
+
+**Fix for old recordings (primary path).** Add a stability pass to the
+resampler: when sorting frames by distance, break ties by original frame index
+(time order). This ensures all frames in a cluster are taken in the order they
+were driven, so the interpolation at each 1 m bin picks a speed that is
+monotonically related to the car's actual path through that braking zone.
+
+Implementation: in `resample()`, change:
+```javascript
+idx.sort((a, b) => distances[a] - distances[b]);
+```
+to:
+```javascript
+// stable tie-break by frame index preserves time order within equal-distance clusters
+idx.sort((a, b) => (distances[a] - distances[b]) || (a - b));
+```
+`Array.sort` in V8 is stable, so equal comparisons preserve the original order;
+the explicit `|| (a - b)` makes it explicit regardless of engine.
+
+After this fix, the two laps will still pick frames from different positions
+within each cluster (they can't avoid it — the clusters are at different
+positions per lap), but each lap will be internally consistent (time order),
+which significantly reduces the oscillation amplitude. The fundamental limit
+is the 11 m anchor spacing; the fix makes the best of bad data.
+
+**Fix for new (F4) recordings.** F4 recordings have sub-meter spacing so there
+are no clusters. No fix needed beyond verifying the Δt is correct.
+
+**UI warning.** After the speed-stability fix, add a banner or badge when
+the loaded session has coarse distance data. Detection heuristic: compute the
+median frame-to-frame distance change for the chosen segment; if median > 2 m,
+flag it as "legacy distance resolution — Δt accuracy limited". Show the warning
+near the Δt panel label, not as a blocking error.
 
 ---
 
