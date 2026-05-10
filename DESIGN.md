@@ -241,3 +241,34 @@ Not blocking M3 acceptance — sector display works for the well-behaved case (l
 - Zoomed panels still show the full x-axis labels for the visible range (recompute ticks from the zoom window).
 
 **Scope boundary.** Horizontal zoom only (no vertical zoom, no pinch-to-zoom). Only distance-axis zooming; time-axis zoom is not applicable (the x-axis is always distance). Multi-panel linked zoom (all panels share the same zoom state) is the only mode.
+
+### F3. Split throttle and brake into separate panels
+
+**What.** The current "Throttle / Brake" panel overlays all four traces (session throttle, ref throttle, session brake, ref brake) in one panel. Split into two panels: one for throttle, one for brake.
+
+**Why.** Throttle and brake are shown on the same y-axis [0..1], but overlaying four traces in one panel makes it hard to read which line is which. Two panels with two traces each (session vs reference per channel) is cleaner and consistent with every other panel.
+
+**Color convention.** Each trace should use the **lap color** (session = `--session` blue, reference = `--ref` orange), not a channel-specific color. Solid for session, dashed for reference — same as speed, RPM, etc. The current green/red coloring is misleading because it implies meaning (go/stop) rather than session identity.
+
+### F4. High-resolution distance axis — speed-integrated `lap_distance_m`
+
+**What.** Replace the raw `mLapDist` field recorded from SHM with a speed-integrated estimate that yields 50 Hz position resolution.
+
+**Why it's needed.** `mLapDist` in LMU SHM updates at roughly 3–4 Hz (approximately every 11 m at 130 km/h). All other channels (speed, throttle, slip angle, etc.) update at 50 Hz. When plotted against the low-resolution distance axis, every channel shows artificial 11 m "steps" — the x-axis blockiness is a data-source issue, not a rendering issue. The resampled traces inherit ~420 effective x-positions per lap instead of ~4900.
+
+**Fix.** In the recorder frame loop, maintain a running `estimated_dist` that integrates speed between `mLapDist` anchor updates:
+
+```python
+if mLapDist != prev_lap_dist:        # SHM ticked — use as ground-truth anchor
+    estimated_dist = float(mLapDist)
+    prev_lap_dist  = estimated_dist
+else:                                 # SHM stale — integrate speed forward
+    estimated_dist = prev_dist + speed_mps / rate_hz
+
+prev_dist = estimated_dist
+# Write estimated_dist to lap_distance_m column instead of raw mLapDist
+```
+
+**Effect.** Distance increments every frame by `speed_m_s / 50 ≈ 0.72 m` at 130 km/h, giving sub-meter resolution matching the 50 Hz sample rate. The `mLapDist` anchor updates keep the integrated distance calibrated to the sim's ground truth at 3–4 Hz; any small integration drift is corrected at each anchor.
+
+**Scope.** Recorder change only (`connect.py` + `writer.py`). Existing parquet files are unaffected — they remain valid with the coarser distance axis. The change is transparent to the app (same `lap_distance_m` column name, just higher resolution).
