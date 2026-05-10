@@ -178,7 +178,19 @@
     gap: 8px;
   }
   #circuit-map-panel .panel-label {
+    margin-bottom: 0;
+  }
+  #circuit-map-panel .map-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
     margin-bottom: 4px;
+  }
+  .map-mode-select {
+    width: auto;
+    font-size: 11px;
+    padding: 3px 6px;
   }
   #circuit-map-svg {
     width: 100%;
@@ -186,6 +198,19 @@
     min-height: 250px;
     background: rgba(0,0,0,0.2);
     border-radius: 4px;
+  }
+  .map-legend {
+    font-size: 10px;
+    color: var(--muted);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    height: 14px;
+  }
+  .map-legend-bar {
+    flex: 1;
+    height: 8px;
+    border-radius: 2px;
   }
 
   /* ── Zoom selection rect ── */
@@ -273,7 +298,7 @@
   <h2>Sessions</h2>
   <div class="load-row">
     <button class="load-btn" id="load-btn">+ Load parquet…</button>
-    <input type="file" id="file-input" accept=".parquet" multiple>
+    <input type="file" id="file-input" accept=".parquet,.json" multiple>
     <span id="load-status" class="badge">no files loaded</span>
   </div>
   <div class="session-list" id="session-list"></div>
@@ -323,12 +348,22 @@
 
   <!-- Circuit map panel -->
   <div id="circuit-map-panel" style="display: none;">
-    <div class="panel-label">Circuit Map</div>
+    <div class="map-header">
+      <div class="panel-label">Circuit Map</div>
+      <select id="map-mode" class="map-mode-select">
+        <option value="outline">outline</option>
+        <option value="speed">speed</option>
+        <option value="brake">brake</option>
+        <option value="throttle">throttle</option>
+      </select>
+    </div>
     <svg id="circuit-map-svg" viewBox="0 0 250 250" data-panel-id="circuit-map">
+      <g id="track-segments"></g>
       <polyline id="track-outline" fill="none" stroke="var(--text)" stroke-width="1.5" stroke-linejoin="round"/>
       <polyline id="zoom-arc" fill="none" stroke="var(--sector-clr)" stroke-width="2.5" stroke-linejoin="round" style="display: none;"/>
       <circle id="cursor-dot" r="4" fill="var(--accent)" style="display: none;"/>
     </svg>
+    <div id="map-legend" class="map-legend"></div>
   </div>
 </div>
 
@@ -809,14 +844,32 @@ function renderDtPanel(def, dtBins, maxDist, sectorDists, zoomRange) {
   const pts = Array.from(dtBins, (v, i) => `${toX(i).toFixed(1)},${toY(v).toFixed(1)}`).join(' ');
   svg += `<polyline points="${pts}" fill="none" stroke="var(--session)" stroke-width="0.9" stroke-linejoin="round" clip-path="url(#clip-dt)"/>`;
 
-  // Sector markers
+  // Sector markers + per-sector Δt readouts (cumulative Δt at each boundary,
+  // plus the lap-end value pinned to the right edge).
+  const dtAt = (dist) => {
+    if (dist == null || dist < 0 || dist > maxDist) return null;
+    const i = Math.max(0, Math.min(Math.round(dist), dtBins.length - 1));
+    return dtBins[i];
+  };
+  const fmtMs = v => `${v >= 0 ? '+' : ''}${v.toFixed(0)} ms`;
+  const dtColor = v => v > 5 ? 'var(--dt-pos)' : v < -5 ? 'var(--dt-neg)' : 'var(--muted)';
+
   if (sectorDists) {
     for (const [dist, label] of [[sectorDists.s1dist, 'S2'], [sectorDists.s2dist, 'S3']]) {
       if (dist == null || dist < 0 || dist > maxDist) continue;
       const x = toX(dist);
       svg += `<line x1="${x}" y1="${PAD.top}" x2="${x}" y2="${PAD.top + plotH}" stroke="var(--sector-clr)" stroke-width="1" stroke-dasharray="4 4" clip-path="url(#clip-dt)"/>`;
       svg += `<text x="${x + 3}" y="${PAD.top + 11}" fill="var(--sector-clr)" font-size="9" font-family="monospace">${label}</text>`;
+      const v = dtAt(dist);
+      if (v != null && isFinite(v)) {
+        svg += `<text x="${x + 3}" y="${PAD.top + 22}" fill="${dtColor(v)}" font-size="9" font-family="monospace" font-weight="600">${fmtMs(v)}</text>`;
+      }
     }
+  }
+  // Lap-end Δt readout pinned to the right of the plot.
+  const lastDt = dtBins[dtBins.length - 1];
+  if (isFinite(lastDt)) {
+    svg += `<text x="${PAD.left + PLOT_W - 4}" y="${PAD.top + 11}" text-anchor="end" fill="${dtColor(lastDt)}" font-size="10" font-family="monospace" font-weight="600">end ${fmtMs(lastDt)}</text>`;
   }
 
   return `<svg class="panel-svg" viewBox="0 0 ${SVG_W} ${H}" data-panel-id="dt">${svg}</svg>`;
@@ -833,22 +886,122 @@ let currentTrackZ      = null;
 let currentZoomRange   = null; // { start, end }
 let trackTransform     = null;
 
+// ── Persistent zoom (M6) ────────────────────────────────────────────────────
+const ZOOM_LS_KEY = 'lap-telemetry.zoom.v1';
+
+function persistZoom(zoom) {
+  try {
+    if (zoom.start === 0 && zoom.end >= currentMaxDist) {
+      localStorage.removeItem(ZOOM_LS_KEY);  // full-range = no persisted state
+    } else {
+      localStorage.setItem(ZOOM_LS_KEY, JSON.stringify({ start: zoom.start, end: zoom.end }));
+    }
+  } catch { /* localStorage unavailable */ }
+}
+
+function loadPersistedZoom(maxDist) {
+  try {
+    const raw = localStorage.getItem(ZOOM_LS_KEY);
+    if (!raw) return null;
+    const z = JSON.parse(raw);
+    if (typeof z.start !== 'number' || typeof z.end !== 'number') return null;
+    if (z.start < 0 || z.end > maxDist || z.end - z.start < 10) return null;  // out of range / nonsense
+    return { start: z.start, end: z.end };
+  } catch { return null; }
+}
+
+// Heatmap colour ramps: each takes a normalised v in [0,1] and returns a CSS colour.
+const HEATMAP_RAMPS = {
+  // speed: cool (slow) → warm (fast). HSL hue 220 (blue) → 0 (red), high saturation.
+  speed:    v => `hsl(${(220 - 220 * v).toFixed(0)}, 85%, 55%)`,
+  // brake: faint grey (no brake) → bright red (full brake).
+  brake:    v => `rgba(244, 67, 54, ${(0.15 + 0.85 * v).toFixed(2)})`,
+  // throttle: faint grey (off) → bright green (full).
+  throttle: v => `rgba(76, 175, 80, ${(0.15 + 0.85 * v).toFixed(2)})`,
+};
+const HEATMAP_CHANNELS = { speed: 'speed_kph', brake: 'brake_norm', throttle: 'throttle_norm' };
+
+let currentMapMode = 'outline';
+
 function renderCircuitMap() {
   if (!currentTrackX || !currentTrackZ) return;
 
   const trackOutline = document.getElementById('track-outline');
+  const segGroup = document.getElementById('track-segments');
   const mapPanel = document.getElementById('circuit-map-panel');
-
   if (!trackOutline) return;
 
   const bounds = computeTrackBounds(Array.from(currentTrackX), Array.from(currentTrackZ));
   trackTransform = buildTrackTransform(bounds);
   const pts = buildTrackPolylinePts(Array.from(currentTrackX), Array.from(currentTrackZ), trackTransform.toMapX, trackTransform.toMapZ);
 
-  trackOutline.setAttribute('points', pts);
-  mapPanel.style.display = 'block';
+  if (currentMapMode === 'outline') {
+    trackOutline.setAttribute('points', pts);
+    trackOutline.style.display = '';
+    segGroup.innerHTML = '';
+  } else {
+    // Heatmap: draw per-bin coloured segments instead of the single polyline.
+    trackOutline.style.display = 'none';
+    segGroup.innerHTML = renderHeatmapSegments(currentMapMode);
+  }
 
+  renderMapLegend();
+  mapPanel.style.display = 'block';
   updateZoomArc();
+}
+
+function renderHeatmapSegments(mode) {
+  const col = HEATMAP_CHANNELS[mode];
+  const bins = currentSessionBins?.[col];
+  if (!bins) return '';
+  // Range for normalisation: brake/throttle are [0,1]; speed uses session min/max.
+  let lo = 0, hi = 1;
+  if (mode === 'speed') {
+    lo = Infinity; hi = -Infinity;
+    for (const v of bins) { if (isFinite(v)) { if (v < lo) lo = v; if (v > hi) hi = v; } }
+    if (!isFinite(lo) || hi <= lo) { lo = 0; hi = 1; }
+  }
+  const ramp = HEATMAP_RAMPS[mode];
+  const out = [];
+  // 2 m chunks keep the SVG count low (~2.3 k segments for a 4.6 km lap) while still smooth.
+  const STEP = 2;
+  for (let i = 0; i + STEP < currentTrackX.length; i += STEP) {
+    const x1 = currentTrackX[i], z1 = currentTrackZ[i];
+    const x2 = currentTrackX[i + STEP], z2 = currentTrackZ[i + STEP];
+    if (!isFinite(x1) || !isFinite(z1) || !isFinite(x2) || !isFinite(z2)) continue;
+    const v = bins[i + Math.floor(STEP / 2)];
+    if (!isFinite(v)) continue;
+    const norm = Math.max(0, Math.min(1, (v - lo) / (hi - lo || 1)));
+    const colour = ramp(norm);
+    const X1 = trackTransform.toMapX(x1).toFixed(1);
+    const Y1 = trackTransform.toMapZ(z1).toFixed(1);
+    const X2 = trackTransform.toMapX(x2).toFixed(1);
+    const Y2 = trackTransform.toMapZ(z2).toFixed(1);
+    out.push(`<line x1="${X1}" y1="${Y1}" x2="${X2}" y2="${Y2}" stroke="${colour}" stroke-width="2.5" stroke-linecap="round"/>`);
+  }
+  return out.join('');
+}
+
+function renderMapLegend() {
+  const el = document.getElementById('map-legend');
+  if (!el) return;
+  if (currentMapMode === 'outline') { el.innerHTML = ''; return; }
+  const col = HEATMAP_CHANNELS[currentMapMode];
+  const bins = currentSessionBins?.[col];
+  let lo = 0, hi = 1, unit = '';
+  if (currentMapMode === 'speed' && bins) {
+    lo = Infinity; hi = -Infinity;
+    for (const v of bins) { if (isFinite(v)) { if (v < lo) lo = v; if (v > hi) hi = v; } }
+    if (!isFinite(lo) || hi <= lo) { lo = 0; hi = 1; }
+    unit = ' km/h';
+  } else if (currentMapMode === 'brake' || currentMapMode === 'throttle') {
+    lo = 0; hi = 1; unit = '';
+  }
+  const ramp = HEATMAP_RAMPS[currentMapMode];
+  const stops = [];
+  for (let i = 0; i <= 10; i++) stops.push(`${ramp(i / 10)} ${i * 10}%`);
+  const fmt = currentMapMode === 'speed' ? v => v.toFixed(0) : v => v.toFixed(1);
+  el.innerHTML = `<span>${fmt(lo)}${unit}</span><div class="map-legend-bar" style="background:linear-gradient(to right, ${stops.join(',')})"></div><span>${fmt(hi)}${unit}</span>`;
 }
 
 function updateZoomArc() {
@@ -895,9 +1048,12 @@ function renderAll(sessionEntry, sessionSegIdx, refEntry, refSegIdx) {
   currentMaxDist = maxDist;
   currentSessionBins = {};
   currentRefBins = {};
-  // Only reset zoom range if it wasn't already set (preserve zoom state across re-renders)
-  if (!currentZoomRange) currentZoomRange = { start: 0, end: maxDist };
-  else { currentZoomRange.end = Math.min(currentZoomRange.end, maxDist); }
+  // Restore persisted zoom (M6) on first render; preserve across re-renders.
+  if (!currentZoomRange) {
+    currentZoomRange = loadPersistedZoom(maxDist) || { start: 0, end: maxDist };
+  } else {
+    currentZoomRange.end = Math.min(currentZoomRange.end, maxDist);
+  }
 
   // Resample all channels
   for (const def of PANEL_DEFS) {
@@ -1025,7 +1181,11 @@ function formatPickLabel(entry, segIdx) {
   const dur = sliceTimes.length ? Math.max(...sliceTimes) : 0;
   const total = entry.segments.length;
   const mark = segIdx === 0 ? '(out)' : segIdx === total - 1 ? '(in)' : formatDuration(dur);
-  return `${entry.fileName} / Lap ${segIdx + 1} #${seg.lapNum} ${mark}`;
+  const sc = entry.sidecar;
+  const meta = sc
+    ? ` · ${shortVehicle(sc.vehicle_name)}${sc.setup_file_guess ? ` · ${shortSetup(sc.setup_file_guess)}` : ''}`
+    : '';
+  return `${entry.fileName} / Lap ${segIdx + 1} #${seg.lapNum} ${mark}${meta}`;
 }
 
 function rebuildPickers() {
@@ -1046,7 +1206,11 @@ function rebuildPickers() {
       if (dur > 0 && dur < bestTime) { bestTime = dur; bestIdx = i; }
     }
 
-    const groupLabel = entry.fileName;
+    const sc = entry.sidecar;
+    const groupMeta = sc
+      ? ` — ${shortVehicle(sc.vehicle_name)}${sc.setup_file_guess ? ` (${shortSetup(sc.setup_file_guess)})` : ''}`
+      : '';
+    const groupLabel = `${entry.fileName}${groupMeta}`;
     let groupHtml = `<optgroup label="${groupLabel}">`;
     for (let i = 0; i < total; i++) {
       const seg = entry.segments[i];
@@ -1105,7 +1269,41 @@ function parsePickerValue(val) {
 
 // ── File loading ──────────────────────────────────────────────────────────────
 
+// Pending sidecar JSONs keyed by stem (filename without extension).
+// When the parquet for the same stem arrives, we attach the metadata.
+const pendingSidecars = new Map();  // stem → sidecar object
+
+function fileStem(name) {
+  const i = name.lastIndexOf('.');
+  return i > 0 ? name.slice(0, i) : name;
+}
+
+async function loadSidecar(file) {
+  try {
+    const text = await file.text();
+    const sidecar = JSON.parse(text);
+    const stem = fileStem(file.name);
+    // If parquet already loaded for this stem, attach now.
+    let attached = false;
+    for (const [key, entry] of store) {
+      if (fileStem(entry.fileName) === stem) {
+        entry.sidecar = sidecar;
+        attached = true;
+        break;
+      }
+    }
+    if (!attached) pendingSidecars.set(stem, sidecar);
+    rebuildPickers();
+    refreshSessionListBadges();
+  } catch (e) {
+    console.warn(`sidecar parse failed for ${file.name}: ${e.message}`);
+  }
+}
+
 async function loadFile(file) {
+  if (file.name.toLowerCase().endsWith('.json')) {
+    return loadSidecar(file);
+  }
   const key = storeKey(file);
   if (store.has(key)) return; // already loaded
 
@@ -1119,19 +1317,26 @@ async function loadFile(file) {
     const hasSlip    = data.slip_angle_fl_deg.length > 0;
     const hasSectors = data.last_sector_1_s.length > 0;
 
+    // If a sidecar for this parquet was loaded earlier, attach it now.
+    const stem = fileStem(file.name);
+    const sidecar = pendingSidecars.get(stem) || null;
+    if (sidecar) pendingSidecars.delete(stem);
+
     store.set(key, {
       fileName: file.name,
       data,
       segments,
       hasSlip,
       hasSectors,
+      sidecar,
     });
 
     const missing = missingCols.filter(c => c !== 'last_sector_1_s' && c !== 'last_sector_2_s' && c !== 'slip_angle_fl_deg' && c !== 'slip_angle_fr_deg');
+    const metaSuffix = sidecar ? ` · ${shortVehicle(sidecar.vehicle_name)}` : '';
     if (missing.length) {
-      setBadge(badge, 'ok', `${data.lap_number.length} rows · ${segments.length} laps (⚠ missing: ${missing.join(',')})`);
+      setBadge(badge, 'ok', `${data.lap_number.length} rows · ${segments.length} laps${metaSuffix} (⚠ missing: ${missing.join(',')})`);
     } else {
-      setBadge(badge, 'ok', `${data.lap_number.length} rows · ${segments.length} laps`);
+      setBadge(badge, 'ok', `${data.lap_number.length} rows · ${segments.length} laps${metaSuffix}`);
     }
 
     rebuildPickers();
@@ -1141,6 +1346,32 @@ async function loadFile(file) {
     setBadge(badge, 'err', `error: ${e.message.slice(0, 60)}`);
     console.error('load error', e);
     showError(`Failed to load ${file.name}: ${e.message}`);
+  }
+}
+
+function shortVehicle(name) {
+  if (!name) return 'unknown vehicle';
+  // "WTM by Rinaldi Racing 2025 #12:ELMS" → "WTM #12:ELMS" (keep distinguishing parts)
+  const colon = name.indexOf(':');
+  const tail = colon >= 0 ? name.slice(colon) : '';
+  const head = (colon >= 0 ? name.slice(0, colon) : name).trim();
+  // Take first word + any "#N" token
+  const m = head.match(/^(\S+).*?(\#\d+)?\s*$/);
+  return ((m && m[1]) || head.slice(0, 20)) + (m && m[2] ? ` ${m[2]}` : '') + tail;
+}
+
+function shortSetup(name) {
+  if (!name) return null;
+  return name.replace(/\.svm$/i, '');
+}
+
+function refreshSessionListBadges() {
+  for (const [key, entry] of store) {
+    const badge = document.getElementById(`badge-${CSS.escape(key)}`);
+    if (!badge) continue;
+    const meta = entry.sidecar ? ` · ${shortVehicle(entry.sidecar.vehicle_name)}` : '';
+    const text = `${entry.data.lap_number.length} rows · ${entry.segments.length} laps${meta}`;
+    setBadge(badge, 'ok', text);
   }
 }
 
@@ -1341,6 +1572,7 @@ plotArea.addEventListener('mouseup', e => {
   if (d2 - d1 > 10) {  // Only zoom if selection is large enough
     currentZoomRange.start = d1;
     currentZoomRange.end = d2;
+    persistZoom(currentZoomRange);
     renderAll(...state.currentRenderParams);
   }
 });
@@ -1350,6 +1582,7 @@ plotArea.addEventListener('dblclick', e => {
   if (!currentSessionBins || !currentZoomRange) return;
   currentZoomRange.start = 0;
   currentZoomRange.end = state.maxDist;
+  persistZoom(currentZoomRange);
   renderAll(...state.currentRenderParams);
 });
 
@@ -1366,6 +1599,7 @@ document.addEventListener('keydown', e => {
   if (e.key === 'Escape' && currentSessionBins && currentZoomRange) {
     currentZoomRange.start = 0;
     currentZoomRange.end = state.maxDist;
+    persistZoom(currentZoomRange);
     renderAll(...state.currentRenderParams);
   }
 });
@@ -1422,6 +1656,12 @@ document.getElementById('compare-btn').addEventListener('click', () => {
       }
     }
   });
+});
+
+// Heatmap mode change re-renders the circuit map only (no panel re-render needed).
+document.getElementById('map-mode').addEventListener('change', e => {
+  currentMapMode = e.target.value;
+  if (currentSessionBins) renderCircuitMap();
 });
 
 // ── Debug hooks for Playwright ────────────────────────────────────────────────
