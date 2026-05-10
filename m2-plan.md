@@ -285,3 +285,14 @@ lap-telemetry record --out-dir ./sessions
 # Ctrl+C immediately; check that the recovered file appears
 lap-telemetry summary sessions/<recovered>.parquet
 ```
+
+---
+
+## Result
+
+**PASSED 2026-05-10.** LMU at Circuit de Barcelona, DKR Engineering #4 (ELMS25):
+26,893 rows / 537.9 s @ 50.0 Hz, laps 0–4 (out-lap, three valid laps 1:51.077 /
+1:42.753 / 1:40.440, partial last lap). First and last laps shown as `-`, middle
+laps shown as `yes`, no orphaned `.partN.parquet` files left after shutdown.
+Orphan-recovery path also exercised end-to-end: an 18-shard run was rebuilt into
+the final Parquet via the startup recovery code.

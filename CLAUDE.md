@@ -8,22 +8,31 @@ See [m2-plan.md](m2-plan.md) for the M2 implementation plan (write loop, Parquet
 
 ## Current state
 
-M1 complete. Recorder skeleton connects to LMU or rF2 via shared memory, prints
-one frame per poll tick, exits cleanly on Ctrl+C. No Parquet writing yet (M2).
+M2 complete. `lap-telemetry record` streams frames at 50 Hz from LMU or rF2,
+buffers them in `SessionWriter`, flushes Parquet shards every 30 s, and on clean
+shutdown merges shards into a final `<session>.parquet` + `<session>.json`
+sidecar. Orphaned shards from a prior crash are recovered on the next startup.
+`lap-telemetry summary <file>` prints per-lap frame counts, durations, and
+validity. Acceptance test passed on 2026-05-10 with a 4-lap LMU session at
+Circuit de Barcelona (26,893 rows / 537.9 s @ 50.0 Hz, laps 1–3 valid).
 
 ## Key facts
 
 - Entry point: `lap_telemetry/cli.py` → dispatches to `lap_telemetry/recorder/record.py`
 - SHM abstraction: `lap_telemetry/recorder/connect.py` — wraps both sims behind a
   common `Frame` dataclass and `probe_and_connect()` function
+- Writer: `lap_telemetry/recorder/writer.py` — `SessionWriter` owns buffering,
+  shard files, finalisation, and sidecar; module-level `PARQUET_SCHEMA` constant
 - Submodules `pyRfactor2SharedMemory` and `pyLMUSharedMemory` are injected into
   `sys.path` by `connect.py`; do not add them as pip dependencies
-- M1 uses direct mmap access (no copy). M2 must switch to copy mode before writing rows
+- Copy-mode mmap (`create(0)`) is required when writing rows — direct mode can tear
 
 ## Commands
 
 ```powershell
-lap-telemetry record           # stream frames at 50 Hz, Ctrl+C to stop
-lap-telemetry record --once    # print one frame and exit (good for smoke-testing)
-lap-telemetry record --rate 25 # override poll rate
+lap-telemetry record                        # record to ./sessions, Ctrl+C to stop
+lap-telemetry record --out-dir ./sessions   # explicit output dir
+lap-telemetry record --once                 # print one frame and exit (smoke test)
+lap-telemetry record --rate 25              # override poll rate
+lap-telemetry summary <file>.parquet        # per-lap overview of a recorded session
 ```

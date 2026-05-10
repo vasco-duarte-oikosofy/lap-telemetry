@@ -15,7 +15,9 @@
       "PowerShell(Get-ChildItem -Path \"C:\\\\Users\\\\duart\\\\lap-telemetry\" -Force | Select-Object Name, @{Name=\"Type\";Expression={if\\($_.PSIsContainer\\){\"DIR\"}else{\"FILE\"}}} | Format-Table -AutoSize)",
       "PowerShell(pip show *)",
       "PowerShell(& \"C:\\\\Users\\\\duart\\\\lap-telemetry\\\\.venv\\\\Scripts\\\\pip.exe\" install -e \"C:\\\\Users\\\\duart\\\\lap-telemetry\")",
-      "PowerShell(& \"C:\\\\Users\\\\duart\\\\lap-telemetry\\\\.venv\\\\Scripts\\\\lap-telemetry.exe\" record --once)"
+      "PowerShell(& \"C:\\\\Users\\\\duart\\\\lap-telemetry\\\\.venv\\\\Scripts\\\\lap-telemetry.exe\" record --once)",
+      "PowerShell(Get-CimInstance *)",
+      "PowerShell(lap-telemetry *)"
     ]
   }
 }
