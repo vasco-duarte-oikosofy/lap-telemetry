@@ -25,11 +25,15 @@ git submodule update --init
 
 ## Verify the install
 
-With the sim running and in a session (not in menus):
+With the sim running, in or out of a session:
 
 ```powershell
 lap-telemetry record --once
 ```
+
+`--once` uses a bounded 3 s probe so it fails fast if the sim isn't up. The
+plain `lap-telemetry record` waits forever for the sim — start it before
+launching LMU and it will pick up automatically.
 
 Expected output (values will differ):
 

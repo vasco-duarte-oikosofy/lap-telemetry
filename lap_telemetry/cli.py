@@ -32,8 +32,12 @@ def _build_parser() -> argparse.ArgumentParser:
     rec.add_argument(
         "--probe-timeout",
         type=float,
-        default=3.0,
-        help="Seconds to wait for an active sim before giving up (default: 3.0).",
+        default=0.0,
+        help=(
+            "Seconds to wait for an active sim. 0 (default) = wait forever; "
+            "Ctrl+C to abort. With --once, an unset value defaults to 3 s "
+            "so smoke tests fail fast."
+        ),
     )
     rec.add_argument(
         "--out-dir",

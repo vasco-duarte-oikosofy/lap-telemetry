@@ -10,13 +10,26 @@ See [m3-plan.md](m3-plan.md) for the M3 implementation plan (sectors in summary,
 
 ## Current state
 
-M2 complete. `lap-telemetry record` streams frames at 50 Hz from LMU or rF2,
-buffers them in `SessionWriter`, flushes Parquet shards every 30 s, and on clean
-shutdown merges shards into a final `<session>.parquet` + `<session>.json`
-sidecar. Orphaned shards from a prior crash are recovered on the next startup.
-`lap-telemetry summary <file>` prints per-lap frame counts, durations, and
-validity. Acceptance test passed on 2026-05-10 with a 4-lap LMU session at
-Circuit de Barcelona (26,893 rows / 537.9 s @ 50.0 Hz, laps 1–3 valid).
+M3 in progress. `lap-telemetry record` is a long-running daemon — start it
+before the sim and leave it running across an evening of mixed sessions. The
+probe retries until LMU/rF2 appears (`--probe-timeout 0` = forever). The
+frame gate ignores the broken `mInRealtime` flag; recordable = non-None
+frame with non-empty track + vehicle and not paused. One session file is
+written per `(track, vehicle)` combo; combo changes (or 5 s of idle) close
+the writer cleanly and start a fresh one on the next recordable frame.
+
+`SessionWriter` writes the JSON sidecar at session start, refreshes it on
+every shard flush, and finalises it at close — so a hard kill still leaves
+identifying metadata on disk. Orphan recovery on next startup stamps
+`recovered: true` and recomputes counts. Sidecar also carries a
+heuristic `setup_file_guess` (the most-recently-modified `.svm` in the
+sim's per-track Settings folder).
+
+Parquet schema includes `last_sector_1_s` / `last_sector_2_s`, sourced from
+`scor_v.mLastSector{1,2}` (sim's `-1.0` "not set" sentinel mapped to NaN).
+`lap-telemetry summary <file>` shows S1/S2/S3 per lap (S3 derived from
+duration); `lap-telemetry summary <dir>` prints one line per session in the
+directory.
 
 ## Key facts
 
@@ -32,9 +45,11 @@ Circuit de Barcelona (26,893 rows / 537.9 s @ 50.0 Hz, laps 1–3 valid).
 ## Commands
 
 ```powershell
-lap-telemetry record                        # record to ./sessions, Ctrl+C to stop
+lap-telemetry record                        # waits for sim, records until Ctrl+C
 lap-telemetry record --out-dir ./sessions   # explicit output dir
-lap-telemetry record --once                 # print one frame and exit (smoke test)
+lap-telemetry record --once                 # 3 s probe, print one frame, exit
 lap-telemetry record --rate 25              # override poll rate
-lap-telemetry summary <file>.parquet        # per-lap overview of a recorded session
+lap-telemetry record --probe-timeout 5      # bound the wait (0 = forever, default)
+lap-telemetry summary <file>.parquet        # per-lap overview of one session
+lap-telemetry summary <dir>                 # one-line overview across a folder
 ```

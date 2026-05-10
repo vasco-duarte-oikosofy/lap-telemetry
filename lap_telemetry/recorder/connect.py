@@ -10,6 +10,7 @@ crash-safe recording.
 """
 from __future__ import annotations
 
+import math
 import sys
 import time
 from dataclasses import dataclass
@@ -44,6 +45,8 @@ class Frame:
     pos_x_m: float
     pos_y_m: float
     pos_z_m: float
+    last_sector_1_s: float
+    last_sector_2_s: float
     in_realtime: bool
     paused: bool
     track_name: str
@@ -75,6 +78,12 @@ def _player_scor_index(scor_vehicles, count: int) -> int:
         if scor_vehicles[i].mIsPlayer:
             return i
     return -1
+
+
+def _sector_or_nan(value: float) -> float:
+    """Sims report -1.0 for 'not yet set'. Map to NaN at the recorder boundary."""
+    v = float(value)
+    return math.nan if v < 0.0 else v
 
 
 # ---------- LMU ---------------------------------------------------------------
@@ -145,6 +154,8 @@ class LMUConnection(_BaseConnection):
             pos_x_m=float(tele_v.mPos.x),
             pos_y_m=float(tele_v.mPos.y),
             pos_z_m=float(tele_v.mPos.z),
+            last_sector_1_s=_sector_or_nan(scor_v.mLastSector1),
+            last_sector_2_s=_sector_or_nan(scor_v.mLastSector2),
             in_realtime=bool(scor_info.mInRealtime),
             paused=False,
             track_name=_decode(bytes(scor_info.mTrackName)),
@@ -221,6 +232,8 @@ class RF2Connection(_BaseConnection):
             pos_x_m=float(tele_v.mPos.x),
             pos_y_m=float(tele_v.mPos.y),
             pos_z_m=float(tele_v.mPos.z),
+            last_sector_1_s=_sector_or_nan(scor_v.mLastSector1),
+            last_sector_2_s=_sector_or_nan(scor_v.mLastSector2),
             in_realtime=bool(scor_info.mInRealtime),
             paused=False,
             track_name=_decode(bytes(scor_info.mTrackName)),

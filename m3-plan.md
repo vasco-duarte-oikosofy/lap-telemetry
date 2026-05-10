@@ -1,12 +1,17 @@
-# M3 — Read path: sectors + recoverable metadata
+# M3 — Read path: sectors + recoverable metadata + patient multi-session recorder
 
-**Goal:** make `lap-telemetry summary` show sector splits, and make session
-metadata (`track`, `vehicle_name`, `sim`, `started_utc`) survive a hard kill so
-recovered sessions look identical to cleanly-closed ones.
+**Goal:** make `lap-telemetry summary` show sector splits, make session
+metadata (`track`, `vehicle_name`, `sim`, `started_utc`) survive a hard kill,
+and turn the recorder into a long-running daemon that can be started before
+the sim launches and produces one session file per car/track combo across an
+entire driving evening.
 
 This is the first milestone where the read path matters in earnest. M2's
 acceptance test left a recovered session with `vehicle: unknown` and no
-`ended_utc` — that hole closes here.
+`ended_utc` — that hole closes here. M3's first live test exposed a second
+hole: the recorder gated frames on `mInRealtime`, which is False in the pit
+garage and the in-game menus, so a 2-lap drive produced zero output. Piece D
+fixes that and turns the recorder into something you can leave running.
 
 ---
 
@@ -27,8 +32,10 @@ Read these files in full before touching any code:
 
 ## Scope
 
-Three independent pieces. (A) is required and lands first. (B) is the user-
-visible feature. (C) is small.
+Four independent pieces. (A) is required and lands first. (B) is the
+sectors feature. (C) is small. (D) was added after the first live test
+revealed the recorder gate was wrong; it's the work that makes the milestone
+actually usable.
 
 ### A. Recoverable metadata (REQUIRED)
 
@@ -112,6 +119,83 @@ for all sector columns — same backward-compat pattern `summary` uses for
 `CLAUDE.md` reference list should add `m3-plan.md`. (DESIGN.md was tidied as
 part of M3 prep — no further changes required there.)
 
+### D. Patient recorder + multi-session per run
+
+**Problem.** Two interlocking issues found in the M3 live test:
+
+1. The probe gives up after 3 s, so the recorder can only be started while
+   the sim is already running. The user wants to start the recorder first,
+   then launch the sim and drive whenever they're ready.
+2. The frame loop drops everything where `mInRealtime` is False. In LMU,
+   `mInRealtime` is False during the pit-garage UI, menu screens, and
+   inter-session transitions — i.e., a meaningful fraction of any normal
+   driving evening. The user's first 2-lap test produced zero output because
+   of this.
+
+The use case: start the recorder once, leave it running, drive multiple
+sessions (different cars, different tracks) during the evening, come back to
+a directory with one self-contained `.parquet` + `.json` per car/track
+combo. Each file's sidecar already carries `track` + `vehicle_name`, so a
+later UI can filter on (car, track) without parsing the recorder run state.
+
+**Approach.**
+
+1. **Patient probe.** `--probe-timeout` defaults to `0` ("wait forever, Ctrl+C
+   to abort"). Internally this is a retry loop around the existing 3 s
+   `probe_and_connect` call. SIGINT during the wait exits cleanly with
+   status 0. The smoke-test path keeps a finite default: `--once` implies
+   `--probe-timeout 3` unless the user overrides explicitly, so
+   `lap-telemetry record --once` still fails fast when the sim isn't up.
+
+2. **New frame gate.** Drop `mInRealtime` entirely. Keep skipping `paused`
+   frames. The "is this a recordable frame" predicate becomes:
+
+   ```
+   frame is not None
+   and frame.track_name != ""
+   and frame.vehicle_name != ""
+   and not frame.paused
+   ```
+
+   `read_frame()` already returns `None` when no player slot exists (i.e.
+   the sim is in main menu with `mNumVehicles == 0`), so a `None` frame is a
+   reliable "not in session" signal. `track_name`/`vehicle_name` empty on a
+   non-`None` frame is the loading-screen transition state.
+
+3. **Session lifecycle in the loop.** A *session* is one continuous span
+   where `(track_name, vehicle_name)` is constant. Open a `SessionWriter`
+   when the first recordable frame arrives. Close it when:
+   - track or vehicle changes (and immediately open a new writer for the
+     incoming combo), or
+   - frames stop arriving for more than 5 s (sim quit to main menu, loading
+     screen too long to be a transition, etc.). Close the writer cleanly so
+     its sidecar is final; then start a fresh writer when a recordable
+     frame next arrives.
+
+   No reconnect-after-sim-crash. If the sim quits, the writer closes; the
+   user can Ctrl+C and restart the recorder if they want to switch sims.
+   Mid-session sim crashes during a drive are handled by the existing
+   orphan-shard recovery on next startup (piece A).
+
+4. **Multi-session overview in `summary`.** `lap-telemetry summary <dir>`
+   reads every `session_*.parquet` in the directory, joins each with its
+   sidecar, and prints a one-line-per-session table sorted by `started_utc`:
+
+   ```
+   started_utc           sim   track                  vehicle                                laps   duration
+   --------------------- ----- ---------------------- -------------------------------------- ------ ----------
+   2026-05-10T14:02:11Z  lmu   Circuit de Barcelona   DKR Engineering #4:ELMS25                  4      8:31.2
+   2026-05-10T14:48:33Z  lmu   Lemans                 Porsche 963                                3     12:04.7
+   ```
+
+   `summary <file.parquet>` keeps the existing per-lap behaviour. The same
+   command, dispatched on whether the path is a file or a directory.
+
+**What's deliberately out of scope.** Sim-crash auto-reconnect (Ctrl+C and
+restart instead). Mid-session paused-frame detection from `mGamePhase`
+(low-priority; can be done later as an analysis-time filter). Live status
+output during long idle periods (the user explicitly declined this).
+
 ---
 
 ## Steps
@@ -142,7 +226,27 @@ part of M3 prep — no further changes required there.)
      scanning lap boundaries (first frame of lap N+1 supplies lap N's
      splits). Cleanly handle NaN (display `-`).
    - Print the new columns right-aligned, matching the existing format.
-6. **Acceptance test** (below).
+6. **Setup-file heuristic (piece C addition).** Snapshot the most-recent
+   `.svm` filename in `<sim>/UserData/player/Settings/<track>/` at
+   `SessionWriter.__init__` and stamp it into the sidecar as
+   `setup_file_guess`. The sim doesn't expose the loaded setup name on SHM,
+   so this is a heuristic; the field name signals that. `summary` prints
+   `setup  : <filename> (guess)` when populated.
+7. **Patient probe (piece D).** Add a retry loop around `probe_and_connect`
+   in `record.py`. `--probe-timeout 0` (the new default) means "retry until
+   interrupted." SIGINT during the wait returns status 0. `--once` keeps a
+   3 s default unless the user passes `--probe-timeout` explicitly.
+8. **New frame gate + multi-session lifecycle (piece D).** Replace the
+   `not in_realtime or paused` filter in `record.py` with the predicate
+   from §D.2. Track `(last_track, last_vehicle)` as before; on change, close
+   the existing writer and open a new one. Keep a `last_frame_time`
+   timestamp; if more than 5 s elapse without a recordable frame, close the
+   writer.
+9. **Summary directory mode (piece D).** In `summary.py`, dispatch on
+   `path.is_dir()`. Directory branch globs `session_*.parquet`, reads each
+   sidecar, and prints the one-line-per-session table from §D.4. File
+   branch is unchanged.
+10. **Acceptance test** (below).
 
 ---
 
@@ -160,19 +264,66 @@ part of M3 prep — no further changes required there.)
 
 ## M3 acceptance test
 
-Prerequisites: LMU running, car on track, at least 2 complete laps available.
+The recorder is started *before* the sim. The same `lap-telemetry record`
+process is expected to span the whole test, with multiple sims-side
+sessions during it.
 
-### Happy path
+### Step 1 — patient probe
 
 ```powershell
 lap-telemetry record --out-dir ./sessions
-# drive 2+ complete laps, Ctrl+C cleanly
-lap-telemetry summary sessions/<latest>.parquet
+# (LMU not running; recorder should print "waiting for active sim..." and stay alive)
 ```
 
 Pass criteria:
+- Recorder prints a "waiting" line and does not exit.
+- Ctrl+C aborts cleanly with status 0.
+
+### Step 2 — first session
+
+Start the recorder, then launch LMU, load into a session, drive 2+ laps,
+**stay in the recorder** (do not Ctrl+C yet).
+
+Pass criteria:
+- Recorder prints `lap-telemetry: track=… vehicle=…` once frames start
+  arriving.
+- A `session_*.parquet` + `.json` pair appears in `./sessions/` after the
+  first 30 s flush.
+
+### Step 3 — switch car/track within the same recorder run
+
+Without stopping the recorder, return to LMU's main menu and load a
+different car or track. Drive 1+ lap on the new combo. Then Ctrl+C the
+recorder.
+
+Pass criteria:
+- Recorder prints a session-closed line for combo 1 followed by a fresh
+  `track=… vehicle=…` line for combo 2.
+- Two distinct `session_*.parquet` files now exist, one per combo.
+- Each file's sidecar has `in_progress: false`, the correct (different)
+  `track` / `vehicle_name`, and matching `started_utc` / `ended_utc`.
+
+### Step 4 — overview
+
+```powershell
+lap-telemetry summary ./sessions
+```
+
+Pass criteria:
+- One line per session, sorted by `started_utc`.
+- Columns: started_utc, sim, track, vehicle, laps, duration.
+- Both sessions from steps 2–3 appear with the right metadata.
+
+### Step 5 — per-session detail
+
+```powershell
+lap-telemetry summary sessions/<combo-1>.parquet
+```
+
+Pass criteria (per the original M3 piece A/B/C bar):
 - `track`, `vehicle`, `sim`, period times all populated (no `unknown`).
-- Sector columns `s1`, `s2`, `s3` show real times for the middle laps and `-`
+- `setup` line shows a real `.svm` filename.
+- Sector columns `s1`, `s2`, `s3` show real times for middle laps and `-`
   for first/last.
 - For at least one middle lap, `s1 + s2 + s3 ≈ duration` (within 0.05 s).
 - No orphaned `.partN.parquet` files remain.

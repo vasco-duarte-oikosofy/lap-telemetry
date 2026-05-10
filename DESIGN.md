@@ -34,6 +34,7 @@ Pulled from the `pyRfactor2SharedMemory` and `pyLMUSharedMemory` modules that Ti
 
 - Shared memory updates run roughly at the sim's physics tick (~90–100 Hz for rF2/LMU). We poll on a fixed interval.
 - A `paused` flag in scoring info goes high when the game freezes (menu, pause). We must not record paused frames — or we'll get long flat segments that pollute lap detection.
+- `mInRealtime` is **not** a useful "is the player driving" gate. It is False during pit-garage UI, menu screens, and inter-session transitions — i.e., a meaningful fraction of any normal driving evening. The reliable "in session" signal is `read_frame() != None` (the player slot exists, i.e. `mNumVehicles > 0` and `mIsPlayer` is set somewhere) combined with non-empty `track_name` and `vehicle_name`. (M3 first live test confirmed this — a 2-lap drive with the old gate produced zero output.)
 - Vehicle data lives in an array indexed by slot; the player's slot ID can change. Re-resolve the local-player index every frame via the scoring section.
 - Strings (track name, vehicle class) come back as bytes; tyre temps in Kelvin. Convert at the recorder boundary, not in analysis code. String decoding is UTF-8 with a latin-1 fallback for legacy mod content; hardcoded for v0.1, made configurable only if a user reports mojibake.
 - TinyPedal's own files in `deltabest/`, `trackmap/`, `pacenotes/` etc. use specific extensions (`.csv`, `.sector`, `.fuel`, `.energy`, `.svg`). We will not write any of those extensions in any TinyPedal-adjacent folder.
@@ -55,22 +56,24 @@ Both are plain Python packages in this repo. The recorder depends on `pyRfactor2
 
 ### 4.1 Recorder
 
-- Connects to whichever sim is active (LMU first, fall back to rF2). Same probe order TinyPedal uses.
-- mmap access mode: M1 uses direct access (read-through, no buffer copy) since print-a-frame can tolerate occasional tearing. M2 switches to copy access with the writer's version-block check, so a recorded row never spans two sim ticks.
+- Designed to be started *before* the sim and left running across the whole driving evening. The probe retries until a sim shows up; `--probe-timeout 0` (the default) means "wait until interrupted."
+- Connects to whichever sim becomes active first (LMU first, fall back to rF2). Same probe order TinyPedal uses.
+- mmap access mode: M1 used direct access (read-through, no buffer copy) since print-a-frame can tolerate occasional tearing. M2 switched to copy access with the writer's version-block check, so a recorded row never spans two sim ticks.
 - Polls at a fixed 50 Hz wall-clock interval (configurable). Sim updates faster; we deliberately downsample to keep files reasonable. 50 Hz × 2 hours ≈ 360k rows — fine for Parquet.
 - Each frame:
   1. Read scoring + player telemetry slot in one pass.
-  2. Drop the frame if `paused`, `not in_realtime`, or `mDeltaTime == 0` (duplicate frame).
+  2. Drop the frame if `paused`, if `read_frame()` returned None, if `track_name` or `vehicle_name` is empty, or if `mDeltaTime == 0` (duplicate). `mInRealtime` is *not* used as a gate (see §3).
   3. Append a row to an in-memory buffer, keyed by `(session_id, lap_number, lap_distance, session_time)`.
-- Every N seconds (default 30) flush the buffer to a temp Parquet shard. On graceful shutdown (or session change), concatenate shards into the final session file. This protects against crashes losing the whole stint.
+- Every N seconds (default 30) flush the buffer to a temp Parquet shard, and refresh the JSON sidecar in place (`in_progress: true`, latest row/lap counts). On graceful shutdown (or session change), concatenate shards into the final session file. This protects against crashes losing the whole stint, and ensures hard-killed sessions have an identifying sidecar on disk for orphan-recovery to stamp.
 - Lap boundaries are detected by monotonic increase of `mLapNumber`. We do *not* trust lap distance wraparound alone — the sim sometimes reports it before the lap counter ticks.
-- Emits one session file per "stint" — defined as a continuous span where `mInRealtime` was true and the track + vehicle didn't change. New track or new car → new session file.
+- **Multi-session per recorder run.** Emits one session file per `(track, vehicle)` combo. The combo changing closes the current writer and opens a new one. If recordable frames stop arriving for more than 5 s (sim quit to main menu, loading screen overshoot, etc.), the writer is closed cleanly; a fresh writer opens on the next recordable frame.
 
 ### 4.2 Analyzer
 
 Two entry points, sharing one core:
 
 - `lap-telemetry summary <session.parquet>` — print a table of laps with lap time, sectors, valid flag.
+- `lap-telemetry summary <dir>` — one-line-per-session overview of every `session_*.parquet` in the directory: started_utc, sim, track, vehicle, laps, duration. Sorted by `started_utc`.
 - `lap-telemetry compare <ref.parquet>:<lap_n> <cmp.parquet>:<lap_m>` — open a window with overlaid traces.
 
 The viewer uses **PyQtGraph** (fast, mouse-pannable, plays nicely with PySide2 which is already on the system from TinyPedal). Layout: vertical stack of linked plots — speed, throttle/brake, RPM/gear, steering, slip angle (per axle), Δt — all on a shared lap-distance x-axis with a synced cursor.
@@ -138,11 +141,14 @@ Small JSON written next to the Parquet, holding fields that don't make sense as 
 ## 6. CLI surface
 
 ```
-lap-telemetry record [--rate 50] [--out-dir ./sessions]
-lap-telemetry summary ./sessions/<file>.parquet
+lap-telemetry record [--rate 50] [--out-dir ./sessions] [--probe-timeout 0]
+lap-telemetry summary ./sessions/<file>.parquet         # per-lap detail of one session
+lap-telemetry summary ./sessions                        # one line per session file
 lap-telemetry compare ./sessions/A.parquet:7 ./sessions/B.parquet:3
-lap-telemetry export ./sessions/A.parquet --to csv   # for sharing
+lap-telemetry export ./sessions/A.parquet --to csv      # for sharing
 ```
+
+`--probe-timeout 0` (the default) means "wait forever for a sim, Ctrl+C to abort." A positive value bounds the wait — useful for `--once` smoke tests, where it defaults to 3 s.
 
 That's the whole thing. No config file in v0.1 — flags only.
 
@@ -150,7 +156,7 @@ That's the whole thing. No config file in v0.1 — flags only.
 
 - **M1 — recorder skeleton. ✅ done 2026-05-09.** Submodule the SHM libs, connect, print a frame, exit cleanly on Ctrl+C. Verified against a live LMU session (Bahrain, GT3) — same SHM regions TinyPedal reads.
 - **M2 — write loop. ✅ done 2026-05-10.** Buffer → Parquet shards → final session file + JSON sidecar; lap-boundary detection; copy-mode mmap; orphaned-shard recovery on next startup. `lap-telemetry summary` prints a per-lap overview (frames, duration, valid). Acceptance test passed at Circuit de Barcelona, 4-lap LMU session, 26,893 rows @ 50 Hz.
-- **M3 — read path: sectors + recoverable metadata.** Capture sector splits per lap and display them in `summary`. Make sidecar metadata (`track`, `vehicle_name`) survive a hard kill: written at session start, not just at close, so orphan recovery rebuilds a complete sidecar.
+- **M3 — read path: sectors + recoverable metadata + patient multi-session recorder.** Capture sector splits per lap and display them in `summary`. Make sidecar metadata (`track`, `vehicle_name`) survive a hard kill: written at session start and refreshed on every shard flush, not just at close, so orphan recovery rebuilds a complete sidecar. Snapshot a best-effort `setup_file_guess` from the sim's per-track Settings folder. Recorder retries the probe until a sim appears, drops the broken `mInRealtime` gate, and rotates session files automatically when the user changes car/track or quits to the main menu — one recorder run can span an entire driving evening of mixed sessions. `lap-telemetry summary <dir>` summarises all sessions in a directory.
 - **M4 — `compare` command, single-plot.** Overlay just speed-vs-distance for two laps. Validates resampling.
 - **M5 — full plot stack.** Add throttle/brake, RPM/gear, steering, slip, Δt panel.
 - **M6 — quality of life.** Lap filtering (in/out laps, invalid), sector splits, persistent zoom.
