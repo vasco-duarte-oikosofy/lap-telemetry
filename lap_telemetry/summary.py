@@ -6,7 +6,6 @@ import math
 import sys
 from pathlib import Path
 
-import pyarrow.compute as pc
 import pyarrow.parquet as pq
 
 
@@ -131,22 +130,19 @@ def _run_file(path: Path) -> int:
     print(f"rows   : {t.num_rows}  ({duration_s:.1f} s at {rate_hz} Hz)")
     print()
 
-    lap_col = t.column("lap_number").to_pylist()
-    all_laps = sorted(set(lap_col))
-    first_lap = all_laps[0]
-    last_lap  = all_laps[-1]
+    # Iterate per-segment (contiguous run of constant lap_number) rather than
+    # per-unique-lap_number. Frames are already in time order, so segments
+    # come out chronologically. This handles race-restart rewinds (lap_number
+    # going back to 0 mid-recording) and rolling-start out-laps without
+    # mis-sorting or mis-detecting the first/last lap. See m3-plan.md §E1/§E2.
+    lap_col      = t.column("lap_number").to_pylist()
+    lap_t_col    = t.column("lap_time_s").to_pylist()
+    valid_col    = t.column("lap_valid").to_pylist() if has_valid_col else None
+    s1_col       = t.column("last_sector_1_s").to_pylist() if has_sectors else None
+    s2_col       = t.column("last_sector_2_s").to_pylist() if has_sectors else None
 
-    # mLastSector* on a frame describes the *previously completed* lap, so the
-    # first frame of lap N+1 supplies lap N's S1/S2.
-    sector_for_lap: dict[int, tuple[float, float]] = {}
-    if has_sectors:
-        s1_col = t.column("last_sector_1_s").to_pylist()
-        s2_col = t.column("last_sector_2_s").to_pylist()
-        prev_lap: int | None = None
-        for lap_num, s1_val, s2_val in zip(lap_col, s1_col, s2_col):
-            if prev_lap is not None and lap_num != prev_lap:
-                sector_for_lap.setdefault(prev_lap, (s1_val, s2_val))
-            prev_lap = lap_num
+    segments = _build_segments(lap_col)
+    num_segs = len(segments)
 
     header = (
         f"{'lap':>4}   {'frames':>6}   {'duration':>10}   "
@@ -155,42 +151,70 @@ def _run_file(path: Path) -> int:
     print(header)
     print("-" * len(header))
 
-    for lap in all_laps:
-        mask = pc.equal(t.column("lap_number"), lap)
-        frames = int(pc.sum(mask).as_py())
-
-        lap_t_col = pc.filter(t.column("lap_time_s"), mask)
-        max_lap_t = pc.max(lap_t_col).as_py()
+    for seg_idx, (lap_num, start_idx, end_idx) in enumerate(segments):
+        frames = end_idx - start_idx
+        seg_lap_t = lap_t_col[start_idx:end_idx]
+        max_lap_t = max(seg_lap_t) if seg_lap_t else 0.0
         duration_str = _fmt_duration(max_lap_t)
 
-        # incomplete laps: first (no prior boundary) and last (recording cut off)
-        is_incomplete = lap == first_lap or lap == last_lap
+        # Chronological first/last get the dash-out treatment — not min/max
+        # by lap_number, which a restart breaks.
+        is_incomplete = seg_idx == 0 or seg_idx == num_segs - 1
 
         if is_incomplete:
             valid_str = "-"
-        elif not has_valid_col:
+        elif valid_col is None:
             valid_str = "?"
         else:
-            valid_col = pc.filter(t.column("lap_valid"), mask).to_pylist()
-            # lap is valid if all frames on that lap report valid
-            valid_str = "yes" if all(valid_col) else "no"
+            seg_valid = valid_col[start_idx:end_idx]
+            valid_str = "yes" if all(seg_valid) else "no"
 
         s1_str = s2_str = s3_str = "-"
-        if not is_incomplete and lap in sector_for_lap:
-            # SHM stores LastSector1 = S1 duration, LastSector2 = S1+S2
-            # cumulative. Convert to individual sector durations for display.
-            s1, cum_s2 = sector_for_lap[lap]
-            if not (math.isnan(s1) or math.isnan(cum_s2)):
+        if not is_incomplete and s1_col is not None and seg_idx + 1 < num_segs:
+            # mLastSector* describes the previously-completed lap, so the
+            # first frame of the *next* segment carries this segment's S1/S2.
+            next_start = segments[seg_idx + 1][1]
+            s1 = s1_col[next_start]
+            cum_s2 = s2_col[next_start]
+            # Real sector times are strictly positive and S1 < cumS2.
+            # The sim resets mLastSector* to 0 on Restart Session, and uses
+            # -1 (already NaN'd at the recorder) as the "not yet set" sentinel.
+            valid_sectors = (
+                not math.isnan(s1)
+                and not math.isnan(cum_s2)
+                and s1 > 0.0
+                and cum_s2 > s1
+            )
+            if valid_sectors:
+                # SHM: LastSector1 = S1 dur, LastSector2 = S1+S2 cumulative.
                 s1_str = _fmt_sector(s1)
                 s2_str = _fmt_sector(cum_s2 - s1)
                 s3_str = _fmt_sector(max_lap_t - cum_s2)
-            else:
-                s1_str = _fmt_sector(s1)
-                s2_str = _fmt_sector(cum_s2)
 
         print(
-            f"{lap:>4}   {frames:>6}   {duration_str:>10}   "
+            f"{lap_num:>4}   {frames:>6}   {duration_str:>10}   "
             f"{s1_str:>8}   {s2_str:>8}   {s3_str:>8}   {valid_str:>5}"
         )
 
     return 0
+
+
+def _build_segments(lap_col: list[int]) -> list[tuple[int, int, int]]:
+    """Contiguous runs of constant lap_number, in time order.
+
+    Returns list of (lap_number, start_idx, end_idx_exclusive). A race
+    restart that rewinds mLapNumber produces multiple segments with the
+    same lap_number; the user can tell them apart from session_time_s.
+    """
+    if not lap_col:
+        return []
+    segs: list[tuple[int, int, int]] = []
+    prev = lap_col[0]
+    start = 0
+    for i in range(1, len(lap_col)):
+        if lap_col[i] != prev:
+            segs.append((prev, start, i))
+            prev = lap_col[i]
+            start = i
+    segs.append((prev, start, len(lap_col)))
+    return segs
