@@ -1,0 +1,629 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lap Telemetry — Compare</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg:       #0d1117;
+    --surface:  #161b22;
+    --border:   #30363d;
+    --text:     #c9d1d9;
+    --muted:    #8b949e;
+    --accent:   #58a6ff;
+    --session-color: #4fc3f7;
+    --ref-color:     #ff9800;
+    --error:    #f85149;
+    --ok:       #3fb950;
+  }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: ui-monospace, 'Cascadia Code', 'Fira Code', monospace;
+    font-size: 14px;
+    min-height: 100vh;
+    padding: 24px;
+  }
+
+  h1 {
+    font-size: 20px;
+    font-weight: 600;
+    color: var(--accent);
+    margin-bottom: 20px;
+    letter-spacing: 0.5px;
+  }
+
+  .controls {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin-bottom: 20px;
+  }
+
+  .file-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 14px 16px;
+  }
+
+  .file-card label {
+    display: block;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--muted);
+    margin-bottom: 8px;
+  }
+
+  .file-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  input[type="file"] {
+    flex: 1;
+    color: var(--text);
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 5px 8px;
+    font-family: inherit;
+    font-size: 12px;
+    cursor: pointer;
+  }
+  input[type="file"]::-webkit-file-upload-button {
+    background: var(--border);
+    color: var(--text);
+    border: none;
+    border-radius: 3px;
+    padding: 4px 10px;
+    font-family: inherit;
+    font-size: 12px;
+    cursor: pointer;
+    margin-right: 8px;
+  }
+
+  .status-badge {
+    font-size: 11px;
+    padding: 3px 8px;
+    border-radius: 12px;
+    white-space: nowrap;
+    background: var(--border);
+    color: var(--muted);
+  }
+  .status-badge.ok    { background: #1a3a1a; color: var(--ok); }
+  .status-badge.err   { background: #2a1a1a; color: var(--error); }
+  .status-badge.loading { background: #1a2a3a; color: var(--accent); }
+
+  .picker-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 20px;
+  }
+
+  select {
+    flex: 1;
+    background: var(--surface);
+    color: var(--text);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 7px 10px;
+    font-family: inherit;
+    font-size: 13px;
+    cursor: pointer;
+  }
+  select:disabled { opacity: 0.4; cursor: default; }
+
+  button {
+    background: var(--accent);
+    color: #000;
+    border: none;
+    border-radius: 4px;
+    padding: 7px 18px;
+    font-family: inherit;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    white-space: nowrap;
+  }
+  button:disabled { opacity: 0.35; cursor: default; }
+  button:not(:disabled):hover { filter: brightness(1.15); }
+
+  .legend {
+    display: flex;
+    gap: 20px;
+    margin-bottom: 8px;
+    font-size: 12px;
+    color: var(--muted);
+  }
+  .legend-item { display: flex; align-items: center; gap: 6px; }
+  .legend-swatch {
+    width: 24px; height: 3px; border-radius: 2px;
+  }
+
+  #plot-container {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 16px;
+  }
+
+  #plot {
+    display: block;
+    width: 100%;
+    overflow: visible;
+  }
+
+  .plot-placeholder {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 300px;
+    color: var(--muted);
+    font-size: 13px;
+  }
+
+  .axis-label {
+    font-size: 11px;
+    fill: var(--muted);
+    font-family: ui-monospace, monospace;
+  }
+  .tick-label {
+    font-size: 10px;
+    fill: var(--muted);
+    font-family: ui-monospace, monospace;
+  }
+  .axis-line { stroke: var(--border); stroke-width: 1; }
+  .grid-line { stroke: var(--border); stroke-width: 0.5; stroke-dasharray: 3 3; }
+  .session-line {
+    fill: none;
+    stroke: var(--session-color);
+    stroke-width: 1.5;
+    stroke-linejoin: round;
+    stroke-linecap: round;
+  }
+  .ref-line {
+    fill: none;
+    stroke: var(--ref-color);
+    stroke-width: 1.5;
+    stroke-linejoin: round;
+    stroke-linecap: round;
+    stroke-dasharray: 6 3;
+  }
+
+  .error-msg {
+    color: var(--error);
+    font-size: 12px;
+    margin-top: 12px;
+    display: none;
+  }
+  .error-msg.visible { display: block; }
+</style>
+</head>
+<body>
+
+<h1>Lap Telemetry — Speed Comparison</h1>
+
+<div class="controls">
+  <div class="file-card">
+    <label>Session file</label>
+    <div class="file-row">
+      <input type="file" id="session-input" accept=".parquet">
+      <span class="status-badge" id="session-status">—</span>
+    </div>
+  </div>
+  <div class="file-card">
+    <label>Reference lap</label>
+    <div class="file-row">
+      <input type="file" id="ref-input" accept=".parquet">
+      <span class="status-badge" id="ref-status">—</span>
+    </div>
+  </div>
+</div>
+
+<div class="picker-row">
+  <select id="lap-picker" disabled>
+    <option value="">— load session to populate picker —</option>
+  </select>
+  <button id="compare-btn" disabled>Compare</button>
+</div>
+
+<div class="legend" id="legend" style="display:none">
+  <div class="legend-item">
+    <div class="legend-swatch" style="background:var(--session-color)"></div>
+    <span id="legend-session">Session lap</span>
+  </div>
+  <div class="legend-item">
+    <div class="legend-swatch" style="background:var(--ref-color);
+      background: repeating-linear-gradient(90deg,var(--ref-color) 0 6px,transparent 6px 9px)"></div>
+    <span id="legend-ref">Reference lap</span>
+  </div>
+</div>
+
+<div id="plot-container">
+  <div class="plot-placeholder" id="plot-placeholder">Load both files and pick a lap to compare</div>
+  <svg id="plot" style="display:none"></svg>
+</div>
+
+<p class="error-msg" id="error-msg"></p>
+
+<script type="module">
+// ─── CDN imports ────────────────────────────────────────────────────────────
+import { parquetRead } from 'https://cdn.jsdelivr.net/npm/hyparquet@1/+esm';
+import { compressors } from 'https://cdn.jsdelivr.net/npm/hyparquet-compressors@1/+esm';
+
+// ─── State ───────────────────────────────────────────────────────────────────
+let sessionData = null;  // { lapNumbers, lapTimes, distances, speeds, segments }
+let refData     = null;  // { distances, speeds }
+
+// ─── DOM refs ────────────────────────────────────────────────────────────────
+const sessionInput   = document.getElementById('session-input');
+const refInput       = document.getElementById('ref-input');
+const sessionStatus  = document.getElementById('session-status');
+const refStatus      = document.getElementById('ref-status');
+const lapPicker      = document.getElementById('lap-picker');
+const compareBtn     = document.getElementById('compare-btn');
+const plotSvg        = document.getElementById('plot');
+const placeholder    = document.getElementById('plot-placeholder');
+const legend         = document.getElementById('legend');
+const errorMsg       = document.getElementById('error-msg');
+
+// ─── Parquet loading ──────────────────────────────────────────────────────────
+
+/** Build hyparquet AsyncBuffer from a browser File */
+function fileToAsyncBuffer(file) {
+  return {
+    byteLength: file.size,
+    slice: async (start, end) => {
+      const blob = file.slice(start, end);
+      return await blob.arrayBuffer();
+    },
+  };
+}
+
+/**
+ * Read named columns from a parquet File.
+ * Returns an object { colName: Array }.
+ *
+ * hyparquet v1 onChunk API: called once per column (or per column per row-group),
+ * chunk = { columnName: string, columnData: TypedArray, rowStart, rowEnd }
+ */
+async function readColumns(file, columns) {
+  const result = Object.fromEntries(columns.map(c => [c, []]));
+  const asyncBuffer = fileToAsyncBuffer(file);
+
+  await parquetRead({
+    file: asyncBuffer,
+    compressors,
+    columns,
+    onChunk({ columnName, columnData }) {
+      if (!Object.prototype.hasOwnProperty.call(result, columnName)) return;
+      // columnData is a TypedArray (Int32Array, Float32Array) or plain Array
+      for (let i = 0; i < columnData.length; i++) {
+        result[columnName].push(columnData[i]);
+      }
+    },
+  });
+  return result;
+}
+
+// ─── Segment builder (mirrors M3 _build_segments) ───────────────────────────
+
+/**
+ * Contiguous runs of constant lap_number, in time order.
+ * Returns [{ lapNum, start, end }] — end is exclusive index.
+ */
+function buildSegments(lapNumbers) {
+  if (!lapNumbers.length) return [];
+  const segs = [];
+  let prev = lapNumbers[0], start = 0;
+  for (let i = 1; i < lapNumbers.length; i++) {
+    if (lapNumbers[i] !== prev) {
+      segs.push({ lapNum: prev, start, end: i });
+      prev = lapNumbers[i];
+      start = i;
+    }
+  }
+  segs.push({ lapNum: prev, start, end: lapNumbers.length });
+  return segs;
+}
+
+// ─── Resampler ───────────────────────────────────────────────────────────────
+
+/** Linear interpolation between sorted (xs, ys) at position x. */
+function interpAt(xs, ys, x) {
+  let lo = 0, hi = xs.length - 1;
+  if (x <= xs[lo]) return ys[lo];
+  if (x >= xs[hi]) return ys[hi];
+  while (hi - lo > 1) {
+    const mid = (lo + hi) >> 1;
+    if (xs[mid] <= x) lo = mid; else hi = mid;
+  }
+  const t = (x - xs[lo]) / (xs[hi] - xs[lo]);
+  return ys[lo] + t * (ys[hi] - ys[lo]);
+}
+
+/**
+ * Resample (distances, speeds) onto 1 m bin grid.
+ * Returns Float64Array of length ceil(maxDist)+1.
+ */
+function resample(distances, speeds) {
+  // Sort by distance
+  const n = distances.length;
+  const idx = Array.from({ length: n }, (_, i) => i);
+  idx.sort((a, b) => distances[a] - distances[b]);
+  const xs = idx.map(i => distances[i]);
+  const ys = idx.map(i => speeds[i]);
+
+  const maxDist = Math.ceil(xs[xs.length - 1]);
+  const bins = new Float64Array(maxDist + 1);
+  for (let bin = 0; bin <= maxDist; bin++) {
+    bins[bin] = interpAt(xs, ys, bin);
+  }
+  return bins;
+}
+
+// ─── Lap picker population ───────────────────────────────────────────────────
+
+function formatDuration(seconds) {
+  const m = Math.floor(seconds / 60);
+  const s = (seconds % 60).toFixed(3).padStart(6, '0');
+  return `${m}:${s}`;
+}
+
+function populatePicker(segments, lapTimes) {
+  lapPicker.innerHTML = '';
+  const totalSegs = segments.length;
+
+  // Find best lap time among middle segments
+  let bestTime = Infinity, bestIdx = -1;
+  for (let i = 1; i < totalSegs - 1; i++) {
+    const seg = segments[i];
+    const sliceTimes = lapTimes.slice(seg.start, seg.end);
+    const dur = sliceTimes.length ? Math.max(...sliceTimes) : 0;
+    if (dur > 0 && dur < bestTime) { bestTime = dur; bestIdx = i; }
+  }
+
+  for (let i = 0; i < totalSegs; i++) {
+    const seg = segments[i];
+    const sliceTimes = lapTimes.slice(seg.start, seg.end);
+    const dur = sliceTimes.length ? Math.max(...sliceTimes) : 0;
+
+    let label = `Lap ${i + 1}  —  lap# ${seg.lapNum}`;
+    if (i === 0) label += '  (out lap)';
+    else if (i === totalSegs - 1) label += '  (in lap)';
+    else if (dur > 0) {
+      label += `  ${formatDuration(dur)}`;
+      if (i === bestIdx) label += '  ★ best';
+    }
+
+    const opt = document.createElement('option');
+    opt.value = i;
+    opt.textContent = label;
+    lapPicker.appendChild(opt);
+  }
+
+  // Pre-select the best lap (or segment 1 if only 1 segment)
+  lapPicker.value = bestIdx >= 0 ? bestIdx : 0;
+  lapPicker.disabled = false;
+}
+
+// ─── SVG Plot ────────────────────────────────────────────────────────────────
+
+const PAD = { top: 20, right: 20, bottom: 50, left: 65 };
+const SVG_W = 900, SVG_H = 360;
+const PLOT_W = SVG_W - PAD.left - PAD.right;
+const PLOT_H = SVG_H - PAD.top  - PAD.bottom;
+
+function renderPlot(sessionBins, refBins, sessionLabel, refLabel) {
+  const maxDist  = Math.max(sessionBins.length, refBins.length) - 1;
+  const allSpeeds = [...sessionBins, ...refBins].filter(v => isFinite(v));
+  const minSpeed = Math.floor(Math.min(...allSpeeds) / 20) * 20;
+  const maxSpeed = Math.ceil(Math.max(...allSpeeds) / 20) * 20 + 20;
+
+  const toX = d => PAD.left + (d / maxDist) * PLOT_W;
+  const toY = s => PAD.top  + PLOT_H - ((s - minSpeed) / (maxSpeed - minSpeed)) * PLOT_H;
+
+  // Build polyline points strings (decimate to every 2m for performance)
+  function makePts(bins) {
+    const pts = [];
+    const step = Math.max(1, Math.floor(bins.length / 1500)); // ≤1500 points
+    for (let i = 0; i < bins.length; i += step) {
+      pts.push(`${toX(i).toFixed(1)},${toY(bins[i]).toFixed(1)}`);
+    }
+    // Always include last point
+    const last = bins.length - 1;
+    pts.push(`${toX(last).toFixed(1)},${toY(bins[last]).toFixed(1)}`);
+    return pts.join(' ');
+  }
+
+  // X-axis ticks every 500m (or 1000m if long)
+  const distStep = maxDist > 6000 ? 1000 : 500;
+  const xTicks = [];
+  for (let d = 0; d <= maxDist; d += distStep) xTicks.push(d);
+
+  // Y-axis ticks every 50 kph
+  const yStep = (maxSpeed - minSpeed) > 400 ? 100 : 50;
+  const yTicks = [];
+  for (let s = minSpeed; s <= maxSpeed; s += yStep) yTicks.push(s);
+
+  // Build SVG
+  const gridLines = [
+    ...xTicks.map(d =>
+      `<line class="grid-line" x1="${toX(d)}" y1="${PAD.top}" x2="${toX(d)}" y2="${PAD.top + PLOT_H}"/>`
+    ),
+    ...yTicks.map(s =>
+      `<line class="grid-line" x1="${PAD.left}" y1="${toY(s)}" x2="${PAD.left + PLOT_W}" y2="${toY(s)}"/>`
+    ),
+  ].join('');
+
+  const xTickLabels = xTicks.map(d =>
+    `<text class="tick-label" x="${toX(d)}" y="${PAD.top + PLOT_H + 16}" text-anchor="middle">${d >= 1000 ? (d / 1000).toFixed(1) + 'k' : d}</text>`
+  ).join('');
+
+  const yTickLabels = yTicks.map(s =>
+    `<text class="tick-label" x="${PAD.left - 8}" y="${toY(s) + 4}" text-anchor="end">${s}</text>`
+  ).join('');
+
+  const svg = `
+    <defs>
+      <clipPath id="plot-clip">
+        <rect x="${PAD.left}" y="${PAD.top}" width="${PLOT_W}" height="${PLOT_H}"/>
+      </clipPath>
+    </defs>
+    ${gridLines}
+    <!-- Reference line (dashed, behind) -->
+    <polyline class="ref-line" clip-path="url(#plot-clip)" points="${makePts(refBins)}"/>
+    <!-- Session line (solid, front) -->
+    <polyline class="session-line" clip-path="url(#plot-clip)" points="${makePts(sessionBins)}"/>
+    <!-- Axes -->
+    <line class="axis-line" x1="${PAD.left}" y1="${PAD.top}" x2="${PAD.left}" y2="${PAD.top + PLOT_H}"/>
+    <line class="axis-line" x1="${PAD.left}" y1="${PAD.top + PLOT_H}" x2="${PAD.left + PLOT_W}" y2="${PAD.top + PLOT_H}"/>
+    ${xTickLabels}
+    ${yTickLabels}
+    <!-- Axis labels -->
+    <text class="axis-label" x="${PAD.left + PLOT_W / 2}" y="${SVG_H - 4}" text-anchor="middle">Distance (m)</text>
+    <text class="axis-label" x="12" y="${PAD.top + PLOT_H / 2}" text-anchor="middle"
+          transform="rotate(-90, 12, ${PAD.top + PLOT_H / 2})">Speed (km/h)</text>
+  `;
+
+  plotSvg.setAttribute('viewBox', `0 0 ${SVG_W} ${SVG_H}`);
+  plotSvg.innerHTML = svg;
+
+  // Update legend labels
+  document.getElementById('legend-session').textContent = sessionLabel;
+  document.getElementById('legend-ref').textContent = refLabel;
+
+  placeholder.style.display = 'none';
+  plotSvg.style.display = 'block';
+  legend.style.display = 'flex';
+}
+
+// ─── Error handling ───────────────────────────────────────────────────────────
+
+function showError(msg) {
+  errorMsg.textContent = msg;
+  errorMsg.classList.add('visible');
+}
+function clearError() {
+  errorMsg.classList.remove('visible');
+}
+
+function setBadge(el, state, text) {
+  el.className = 'status-badge' + (state ? ` ${state}` : '');
+  el.textContent = text;
+}
+
+// ─── Event handlers ───────────────────────────────────────────────────────────
+
+function updateCompareBtn() {
+  compareBtn.disabled = !(sessionData && refData && !lapPicker.disabled);
+}
+
+sessionInput.addEventListener('change', async () => {
+  const file = sessionInput.files[0];
+  if (!file) return;
+  setBadge(sessionStatus, 'loading', 'loading…');
+  lapPicker.disabled = true;
+  lapPicker.innerHTML = '<option>loading…</option>';
+  sessionData = null;
+  clearError();
+  try {
+    const cols = await readColumns(file, ['lap_number', 'lap_time_s', 'lap_distance_m', 'speed_kph']);
+    const segments = buildSegments(cols.lap_number);
+    sessionData = {
+      lapNumbers: cols.lap_number,
+      lapTimes:   cols.lap_time_s,
+      distances:  cols.lap_distance_m,
+      speeds:     cols.speed_kph,
+      segments,
+      fileName:   file.name,
+    };
+    populatePicker(segments, cols.lap_time_s);
+    setBadge(sessionStatus, 'ok', `${cols.lap_number.length} rows · ${segments.length} laps`);
+  } catch (e) {
+    setBadge(sessionStatus, 'err', 'error');
+    showError(`Session load failed: ${e.message}`);
+    console.error('session load error', e);
+  }
+  updateCompareBtn();
+});
+
+refInput.addEventListener('change', async () => {
+  const file = refInput.files[0];
+  if (!file) return;
+  setBadge(refStatus, 'loading', 'loading…');
+  refData = null;
+  clearError();
+  try {
+    const cols = await readColumns(file, ['lap_distance_m', 'speed_kph']);
+    refData = {
+      distances: cols.lap_distance_m,
+      speeds:    cols.speed_kph,
+      fileName:  file.name,
+    };
+    setBadge(refStatus, 'ok', `${cols.lap_distance_m.length} rows`);
+  } catch (e) {
+    setBadge(refStatus, 'err', 'error');
+    showError(`Reference load failed: ${e.message}`);
+    console.error('ref load error', e);
+  }
+  updateCompareBtn();
+});
+
+compareBtn.addEventListener('click', () => {
+  if (!sessionData || !refData) return;
+  clearError();
+
+  const segIdx = parseInt(lapPicker.value, 10);
+  const seg = sessionData.segments[segIdx];
+  if (!seg) return;
+
+  const segDists  = sessionData.distances.slice(seg.start, seg.end);
+  const segSpeeds = sessionData.speeds.slice(seg.start, seg.end);
+
+  const sessionBins = resample(segDists, segSpeeds);
+  const refBins     = resample(refData.distances, refData.speeds);
+
+  const sessionLabel = `${sessionData.fileName} — Lap ${segIdx + 1} (lap# ${seg.lapNum})`;
+  const refLabel     = refData.fileName;
+
+  renderPlot(sessionBins, refBins, sessionLabel, refLabel);
+});
+
+lapPicker.addEventListener('change', () => {
+  // Auto-trigger compare when a new lap is picked (if ref is already loaded)
+  if (sessionData && refData) {
+    compareBtn.click();
+  }
+});
+
+// ─── Debug hook for Playwright resampler cross-check ─────────────────────────
+
+window.__resamplerDebug = function(segIdx) {
+  if (!sessionData) throw new Error('session not loaded');
+  const seg = sessionData.segments[segIdx];
+  if (!seg) throw new Error(`segment ${segIdx} out of range`);
+  const dists  = sessionData.distances.slice(seg.start, seg.end);
+  const speeds = sessionData.speeds.slice(seg.start, seg.end);
+  return Array.from(resample(dists, speeds));
+};
+
+window.__refResamplerDebug = function() {
+  if (!refData) throw new Error('reference not loaded');
+  return Array.from(resample(refData.distances, refData.speeds));
+};
+
+// ─── Auto-compare on picker change if both files loaded ──────────────────────
+// (wired above via lapPicker change event)
+</script>
+
+</body>
+</html>

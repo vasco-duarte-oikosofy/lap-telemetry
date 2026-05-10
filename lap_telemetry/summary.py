@@ -171,20 +171,28 @@ def _run_file(path: Path) -> int:
 
         s1_str = s2_str = s3_str = "-"
         if not is_incomplete and s1_col is not None and seg_idx + 1 < num_segs:
-            # mLastSector* describes the previously-completed lap, so the
-            # first frame of the *next* segment carries this segment's S1/S2.
-            next_start = segments[seg_idx + 1][1]
-            s1 = s1_col[next_start]
-            cum_s2 = s2_col[next_start]
-            # Real sector times are strictly positive and S1 < cumS2.
-            # The sim resets mLastSector* to 0 on Restart Session, and uses
-            # -1 (already NaN'd at the recorder) as the "not yet set" sentinel.
-            valid_sectors = (
-                not math.isnan(s1)
-                and not math.isnan(cum_s2)
-                and s1 > 0.0
-                and cum_s2 > s1
-            )
+            # mLastSector* describes the previously-completed lap. The first
+            # frame of the next segment *should* carry this lap's S1/S2, but
+            # the SHM is sometimes mid-update at the exact boundary tick (O1)
+            # or still holding the prior lap's values (O2). Walk up to 25
+            # frames into the next segment to find settled values. See
+            # DESIGN §10 O1/O2.
+            next_seg_start = segments[seg_idx + 1][1]
+            next_seg_end   = segments[seg_idx + 1][2]
+            walk_end = min(next_seg_start + 25, next_seg_end)
+            s1 = s2 = float("nan")
+            for fi in range(next_seg_start, walk_end):
+                _s1 = s1_col[fi]
+                _cum = s2_col[fi]
+                if (
+                    not math.isnan(_s1)
+                    and not math.isnan(_cum)
+                    and _s1 > 0.0
+                    and _cum > _s1
+                ):
+                    s1, cum_s2 = _s1, _cum
+                    break
+            valid_sectors = not math.isnan(s1)
             if valid_sectors:
                 # SHM: LastSector1 = S1 dur, LastSector2 = S1+S2 cumulative.
                 s1_str = _fmt_sector(s1)
