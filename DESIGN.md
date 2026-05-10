@@ -204,6 +204,14 @@ Surfaced by the M3 live test (Circuit de Barcelona, LMP3, 2026-05-10). Both fixe
 
 **Resolved in M4** (`7695698`). Reader now walks up to 25 frames into the next segment until both `mLastSector1 > 0` and `cum_s2 > s1`, capturing settled values instead of catching the SHM mid-update. Fixes both O1 (dropped middle laps) and O2 (apparent off-by-one) in one change.
 
+### O3. First-compare UI freeze (~100–300 ms)
+
+**Symptom.** After loading a parquet, the first time both lap pickers are populated and `renderAll` fires, the page is unresponsive for ~100 ms on fast hardware and ~200–300 ms on slower machines. Subsequent compares are equally slow because nothing is cached.
+
+**Cause.** Profiled on the latest 142624Z session (~25k rows, 6 laps): `renderAll` does ~31 ms of resampling (16 channels × 2 traces) and ~70 ms of SVG string-building + `innerHTML` parse + paint, all in one synchronous JS block. JavaScript is single-threaded; during that block the browser can't repaint, scroll, or respond to clicks, so it appears frozen even though it's working. Three contributing factors: (a) every `renderAll` re-resamples from scratch — no per-lap cache; (b) no `await` between sub-phases, so the browser can't break the work into paint frames; (c) all 8 panels are written to the DOM in one `innerHTML` assignment.
+
+**Decision (2026-05-10).** No fix today. The freeze is short, the workflow still completes, and it's not blocking practice analysis. Available remediations if it becomes a friction point later: (1) cache resampled bins per `(storeKey, segIdx, col)` so repeat picks are instant, (2) async pre-resample after file load with a "warming…" badge, chunked with `await yield()`, (3) yield between panels inside `renderAll` so panels appear progressively. Rough effort: ~50/80/20 lines respectively.
+
 ---
 
 ## 11. UI features F1–F4 — shipped
