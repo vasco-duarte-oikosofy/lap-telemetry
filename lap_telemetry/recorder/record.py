@@ -1,16 +1,18 @@
 """
-M1 record loop: probe, poll, print one frame line per tick, exit on Ctrl+C.
-
-Writing Parquet shards is M2.
+Record loop: probe sim, poll frames, write Parquet shards via SessionWriter.
 """
 from __future__ import annotations
 
 import signal
 import sys
 import time
+from pathlib import Path
 from typing import Optional
 
 from .connect import ConnectError, Frame, probe_and_connect
+from .writer import SessionWriter
+
+_FLUSH_INTERVAL_S = 30.0
 
 
 def _format_frame(f: Frame) -> str:
@@ -29,7 +31,9 @@ def run(
     rate_hz: float = 50.0,
     once: bool = False,
     probe_timeout_s: float = 3.0,
+    out_dir: Path = Path("sessions"),
 ) -> int:
+    out_dir.mkdir(parents=True, exist_ok=True)
     period = 1.0 / max(rate_hz, 1.0)
 
     print(f"lap-telemetry: probing for active sim (timeout {probe_timeout_s:.1f}s)...", flush=True)
@@ -45,6 +49,7 @@ def run(
         return 2
 
     print(f"lap-telemetry: connected to {conn.sim} (Ctrl+C to stop)", flush=True)
+    print(f"lap-telemetry: writing sessions to {out_dir.resolve()}", flush=True)
 
     stopping = False
 
@@ -61,7 +66,10 @@ def run(
     last_vehicle = ""
     n_frames = 0
     n_skipped = 0
+    writer: Optional[SessionWriter] = None
+    last_flush_time = time.monotonic()
     next_tick = time.monotonic()
+
     try:
         while not stopping:
             conn.update()
@@ -69,22 +77,48 @@ def run(
             if frame is None:
                 n_skipped += 1
             else:
-                if frame.track_name != last_track or frame.vehicle_name != last_vehicle:
-                    print(
-                        f"lap-telemetry: track={frame.track_name or '?'} "
-                        f"vehicle={frame.vehicle_name or '?'}",
-                        flush=True,
-                    )
-                    last_track = frame.track_name
-                    last_vehicle = frame.vehicle_name
-                if frame.lap_number != last_lap:
-                    print(
-                        f"lap-telemetry: lap boundary -> lap {frame.lap_number}",
-                        flush=True,
-                    )
-                    last_lap = frame.lap_number
-                print(_format_frame(frame), flush=True)
-                n_frames += 1
+                # Drop non-realtime and paused frames
+                if not frame.in_realtime or frame.paused:
+                    pass
+                else:
+                    session_changed = (
+                        frame.track_name != last_track or frame.vehicle_name != last_vehicle
+                    ) and last_track != ""
+
+                    if session_changed and writer is not None:
+                        parquet_path, json_path = writer.close()
+                        print(f"lap-telemetry: session closed -> {parquet_path}", flush=True)
+                        print(f"lap-telemetry:                   {json_path}", flush=True)
+                        writer = None
+                        last_flush_time = time.monotonic()
+
+                    if frame.track_name != last_track or frame.vehicle_name != last_vehicle:
+                        print(
+                            f"lap-telemetry: track={frame.track_name or '?'} "
+                            f"vehicle={frame.vehicle_name or '?'}",
+                            flush=True,
+                        )
+                        last_track = frame.track_name
+                        last_vehicle = frame.vehicle_name
+
+                    if writer is None:
+                        writer = SessionWriter(out_dir, conn.sim, frame.track_name, rate_hz)
+
+                    if frame.lap_number != last_lap:
+                        print(
+                            f"lap-telemetry: lap boundary -> lap {frame.lap_number}",
+                            flush=True,
+                        )
+                        last_lap = frame.lap_number
+
+                    writer.append(frame)
+                    n_frames += 1
+
+                    now = time.monotonic()
+                    if now - last_flush_time >= _FLUSH_INTERVAL_S:
+                        writer.flush_shard()
+                        last_flush_time = now
+
                 if once:
                     break
 
@@ -93,10 +127,13 @@ def run(
             if sleep_for > 0:
                 time.sleep(sleep_for)
             else:
-                # Fell behind — re-anchor to now to avoid spiral.
                 next_tick = time.monotonic()
     finally:
         conn.stop()
+        if writer is not None:
+            parquet_path, json_path = writer.close()
+            print(f"lap-telemetry: session saved  -> {parquet_path}", flush=True)
+            print(f"lap-telemetry:                   {json_path}", flush=True)
         print(
             f"lap-telemetry: stopped. frames={n_frames} skipped={n_skipped}",
             flush=True,

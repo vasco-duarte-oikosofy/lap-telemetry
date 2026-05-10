@@ -19,10 +19,8 @@ from typing import Optional
 # Make the vendored submodules importable when running from a source checkout
 # without a pip install.
 _REPO_ROOT = Path(__file__).resolve().parents[2]
-for _sub in ("pyRfactor2SharedMemory", "pyLMUSharedMemory"):
-    _p = str(_REPO_ROOT / _sub)
-    if _p not in sys.path:
-        sys.path.insert(0, _p)
+if str(_REPO_ROOT) not in sys.path:
+    sys.path.insert(0, str(_REPO_ROOT))
 
 
 SimName = str  # "lmu" | "rf2"
@@ -42,6 +40,10 @@ class Frame:
     steering_norm: float
     gear: int
     engine_rpm: float
+    lap_valid: bool
+    pos_x_m: float
+    pos_y_m: float
+    pos_z_m: float
     in_realtime: bool
     paused: bool
     track_name: str
@@ -90,7 +92,7 @@ class LMUConnection(_BaseConnection):
         self._tele_indexes: dict[int, int] = {}
 
     def start(self) -> None:
-        self._mmap.create(1)  # direct access — read-through, no copy
+        self._mmap.create(0)  # copy mode — buffer refreshed only on sim update events
         self.update()
 
     def stop(self) -> None:
@@ -139,6 +141,10 @@ class LMUConnection(_BaseConnection):
             steering_norm=float(tele_v.mUnfilteredSteering),
             gear=int(tele_v.mGear),
             engine_rpm=float(tele_v.mEngineRPM),
+            lap_valid=int(scor_v.mCountLapFlag) > 0,
+            pos_x_m=float(tele_v.mPos.x),
+            pos_y_m=float(tele_v.mPos.y),
+            pos_z_m=float(tele_v.mPos.z),
             in_realtime=bool(scor_info.mInRealtime),
             paused=False,
             track_name=_decode(bytes(scor_info.mTrackName)),
@@ -163,9 +169,9 @@ class RF2Connection(_BaseConnection):
         self._tele_indexes: dict[int, int] = {}
 
     def start(self) -> None:
-        self._scor.create(1)
-        self._tele.create(1)
-        self._ext.create(1)
+        self._scor.create(0)
+        self._tele.create(0)
+        self._ext.create(0)
         self.update()
 
     def stop(self) -> None:
@@ -211,6 +217,10 @@ class RF2Connection(_BaseConnection):
             steering_norm=float(tele_v.mUnfilteredSteering),
             gear=int(tele_v.mGear),
             engine_rpm=float(tele_v.mEngineRPM),
+            lap_valid=int(scor_v.mCountLapFlag) > 0,
+            pos_x_m=float(tele_v.mPos.x),
+            pos_y_m=float(tele_v.mPos.y),
+            pos_z_m=float(tele_v.mPos.z),
             in_realtime=bool(scor_info.mInRealtime),
             paused=False,
             track_name=_decode(bytes(scor_info.mTrackName)),
