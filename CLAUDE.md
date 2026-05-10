@@ -6,6 +6,8 @@ See [DESIGN.md](DESIGN.md) for architecture, file format, and milestone plan.
 
 See [m2-plan.md](m2-plan.md) for the M2 implementation plan (write loop, Parquet shards, sidecar).
 
+See [m3-plan.md](m3-plan.md) for the M3 implementation plan (sectors in summary, recoverable sidecar metadata).
+
 ## Current state
 
 M2 complete. `lap-telemetry record` streams frames at 50 Hz from LMU or rF2,

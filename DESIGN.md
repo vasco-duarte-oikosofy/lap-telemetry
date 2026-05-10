@@ -1,6 +1,6 @@
 # lap-telemetry — Design Spec
 
-Status: **v0.1 — M1 complete, ready for M2** · 2026-05-09
+Status: **v0.1 — M2 complete, ready for M3** · 2026-05-10
 
 A telemetry recorder + lap-comparison tool for rFactor 2 and Le Mans Ultimate. Reads the same shared memory that TinyPedal reads, writes laps to a standard columnar format, and lets you overlay throttle/brake/speed/RPM/slip traces between two laps to find where time was lost or gained.
 
@@ -70,7 +70,7 @@ Both are plain Python packages in this repo. The recorder depends on `pyRfactor2
 
 Two entry points, sharing one core:
 
-- `lap-telemetry list <session.parquet>` — print a table of laps with lap time, sectors, valid flag.
+- `lap-telemetry summary <session.parquet>` — print a table of laps with lap time, sectors, valid flag.
 - `lap-telemetry compare <ref.parquet>:<lap_n> <cmp.parquet>:<lap_m>` — open a window with overlaid traces.
 
 The viewer uses **PyQtGraph** (fast, mouse-pannable, plays nicely with PySide2 which is already on the system from TinyPedal). Layout: vertical stack of linked plots — speed, throttle/brake, RPM/gear, steering, slip angle (per axle), Δt — all on a shared lap-distance x-axis with a synced cursor.
@@ -139,7 +139,7 @@ Small JSON written next to the Parquet, holding fields that don't make sense as 
 
 ```
 lap-telemetry record [--rate 50] [--out-dir ./sessions]
-lap-telemetry list ./sessions/<file>.parquet
+lap-telemetry summary ./sessions/<file>.parquet
 lap-telemetry compare ./sessions/A.parquet:7 ./sessions/B.parquet:3
 lap-telemetry export ./sessions/A.parquet --to csv   # for sharing
 ```
@@ -149,8 +149,8 @@ That's the whole thing. No config file in v0.1 — flags only.
 ## 7. Phasing
 
 - **M1 — recorder skeleton. ✅ done 2026-05-09.** Submodule the SHM libs, connect, print a frame, exit cleanly on Ctrl+C. Verified against a live LMU session (Bahrain, GT3) — same SHM regions TinyPedal reads.
-- **M2 — write loop.** Flush buffer → Parquet shards → final session file. Lap-boundary detection. Sidecar JSON.
-- **M3 — `list` command.** Read a session, print per-lap times. First time we exercise the read path.
+- **M2 — write loop. ✅ done 2026-05-10.** Buffer → Parquet shards → final session file + JSON sidecar; lap-boundary detection; copy-mode mmap; orphaned-shard recovery on next startup. `lap-telemetry summary` prints a per-lap overview (frames, duration, valid). Acceptance test passed at Circuit de Barcelona, 4-lap LMU session, 26,893 rows @ 50 Hz.
+- **M3 — read path: sectors + recoverable metadata.** Capture sector splits per lap and display them in `summary`. Make sidecar metadata (`track`, `vehicle_name`) survive a hard kill: written at session start, not just at close, so orphan recovery rebuilds a complete sidecar.
 - **M4 — `compare` command, single-plot.** Overlay just speed-vs-distance for two laps. Validates resampling.
 - **M5 — full plot stack.** Add throttle/brake, RPM/gear, steering, slip, Δt panel.
 - **M6 — quality of life.** Lap filtering (in/out laps, invalid), sector splits, persistent zoom.
