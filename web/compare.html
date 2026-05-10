@@ -487,18 +487,30 @@ function buildSegments(lapNumbers) {
 function interpAt(xs, ys, x) {
   if (x <= xs[0]) return ys[0];
   if (x >= xs[xs.length - 1]) return ys[ys.length - 1];
+
+  // Check if x matches any cluster exactly
+  let firstClusterIdx = -1;
+  for (let i = 0; i < xs.length; i++) {
+    if (xs[i] === x) {
+      firstClusterIdx = i;
+      break;
+    }
+  }
+
+  // If we found a cluster at distance x, average all values in the cluster
+  if (firstClusterIdx >= 0) {
+    let sum = ys[firstClusterIdx], count = 1;
+    // Find all indices in the cluster
+    for (let i = firstClusterIdx + 1; i < xs.length && xs[i] === x; i++) { sum += ys[i]; count++; }
+    for (let i = firstClusterIdx - 1; i >= 0 && xs[i] === x; i--) { sum += ys[i]; count++; }
+    return sum / count;
+  }
+
+  // Otherwise do normal binary search interpolation
   let lo = 0, hi = xs.length - 1;
   while (hi - lo > 1) {
     const mid = (lo + hi) >> 1;
     if (xs[mid] <= x) lo = mid; else hi = mid;
-  }
-  // Handle clusters: if xs[lo] == xs[hi], find the average of all values at that distance
-  if (xs[lo] === xs[hi]) {
-    // Find all indices where xs[i] == xs[lo]
-    let sum = ys[lo], count = 1;
-    for (let i = lo + 1; i <= hi && xs[i] === xs[lo]; i++) { sum += ys[i]; count++; }
-    for (let i = lo - 1; i >= 0 && xs[i] === xs[lo]; i--) { sum += ys[i]; count++; }
-    return sum / count;
   }
   const t = (x - xs[lo]) / (xs[hi] - xs[lo]);
   return ys[lo] + t * (ys[hi] - ys[lo]);
