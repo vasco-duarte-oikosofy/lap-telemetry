@@ -61,6 +61,26 @@ class Frame:
 class _BaseConnection:
     sim: SimName = ""
 
+    def __init__(self) -> None:
+        # State for speed-integrated distance (F4). mLapDist updates at ~4 Hz;
+        # we integrate speed between anchor ticks for 50 Hz position resolution.
+        self._prev_lap_dist: float = math.nan
+        self._prev_est_dist: float = 0.0
+        self._prev_session_time: float = math.nan
+
+    def _estimate_dist(self, raw_dist: float, speed_mps: float, session_time: float) -> float:
+        dt = session_time - self._prev_session_time
+        use_anchor = (
+            math.isnan(self._prev_session_time)  # first frame
+            or dt <= 0.0 or dt > 0.5             # large gap / time went backwards
+            or raw_dist != self._prev_lap_dist   # mLapDist ticked — use as ground truth
+        )
+        est = raw_dist if use_anchor else (self._prev_est_dist + speed_mps * dt)
+        self._prev_lap_dist = raw_dist
+        self._prev_est_dist = est
+        self._prev_session_time = session_time
+        return est
+
     def start(self) -> None: ...
     def stop(self) -> None: ...
     def update(self) -> None: ...
@@ -108,6 +128,7 @@ class LMUConnection(_BaseConnection):
     sim = "lmu"
 
     def __init__(self) -> None:
+        super().__init__()
         # Imported lazily so import errors are reported only when probed.
         from pyLMUSharedMemory import lmu_data
         from pyLMUSharedMemory.lmu_mmap import LMUConstants, MMapControl
@@ -153,12 +174,13 @@ class LMUConnection(_BaseConnection):
 
         vx, vy, vz = tele_v.mLocalVel.x, tele_v.mLocalVel.y, tele_v.mLocalVel.z
         speed_mps = (vx * vx + vy * vy + vz * vz) ** 0.5
+        session_time = float(scor_info.mCurrentET)
 
         return Frame(
             sim=self.sim,
-            session_time_s=float(scor_info.mCurrentET),
+            session_time_s=session_time,
             lap_number=int(tele_v.mLapNumber),
-            lap_distance_m=float(scor_v.mLapDist),
+            lap_distance_m=self._estimate_dist(float(scor_v.mLapDist), speed_mps, session_time),
             lap_time_s=float(scor_info.mCurrentET - tele_v.mLapStartET),
             speed_kph=speed_mps * 3.6,
             throttle_norm=float(tele_v.mUnfilteredThrottle),
@@ -190,6 +212,7 @@ class RF2Connection(_BaseConnection):
     sim = "rf2"
 
     def __init__(self) -> None:
+        super().__init__()
         from pyRfactor2SharedMemory import rF2data
         from pyRfactor2SharedMemory.rF2MMap import MMapControl, rFactor2Constants
 
@@ -235,12 +258,13 @@ class RF2Connection(_BaseConnection):
 
         vx, vy, vz = tele_v.mLocalVel.x, tele_v.mLocalVel.y, tele_v.mLocalVel.z
         speed_mps = (vx * vx + vy * vy + vz * vz) ** 0.5
+        session_time = float(scor_info.mCurrentET)
 
         return Frame(
             sim=self.sim,
-            session_time_s=float(scor_info.mCurrentET),
+            session_time_s=session_time,
             lap_number=int(tele_v.mLapNumber),
-            lap_distance_m=float(scor_v.mLapDist),
+            lap_distance_m=self._estimate_dist(float(scor_v.mLapDist), speed_mps, session_time),
             lap_time_s=float(scor_info.mCurrentET - tele_v.mLapStartET),
             speed_kph=speed_mps * 3.6,
             throttle_norm=float(tele_v.mUnfilteredThrottle),

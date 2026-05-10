@@ -303,12 +303,17 @@ const PANEL_DEFS = [
     ],
     yFixed: null, yStep: 50, zeroline: false },
 
-  { id: 'throttle_brake', label: 'Throttle / Brake',  height: 80,
+  { id: 'throttle', label: 'Throttle',               height: 60,
     channels: [
-      { col: 'throttle_norm', trace: 'session', color: 'var(--throttle)', dash: false },
-      { col: 'throttle_norm', trace: 'ref',     color: 'var(--throttle)', dash: true  },
-      { col: 'brake_norm',    trace: 'session', color: 'var(--brake)',    dash: false },
-      { col: 'brake_norm',    trace: 'ref',     color: 'var(--brake)',    dash: true  },
+      { col: 'throttle_norm', trace: 'session', color: 'var(--session)', dash: false },
+      { col: 'throttle_norm', trace: 'ref',     color: 'var(--ref)',     dash: true  },
+    ],
+    yFixed: [0, 1], yStep: 0.5, zeroline: false },
+
+  { id: 'brake', label: 'Brake',                     height: 60,
+    channels: [
+      { col: 'brake_norm', trace: 'session', color: 'var(--session)', dash: false },
+      { col: 'brake_norm', trace: 'ref',     color: 'var(--ref)',     dash: true  },
     ],
     yFixed: [0, 1], yStep: 0.5, zeroline: false },
 

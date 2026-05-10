@@ -181,7 +181,7 @@ async function main() {
 
     // Count panels
     const panelCount = await page1.$$eval('.panel-wrap', els => els.length);
-    assert(panelCount === 7, 'S1: 7 plot panels rendered', `got ${panelCount}`);
+    assert(panelCount === 8, 'S1: 8 plot panels rendered', `got ${panelCount}`);
 
     // Count polylines per panel
     const polylineCounts = await page1.$$eval('.panel-svg', svgs =>
@@ -189,7 +189,7 @@ async function main() {
     );
     console.log('  Polylines per panel:', polylineCounts.join(', '));
     const panelsWithPolylines = polylineCounts.filter(n => n >= 1).length;
-    assert(panelsWithPolylines >= 6, 'S1: ≥6 panels have polylines', `got ${panelsWithPolylines}/7`);
+    assert(panelsWithPolylines >= 7, 'S1: ≥7 panels have polylines', `got ${panelsWithPolylines}/8`);
 
     // Check Δt panel exists
     const dtSvg = await page1.$('svg[data-panel-id="dt"]');
@@ -302,7 +302,7 @@ async function main() {
       await page2.waitForSelector('polyline', { timeout: 10000 });
       await screenshot(page2, 's2_02_cross_file_compared');
       const panelCount2 = await page2.$$eval('.panel-wrap', els => els.length);
-      assert(panelCount2 === 7, 'S2: cross-file comparison renders 7 panels', `got ${panelCount2}`);
+      assert(panelCount2 === 8, 'S2: cross-file comparison renders 8 panels', `got ${panelCount2}`);
     }
 
     await ctx2.close();
