@@ -125,4 +125,4 @@ Each suite emits a `*-test-report/` folder with screenshots, console log, and a 
 
 ## Licence
 
-No licence yet — all rights reserved. If you want to use this for something, open an issue.
+[MIT](LICENSE) — © 2026 Vasco Duarte.
