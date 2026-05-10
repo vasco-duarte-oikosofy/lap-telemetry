@@ -70,13 +70,13 @@ Both are plain Python packages in this repo. The recorder depends on `pyRfactor2
 
 ### 4.2 Analyzer
 
-Two entry points, sharing one core:
+Two entry points:
 
 - `lap-telemetry summary <session.parquet>` — print a table of laps with lap time, sectors, valid flag.
 - `lap-telemetry summary <dir>` — one-line-per-session overview of every `session_*.parquet` in the directory: started_utc, sim, track, vehicle, laps, duration. Sorted by `started_utc`.
-- `lap-telemetry compare <ref.parquet>:<lap_n> <cmp.parquet>:<lap_m>` — open a window with overlaid traces.
+- **Comparison app** — a single HTML/JS/CSS file (no server, no build step) where the user uploads a session parquet plus a separate reference-lap parquet, picks a lap from the session, and compares it against the loaded reference. Speed-vs-distance overlay on a shared lap-distance x-axis. Replaces the originally-planned `lap-telemetry compare` CLI / PyQtGraph desktop window. Two-upload flow is a v0.1 limitation (see §7 M5 for the unified-load improvement).
 
-The viewer uses **PyQtGraph** (fast, mouse-pannable, plays nicely with PySide2 which is already on the system from TinyPedal). Layout: vertical stack of linked plots — speed, throttle/brake, RPM/gear, steering, slip angle (per axle), Δt — all on a shared lap-distance x-axis with a synced cursor.
+Layout (full vision, populated incrementally across M4 → M5): vertical stack of linked plots — speed, throttle/brake, RPM/gear, steering, slip angle (per axle), Δt — all on a shared lap-distance x-axis with a synced cursor.
 
 Δt is computed by integrating `1/speed` over distance for each lap and subtracting. Distance bins are 1 m by default; we resample both laps onto the same bin grid before subtracting.
 
@@ -144,9 +144,10 @@ Small JSON written next to the Parquet, holding fields that don't make sense as 
 lap-telemetry record [--rate 50] [--out-dir ./sessions] [--probe-timeout 0]
 lap-telemetry summary ./sessions/<file>.parquet         # per-lap detail of one session
 lap-telemetry summary ./sessions                        # one line per session file
-lap-telemetry compare ./sessions/A.parquet:7 ./sessions/B.parquet:3
 lap-telemetry export ./sessions/A.parquet --to csv      # for sharing
 ```
+
+Comparison is the standalone HTML app (see §4.2), not a CLI subcommand.
 
 `--probe-timeout 0` (the default) means "wait forever for a sim, Ctrl+C to abort." A positive value bounds the wait — useful for `--once` smoke tests, where it defaults to 3 s.
 
@@ -157,8 +158,8 @@ That's the whole thing. No config file in v0.1 — flags only.
 - **M1 — recorder skeleton. ✅ done 2026-05-09.** Submodule the SHM libs, connect, print a frame, exit cleanly on Ctrl+C. Verified against a live LMU session (Bahrain, GT3) — same SHM regions TinyPedal reads.
 - **M2 — write loop. ✅ done 2026-05-10.** Buffer → Parquet shards → final session file + JSON sidecar; lap-boundary detection; copy-mode mmap; orphaned-shard recovery on next startup. `lap-telemetry summary` prints a per-lap overview (frames, duration, valid). Acceptance test passed at Circuit de Barcelona, 4-lap LMU session, 26,893 rows @ 50 Hz.
 - **M3 — read path: sectors + recoverable metadata + patient multi-session recorder. ✅ done 2026-05-10.** Capture sector splits per lap and display them in `summary`. Sidecar metadata (`track`, `vehicle_name`, `setup_file_guess`) survives a hard kill: written at session start, refreshed on every shard flush, finalised at close; orphan recovery preserves the in-progress sidecar instead of guessing from the filename stem. Recorder retries the probe until a sim appears, drops the broken `mInRealtime` gate, and rotates session files automatically when the user changes car/track or quits to the main menu — one recorder run spans an entire driving evening of mixed sessions. `summary <dir>` summarises all sessions in a directory; `summary <file>` iterates per chronological segment so race-restart `lap_number` rewinds and rolling-start frames render in the order they were driven. Acceptance test passed at Circuit de Barcelona — recovery from a hard-killed 7-lap session restored real `track` / `vehicle` / `setup_file_guess` metadata, and a follow-up 6-lap session displayed sectors summing to lap duration to within rounding. Two SHM-timing artifacts left for future cleanup (see §10).
-- **M4 — `compare` command, single-plot.** Overlay just speed-vs-distance for two laps. Validates resampling.
-- **M5 — full plot stack.** Add throttle/brake, RPM/gear, steering, slip, Δt panel.
+- **M4 — comparison app, single-plot.** Single HTML/JS/CSS file (no server, no build step). User uploads a session parquet and a separate reference-lap parquet; picks a lap from the session; the app overlays the chosen session lap and the reference lap on a single speed-vs-distance plot. Two uploads is the v0.1 flow — see M5 for the improvement. Validates the upload + parse + distance-aligned resampling + render path end-to-end.
+- **M5 — full plot stack + unified loading.** Add throttle/brake, RPM/gear, steering, slip, Δt panel. Replace M4's two-upload flow with a unified one (single load that exposes both session laps and reference laps; picker UI rather than two file inputs).
 - **M6 — quality of life.** Lap filtering (in/out laps, invalid), sector splits, persistent zoom.
 
 Each milestone ends in a runnable build. We don't move to the next until the previous demos end-to-end.
