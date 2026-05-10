@@ -44,6 +44,65 @@ def _utc_iso() -> str:
     return datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
 
 
+_SHARD_RE = re.compile(r"^(session_.+)\.part(\d+)\.parquet$")
+
+
+def recover_orphaned_shards(out_dir: Path) -> None:
+    """Merge any .partN.parquet shards left by a previous hard-kill."""
+    shards = [p for p in out_dir.glob("*.part*.parquet") if _SHARD_RE.match(p.name)]
+    if not shards:
+        return
+
+    groups: dict[str, list[Path]] = {}
+    for p in shards:
+        m = _SHARD_RE.match(p.name)
+        if m:
+            groups.setdefault(m.group(1), []).append(p)
+
+    for stem, group in groups.items():
+        final = out_dir / f"{stem}.parquet"
+        group = sorted(group, key=lambda p: int(_SHARD_RE.match(p.name).group(2)))  # type: ignore[union-attr]
+
+        print(f"lap-telemetry: recovering {len(group)} orphaned shards -> {final.name}", flush=True)
+        tables = [pq.read_table(p) for p in group]
+        merged = pa.concat_tables(tables)
+        pq.write_table(merged, final, compression="snappy")
+
+        # write a best-effort sidecar from what we can parse out of the stem
+        # stem: session_<YYYYMMDDTHHMMSSZ>_<track-slug>_<sim>
+        parts = stem.split("_", 3)
+        started = parts[1] if len(parts) > 1 else "unknown"
+        # reformat compact UTC to ISO
+        try:
+            started_iso = datetime.strptime(started, "%Y%m%dT%H%M%SZ").strftime("%Y-%m-%dT%H:%M:%SZ")
+        except ValueError:
+            started_iso = started
+        sim  = parts[3] if len(parts) > 3 else "unknown"
+        track_slug = parts[2] if len(parts) > 2 else "unknown"
+
+        laps = sorted(set(merged.column("lap_number").to_pylist()))
+        json_path = out_dir / f"{stem}.json"
+        if not json_path.exists():
+            sidecar = {
+                "schema_version": "1",
+                "recorder_version": __version__,
+                "started_utc": started_iso,
+                "ended_utc": "unknown",
+                "sim": sim,
+                "track": track_slug,
+                "vehicle_name": "unknown",
+                "sample_rate_hz": 50.0,
+                "row_count": merged.num_rows,
+                "lap_count": len(laps),
+                "recovered": True,
+            }
+            json_path.write_text(json.dumps(sidecar, indent=2), encoding="utf-8")
+
+        for p in group:
+            p.unlink(missing_ok=True)
+        print(f"lap-telemetry: recovered  {merged.num_rows} rows, laps {laps}", flush=True)
+
+
 class SessionWriter:
     def __init__(self, out_dir: Path, sim: str, track: str, rate_hz: float) -> None:
         self._out_dir = out_dir

@@ -252,3 +252,36 @@ Lap 0 and the last lap are marked `—` (incomplete: no prior/subsequent lap bou
 Implementation:
 - `lap_telemetry/summary.py` — `run(path: Path) -> int`
 - `cli.py` — add `summary` subparser with a `file` positional argument, dispatch to `summary.run()`
+
+---
+
+## M2 acceptance test (run this before closing M2)
+
+Prerequisites: LMU running, car on track, at least 2 complete laps available.
+
+```powershell
+lap-telemetry record --out-dir ./sessions
+# drive 2+ laps, then Ctrl+C cleanly from this terminal
+```
+
+Then:
+
+```powershell
+lap-telemetry summary sessions/<latest>.parquet
+```
+
+Pass criteria:
+- `rows` count is consistent with lap count × ~50 Hz × lap duration
+- `lap_number` column shows at least 3 entries (out-lap, lap 1, lap 2+)
+- first and last laps show `-` (incomplete), middle laps show `yes` or `no`
+- at least one lap shows `yes` (sim confirmed it as valid)
+- no orphaned `.partN.parquet` files remain in `./sessions` after clean Ctrl+C
+
+Orphan-recovery test (optional):
+```powershell
+# start recording, kill the terminal window (hard kill)
+# then re-run record — it should print "recovering N orphaned shards" on startup
+lap-telemetry record --out-dir ./sessions
+# Ctrl+C immediately; check that the recovered file appears
+lap-telemetry summary sessions/<recovered>.parquet
+```

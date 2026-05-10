@@ -10,7 +10,7 @@ from pathlib import Path
 from typing import Optional
 
 from .connect import ConnectError, Frame, probe_and_connect
-from .writer import SessionWriter
+from .writer import SessionWriter, recover_orphaned_shards
 
 _FLUSH_INTERVAL_S = 30.0
 
@@ -34,6 +34,7 @@ def run(
     out_dir: Path = Path("sessions"),
 ) -> int:
     out_dir.mkdir(parents=True, exist_ok=True)
+    recover_orphaned_shards(out_dir)
     period = 1.0 / max(rate_hz, 1.0)
 
     print(f"lap-telemetry: probing for active sim (timeout {probe_timeout_s:.1f}s)...", flush=True)
