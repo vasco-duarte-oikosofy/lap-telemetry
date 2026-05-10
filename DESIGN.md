@@ -1,6 +1,6 @@
 # lap-telemetry — Design Spec
 
-Status: **v0.1 — M3 complete, ready for M4** · 2026-05-10
+Status: **v0.1 — M5 + F1–F4 shipped, ready for M6** · 2026-05-10
 
 A telemetry recorder + lap-comparison tool for rFactor 2 and Le Mans Ultimate. Reads the same shared memory that TinyPedal reads, writes laps to a standard columnar format, and lets you overlay throttle/brake/speed/RPM/slip traces between two laps to find where time was lost or gained.
 
@@ -158,9 +158,10 @@ That's the whole thing. No config file in v0.1 — flags only.
 - **M1 — recorder skeleton. ✅ done 2026-05-09.** Submodule the SHM libs, connect, print a frame, exit cleanly on Ctrl+C. Verified against a live LMU session (Bahrain, GT3) — same SHM regions TinyPedal reads.
 - **M2 — write loop. ✅ done 2026-05-10.** Buffer → Parquet shards → final session file + JSON sidecar; lap-boundary detection; copy-mode mmap; orphaned-shard recovery on next startup. `lap-telemetry summary` prints a per-lap overview (frames, duration, valid). Acceptance test passed at Circuit de Barcelona, 4-lap LMU session, 26,893 rows @ 50 Hz.
 - **M3 — read path: sectors + recoverable metadata + patient multi-session recorder. ✅ done 2026-05-10.** Capture sector splits per lap and display them in `summary`. Sidecar metadata (`track`, `vehicle_name`, `setup_file_guess`) survives a hard kill: written at session start, refreshed on every shard flush, finalised at close; orphan recovery preserves the in-progress sidecar instead of guessing from the filename stem. Recorder retries the probe until a sim appears, drops the broken `mInRealtime` gate, and rotates session files automatically when the user changes car/track or quits to the main menu — one recorder run spans an entire driving evening of mixed sessions. `summary <dir>` summarises all sessions in a directory; `summary <file>` iterates per chronological segment so race-restart `lap_number` rewinds and rolling-start frames render in the order they were driven. Acceptance test passed at Circuit de Barcelona — recovery from a hard-killed 7-lap session restored real `track` / `vehicle` / `setup_file_guess` metadata, and a follow-up 6-lap session displayed sectors summing to lap duration to within rounding. Two SHM-timing artifacts left for future cleanup (see §10).
-- **M4 — comparison app, single-plot.** Single HTML/JS/CSS file (no server, no build step). User uploads a session parquet and a separate reference-lap parquet; picks a lap from the session; the app overlays the chosen session lap and the reference lap on a single speed-vs-distance plot. Two uploads is the v0.1 flow — see M5 for the improvement. Validates the upload + parse + distance-aligned resampling + render path end-to-end.
-- **M5 — full plot stack + unified loading.** Add throttle/brake, RPM/gear, steering, slip, Δt panel. Replace M4's two-upload flow with a unified one (single load that exposes both session laps and reference laps; picker UI rather than two file inputs).
-- **M6 — quality of life.** Lap filtering (in/out laps, invalid), sector splits, persistent zoom.
+- **M4 — comparison app, single-plot. ✅ done 2026-05-10.** Single HTML/JS/CSS file (no server, no build step). User uploads a session parquet and a separate reference-lap parquet; picks a lap from the session; the app overlays the chosen session lap and the reference lap on a single speed-vs-distance plot. Validated upload + parse + distance-aligned resampling + render end-to-end. Also fixed O1/O2 sector-lookup mid-update bugs by walking 25 frames into the next segment for settled values.
+- **M5 — full plot stack + unified loading. ✅ done 2026-05-10.** Added throttle/brake, RPM/gear, steering, slip, Δt panels. Replaced M4's two-upload flow with a unified one (single load that exposes all session laps from any number of files; picker groups by file).
+- **F1–F4 — circuit map + zoom + panel split + distance integration. ✅ done 2026-05-10.** See §11.
+- **M6 — quality of life.** Lap filtering (in/out laps, invalid), persistent zoom, lap colour customisation. Not yet scheduled.
 
 Each milestone ends in a runnable build. We don't move to the next until the previous demos end-to-end.
 
@@ -201,13 +202,13 @@ Surfaced by the M3 live test (Circuit de Barcelona, LMP3, 2026-05-10). Both fixe
 
 ### Status
 
-Not blocking M3 acceptance — sector display works for the well-behaved case (laps 2, 4, 5 in the live run had real, plausible splits summing to the lap duration). Slot for M3.5 polish or a deliberate M4 sub-task.
+**Resolved in M4** (`7695698`). Reader now walks up to 25 frames into the next segment until both `mLastSector1 > 0` and `cum_s2 > s1`, capturing settled values instead of catching the SHM mid-update. Fixes both O1 (dropped middle laps) and O2 (apparent off-by-one) in one change.
 
 ---
 
-## 11. Future UI features (post-M5, not yet scheduled)
+## 11. UI features F1–F4 — shipped
 
-### F1. Circuit mini-map with moving cursor dot
+### F1. Circuit mini-map with moving cursor dot ✅ shipped 2026-05-10 (`eea2d39` + `0955594`)
 
 **What.** A small top-down SVG track outline rendered to the right of the plot panels. As the user hovers the cursor across the telemetry, a dot moves along the track outline to show where on the circuit that distance corresponds to.
 
@@ -222,7 +223,9 @@ Not blocking M3 acceptance — sector display works for the well-behaved case (l
 
 **Scope boundary.** Track outline only (no corner names, no sector colouring, no opponent positions). Overlay for M6 or later.
 
-### F2. Click-and-drag distance range selection (zoom)
+**As shipped.** 250 px sidebar SVG to the right of the plot stack, polyline drawn from resampled `(pos_x_m, pos_z_m)` per 1 m bin (Z axis inverted to match SVG Y). Cursor dot updates on every panel mousemove. Lives in `web/compare.html` (`renderCircuitMap`, `updateCursorDot`).
+
+### F2. Click-and-drag distance range selection (zoom) ✅ shipped 2026-05-10 (`eea2d39`)
 
 **What.** On any panel's plot area, click and drag horizontally to select a distance range. All panels immediately zoom to that range (pan + scale their x-axis). The selected range is highlighted on the mini-map (F1) as a coloured arc.
 
@@ -242,7 +245,9 @@ Not blocking M3 acceptance — sector display works for the well-behaved case (l
 
 **Scope boundary.** Horizontal zoom only (no vertical zoom, no pinch-to-zoom). Only distance-axis zooming; time-axis zoom is not applicable (the x-axis is always distance). Multi-panel linked zoom (all panels share the same zoom state) is the only mode.
 
-### F3. Split throttle and brake into separate panels
+**As shipped.** Drag overlay rect during selection, commit on mouseup, all 8 panels + map zoom-arc re-render together. Dblclick or Esc resets. Zoom does not persist across page reload (M6 candidate).
+
+### F3. Split throttle and brake into separate panels ✅ shipped 2026-05-10 (`2e9a06e`)
 
 **What.** The current "Throttle / Brake" panel overlays all four traces (session throttle, ref throttle, session brake, ref brake) in one panel. Split into two panels: one for throttle, one for brake.
 
@@ -250,7 +255,7 @@ Not blocking M3 acceptance — sector display works for the well-behaved case (l
 
 **Color convention.** Each trace should use the **lap color** (session = `--session` blue, reference = `--ref` orange), not a channel-specific color. Solid for session, dashed for reference — same as speed, RPM, etc. The current green/red coloring is misleading because it implies meaning (go/stop) rather than session identity.
 
-### F4. High-resolution distance axis — speed-integrated `lap_distance_m`
+### F4. High-resolution distance axis — speed-integrated `lap_distance_m` ✅ shipped 2026-05-10 (`2e9a06e`); fixed 2026-05-10 (`375525e`)
 
 **What.** Replace the raw `mLapDist` field recorded from SHM with a speed-integrated estimate that yields 50 Hz position resolution.
 
@@ -272,3 +277,9 @@ prev_dist = estimated_dist
 **Effect.** Distance increments every frame by `speed_m_s / 50 ≈ 0.72 m` at 130 km/h, giving sub-meter resolution matching the 50 Hz sample rate. The `mLapDist` anchor updates keep the integrated distance calibrated to the sim's ground truth at 3–4 Hz; any small integration drift is corrected at each anchor.
 
 **Scope.** Recorder change only (`connect.py` + `writer.py`). Existing parquet files are unaffected — they remain valid with the coarser distance axis. The change is transparent to the app (same `lap_distance_m` column name, just higher resolution).
+
+**As shipped.** First implementation (`2e9a06e`) used `dt = mCurrentET - prev_mCurrentET` as the integration step — but `mCurrentET` updates at scoring rate (~5 Hz) just like `mLapDist`, so `dt == 0` between scoring ticks and the integration branch was never taken. F4 was a silent no-op for ~2 weeks; sessions recorded in that window have ~9 m median Δd identical to pre-F4 data.
+
+Fix (`375525e`): drive dt off `time.monotonic()` (50 Hz wall clock). To stay safe across pauses — when the SHM `mLocalVel` may report stale non-zero velocity — track the wall-clock moment `mCurrentET` last advanced; if that gap exceeds 0.3 s the sim is paused and we anchor to `raw_dist` instead of integrating. Worst-case drift across a pause boundary is ~9 m (300 ms grace × 30 m/s), then snaps back. Verified on a fresh 5-lap LMU recording: median Δd = 0.76 m, Δt accuracy 7–17 % on adjacent racing laps.
+
+The app keeps the coarse-data warning badge: median frame Δd > 2 m flags pre-fix sessions with "legacy distance resolution — Δt accuracy limited" next to the Δt panel label.
