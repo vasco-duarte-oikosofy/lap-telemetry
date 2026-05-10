@@ -65,7 +65,9 @@ async function waitForStatus(page, selector, contains, timeout = 30000) {
   );
 }
 
-// Python Δt cross-check
+// Python Δt cross-check — must match web/compare.html's computeDeltaT.
+// Δt(d) = (lap_time_s_session(d) − lap_time_s_ref(d)) × 1000, with the SHM
+// lap-boundary artifact filtered out the same way as in JS (see RCA §6).
 function pythonDt(sessionPath, sessionSeg, refPath, refSeg, outPath) {
   const code = `
 import pyarrow.parquet as pq, json, sys, bisect, math
@@ -85,17 +87,39 @@ def interp(xs, ys, x):
     t = (x - xs[lo]) / (xs[hi] - xs[lo])
     return ys[lo] + t * (ys[hi] - ys[lo])
 
-def resample(dists, speeds, max_dist):
-    pairs = sorted(zip(dists, speeds)); xs = [p[0] for p in pairs]; ys = [p[1] for p in pairs]
+def resample(dists, vals, max_dist):
+    # Stable tie-break by original index keeps time-ordered rows in order
+    # within an equal-distance cluster — matches the JS resampler.
+    idx = sorted(range(len(dists)), key=lambda i: (dists[i], i))
+    xs = [dists[i] for i in idx]
+    ys = [vals[i]  for i in idx]
     return [interp(xs, ys, b) for b in range(max_dist + 1)]
 
+def keep_indices(lap_time, lap_dist, track_len):
+    half = track_len * 0.5
+    out = []
+    for i, (t, d) in enumerate(zip(lap_time, lap_dist)):
+        if t is not None and d is not None and t < -0.05 and d > half:
+            continue
+        out.append(i)
+    return out
+
 def load_seg(path, seg_idx):
-    t = pq.read_table(path, columns=['lap_number','lap_distance_m','speed_kph'])
-    laps = t.column('lap_number').to_pylist()
-    segs = build_segs(laps)
+    t = pq.read_table(path, columns=['lap_number','lap_distance_m','lap_time_s'])
+    laps  = t.column('lap_number').to_pylist()
+    dist  = t.column('lap_distance_m').to_pylist()
+    ltime = t.column('lap_time_s').to_pylist()
+    segs  = build_segs(laps)
+    # trackLen = max maxDist across segments (matches annotateSegments).
+    track_len = 0.0
+    for (_, a, b) in segs:
+        mx = max(dist[a:b])
+        if mx > track_len:
+            track_len = mx
     seg = segs[seg_idx]
-    d = t.column('lap_distance_m').to_pylist()[seg[1]:seg[2]]
-    s = t.column('speed_kph').to_pylist()[seg[1]:seg[2]]
+    keep = keep_indices(ltime[seg[1]:seg[2]], dist[seg[1]:seg[2]], track_len)
+    d = [dist[seg[1] + k]  for k in keep]
+    s = [ltime[seg[1] + k] for k in keep]
     return d, s
 
 sd, ss = load_seg('${sessionPath.replace(/\\/g, '\\\\')}', ${sessionSeg})
@@ -106,14 +130,15 @@ s_bins = resample(sd, ss, max_dist)
 r_bins = resample(rd, rs, max_dist)
 
 dt = []
-cum = 0.0
 for i in range(min(len(s_bins), len(r_bins))):
-    vs = max(s_bins[i] / 3.6, 0.3)
-    vr = max(r_bins[i] / 3.6, 0.3)
-    cum += (1/vs - 1/vr) * 1000
-    dt.append(cum)
+    dt.append((s_bins[i] - r_bins[i]) * 1000.0)
 
-json.dump({'dt': dt, 's_bins': s_bins[:5], 'r_bins': r_bins[:5]}, open('${outPath.replace(/\\/g, '\\\\')}', 'w'))
+overlap = {
+    'start': max(min(sd), min(rd)),
+    'end':   min(math.ceil(max(sd)), math.ceil(max(rd))),
+}
+
+json.dump({'dt': dt, 'overlap': overlap, 's_bins': s_bins[:5], 'r_bins': r_bins[:5]}, open('${outPath.replace(/\\/g, '\\\\')}', 'w'))
 `;
   const res = spawnSync('python', ['-c', code], { encoding: 'utf8', timeout: 30000 });
   if (res.status !== 0) throw new Error(`python Δt failed: ${res.stderr}`);
@@ -226,21 +251,33 @@ async function main() {
       pythonDt(SESSION_CLEAN, 2, SESSION_CLEAN, 4, dtPath);
       const { dt: pythonDtArr } = JSON.parse(fs.readFileSync(dtPath, 'utf8'));
 
-      const minLen = Math.min(browserDt.length, pythonDtArr.length);
-      let maxDiff = 0, sumDiff = 0;
-      for (let i = 0; i < minLen; i++) {
+      // Compare within the overlap window — bins outside that range carry
+      // only the resampler's lap_time_s clamp and don't reflect a real
+      // comparison. Both implementations clamp identically so they'd
+      // technically agree there too, but the window is where the number
+      // matters.
+      const overlap = await page1.evaluate(
+        ([sk, ss, rk, rs]) => window.__dtDebugOverlap(sk, ss, rk, rs),
+        [sk, 2, sk, 4]
+      );
+      const startIdx = Math.max(0, Math.ceil(overlap.start));
+      const endIdx   = Math.min(browserDt.length - 1, pythonDtArr.length - 1, Math.floor(overlap.end));
+      let maxDiff = 0, sumDiff = 0, nDiff = 0;
+      for (let i = startIdx; i <= endIdx; i++) {
         const d = Math.abs(browserDt[i] - pythonDtArr[i]);
         if (d > maxDiff) maxDiff = d;
         sumDiff += d;
+        nDiff++;
       }
-      const meanDiff = sumDiff / minLen;
-      console.log(`  Δt diff: max=${maxDiff.toFixed(3)} ms, mean=${meanDiff.toFixed(3)} ms`);
-      // 25 ms tolerance: float32 speed values accumulate small precision differences
-      // over ~4600 bins of cumulative integration; 25 ms is <0.03% of a 97 s lap.
-      assert(maxDiff < 25, 'S1: Δt max|browser-python| < 25 ms', `got ${maxDiff.toFixed(3)}`);
+      const meanDiff = sumDiff / Math.max(nDiff, 1);
+      console.log(`  Δt diff (overlap ${startIdx}..${endIdx}): max=${maxDiff.toFixed(3)} ms, mean=${meanDiff.toFixed(3)} ms`);
+      // 5 ms tolerance: the new direct-subtraction method has no cumulative
+      // float drift; only float32→float64 conversion noise remains.
+      assert(maxDiff < 5, 'S1: Δt max|browser-python| < 5 ms', `got ${maxDiff.toFixed(3)}`);
 
       const dtSummary = `Δt cross-check (lap 3 vs lap 5, clean session)\n` +
         `Browser bins: ${browserDt.length}\nPython bins:  ${pythonDtArr.length}\n` +
+        `Overlap window: ${startIdx}..${endIdx} (${nDiff} bins)\n` +
         `Max |diff|:   ${maxDiff.toFixed(4)} ms\nMean |diff|:  ${meanDiff.toFixed(4)} ms\nThreshold: 5 ms\n` +
         `Result: ${maxDiff < 5 ? 'PASS' : 'FAIL'}\n`;
       fs.writeFileSync(path.join(REPORT_DIR, 'dt_diff.txt'), dtSummary);

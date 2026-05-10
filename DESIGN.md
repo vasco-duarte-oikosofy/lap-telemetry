@@ -17,7 +17,7 @@ A telemetry recorder + lap-comparison tool for rFactor 2 and Le Mans Ultimate. R
 
 1. **Record** a session's telemetry (player vehicle only) at high rate while a sim is running, with zero in-game configuration beyond the existing TinyPedal/rF2-SHM plugin setup.
 2. **Store** each session in a single, self-describing, language-agnostic file (Parquet) plus a small JSON sidecar for metadata.
-3. **Compare** any two laps from any two sessions on a single chart: traces aligned to lap distance (not time), with a delta-time-vs-distance trace driven by speed integration. Picks out the corner where lap A loses to lap B.
+3. **Compare** any two laps from any two sessions on a single chart: traces aligned to lap distance (not time), with a delta-time-vs-distance trace read directly from each lap's `lap_time_s` column at each distance bin. Picks out the corner where lap A loses to lap B.
 4. **Stay out of TinyPedal's way.** Run as a separate process; no changes to TinyPedal's code, no writes inside its data folders.
 
 ## 2. Non-goals
@@ -78,7 +78,7 @@ Two entry points:
 
 Layout (full vision, populated incrementally across M4 → M5): vertical stack of linked plots — speed, throttle/brake, RPM/gear, steering, slip angle (per axle), Δt — all on a shared lap-distance x-axis with a synced cursor.
 
-Δt is computed by integrating `1/speed` over distance for each lap and subtracting. Distance bins are 1 m by default; we resample both laps onto the same bin grid before subtracting.
+Δt is the instantaneous time delta at each 1 m bin: resample each lap's `lap_time_s` column onto the shared distance grid, then subtract — `Δt(d) = (lap_time_s_session(d) − lap_time_s_ref(d)) × 1000` in milliseconds. The reading at any distance answers "how far ahead/behind is the session lap right here?" — positive means session is slower. An earlier implementation integrated `1/speed` over distance instead, but the F4 distance integrator over-counts ground travelled by a few tens of metres per lap (lateral velocity baked into `|mLocalVel|`), and that over-count varies lap-to-lap with how much yaw/slip the driver carried — producing a ~60 ms phantom error on tight comparisons (see `rca-deltat-phantom-error.md`). The direct-subtraction method bypasses the distance integrator entirely: distance is the alignment axis, not the integration variable. The SHM lap-boundary frame (new `mLapNumber` ticked while `mLapDist`/`lap_time_s` still report the previous lap's values) is dropped before resampling. The rendered curve and the "end" readout are bounded to the overlap window `[max(minA,minB), min(maxA,maxB)]` so the resampler's boundary clamp can't drag visible Δt outside the real comparison range.
 
 ## 5. File format
 

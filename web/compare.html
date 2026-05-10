@@ -647,19 +647,36 @@ function resample(distances, values, maxDist) {
 }
 
 // ── Δt computation ────────────────────────────────────────────────────────────
-
-function computeDeltaT(sessionSpeed, refSpeed) {
-  const len = Math.min(sessionSpeed.length, refSpeed.length);
+//
+// Δt(d) = lap_time_s_session(d) − lap_time_s_ref(d), in milliseconds.
+// Read directly from the recorder's sim-clock-derived `lap_time_s` column at
+// each 1 m bin. Bypasses the F4 distance over-count that previously surfaced
+// as a phantom ~60 ms asymmetry vs the real lap-time delta (see rca-deltat-
+// phantom-error.md and DESIGN.md §4.2).
+function computeDeltaT(sessionLapTime, refLapTime) {
+  const len = Math.min(sessionLapTime.length, refLapTime.length);
   const dt = new Float64Array(len);
-  let cumDt = 0;
-  for (let i = 0; i < len; i++) {
-    const vs = Math.max(sessionSpeed[i] / 3.6, 0.3); // m/s, guard zero
-    const vr = Math.max(refSpeed[i] / 3.6, 0.3);
-    // Time to travel 1 m at each speed (seconds), diff in ms
-    cumDt += (1 / vs - 1 / vr) * 1000;
-    dt[i] = cumDt;
-  }
+  for (let i = 0; i < len; i++) dt[i] = (sessionLapTime[i] - refLapTime[i]) * 1000;
   return dt;
+}
+
+// Drop the SHM lap-boundary artifact frame from a segment slice. The sim
+// updates `mLapNumber` one tick before resetting `mLapDist`, so the first
+// frame of every recorded lap can carry the previous lap's end-of-pit-
+// straight distance and a slightly-negative `lap_time_s`. Filter heuristic:
+// drop frames where lap_time_s < -0.05 AND lap_distance_m > trackLen × 0.5.
+// Both halves of the test are required so an honest negative clock tick
+// near the start/finish line (real first frame) is preserved.
+function computeKeepIndices(lapTime, lapDist, start, end, trackLen) {
+  const halfTrack = trackLen * 0.5;
+  const keep = [];
+  for (let i = start; i < end; i++) {
+    const t = lapTime ? lapTime[i] : NaN;
+    const d = lapDist ? lapDist[i] : NaN;
+    if (Number.isFinite(t) && Number.isFinite(d) && t < -0.05 && d > halfTrack) continue;
+    keep.push(i);
+  }
+  return keep;
 }
 
 // ── Sector distance finder ────────────────────────────────────────────────────
@@ -920,11 +937,19 @@ function renderPanel(def, bins, maxDist, sectorDists, zoomRange) {
 
 // ── Δt panel renderer ─────────────────────────────────────────────────────────
 
-function renderDtPanel(def, dtBins, maxDist, sectorDists, zoomRange) {
+function renderDtPanel(def, dtBins, maxDist, sectorDists, zoomRange, overlapRange) {
   const H = def.height;
   const plotH = H - PAD.top - PAD.bottom;
-  const allVals = Array.from(dtBins).filter(isFinite);
-  const [yMin, yMax] = niceRange(allVals, def.yFixed);
+  // Render only the [overlapStart..overlapEnd] window — bins outside that range
+  // carry the resampler's boundary-clamping of lap_time_s, not real data, and
+  // would visually swamp the plot if drawn (see rca-deltat-phantom-error.md §7).
+  const overlapStart = overlapRange ? Math.max(0, Math.ceil(overlapRange.start)) : 0;
+  const overlapEnd   = overlapRange ? Math.min(maxDist, Math.floor(overlapRange.end)) : maxDist;
+  const inRangeVals = [];
+  for (let i = overlapStart; i <= overlapEnd; i++) {
+    if (isFinite(dtBins[i])) inRangeVals.push(dtBins[i]);
+  }
+  const [yMin, yMax] = niceRange(inRangeVals, def.yFixed);
   def._yMin = yMin; def._yMax = yMax;
 
   const toX  = d => {
@@ -971,14 +996,17 @@ function renderDtPanel(def, dtBins, maxDist, sectorDists, zoomRange) {
   const zeroY = toY(Math.max(yMin, Math.min(yMax, 0)));
   svg += `<polyline points="${PAD.left},${zeroY} ${PAD.left + PLOT_W},${zeroY}" fill="none" stroke="var(--ref)" stroke-width="0.9" stroke-dasharray="6 3" clip-path="url(#clip-dt)"/>`;
 
-  // Δt polyline — session delta vs reference (blue solid)
-  const pts = Array.from(dtBins, (v, i) => `${toX(i).toFixed(1)},${toY(v).toFixed(1)}`).join(' ');
-  svg += `<polyline points="${pts}" fill="none" stroke="var(--session)" stroke-width="0.9" stroke-linejoin="round" clip-path="url(#clip-dt)"/>`;
+  // Δt polyline — session delta vs reference (blue solid). Clipped to overlap.
+  const ptsArr = [];
+  for (let i = overlapStart; i <= overlapEnd; i++) {
+    ptsArr.push(`${toX(i).toFixed(1)},${toY(dtBins[i]).toFixed(1)}`);
+  }
+  svg += `<polyline points="${ptsArr.join(' ')}" fill="none" stroke="var(--session)" stroke-width="0.9" stroke-linejoin="round" clip-path="url(#clip-dt)"/>`;
 
-  // Sector markers + per-sector Δt readouts (cumulative Δt at each boundary,
-  // plus the lap-end value pinned to the right edge).
+  // Sector markers + per-sector Δt readouts (instantaneous Δt at each
+  // sector boundary, plus the lap-end value pinned to the right edge).
   const dtAt = (dist) => {
-    if (dist == null || dist < 0 || dist > maxDist) return null;
+    if (dist == null || dist < overlapStart || dist > overlapEnd) return null;
     const i = Math.max(0, Math.min(Math.round(dist), dtBins.length - 1));
     return dtBins[i];
   };
@@ -997,8 +1025,11 @@ function renderDtPanel(def, dtBins, maxDist, sectorDists, zoomRange) {
       }
     }
   }
-  // Lap-end Δt readout pinned to the right of the plot.
-  const lastDt = dtBins[dtBins.length - 1];
+  // Lap-end Δt readout pinned to the right of the plot. Use the overlap-end
+  // bin — the rightmost bin where BOTH laps still have real data. Reading
+  // dtBins[dtBins.length - 1] would land in the clamp region for whichever
+  // lap was shorter and produce the (now-fixed) phantom-error symptom.
+  const lastDt = dtBins[overlapEnd];
   if (isFinite(lastDt)) {
     svg += `<text x="${PAD.left + PLOT_W - 4}" y="${PAD.top + 11}" text-anchor="end" fill="${dtColor(lastDt)}" font-size="10" font-family="monospace" font-weight="600">end ${fmtMs(lastDt)}</text>`;
   }
@@ -1015,6 +1046,7 @@ let currentDtBins      = null;
 let currentTrackX      = null; // Resampled track coordinates
 let currentTrackZ      = null;
 let currentZoomRange   = null; // { start, end }
+let currentOverlapRange = null; // { start, end } — distance window covered by BOTH laps
 let trackTransform     = null;
 
 // ── Persistent lap colours (M6) ─────────────────────────────────────────────
@@ -1199,11 +1231,31 @@ function renderAll(sessionEntry, sessionSegIdx, refEntry, refSegIdx) {
   const sSeg = sessionEntry.segments[sessionSegIdx];
   const rSeg = refEntry.segments[refSegIdx];
 
-  const sDistRaw  = sessionEntry.data.lap_distance_m.slice(sSeg.start, sSeg.end);
-  const rDistRaw  = refEntry.data.lap_distance_m.slice(rSeg.start, rSeg.end);
+  // Per-file trackLen for the boundary-artifact heuristic. Use the max maxDist
+  // across the file's segments — same convention annotateSegments uses.
+  const sTrackLen = sessionEntry.segments.reduce((m, s) => Math.max(m, s.maxDist || 0), 0);
+  const rTrackLen = refEntry.segments.reduce((m, s) => Math.max(m, s.maxDist || 0), 0);
+
+  // Filter the SHM lap-boundary artifact frame (see computeKeepIndices). All
+  // channel resampling uses the same `keep` index list so values stay aligned
+  // with distances after the drop.
+  const sKeep = computeKeepIndices(sessionEntry.data.lap_time_s, sessionEntry.data.lap_distance_m, sSeg.start, sSeg.end, sTrackLen);
+  const rKeep = computeKeepIndices(refEntry.data.lap_time_s,     refEntry.data.lap_distance_m,     rSeg.start, rSeg.end, rTrackLen);
+
+  const sDistRaw  = sKeep.map(i => sessionEntry.data.lap_distance_m[i]);
+  const rDistRaw  = rKeep.map(i => refEntry.data.lap_distance_m[i]);
   const sMaxDist  = Math.ceil(Math.max(...sDistRaw));
   const rMaxDist  = Math.ceil(Math.max(...rDistRaw));
+  const sMinDist  = Math.min(...sDistRaw);
+  const rMinDist  = Math.min(...rDistRaw);
   const maxDist   = Math.max(sMaxDist, rMaxDist);
+
+  // Overlap window: indices outside this range carry only the resampler's
+  // boundary clamping, not real data, and must not be rendered or read from.
+  currentOverlapRange = {
+    start: Math.max(sMinDist, rMinDist),
+    end:   Math.min(sMaxDist, rMaxDist),
+  };
 
   currentMaxDist = maxDist;
   currentSessionBins = {};
@@ -1222,7 +1274,7 @@ function renderAll(sessionEntry, sessionSegIdx, refEntry, refSegIdx) {
     if (!def.channels) continue;
     for (const ch of def.channels) {
       const entry = ch.trace === 'session' ? sessionEntry : refEntry;
-      const seg   = ch.trace === 'session' ? sSeg : rSeg;
+      const keep  = ch.trace === 'session' ? sKeep : rKeep;
       const raw   = entry.data[ch.col];
       if (!raw || raw.length === 0) {
         const bins = new Float64Array(maxDist + 1);
@@ -1230,10 +1282,9 @@ function renderAll(sessionEntry, sessionSegIdx, refEntry, refSegIdx) {
         else                        currentRefBins[ch.col]     = bins;
         continue;
       }
-      const distSlice = ch.trace === 'session'
-        ? sDistRaw : refEntry.data.lap_distance_m.slice(rSeg.start, rSeg.end);
-      const valSlice  = raw.slice(seg.start, seg.end);
-      const bins      = resample(Array.from(distSlice), Array.from(valSlice), maxDist);
+      const distSlice = ch.trace === 'session' ? sDistRaw : rDistRaw;
+      const valSlice  = keep.map(i => raw[i]);
+      const bins      = resample(distSlice, valSlice, maxDist);
       if (ch.trace === 'session') currentSessionBins[ch.col] = bins;
       else                        currentRefBins[ch.col]     = bins;
     }
@@ -1247,22 +1298,34 @@ function renderAll(sessionEntry, sessionSegIdx, refEntry, refSegIdx) {
     if (currentSessionBins[col]) continue;  // already resampled (shouldn't happen)
     const raw = sessionEntry.data[col];
     if (!raw || raw.length === 0) continue;
-    const valSlice = raw.slice(sSeg.start, sSeg.end);
-    currentSessionBins[col] = resample(Array.from(sDistRaw), Array.from(valSlice), maxDist);
+    const valSlice = sKeep.map(i => raw[i]);
+    currentSessionBins[col] = resample(sDistRaw, valSlice, maxDist);
   }
 
   // Resample track coordinates (F1)
   if (sessionEntry.data.pos_x_m && sessionEntry.data.pos_z_m) {
-    const sTrackX = resample(Array.from(sDistRaw), Array.from(sessionEntry.data.pos_x_m.slice(sSeg.start, sSeg.end)), maxDist);
-    const sTrackZ = resample(Array.from(sDistRaw), Array.from(sessionEntry.data.pos_z_m.slice(sSeg.start, sSeg.end)), maxDist);
+    const sTrackX = resample(sDistRaw, sKeep.map(i => sessionEntry.data.pos_x_m[i]), maxDist);
+    const sTrackZ = resample(sDistRaw, sKeep.map(i => sessionEntry.data.pos_z_m[i]), maxDist);
     currentTrackX = sTrackX;
     currentTrackZ = sTrackZ;
   }
 
-  // Δt
-  const sBinsSpeed = currentSessionBins['speed_kph'] || new Float64Array(maxDist + 1);
-  const rBinsSpeed = currentRefBins['speed_kph']     || new Float64Array(maxDist + 1);
-  currentDtBins = computeDeltaT(sBinsSpeed, rBinsSpeed);
+  // Resample lap_time_s (drives the Δt computation; not a rendered panel).
+  // Stored on currentSessionBins/currentRefBins so __dtDebug and downstream
+  // consumers can read the same arrays renderAll built.
+  const sLapTime = sessionEntry.data.lap_time_s;
+  const rLapTime = refEntry.data.lap_time_s;
+  const sLapTimeBins = (sLapTime && sLapTime.length)
+    ? resample(sDistRaw, sKeep.map(i => sLapTime[i]), maxDist)
+    : new Float64Array(maxDist + 1);
+  const rLapTimeBins = (rLapTime && rLapTime.length)
+    ? resample(rDistRaw, rKeep.map(i => rLapTime[i]), maxDist)
+    : new Float64Array(maxDist + 1);
+  currentSessionBins['lap_time_s'] = sLapTimeBins;
+  currentRefBins['lap_time_s']     = rLapTimeBins;
+
+  // Δt — direct lap_time_s difference (see computeDeltaT).
+  currentDtBins = computeDeltaT(sLapTimeBins, rLapTimeBins);
 
   // Coarse-data warning (Fix 4)
   const medianDelta = computeMedianFrameDistanceDelta(Array.from(sDistRaw));
@@ -1308,7 +1371,7 @@ function renderAll(sessionEntry, sessionSegIdx, refEntry, refSegIdx) {
     let svgHtml;
     if (def.id === 'dt') {
       def.showXLabels = true;
-      svgHtml = renderDtPanel(def, currentDtBins, maxDist, sectorDists, currentZoomRange);
+      svgHtml = renderDtPanel(def, currentDtBins, maxDist, sectorDists, currentZoomRange, currentOverlapRange);
     } else {
       def.showXLabels = (pi === lastIdx - 1); // second-to-last non-dt panel
       // Build bins map
@@ -1737,7 +1800,12 @@ function updateCursorPosition(e) {
   // Tooltip
   const sSpeed  = currentSessionBins.speed_kph?.[binIdx];
   const rSpeed  = currentRefBins.speed_kph?.[binIdx];
-  const sDt     = currentDtBins?.[binIdx];
+  // Mask Δt outside the overlap: bins beyond the data range of either lap
+  // carry only the lap_time_s clamp value, not a real comparison.
+  const inOverlap = currentOverlapRange
+    && binIdx >= Math.ceil(currentOverlapRange.start)
+    && binIdx <= Math.floor(currentOverlapRange.end);
+  const sDt     = inOverlap ? currentDtBins?.[binIdx] : null;
   const sThrottle = currentSessionBins.throttle_norm?.[binIdx];
   const sBrake    = currentSessionBins.brake_norm?.[binIdx];
 
@@ -2018,19 +2086,36 @@ window.__dtDebug = function(sessionKey, sessionSeg, refKey, refSeg) {
   if (!se || !re) throw new Error('store keys not found');
   const sSeg = se.segments[sessionSeg];
   const rSeg = re.segments[refSeg];
-  const maxD = Math.max(
-    Math.ceil(Math.max(...se.data.lap_distance_m.slice(sSeg.start, sSeg.end))),
-    Math.ceil(Math.max(...re.data.lap_distance_m.slice(rSeg.start, rSeg.end)))
-  );
-  const sBins = resample(
-    Array.from(se.data.lap_distance_m.slice(sSeg.start, sSeg.end)),
-    Array.from(se.data.speed_kph.slice(sSeg.start, sSeg.end)), maxD
-  );
-  const rBins = resample(
-    Array.from(re.data.lap_distance_m.slice(rSeg.start, rSeg.end)),
-    Array.from(re.data.speed_kph.slice(rSeg.start, rSeg.end)), maxD
-  );
+  const sTrackLen = se.segments.reduce((m, s) => Math.max(m, s.maxDist || 0), 0);
+  const rTrackLen = re.segments.reduce((m, s) => Math.max(m, s.maxDist || 0), 0);
+  const sKeep = computeKeepIndices(se.data.lap_time_s, se.data.lap_distance_m, sSeg.start, sSeg.end, sTrackLen);
+  const rKeep = computeKeepIndices(re.data.lap_time_s, re.data.lap_distance_m, rSeg.start, rSeg.end, rTrackLen);
+  const sDist = sKeep.map(i => se.data.lap_distance_m[i]);
+  const rDist = rKeep.map(i => re.data.lap_distance_m[i]);
+  const maxD  = Math.max(Math.ceil(Math.max(...sDist)), Math.ceil(Math.max(...rDist)));
+  const sBins = resample(sDist, sKeep.map(i => se.data.lap_time_s[i]), maxD);
+  const rBins = resample(rDist, rKeep.map(i => re.data.lap_time_s[i]), maxD);
   return Array.from(computeDeltaT(sBins, rBins));
+};
+
+// Overlap window for the in-page Δt cross-check (lets tests trim to the
+// rendered range rather than the full bin grid).
+window.__dtDebugOverlap = function(sessionKey, sessionSeg, refKey, refSeg) {
+  const se   = store.get(sessionKey);
+  const re   = store.get(refKey);
+  if (!se || !re) throw new Error('store keys not found');
+  const sSeg = se.segments[sessionSeg];
+  const rSeg = re.segments[refSeg];
+  const sTrackLen = se.segments.reduce((m, s) => Math.max(m, s.maxDist || 0), 0);
+  const rTrackLen = re.segments.reduce((m, s) => Math.max(m, s.maxDist || 0), 0);
+  const sKeep = computeKeepIndices(se.data.lap_time_s, se.data.lap_distance_m, sSeg.start, sSeg.end, sTrackLen);
+  const rKeep = computeKeepIndices(re.data.lap_time_s, re.data.lap_distance_m, rSeg.start, rSeg.end, rTrackLen);
+  const sDist = sKeep.map(i => se.data.lap_distance_m[i]);
+  const rDist = rKeep.map(i => re.data.lap_distance_m[i]);
+  return {
+    start: Math.max(Math.min(...sDist), Math.min(...rDist)),
+    end:   Math.min(Math.ceil(Math.max(...sDist)), Math.ceil(Math.max(...rDist))),
+  };
 };
 </script>
 
