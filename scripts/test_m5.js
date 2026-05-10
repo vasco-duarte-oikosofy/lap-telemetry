@@ -148,9 +148,25 @@ max_dist = int(math.ceil(max_dist))
 s_bins = resample(sd, ss, max_dist)
 r_bins = resample(rd, rs, max_dist)
 
-dt = []
-for i in range(min(len(s_bins), len(r_bins))):
-    dt.append((s_bins[i] - r_bins[i]) * 1000.0)
+raw_dt = [(s_bins[i] - r_bins[i]) * 1000.0 for i in range(min(len(s_bins), len(r_bins)))]
+
+# Mirror smoothDt in compare.html: symmetric truncated boxcar, max radius
+# 20 bins (±20 m). Kernel shrinks at the array boundaries so endpoint
+# values are preserved exactly.
+def smooth_dt(arr, max_radius=20):
+    n = len(arr)
+    out = [0.0] * n
+    for i in range(n):
+        r = min(max_radius, i, n - 1 - i)
+        s = 0.0; c = 0
+        for k in range(i - r, i + r + 1):
+            v = arr[k]
+            if v == v and v not in (float('inf'), float('-inf')):
+                s += v; c += 1
+        out[i] = s / c if c > 0 else arr[i]
+    return out
+
+dt = smooth_dt(raw_dt)
 
 overlap = {
     'start': max(min(sd), min(rd)),

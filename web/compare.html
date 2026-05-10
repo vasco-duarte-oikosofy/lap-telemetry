@@ -703,6 +703,33 @@ function smoothLapTime(lapTime, indices) {
   return out;
 }
 
+// Spatial moving average for the Δt array. Even after smoothLapTime, two
+// laps' clock ticks land at slightly different distances (1-2 frames of
+// recorder phase), so each tick boundary introduces up to ~20 ms of
+// plateau-alignment jitter into Δt. The jitter has spatial period equal
+// to the plateau length (~7 m at racing speed), so a 41-bin boxcar
+// (±20 m) attenuates it by ~6× while preserving features at the scale
+// of corners (typically 50-100 m). The kernel is SYMMETRIC and shrinks
+// toward the array boundaries (radius = min(maxRadius, i, n-1-i)) so
+// the endpoint values are preserved exactly — at the lap-end bin
+// (overlapEnd), the smoothed Δt equals the raw (sLapTime - rLapTime)
+// at that bin, which equals max(lap_time_s) delta. This is the value
+// the "end" text and tooltip read, and it must match the user's
+// expectation of "the real lap-time delta."
+function smoothDt(dt, maxRadius = 20) {
+  const n = dt.length;
+  const out = new Float64Array(n);
+  for (let i = 0; i < n; i++) {
+    const r = Math.min(maxRadius, i, n - 1 - i);
+    let sum = 0, cnt = 0;
+    for (let k = i - r; k <= i + r; k++) {
+      if (isFinite(dt[k])) { sum += dt[k]; cnt++; }
+    }
+    out[i] = cnt > 0 ? sum / cnt : dt[i];
+  }
+  return out;
+}
+
 // Bridge brief neutral (gear == 0) runs with the previous engaged gear.
 // Every shift passes through neutral for 1-3 frames as the clutch
 // disengages; rendering those as dips to zero turns a clean gear ladder
@@ -1381,8 +1408,9 @@ function renderAll(sessionEntry, sessionSegIdx, refEntry, refSegIdx) {
   currentSessionBins['lap_time_s'] = sLapTimeBins;
   currentRefBins['lap_time_s']     = rLapTimeBins;
 
-  // Δt — direct lap_time_s difference (see computeDeltaT).
-  currentDtBins = computeDeltaT(sLapTimeBins, rLapTimeBins);
+  // Δt — direct lap_time_s difference (see computeDeltaT), then spatially
+  // smoothed (see smoothDt) to suppress plateau-alignment jitter.
+  currentDtBins = smoothDt(computeDeltaT(sLapTimeBins, rLapTimeBins));
 
   // Coarse-data warning (Fix 4)
   const medianDelta = computeMedianFrameDistanceDelta(Array.from(sDistRaw));
@@ -2152,7 +2180,7 @@ window.__dtDebug = function(sessionKey, sessionSeg, refKey, refSeg) {
   const maxD  = Math.max(Math.ceil(Math.max(...sDist)), Math.ceil(Math.max(...rDist)));
   const sBins = resample(sDist, smoothLapTime(se.data.lap_time_s, sKeep), maxD);
   const rBins = resample(rDist, smoothLapTime(re.data.lap_time_s, rKeep), maxD);
-  return Array.from(computeDeltaT(sBins, rBins));
+  return Array.from(smoothDt(computeDeltaT(sBins, rBins)));
 };
 
 // Overlap window for the in-page Δt cross-check (lets tests trim to the
