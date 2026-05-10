@@ -519,17 +519,12 @@ function niceRange(arr, yFixed, margin = 0.05) {
 
 function buildPolylinePts(xs, ys, toX, toY, step = false) {
   const pts = [];
-  const decimate = Math.max(1, Math.floor(xs.length / 1500));
-  for (let i = 0; i < xs.length; i += decimate) {
+  for (let i = 0; i < xs.length; i++) {
     if (step && i > 0) {
-      // Horizontal then vertical for step plots
-      pts.push(`${toX(xs[i]).toFixed(1)},${toY(ys[i - decimate]).toFixed(1)}`);
+      // Step plot: draw horizontal segment at previous value before stepping down
+      pts.push(`${toX(xs[i]).toFixed(1)},${toY(ys[i - 1]).toFixed(1)}`);
     }
     pts.push(`${toX(xs[i]).toFixed(1)},${toY(ys[i]).toFixed(1)}`);
-  }
-  if (xs.length > 0) {
-    const last = xs.length - 1;
-    pts.push(`${toX(xs[last]).toFixed(1)},${toY(ys[last]).toFixed(1)}`);
   }
   return pts.join(' ');
 }
@@ -611,7 +606,7 @@ function renderPanel(def, bins, maxDist, sectorDists) {
 
     const pts = buildPolylinePts(distBins, Array.from(binArr), toX, toYp, ch.step);
     const strokeDash = ch.dash ? 'stroke-dasharray="6 3"' : '';
-    svgContent += `<polyline points="${pts}" fill="none" stroke="${ch.color}" stroke-width="1.4" stroke-linejoin="round" ${strokeDash} clip-path="url(#clip-${def.id})"/>`;
+    svgContent += `<polyline points="${pts}" fill="none" stroke="${ch.color}" stroke-width="0.9" stroke-linejoin="round" ${strokeDash} clip-path="url(#clip-${def.id})"/>`;
   }
 
   // Sector markers
@@ -669,14 +664,13 @@ function renderDtPanel(def, dtBins, maxDist, sectorDists) {
   svg += yTicks.map(y =>
     `<line x1="${PAD.left}" y1="${toY(y)}" x2="${PAD.left + PLOT_W}" y2="${toY(y)}" stroke="var(--border)" stroke-width="0.4" stroke-dasharray="3 3"/>`
   ).join('');
-  // Zero line
-  if (yMin <= 0 && yMax >= 0) {
-    svg += `<line x1="${PAD.left}" y1="${toY(0)}" x2="${PAD.left + PLOT_W}" y2="${toY(0)}" stroke="rgba(255,255,255,0.25)" stroke-width="1"/>`;
-  }
+  // Reference lap baseline at y=0 (orange dashed, same style as other panels)
+  const zeroY = toY(Math.max(yMin, Math.min(yMax, 0)));
+  svg += `<polyline points="${PAD.left},${zeroY} ${PAD.left + PLOT_W},${zeroY}" fill="none" stroke="var(--ref)" stroke-width="0.9" stroke-dasharray="6 3" clip-path="url(#clip-dt)"/>`;
 
-  // Δt polyline — color by sign
+  // Δt polyline — session delta vs reference (blue solid)
   const pts = Array.from(dtBins, (v, i) => `${toX(i).toFixed(1)},${toY(v).toFixed(1)}`).join(' ');
-  svg += `<polyline points="${pts}" fill="none" stroke="var(--session)" stroke-width="1.4" stroke-linejoin="round" clip-path="url(#clip-dt)"/>`;
+  svg += `<polyline points="${pts}" fill="none" stroke="var(--session)" stroke-width="0.9" stroke-linejoin="round" clip-path="url(#clip-dt)"/>`;
 
   // Sector markers
   if (sectorDists) {

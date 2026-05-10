@@ -202,3 +202,42 @@ Surfaced by the M3 live test (Circuit de Barcelona, LMP3, 2026-05-10). Both fixe
 ### Status
 
 Not blocking M3 acceptance — sector display works for the well-behaved case (laps 2, 4, 5 in the live run had real, plausible splits summing to the lap duration). Slot for M3.5 polish or a deliberate M4 sub-task.
+
+---
+
+## 11. Future UI features (post-M5, not yet scheduled)
+
+### F1. Circuit mini-map with moving cursor dot
+
+**What.** A small top-down SVG track outline rendered to the right of the plot panels. As the user hovers the cursor across the telemetry, a dot moves along the track outline to show where on the circuit that distance corresponds to.
+
+**Data source.** The parquet already records `pos_x_m`, `pos_y_m`, `pos_z_m` (world position). Draw the track outline by projecting `(pos_x_m, pos_z_m)` of the session lap onto a normalised 2D canvas (horizontal plane). The dot position at cursor distance = nearest frame's `(pos_x_m, pos_z_m)` after resampling onto the same 1 m bins.
+
+**Implementation sketch.**
+- Add `pos_x_m` and `pos_z_m` to the column read list.
+- After resampling, build `trackX[bin]` and `trackZ[bin]` arrays (Float32Array, 1 value per metre).
+- Render the track outline once as a `<polyline>` in a fixed-size SVG panel to the right.
+- On cursor `mousemove`, look up `trackX[binIdx]` and `trackZ[binIdx]` and move a `<circle>` to that position.
+- Layout change: shift `#plot-area` to occupy ~70% of page width; track map takes the remaining ~28% (fixed 250 px wide, auto height to match plot area).
+
+**Scope boundary.** Track outline only (no corner names, no sector colouring, no opponent positions). Overlay for M6 or later.
+
+### F2. Click-and-drag distance range selection (zoom)
+
+**What.** On any panel's plot area, click and drag horizontally to select a distance range. All panels immediately zoom to that range (pan + scale their x-axis). The selected range is highlighted on the mini-map (F1) as a coloured arc.
+
+**Interaction.**
+- `mousedown` on plot area: start selection, record start distance.
+- `mousemove` while held: draw a translucent rect overlay showing the selection.
+- `mouseup`: commit selection; zoom all panels to [startDist, endDist].
+- Double-click anywhere on any panel, or a "Reset zoom" button in the toolbar: restore full-lap view.
+- Keyboard shortcut: `Escape` to reset zoom.
+
+**Implementation sketch.**
+- Add `zoomRange = { start: 0, end: maxDist }` to app state.
+- `toX(d)` in each panel becomes `toX(d, zoom)`: maps `[zoomRange.start, zoomRange.end]` to `[PAD.left, PAD.left + PLOT_W]`.
+- On zoom change, re-render all panels (panels are cheap pure functions of their bin data — re-render is fast).
+- Track map highlights the selected arc by filtering the track polyline to the zoomed distance range and drawing it in a highlight colour.
+- Zoomed panels still show the full x-axis labels for the visible range (recompute ticks from the zoom window).
+
+**Scope boundary.** Horizontal zoom only (no vertical zoom, no pinch-to-zoom). Only distance-axis zooming; time-axis zoom is not applicable (the x-axis is always distance). Multi-panel linked zoom (all panels share the same zoom state) is the only mode.
