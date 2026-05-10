@@ -492,6 +492,14 @@ function interpAt(xs, ys, x) {
     const mid = (lo + hi) >> 1;
     if (xs[mid] <= x) lo = mid; else hi = mid;
   }
+  // Handle clusters: if xs[lo] == xs[hi], find the average of all values at that distance
+  if (xs[lo] === xs[hi]) {
+    // Find all indices where xs[i] == xs[lo]
+    let sum = ys[lo], count = 1;
+    for (let i = lo + 1; i <= hi && xs[i] === xs[lo]; i++) { sum += ys[i]; count++; }
+    for (let i = lo - 1; i >= 0 && xs[i] === xs[lo]; i--) { sum += ys[i]; count++; }
+    return sum / count;
+  }
   const t = (x - xs[lo]) / (xs[hi] - xs[lo]);
   return ys[lo] + t * (ys[hi] - ys[lo]);
 }
@@ -619,7 +627,8 @@ function buildTrackTransform(bounds) {
   const offsetZ = MAP_PAD + (MAP_SIZE - 2 * MAP_PAD - height * scale) / 2;
   return {
     toMapX: (x) => offsetX + (x - bounds.minX) * scale,
-    toMapZ: (z) => offsetZ + (z - bounds.minZ) * scale,
+    // Invert Z-axis: world Z increases in one direction, SVG Y increases downward
+    toMapZ: (z) => offsetZ + (bounds.maxZ - z) * scale,
     bounds, scale, offsetX, offsetZ,
   };
 }
