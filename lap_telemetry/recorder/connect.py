@@ -51,6 +51,8 @@ class Frame:
     slip_angle_fr_deg: float
     slip_angle_rl_deg: float
     slip_angle_rr_deg: float
+    abs_active: Optional[bool]
+    tc_active: Optional[bool]
     in_realtime: bool
     paused: bool
     track_name: str
@@ -218,6 +220,8 @@ class LMUConnection(_BaseConnection):
             slip_angle_fr_deg=_slip_deg(tele_v.mWheels[1]),
             slip_angle_rl_deg=_slip_deg(tele_v.mWheels[2]),
             slip_angle_rr_deg=_slip_deg(tele_v.mWheels[3]),
+            abs_active=bool(tele_v.mABSActive),
+            tc_active=bool(tele_v.mTCActive),
             in_realtime=bool(scor_info.mInRealtime),
             paused=False,
             track_name=_decode(bytes(scor_info.mTrackName)),
@@ -302,6 +306,8 @@ class RF2Connection(_BaseConnection):
             slip_angle_fr_deg=_slip_deg(tele_v.mWheels[1]),
             slip_angle_rl_deg=_slip_deg(tele_v.mWheels[2]),
             slip_angle_rr_deg=_slip_deg(tele_v.mWheels[3]),
+            abs_active=None,
+            tc_active=None,
             in_realtime=bool(scor_info.mInRealtime),
             paused=False,
             track_name=_decode(bytes(scor_info.mTrackName)),

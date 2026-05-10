@@ -34,6 +34,8 @@ _SCHEMA = pa.schema([
     pa.field("slip_angle_fr_deg", pa.float32()),
     pa.field("slip_angle_rl_deg", pa.float32()),
     pa.field("slip_angle_rr_deg", pa.float32()),
+    pa.field("abs_active", pa.bool_(), nullable=True),
+    pa.field("tc_active",  pa.bool_(), nullable=True),
 ])
 
 
@@ -211,6 +213,8 @@ class SessionWriter:
         b["slip_angle_fr_deg"].append(frame.slip_angle_fr_deg)
         b["slip_angle_rl_deg"].append(frame.slip_angle_rl_deg)
         b["slip_angle_rr_deg"].append(frame.slip_angle_rr_deg)
+        b["abs_active"].append(frame.abs_active)
+        b["tc_active"].append(frame.tc_active)
         self._lap_numbers.add(frame.lap_number)
         self._last_vehicle = frame.vehicle_name
 

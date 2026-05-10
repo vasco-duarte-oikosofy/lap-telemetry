@@ -13,7 +13,7 @@ venv/
 sessions/
 *.parquet
 *.parquet.tmp
-m4-test-report/
-m5-test-report/
+m*-test-report/
+f1f2-test-report/
 node_modules/
 package-lock.json

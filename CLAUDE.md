@@ -12,11 +12,23 @@ See [m4-plan.md](m4-plan.md), [m5-plan.md](m5-plan.md), and [F1F2-plan.md](F1F2-
 
 ## Current state
 
-M1–M5 shipped + F1–F4 shipped. Recorder is stable; the comparison app
+M1–M6 shipped + F1–F4 shipped. Recorder is stable; the comparison app
 (`web/compare.html`) is the daily-use surface — load N session parquets,
 pick a session lap and a reference lap, see 8 panels (Speed, Throttle,
 Brake, RPM, Gear, Steering, Slip, Δt) plus a circuit map sidebar with
 distance-range zoom. Runs offline, no build step, ESM imports from CDN.
+
+**M6 additions.** Lap colours (`--session` / `--ref`) are user-customisable
+via two pickers in the loader panel; persisted in `localStorage` under
+`lap-telemetry.colours.v1` with a reset button. The recorder captures
+`abs_active` and `tc_active` (LMU `mABSActive`/`mTCActive`; null on rF2)
+as nullable bool columns; the app renders 4 px activity strips at the
+bottom of the brake panel (ABS, red) and throttle panel (TC, green) and
+adds an `active: ABS, TC` tooltip line when either is set at the cursor
+bin. The file picker accepts `.csv` alongside parquet+sidecar — TinyPedal
+deltabest CSVs (`distance_m, lap_time_s`) load as a single-segment
+synthetic entry with derived speed, usable as a reference lap against
+any recorded session.
 
 **Recorder.** `lap-telemetry record` is a long-running daemon — start it
 before the sim and leave it running across an evening of mixed sessions.
@@ -41,6 +53,8 @@ integrating stale velocity. Sessions recorded before 375525e have coarse
 **Schema.** `last_sector_1_s` / `last_sector_2_s` from `scor_v.mLastSector{1,2}`
 (sim's `-1.0` "not set" sentinel mapped to NaN). The reader walks up to
 25 frames into the next segment for settled sector values (O1/O2 fix).
+`abs_active` / `tc_active` (LMU only) come from `tele_v.mABSActive` /
+`mTCActive` as nullable bools — rF2 leaves them None.
 `lap-telemetry summary <file>` shows S1/S2/S3 per lap (S3 derived from
 duration); `lap-telemetry summary <dir>` prints one line per session.
 
@@ -62,9 +76,10 @@ warning badge fires for those.
   `sys.path` by `connect.py`; do not add them as pip dependencies
 - Copy-mode mmap (`create(0)`) is required when writing rows — direct mode can tear
 - App: `web/compare.html` is the only browser file; open via `file://` or any static server.
-  Tests: `node scripts/test_m5.js`, `node scripts/test_f1f2.js` (Playwright + Chromium,
-  pre-installed). Diagnostic harnesses: `scripts/verify_deltat_js.js`,
-  `scripts/verify_render_perf.js`.
+  Tests: `node scripts/test_m5.js`, `node scripts/test_f1f2.js`,
+  `node scripts/test_m6_extras.js`, `node scripts/test_m6.js`
+  (Playwright + Chromium, pre-installed). Diagnostic harnesses:
+  `scripts/verify_deltat_js.js`, `scripts/verify_render_perf.js`.
 
 ## Commands
 

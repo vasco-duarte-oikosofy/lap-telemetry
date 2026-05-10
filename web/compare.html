@@ -64,6 +64,26 @@
   .load-btn:hover { background: #3a4049; }
   #file-input { display: none; }
 
+  .colour-controls {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-left: auto;
+    font-size: 11px;
+    color: var(--muted);
+  }
+  .colour-controls label { display: inline-flex; align-items: center; gap: 5px; }
+  .colour-controls input[type="color"] {
+    width: 22px;
+    height: 22px;
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    background: none;
+    padding: 0;
+    cursor: pointer;
+  }
+  .colour-controls .load-btn { padding: 4px 10px; font-size: 11px; }
+
   .session-list { display: flex; flex-direction: column; gap: 6px; }
   .session-entry {
     display: flex;
@@ -298,8 +318,13 @@
   <h2>Sessions</h2>
   <div class="load-row">
     <button class="load-btn" id="load-btn">+ Load parquet…</button>
-    <input type="file" id="file-input" accept=".parquet,.json" multiple>
+    <input type="file" id="file-input" accept=".parquet,.json,.csv" multiple>
     <span id="load-status" class="badge">no files loaded</span>
+    <span class="colour-controls">
+      <label>Session <input type="color" id="colour-session" value="#4fc3f7"></label>
+      <label>Ref <input type="color" id="colour-ref" value="#ff9800"></label>
+      <button class="load-btn" id="colour-reset" title="Reset lap colours">reset</button>
+    </span>
   </div>
   <div class="session-list" id="session-list"></div>
 </div>
@@ -381,6 +406,7 @@ const COLUMNS = [
   'steering_norm', 'slip_angle_fl_deg', 'slip_angle_fr_deg',
   'last_sector_1_s', 'last_sector_2_s',
   'pos_x_m', 'pos_z_m',
+  'abs_active', 'tc_active',
 ];
 
 // SVG layout constants
@@ -406,14 +432,16 @@ const PANEL_DEFS = [
       { col: 'throttle_norm', trace: 'session', color: 'var(--session)', dash: false },
       { col: 'throttle_norm', trace: 'ref',     color: 'var(--ref)',     dash: true  },
     ],
-    yFixed: [0, 1], yStep: 0.5, zeroline: false },
+    yFixed: [0, 1], yStep: 0.5, zeroline: false,
+    activityStrip: { col: 'tc_active',  color: 'var(--throttle)' } },
 
   { id: 'brake', label: 'Brake',                     height: 60,
     channels: [
       { col: 'brake_norm', trace: 'session', color: 'var(--session)', dash: false },
       { col: 'brake_norm', trace: 'ref',     color: 'var(--ref)',     dash: true  },
     ],
-    yFixed: [0, 1], yStep: 0.5, zeroline: false },
+    yFixed: [0, 1], yStep: 0.5, zeroline: false,
+    activityStrip: { col: 'abs_active', color: 'var(--brake)' } },
 
   { id: 'rpm', label: 'RPM',                         height: 80,
     channels: [
@@ -515,6 +543,79 @@ function buildSegments(lapNumbers) {
   }
   segs.push({ lapNum: prev, start, end: lapNumbers.length });
   return segs;
+}
+
+// Annotate each segment with the distance window it actually covered and the
+// lap_time_s it reached, then flag laps that don't look like a clean racing
+// lap. Three rules, all purely data-driven (no per-track config):
+//   - partial (distance):  the car never reached close to the end of the lap
+//                          (truncated by pit-in, parked, or recorder stopped).
+//   - partial (duration):  the lap_time_s clock barely advanced — typically
+//                          the "ESC a few metres past the finish line" case
+//                          where the F4 distance integrator may report near-
+//                          full distance from a stale anchor, but the time
+//                          counter shows the lap was abandoned almost
+//                          immediately. The reference is the median duration
+//                          of complete-distance non-rolling laps in the same
+//                          file, so the threshold self-calibrates per-track.
+//   - rolling:             the car wasn't near the start/finish line at the
+//                          first frame (rolling-start formation lap, or
+//                          recorder started mid-lap, or race-restart segment).
+// trackLen estimate = the longest maxD seen across all segments in this file.
+const PARTIAL_DIST_FRAC = 0.95;  // maxD must be ≥ 95% of trackLen
+const PARTIAL_DUR_FRAC  = 0.5;   // duration must be ≥ 50% of median complete-lap dur
+const ROLLING_DIST_M    = 50;    // |minD| at the first frame may be up to ±50 m
+function annotateSegments(segments, distances, lapTimes) {
+  if (!segments.length) return;
+  let trackLen = 0;
+  for (const seg of segments) {
+    let mn = Infinity, mx = -Infinity, mt = 0;
+    for (let i = seg.start; i < seg.end; i++) {
+      const d = distances[i];
+      if (Number.isFinite(d)) {
+        if (d < mn) mn = d;
+        if (d > mx) mx = d;
+      }
+      const t = lapTimes ? lapTimes[i] : null;
+      if (Number.isFinite(t) && t > mt) mt = t;
+    }
+    seg.minDist = isFinite(mn) ? mn : 0;
+    seg.maxDist = isFinite(mx) ? mx : 0;
+    seg.duration = mt;
+    if (seg.maxDist > trackLen) trackLen = seg.maxDist;
+  }
+  // Reference duration: median over candidates that look like real flying laps
+  // (full distance + clean start). Falls back to 0 when no candidates exist —
+  // in which case the duration check is skipped to avoid false positives.
+  const candidateDurs = segments
+    .filter(s => s.maxDist >= trackLen * PARTIAL_DIST_FRAC && Math.abs(s.minDist) <= ROLLING_DIST_M)
+    .map(s => s.duration)
+    .filter(d => d > 0)
+    .sort((a, b) => a - b);
+  const medDur = candidateDurs.length
+    ? candidateDurs[Math.floor(candidateDurs.length / 2)]
+    : 0;
+  const durFloor = medDur * PARTIAL_DUR_FRAC;
+  for (const seg of segments) {
+    const distTruncated = seg.maxDist < trackLen * PARTIAL_DIST_FRAC;
+    const durTruncated  = durFloor > 0 && seg.duration > 0 && seg.duration < durFloor;
+    seg.partial = distTruncated || durTruncated;
+    seg.rolling = Math.abs(seg.minDist) > ROLLING_DIST_M;
+    seg.fastest = false;
+  }
+  // Fastest-lap labelling runs *after* partial/rolling so the ★ can never land
+  // on a flagged segment. A clean lap is one that's neither partial nor
+  // rolling-start; the fastest among those gets the star.
+  let bestIdx = -1, bestDur = Infinity;
+  for (let i = 0; i < segments.length; i++) {
+    const seg = segments[i];
+    if (seg.partial || seg.rolling) continue;
+    if (seg.duration > 0 && seg.duration < bestDur) {
+      bestDur = seg.duration;
+      bestIdx = i;
+    }
+  }
+  if (bestIdx >= 0) segments[bestIdx].fastest = true;
 }
 
 // ── Resampler ─────────────────────────────────────────────────────────────────
@@ -767,9 +868,16 @@ function renderPanel(def, bins, maxDist, sectorDists, zoomRange) {
       def._yMin = yMin; def._yMax = yMax;
     }
 
-    const pts = buildPolylinePts(distBins, Array.from(binArr), toX, toYp, ch.step);
-    const strokeDash = ch.dash ? 'stroke-dasharray="6 3"' : '';
-    svgContent += `<polyline points="${pts}" fill="none" stroke="${ch.color}" stroke-width="0.9" stroke-linejoin="round" ${strokeDash} clip-path="url(#clip-${def.id})"/>`;
+    // Suppress all-zero traces — these are placeholders for channels missing
+    // from the source (e.g. deltabest CSV's unused throttle/brake/etc.), and
+    // drawing them as flat lines at y=0 is misleading. A real racing lap
+    // always has at least one nonzero finite sample in any populated channel.
+    const hasData = binArr.some && binArr.some(v => v !== 0 && isFinite(v));
+    if (hasData) {
+      const pts = buildPolylinePts(distBins, Array.from(binArr), toX, toYp, ch.step);
+      const strokeDash = ch.dash ? 'stroke-dasharray="6 3"' : '';
+      svgContent += `<polyline points="${pts}" fill="none" stroke="${ch.color}" stroke-width="0.9" stroke-linejoin="round" ${strokeDash} clip-path="url(#clip-${def.id})"/>`;
+    }
   }
 
   // Sector markers
@@ -781,6 +889,29 @@ function renderPanel(def, bins, maxDist, sectorDists, zoomRange) {
       const yMin = def._yMin ?? 0, yMax = def._yMax ?? 1;
       svgContent += `<line x1="${x}" y1="${PAD.top}" x2="${x}" y2="${PAD.top + plotH}" stroke="var(--sector-clr)" stroke-width="1" stroke-dasharray="4 4" clip-path="url(#clip-${def.id})"/>`;
       svgContent += `<text x="${x + 3}" y="${PAD.top + 11}" fill="var(--sector-clr)" font-size="9" font-family="monospace">${label}</text>`;
+    }
+  }
+
+  // Activity strip (M6 F2: ABS on brake panel, TC on throttle panel).
+  // Bool channel resampled to 0..1 → rounded at 0.5 → emit one <rect> per
+  // contiguous "on" run, clipped to the panel's plot area.
+  if (def.activityStrip) {
+    const stripBins = bins[`session_${def.activityStrip.col}`];
+    if (stripBins && stripBins.length) {
+      const stripH = 4;
+      const stripY = PAD.top + plotH - stripH;
+      let runStart = -1;
+      for (let i = 0; i <= stripBins.length; i++) {
+        const on = i < stripBins.length && (stripBins[i] >= 0.5);
+        if (on && runStart < 0) runStart = i;
+        else if (!on && runStart >= 0) {
+          const x1 = toX(runStart), x2 = toX(i);
+          if (x2 > x1) {
+            svgContent += `<rect x="${x1.toFixed(1)}" y="${stripY}" width="${(x2 - x1).toFixed(1)}" height="${stripH}" fill="${def.activityStrip.color}" fill-opacity="0.85" clip-path="url(#clip-${def.id})"/>`;
+          }
+          runStart = -1;
+        }
+      }
     }
   }
 
@@ -885,6 +1016,35 @@ let currentTrackX      = null; // Resampled track coordinates
 let currentTrackZ      = null;
 let currentZoomRange   = null; // { start, end }
 let trackTransform     = null;
+
+// ── Persistent lap colours (M6) ─────────────────────────────────────────────
+const LAP_COLOUR_DEFAULTS = { session: '#4fc3f7', ref: '#ff9800' };
+const LAP_COLOUR_LS_KEY   = 'lap-telemetry.colours.v1';
+const HEX_RE = /^#[0-9a-fA-F]{6}$/;
+
+function applyLapColour(slot, value) {
+  document.documentElement.style.setProperty(`--${slot}`, value);
+}
+
+function persistLapColours(colours) {
+  try {
+    if (colours.session === LAP_COLOUR_DEFAULTS.session && colours.ref === LAP_COLOUR_DEFAULTS.ref) {
+      localStorage.removeItem(LAP_COLOUR_LS_KEY);
+    } else {
+      localStorage.setItem(LAP_COLOUR_LS_KEY, JSON.stringify(colours));
+    }
+  } catch { /* localStorage unavailable */ }
+}
+
+function loadPersistedColours() {
+  try {
+    const raw = localStorage.getItem(LAP_COLOUR_LS_KEY);
+    if (!raw) return null;
+    const c = JSON.parse(raw);
+    if (!HEX_RE.test(c.session) || !HEX_RE.test(c.ref)) return null;
+    return { session: c.session, ref: c.ref };
+  } catch { return null; }
+}
 
 // ── Persistent zoom (M6) ────────────────────────────────────────────────────
 const ZOOM_LS_KEY = 'lap-telemetry.zoom.v1';
@@ -1055,7 +1215,9 @@ function renderAll(sessionEntry, sessionSegIdx, refEntry, refSegIdx) {
     currentZoomRange.end = Math.min(currentZoomRange.end, maxDist);
   }
 
-  // Resample all channels
+  // Resample all channels. When source data is empty (e.g. deltabest CSV's
+  // unused channels), produce a zero-filled bin array; renderPanel then
+  // suppresses the polyline so it doesn't draw a misleading flat line at 0.
   for (const def of PANEL_DEFS) {
     if (!def.channels) continue;
     for (const ch of def.channels) {
@@ -1075,6 +1237,18 @@ function renderAll(sessionEntry, sessionSegIdx, refEntry, refSegIdx) {
       if (ch.trace === 'session') currentSessionBins[ch.col] = bins;
       else                        currentRefBins[ch.col]     = bins;
     }
+  }
+
+  // Resample session-side activity-strip channels (M6 F2: abs_active / tc_active).
+  // Booleans interpolate to 0..1; the strip renderer rounds at >= 0.5 for transitions.
+  for (const def of PANEL_DEFS) {
+    if (!def.activityStrip) continue;
+    const col = def.activityStrip.col;
+    if (currentSessionBins[col]) continue;  // already resampled (shouldn't happen)
+    const raw = sessionEntry.data[col];
+    if (!raw || raw.length === 0) continue;
+    const valSlice = raw.slice(sSeg.start, sSeg.end);
+    currentSessionBins[col] = resample(Array.from(sDistRaw), Array.from(valSlice), maxDist);
   }
 
   // Resample track coordinates (F1)
@@ -1143,6 +1317,9 @@ function renderAll(sessionEntry, sessionSegIdx, refEntry, refSegIdx) {
         const srcBins = ch.trace === 'session' ? currentSessionBins : currentRefBins;
         binsMap[`${ch.trace}_${ch.col}`] = srcBins[ch.col];
       }
+      if (def.activityStrip && currentSessionBins[def.activityStrip.col]) {
+        binsMap[`session_${def.activityStrip.col}`] = currentSessionBins[def.activityStrip.col];
+      }
       svgHtml = renderPanel(def, binsMap, maxDist, sectorDists, currentZoomRange);
     }
 
@@ -1174,18 +1351,25 @@ function formatDuration(s) {
   return `${m}:${ss}`;
 }
 
+function lapStatusBadges(seg) {
+  const tags = [];
+  if (seg.rolling) tags.push('rolling');
+  if (seg.partial) tags.push('partial');
+  return tags.length ? ` (${tags.join(', ')})` : '';
+}
+
 function formatPickLabel(entry, segIdx) {
   const seg = entry.segments[segIdx];
   const lapTimes = entry.data.lap_time_s;
   const sliceTimes = lapTimes.slice(seg.start, seg.end);
   const dur = sliceTimes.length ? Math.max(...sliceTimes) : 0;
-  const total = entry.segments.length;
-  const mark = segIdx === 0 ? '(out)' : segIdx === total - 1 ? '(in)' : formatDuration(dur);
   const sc = entry.sidecar;
+  const vehicleLabel = entry.isDeltabest ? sc?.vehicle_name : (sc ? shortVehicle(sc.vehicle_name) : null);
   const meta = sc
-    ? ` · ${shortVehicle(sc.vehicle_name)}${sc.setup_file_guess ? ` · ${shortSetup(sc.setup_file_guess)}` : ''}`
+    ? ` · ${vehicleLabel}${sc.setup_file_guess ? ` · ${shortSetup(sc.setup_file_guess)}` : ''}`
     : '';
-  return `${entry.fileName} / Lap ${segIdx + 1} #${seg.lapNum} ${mark}${meta}`;
+  const star = seg.fastest ? ' ★' : '';
+  return `${entry.fileName} / Lap ${segIdx + 1} #${seg.lapNum} ${formatDuration(dur)}${lapStatusBadges(seg)}${star}${meta}`;
 }
 
 function rebuildPickers() {
@@ -1198,17 +1382,13 @@ function rebuildPickers() {
   let hasOptions = false;
   for (const [key, entry] of store) {
     const total = entry.segments.length;
-    let bestTime = Infinity, bestIdx = -1;
-    for (let i = 1; i < total - 1; i++) {
-      const seg = entry.segments[i];
-      const sliceTimes = entry.data.lap_time_s.slice(seg.start, seg.end);
-      const dur = sliceTimes.length ? Math.max(...sliceTimes) : 0;
-      if (dur > 0 && dur < bestTime) { bestTime = dur; bestIdx = i; }
-    }
+    // ★ assignment is precomputed by annotateSegments() at load time, after
+    // partial/rolling have been resolved. Read the flag rather than recomputing.
 
     const sc = entry.sidecar;
+    const vehicleLabel = entry.isDeltabest ? sc?.vehicle_name : (sc ? shortVehicle(sc.vehicle_name) : '');
     const groupMeta = sc
-      ? ` — ${shortVehicle(sc.vehicle_name)}${sc.setup_file_guess ? ` (${shortSetup(sc.setup_file_guess)})` : ''}`
+      ? ` — ${vehicleLabel}${sc.setup_file_guess ? ` (${shortSetup(sc.setup_file_guess)})` : ''}`
       : '';
     const groupLabel = `${entry.fileName}${groupMeta}`;
     let groupHtml = `<optgroup label="${groupLabel}">`;
@@ -1218,11 +1398,9 @@ function rebuildPickers() {
       const sliceTimes = lapTimes.slice(seg.start, seg.end);
       const dur = sliceTimes.length ? Math.max(...sliceTimes) : 0;
 
-      let label = `  Lap ${i + 1}  (lap# ${seg.lapNum})`;
-      if (i === 0) label += '  (out lap)';
-      else if (i === total - 1) label += '  (in lap)';
-      else label += `  ${formatDuration(dur)}`;
-      if (i === bestIdx) label += '  ★';
+      let label = `  Lap ${i + 1}  (lap# ${seg.lapNum})  ${formatDuration(dur)}`;
+      label += lapStatusBadges(seg);
+      if (seg.fastest) label += '  ★';
 
       const valStr = `${key}::${i}`;
       groupHtml += `<option value="${valStr}">${label}</option>`;
@@ -1278,6 +1456,107 @@ function fileStem(name) {
   return i > 0 ? name.slice(0, i) : name;
 }
 
+async function loadDeltabestCsv(file) {
+  const key = storeKey(file);
+  if (store.has(key)) return;
+
+  const badge = addSessionEntry(file.name, key, 'parsing…');
+  setBadge(badge, 'loading', 'parsing…');
+
+  try {
+    const text = await file.text();
+    const dist = [], time = [];
+    for (const rawLine of text.split(/\r?\n/)) {
+      const line = rawLine.trim();
+      if (!line || line.startsWith('#')) continue;
+      const parts = line.split(',');
+      if (parts.length < 2) continue;
+      const d = parseFloat(parts[0]);
+      const t = parseFloat(parts[1]);
+      if (!Number.isFinite(d) || !Number.isFinite(t)) continue;
+      dist.push(d);
+      time.push(t);
+    }
+    if (dist.length < 10) throw new Error(`only ${dist.length} valid rows`);
+
+    // Derive speed from Δd/Δt. TinyPedal samples are spaced ~9 m apart, so a
+    // 3-tap moving average on the differentiation reduces 1 m quantisation
+    // noise without smearing the trace.
+    const n = dist.length;
+    const speedRaw = new Float32Array(n);
+    for (let i = 1; i < n; i++) {
+      const dd = dist[i] - dist[i - 1];
+      const dt = Math.max(time[i] - time[i - 1], 1e-3);
+      speedRaw[i] = (dd / dt) * 3.6;  // m/s → km/h
+    }
+    speedRaw[0] = speedRaw[1];
+    const speed = new Float32Array(n);
+    for (let i = 0; i < n; i++) {
+      const a = speedRaw[Math.max(0, i - 1)];
+      const b = speedRaw[i];
+      const c = speedRaw[Math.min(n - 1, i + 1)];
+      speed[i] = (a + b + c) / 3;
+    }
+
+    const lapNum = new Int32Array(n);  // all zeros — single synthetic lap
+    const lapDist = new Float32Array(dist);
+    const lapTime = new Float32Array(time);
+
+    const data = {
+      lap_number:        lapNum,
+      lap_time_s:        lapTime,
+      lap_distance_m:    lapDist,
+      speed_kph:         speed,
+      throttle_norm:     [],
+      brake_norm:        [],
+      engine_rpm:        [],
+      gear:              [],
+      steering_norm:     [],
+      slip_angle_fl_deg: [],
+      slip_angle_fr_deg: [],
+      last_sector_1_s:   [],
+      last_sector_2_s:   [],
+      pos_x_m:           [],
+      pos_z_m:           [],
+      abs_active:        [],
+      tc_active:         [],
+    };
+
+    const segments = [{ lapNum: 0, start: 0, end: n }];
+    annotateSegments(segments, lapDist, lapTime);
+    const sidecar = {
+      schema_version: 'tinypedal-deltabest',
+      sim: 'tinypedal',
+      track: 'unknown',
+      vehicle_name: 'TinyPedal deltabest',
+      setup_file_guess: null,
+      sample_rate_hz: null,
+      row_count: n,
+      lap_count: 1,
+      in_progress: false,
+    };
+
+    store.set(key, {
+      fileName: file.name,
+      data,
+      segments,
+      hasSlip: false,
+      hasSectors: false,
+      sidecar,
+      isDeltabest: true,
+    });
+
+    setBadge(badge, 'ok', `${n} rows · TinyPedal deltabest`);
+    rebuildPickers();
+    document.getElementById('load-status').textContent = `${store.size} file(s) loaded`;
+    document.getElementById('load-status').className = 'badge ok';
+  } catch (e) {
+    setBadge(badge, 'err', `csv: ${e.message.slice(0, 60)}`);
+    console.error('deltabest csv error', e);
+    showError(`Failed to parse ${file.name}: ${e.message}`);
+  }
+}
+
 async function loadSidecar(file) {
   try {
     const text = await file.text();
@@ -1301,8 +1580,12 @@ async function loadSidecar(file) {
 }
 
 async function loadFile(file) {
-  if (file.name.toLowerCase().endsWith('.json')) {
+  const lname = file.name.toLowerCase();
+  if (lname.endsWith('.json')) {
     return loadSidecar(file);
+  }
+  if (lname.endsWith('.csv')) {
+    return loadDeltabestCsv(file);
   }
   const key = storeKey(file);
   if (store.has(key)) return; // already loaded
@@ -1313,6 +1596,7 @@ async function loadFile(file) {
   try {
     const { data, missingCols } = await readColumns(file, COLUMNS);
     const segments = buildSegments(data.lap_number);
+    annotateSegments(segments, data.lap_distance_m, data.lap_time_s);
 
     const hasSlip    = data.slip_angle_fl_deg.length > 0;
     const hasSectors = data.last_sector_1_s.length > 0;
@@ -1331,7 +1615,12 @@ async function loadFile(file) {
       sidecar,
     });
 
-    const missing = missingCols.filter(c => c !== 'last_sector_1_s' && c !== 'last_sector_2_s' && c !== 'slip_angle_fl_deg' && c !== 'slip_angle_fr_deg');
+    const expectedOptional = new Set([
+      'last_sector_1_s', 'last_sector_2_s',
+      'slip_angle_fl_deg', 'slip_angle_fr_deg',
+      'abs_active', 'tc_active',
+    ]);
+    const missing = missingCols.filter(c => !expectedOptional.has(c));
     const metaSuffix = sidecar ? ` · ${shortVehicle(sidecar.vehicle_name)}` : '';
     if (missing.length) {
       setBadge(badge, 'ok', `${data.lap_number.length} rows · ${segments.length} laps${metaSuffix} (⚠ missing: ${missing.join(',')})`);
@@ -1452,11 +1741,19 @@ function updateCursorPosition(e) {
   const sThrottle = currentSessionBins.throttle_norm?.[binIdx];
   const sBrake    = currentSessionBins.brake_norm?.[binIdx];
 
+  const sAbs = currentSessionBins.abs_active?.[binIdx];
+  const sTc  = currentSessionBins.tc_active?.[binIdx];
+  const flags = [
+    (sAbs != null && sAbs >= 0.5) ? 'ABS' : null,
+    (sTc  != null && sTc  >= 0.5) ? 'TC'  : null,
+  ].filter(Boolean);
+
   const lines = [
     `dist: ${binIdx} m`,
     sSpeed != null ? `speed: ${sSpeed.toFixed(1)} / ${rSpeed?.toFixed(1) ?? '—'} km/h` : '',
     sThrottle != null ? `thr:   ${(sThrottle * 100).toFixed(0)}%   brk: ${((sBrake ?? 0) * 100).toFixed(0)}%` : '',
     sDt != null ? `Δt:   ${sDt > 0 ? '+' : ''}${sDt.toFixed(0)} ms` : '',
+    flags.length ? `active: ${flags.join(', ')}` : '',
   ].filter(Boolean);
 
   tooltip.textContent = lines.join('\n');
@@ -1662,6 +1959,39 @@ document.getElementById('compare-btn').addEventListener('click', () => {
 document.getElementById('map-mode').addEventListener('change', e => {
   currentMapMode = e.target.value;
   if (currentSessionBins) renderCircuitMap();
+});
+
+// ── Lap colour pickers (M6 F1) ──────────────────────────────────────────────
+const colourSessionInput = document.getElementById('colour-session');
+const colourRefInput     = document.getElementById('colour-ref');
+const colourResetBtn     = document.getElementById('colour-reset');
+
+function syncColourInputs(colours) {
+  colourSessionInput.value = colours.session;
+  colourRefInput.value     = colours.ref;
+}
+
+function setLapColours(colours, persist = true) {
+  applyLapColour('session', colours.session);
+  applyLapColour('ref',     colours.ref);
+  if (persist) persistLapColours(colours);
+}
+
+const initialColours = loadPersistedColours() || { ...LAP_COLOUR_DEFAULTS };
+setLapColours(initialColours, false);
+syncColourInputs(initialColours);
+
+colourSessionInput.addEventListener('input', e => {
+  const c = { session: e.target.value, ref: colourRefInput.value };
+  setLapColours(c);
+});
+colourRefInput.addEventListener('input', e => {
+  const c = { session: colourSessionInput.value, ref: e.target.value };
+  setLapColours(c);
+});
+colourResetBtn.addEventListener('click', () => {
+  setLapColours({ ...LAP_COLOUR_DEFAULTS });
+  syncColourInputs(LAP_COLOUR_DEFAULTS);
 });
 
 // ── Debug hooks for Playwright ────────────────────────────────────────────────

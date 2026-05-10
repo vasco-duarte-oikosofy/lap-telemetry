@@ -1,6 +1,6 @@
 # lap-telemetry — Design Spec
 
-Status: **v0.1 — M5 + F1–F4 shipped, ready for M6** · 2026-05-10
+Status: **v0.1 — M5 + F1–F4 + M6 (F5/F6/F7) shipped** · 2026-05-10
 
 A telemetry recorder + lap-comparison tool for rFactor 2 and Le Mans Ultimate. Reads the same shared memory that TinyPedal reads, writes laps to a standard columnar format, and lets you overlay throttle/brake/speed/RPM/slip traces between two laps to find where time was lost or gained.
 
@@ -161,7 +161,7 @@ That's the whole thing. No config file in v0.1 — flags only.
 - **M4 — comparison app, single-plot. ✅ done 2026-05-10.** Single HTML/JS/CSS file (no server, no build step). User uploads a session parquet and a separate reference-lap parquet; picks a lap from the session; the app overlays the chosen session lap and the reference lap on a single speed-vs-distance plot. Validated upload + parse + distance-aligned resampling + render end-to-end. Also fixed O1/O2 sector-lookup mid-update bugs by walking 25 frames into the next segment for settled values.
 - **M5 — full plot stack + unified loading. ✅ done 2026-05-10.** Added throttle/brake, RPM/gear, steering, slip, Δt panels. Replaced M4's two-upload flow with a unified one (single load that exposes all session laps from any number of files; picker groups by file).
 - **F1–F4 — circuit map + zoom + panel split + distance integration. ✅ done 2026-05-10.** See §11.
-- **M6 — quality of life.** Lap filtering (in/out laps, invalid), persistent zoom, lap colour customisation. Not yet scheduled.
+- **M6 — quality of life. ✅ done 2026-05-10.** Earlier extras (persistent zoom, heatmap, Δt sector breakdown) shipped already; this milestone closed out F5 (lap colour customisation), F6 (ABS/TC capture + on-panel strips), F7 (TinyPedal deltabest CSV ingest). See §11.
 
 Each milestone ends in a runnable build. We don't move to the next until the previous demos end-to-end.
 
@@ -291,3 +291,64 @@ prev_dist = estimated_dist
 Fix (`375525e`): drive dt off `time.monotonic()` (50 Hz wall clock). To stay safe across pauses — when the SHM `mLocalVel` may report stale non-zero velocity — track the wall-clock moment `mCurrentET` last advanced; if that gap exceeds 0.3 s the sim is paused and we anchor to `raw_dist` instead of integrating. Worst-case drift across a pause boundary is ~9 m (300 ms grace × 30 m/s), then snaps back. Verified on a fresh 5-lap LMU recording: median Δd = 0.76 m, Δt accuracy 7–17 % on adjacent racing laps.
 
 The app keeps the coarse-data warning badge: median frame Δd > 2 m flags pre-fix sessions with "legacy distance resolution — Δt accuracy limited" next to the Δt panel label.
+
+### F5. Lap colour customisation ✅ shipped 2026-05-10 (M6)
+
+**What.** Two `<input type="color">` controls in the loader panel let the
+user override the `--session` and `--ref` CSS variables that drive every
+trace, sector marker, and legend swatch. A reset button restores the
+defaults. State persists in `localStorage` under
+`lap-telemetry.colours.v1` (same try/catch + version-suffix pattern as
+the persistent zoom). On load, persisted values re-apply before any
+render so first paint is correct.
+
+**Scope boundary.** Only `--session` (default `#4fc3f7`) and `--ref`
+(default `#ff9800`) are user-customisable. Channel/state colours
+(`--throttle`, `--brake`, `--slip-fl`, `--dt-pos`, `--dt-neg`,
+`--sector-clr`) stay fixed — they encode meaning, not lap identity.
+
+### F6. ABS / TC capture + on-panel activity strips ✅ shipped 2026-05-10 (M6)
+
+**What.** New nullable `abs_active` / `tc_active` boolean columns capture
+LMU's `mABSActive` / `mTCActive` per-vehicle telemetry flags
+(`pyLMUSharedMemory/lmu_data.py:159-160`). rF2 has no equivalent — both
+columns are written as `None`. The app renders a 4 px coloured bar at
+the bottom of the brake panel (red `var(--brake)`) for ABS-active runs
+and the throttle panel (green `var(--throttle)`) for TC-active runs.
+The cursor tooltip adds an `active: ABS, TC` line when either flag is
+set at the cursor bin.
+
+**Resampling.** Bool channels go through the same 1 m linear-interp
+resampler as everything else; the strip renderer rounds at `>= 0.5` to
+recover crisp transitions. Strip rects are inside the same
+`<clipPath>` as the polylines, so zoom clips them naturally.
+
+**Backwards compat.** Pre-M6 parquets simply lack the columns;
+`readColumns` already reports them in `missingCols`, the activity-strip
+guard short-circuits when the bin array is missing, and the columns are
+on the loader's "expected optional" allow-list so no warning badge
+fires. The cursor tooltip's flag line is suppressed when both bins are
+null/undefined.
+
+### F7. TinyPedal deltabest CSV ingest ✅ shipped 2026-05-10 (M6)
+
+**What.** The file picker now accepts `.csv` alongside `.parquet`/`.json`.
+A new `loadDeltabestCsv` parses TinyPedal's deltabest format — two
+unheaded columns `distance_m, lap_time_s`, ~9 m sample spacing — and
+builds a synthetic store entry shaped exactly like a parquet entry
+(single-segment, derived speed via Δd/Δt with a 3-tap moving average to
+tame quantisation noise, all unused channels left as zero-length
+arrays). The synthetic sidecar carries `vehicle_name = "TinyPedal
+deltabest"` so the picker label / legend / multi-load mixing all work
+without further branching.
+
+**Empty-channel suppression.** Because the deltabest entry leaves most
+channels empty, `renderPanel` now skips polylines whose resampled bins
+are all-zero finite — preventing a misleading flat line at y=0 in
+panels that have no deltabest data. Real racing laps always have at
+least one nonzero finite sample in any populated channel, so the
+heuristic is safe.
+
+**Scope boundary.** Read-only ingest. No write-back to TinyPedal, no
+auto-discovery from the install path, no track-name extraction from the
+CSV filename — the user can pick which CSV to load explicitly.
