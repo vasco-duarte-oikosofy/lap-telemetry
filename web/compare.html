@@ -147,6 +147,13 @@
     background: repeating-linear-gradient(90deg, currentColor 0 6px, transparent 6px 9px);
   }
 
+  /* ── Plots container ── */
+  #plots-container {
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+  }
+
   /* ── Plot area ── */
   #plot-area {
     position: relative;
@@ -156,7 +163,44 @@
     padding: 12px 16px;
     cursor: crosshair;
     overflow: hidden;
+    flex: 1;
   }
+
+  /* ── Circuit map panel ── */
+  #circuit-map-panel {
+    flex: 0 0 250px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  #circuit-map-panel .panel-label {
+    margin-bottom: 4px;
+  }
+  #circuit-map-svg {
+    width: 100%;
+    height: auto;
+    min-height: 250px;
+    background: rgba(0,0,0,0.2);
+    border-radius: 4px;
+  }
+
+  /* ── Zoom selection rect ── */
+  .zoom-selection-rect {
+    position: absolute;
+    top: 0;
+    height: 100%;
+    background: rgba(88, 166, 255, 0.15);
+    border-left: 1px solid var(--accent);
+    border-right: 1px solid var(--accent);
+    pointer-events: none;
+    z-index: 5;
+    display: none;
+  }
+  .zoom-selection-rect.active { display: block; }
 
   .placeholder {
     display: flex;
@@ -264,14 +308,28 @@
   </div>
 </div>
 
-<!-- Plot area -->
-<div id="plot-area">
-  <div class="placeholder" id="placeholder">Load sessions and pick two laps to compare</div>
-  <div id="panels"></div>
-  <div id="cursor-overlay">
-    <div class="cursor-line" id="cursor-line"></div>
+<!-- Plots container -->
+<div id="plots-container">
+  <!-- Plot area -->
+  <div id="plot-area">
+    <div class="placeholder" id="placeholder">Load sessions and pick two laps to compare</div>
+    <div id="panels"></div>
+    <div class="zoom-selection-rect" id="zoom-selection-rect"></div>
+    <div id="cursor-overlay">
+      <div class="cursor-line" id="cursor-line"></div>
+    </div>
+    <div id="tooltip"></div>
   </div>
-  <div id="tooltip"></div>
+
+  <!-- Circuit map panel -->
+  <div id="circuit-map-panel" style="display: none;">
+    <div class="panel-label">Circuit Map</div>
+    <svg id="circuit-map-svg" viewBox="0 0 250 250" data-panel-id="circuit-map">
+      <polyline id="track-outline" fill="none" stroke="var(--text)" stroke-width="1.5" stroke-linejoin="round"/>
+      <polyline id="zoom-arc" fill="none" stroke="var(--sector-clr)" stroke-width="2.5" stroke-linejoin="round" style="display: none;"/>
+      <circle id="cursor-dot" r="4" fill="var(--accent)" style="display: none;"/>
+    </svg>
+  </div>
 </div>
 
 <p class="error-msg" id="error-msg"></p>
@@ -287,12 +345,17 @@ const COLUMNS = [
   'throttle_norm', 'brake_norm', 'engine_rpm', 'gear',
   'steering_norm', 'slip_angle_fl_deg', 'slip_angle_fr_deg',
   'last_sector_1_s', 'last_sector_2_s',
+  'pos_x_m', 'pos_z_m',
 ];
 
 // SVG layout constants
 const SVG_W   = 900;
 const PAD     = { top: 6, right: 20, bottom: 24, left: 58 };
 const PLOT_W  = SVG_W - PAD.left - PAD.right;
+
+// Circuit map constants
+const MAP_SIZE = 250;
+const MAP_PAD  = 20;
 
 // Panel definitions: { id, label, height, channels, yFixed, yStep, zeroline }
 const PANEL_DEFS = [
@@ -436,9 +499,9 @@ function interpAt(xs, ys, x) {
 function resample(distances, values, maxDist) {
   const n = distances.length;
   if (!n) return new Float64Array(maxDist + 1);
-  // Sort by distance
+  // Sort by distance; stable tie-break by frame index preserves time order within equal-distance clusters
   const idx = Array.from({ length: n }, (_, i) => i);
-  idx.sort((a, b) => distances[a] - distances[b]);
+  idx.sort((a, b) => (distances[a] - distances[b]) || (a - b));
   const xs = idx.map(i => distances[i]);
   const ys = idx.map(i => values[i]);
   const bins = new Float64Array(maxDist + 1);
@@ -534,9 +597,58 @@ function buildPolylinePts(xs, ys, toX, toY, step = false) {
   return pts.join(' ');
 }
 
+// ── Circuit map helpers ──────────────────────────────────────────────────────
+
+function computeTrackBounds(trackX, trackZ) {
+  let minX = Infinity, maxX = -Infinity, minZ = Infinity, maxZ = -Infinity;
+  for (let i = 0; i < trackX.length; i++) {
+    const x = trackX[i], z = trackZ[i];
+    if (isFinite(x) && isFinite(z)) {
+      if (x < minX) minX = x; if (x > maxX) maxX = x;
+      if (z < minZ) minZ = z; if (z > maxZ) maxZ = z;
+    }
+  }
+  return { minX, maxX, minZ, maxZ };
+}
+
+function buildTrackTransform(bounds) {
+  const width = bounds.maxX - bounds.minX || 1;
+  const height = bounds.maxZ - bounds.minZ || 1;
+  const scale = Math.min((MAP_SIZE - 2 * MAP_PAD) / width, (MAP_SIZE - 2 * MAP_PAD) / height);
+  const offsetX = MAP_PAD + (MAP_SIZE - 2 * MAP_PAD - width * scale) / 2;
+  const offsetZ = MAP_PAD + (MAP_SIZE - 2 * MAP_PAD - height * scale) / 2;
+  return {
+    toMapX: (x) => offsetX + (x - bounds.minX) * scale,
+    toMapZ: (z) => offsetZ + (z - bounds.minZ) * scale,
+    bounds, scale, offsetX, offsetZ,
+  };
+}
+
+function buildTrackPolylinePts(trackX, trackZ, toMapX, toMapZ) {
+  const pts = [];
+  for (let i = 0; i < trackX.length; i++) {
+    if (isFinite(trackX[i]) && isFinite(trackZ[i])) {
+      pts.push(`${toMapX(trackX[i]).toFixed(1)},${toMapZ(trackZ[i]).toFixed(1)}`);
+    }
+  }
+  return pts.join(' ');
+}
+
+function computeMedianFrameDistanceDelta(distances) {
+  if (distances.length < 2) return 0;
+  const deltas = [];
+  for (let i = 1; i < distances.length; i++) {
+    const d = distances[i] - distances[i - 1];
+    if (d > 0) deltas.push(d);
+  }
+  if (!deltas.length) return 0;
+  deltas.sort((a, b) => a - b);
+  return deltas[Math.floor(deltas.length / 2)];
+}
+
 // ── Panel renderer ────────────────────────────────────────────────────────────
 
-function renderPanel(def, bins, maxDist, sectorDists) {
+function renderPanel(def, bins, maxDist, sectorDists, zoomRange) {
   const H = def.height;
   const plotH = H - PAD.top - PAD.bottom;
 
@@ -548,17 +660,24 @@ function renderPanel(def, bins, maxDist, sectorDists) {
   // bins structure: { session: { col: Float64Array }, ref: { col: Float64Array } }
   // Already computed per channel outside
 
-  const toX = d => PAD.left + (d / maxDist) * PLOT_W;
+  const toX = d => {
+    const zRange = zoomRange.end - zoomRange.start;
+    if (zRange <= 0) return PAD.left;
+    const fracD = (d - zoomRange.start) / zRange;
+    return PAD.left + fracD * PLOT_W;
+  };
   const toY = (s, yMin, yMax) => PAD.top + plotH - ((s - yMin) / (yMax - yMin)) * plotH;
 
   const distBins = Array.from({ length: maxDist + 1 }, (_, i) => i);
 
   let svgContent = `<defs><clipPath id="clip-${def.id}"><rect x="${PAD.left}" y="${PAD.top}" width="${PLOT_W}" height="${plotH}"/></clipPath></defs>`;
 
-  // Grid lines and ticks
-  const distStep = maxDist > 6000 ? 1000 : 500;
+  // Grid lines and ticks — adjusted for zoom
+  const zRange = zoomRange.end - zoomRange.start;
+  const distStep = Math.max(100, Math.ceil(zRange / 6 / 100) * 100); // ~6 ticks per panel
   const xTicks = [];
-  for (let d = 0; d <= maxDist; d += distStep) xTicks.push(d);
+  const startTick = Math.ceil(zoomRange.start / distStep) * distStep;
+  for (let d = startTick; d <= zoomRange.end; d += distStep) xTicks.push(d);
   svgContent += xTicks.map(d =>
     `<line x1="${toX(d)}" y1="${PAD.top}" x2="${toX(d)}" y2="${PAD.top + plotH}" stroke="var(--border)" stroke-width="0.5" stroke-dasharray="3 3"/>`
   ).join('');
@@ -569,9 +688,11 @@ function renderPanel(def, bins, maxDist, sectorDists) {
 
   // X tick labels (only on bottom panel — checked by caller adding class)
   if (def.showXLabels) {
-    svgContent += xTicks.map(d =>
-      `<text x="${toX(d)}" y="${PAD.top + plotH + 16}" text-anchor="middle" fill="var(--muted)" font-size="9" font-family="monospace">${d >= 1000 ? (d / 1000).toFixed(1) + 'k' : d}</text>`
-    ).join('');
+    svgContent += xTicks.map(d => {
+      const x = toX(d);
+      if (x < PAD.left || x > PAD.left + PLOT_W) return '';
+      return `<text x="${x}" y="${PAD.top + plotH + 16}" text-anchor="middle" fill="var(--muted)" font-size="9" font-family="monospace">${d >= 1000 ? (d / 1000).toFixed(1) + 'k' : d}</text>`;
+    }).join('');
     svgContent += `<text x="${PAD.left + PLOT_W / 2}" y="${H - 2}" text-anchor="middle" fill="var(--muted)" font-size="9" font-family="monospace">Distance (m)</text>`;
   }
 
@@ -631,22 +752,29 @@ function renderPanel(def, bins, maxDist, sectorDists) {
 
 // ── Δt panel renderer ─────────────────────────────────────────────────────────
 
-function renderDtPanel(def, dtBins, maxDist, sectorDists) {
+function renderDtPanel(def, dtBins, maxDist, sectorDists, zoomRange) {
   const H = def.height;
   const plotH = H - PAD.top - PAD.bottom;
   const allVals = Array.from(dtBins).filter(isFinite);
   const [yMin, yMax] = niceRange(allVals, def.yFixed);
   def._yMin = yMin; def._yMax = yMax;
 
-  const toX  = d => PAD.left + (d / maxDist) * PLOT_W;
+  const toX  = d => {
+    const zRange = zoomRange.end - zoomRange.start;
+    if (zRange <= 0) return PAD.left;
+    const fracD = (d - zoomRange.start) / zRange;
+    return PAD.left + fracD * PLOT_W;
+  };
   const toY  = s => PAD.top + plotH - ((s - yMin) / (yMax - yMin)) * plotH;
   const distBins = Array.from({ length: maxDist + 1 }, (_, i) => i);
 
   let svg = `<defs><clipPath id="clip-dt"><rect x="${PAD.left}" y="${PAD.top}" width="${PLOT_W}" height="${plotH}"/></clipPath></defs>`;
 
-  const distStep = maxDist > 6000 ? 1000 : 500;
+  const zRange = zoomRange.end - zoomRange.start;
+  const distStep = Math.max(100, Math.ceil(zRange / 6 / 100) * 100);
   const xTicks = [];
-  for (let d = 0; d <= maxDist; d += distStep) xTicks.push(d);
+  const startTick = Math.ceil(zoomRange.start / distStep) * distStep;
+  for (let d = startTick; d <= zoomRange.end; d += distStep) xTicks.push(d);
   svg += xTicks.map(d =>
     `<line x1="${toX(d)}" y1="${PAD.top}" x2="${toX(d)}" y2="${PAD.top + plotH}" stroke="var(--border)" stroke-width="0.5" stroke-dasharray="3 3"/>`
   ).join('');
@@ -654,9 +782,11 @@ function renderDtPanel(def, dtBins, maxDist, sectorDists) {
   svg += `<line x1="${PAD.left}" y1="${PAD.top + plotH}" x2="${PAD.left + PLOT_W}" y2="${PAD.top + plotH}" stroke="var(--border)" stroke-width="1"/>`;
 
   // X labels (this is the last panel)
-  svg += xTicks.map(d =>
-    `<text x="${toX(d)}" y="${PAD.top + plotH + 16}" text-anchor="middle" fill="var(--muted)" font-size="9" font-family="monospace">${d >= 1000 ? (d / 1000).toFixed(1) + 'k' : d}</text>`
-  ).join('');
+  svg += xTicks.map(d => {
+    const x = toX(d);
+    if (x < PAD.left || x > PAD.left + PLOT_W) return '';
+    return `<text x="${x}" y="${PAD.top + plotH + 16}" text-anchor="middle" fill="var(--muted)" font-size="9" font-family="monospace">${d >= 1000 ? (d / 1000).toFixed(1) + 'k' : d}</text>`;
+  }).join('');
   svg += `<text x="${PAD.left + PLOT_W / 2}" y="${H - 2}" text-anchor="middle" fill="var(--muted)" font-size="9" font-family="monospace">Distance (m)</text>`;
 
   const yStep = def.yStep;
@@ -696,6 +826,59 @@ let currentSessionBins = null; // { col: Float64Array }
 let currentRefBins     = null;
 let currentMaxDist     = 0;
 let currentDtBins      = null;
+let currentTrackX      = null; // Resampled track coordinates
+let currentTrackZ      = null;
+let currentZoomRange   = null; // { start, end }
+let trackTransform     = null;
+
+function renderCircuitMap() {
+  if (!currentTrackX || !currentTrackZ) return;
+
+  const trackOutline = document.getElementById('track-outline');
+  const mapPanel = document.getElementById('circuit-map-panel');
+
+  if (!trackOutline) return;
+
+  const bounds = computeTrackBounds(Array.from(currentTrackX), Array.from(currentTrackZ));
+  trackTransform = buildTrackTransform(bounds);
+  const pts = buildTrackPolylinePts(Array.from(currentTrackX), Array.from(currentTrackZ), trackTransform.toMapX, trackTransform.toMapZ);
+
+  trackOutline.setAttribute('points', pts);
+  mapPanel.style.display = 'block';
+
+  updateZoomArc();
+}
+
+function updateZoomArc() {
+  const zoomArc = document.getElementById('zoom-arc');
+  if (!currentTrackX || !currentTrackZ || !trackTransform || !currentZoomRange) {
+    if (zoomArc) zoomArc.style.display = 'none';
+    return;
+  }
+
+  const isZoomed = currentZoomRange.start > 0 || currentZoomRange.end < currentMaxDist;
+  if (!isZoomed) {
+    zoomArc.style.display = 'none';
+    return;
+  }
+
+  const startIdx = Math.max(0, Math.floor(currentZoomRange.start));
+  const endIdx = Math.min(currentMaxDist, Math.ceil(currentZoomRange.end));
+  const pts = [];
+
+  for (let i = startIdx; i <= endIdx && i < currentTrackX.length; i++) {
+    if (isFinite(currentTrackX[i]) && isFinite(currentTrackZ[i])) {
+      pts.push(`${trackTransform.toMapX(currentTrackX[i]).toFixed(1)},${trackTransform.toMapZ(currentTrackZ[i]).toFixed(1)}`);
+    }
+  }
+
+  if (pts.length > 0) {
+    zoomArc.setAttribute('points', pts.join(' '));
+    zoomArc.style.display = 'block';
+  } else {
+    zoomArc.style.display = 'none';
+  }
+}
 
 function renderAll(sessionEntry, sessionSegIdx, refEntry, refSegIdx) {
   const sSeg = sessionEntry.segments[sessionSegIdx];
@@ -710,6 +893,9 @@ function renderAll(sessionEntry, sessionSegIdx, refEntry, refSegIdx) {
   currentMaxDist = maxDist;
   currentSessionBins = {};
   currentRefBins = {};
+  // Only reset zoom range if it wasn't already set (preserve zoom state across re-renders)
+  if (!currentZoomRange) currentZoomRange = { start: 0, end: maxDist };
+  else { currentZoomRange.end = Math.min(currentZoomRange.end, maxDist); }
 
   // Resample all channels
   for (const def of PANEL_DEFS) {
@@ -733,10 +919,22 @@ function renderAll(sessionEntry, sessionSegIdx, refEntry, refSegIdx) {
     }
   }
 
+  // Resample track coordinates (F1)
+  if (sessionEntry.data.pos_x_m && sessionEntry.data.pos_z_m) {
+    const sTrackX = resample(Array.from(sDistRaw), Array.from(sessionEntry.data.pos_x_m.slice(sSeg.start, sSeg.end)), maxDist);
+    const sTrackZ = resample(Array.from(sDistRaw), Array.from(sessionEntry.data.pos_z_m.slice(sSeg.start, sSeg.end)), maxDist);
+    currentTrackX = sTrackX;
+    currentTrackZ = sTrackZ;
+  }
+
   // Δt
   const sBinsSpeed = currentSessionBins['speed_kph'] || new Float64Array(maxDist + 1);
   const rBinsSpeed = currentRefBins['speed_kph']     || new Float64Array(maxDist + 1);
   currentDtBins = computeDeltaT(sBinsSpeed, rBinsSpeed);
+
+  // Coarse-data warning (Fix 4)
+  const medianDelta = computeMedianFrameDistanceDelta(Array.from(sDistRaw));
+  const coarseDataWarning = medianDelta > 2;
 
   // Sector markers from session lap
   const sectorDists = deriveSectorDistances(sessionEntry, sessionSegIdx);
@@ -754,7 +952,14 @@ function renderAll(sessionEntry, sessionSegIdx, refEntry, refSegIdx) {
 
     const labelEl = document.createElement('div');
     labelEl.className = 'panel-label';
-    labelEl.textContent = def.label;
+    let labelText = def.label;
+
+    // Add coarse-data warning to Δt panel label
+    if (def.id === 'dt' && coarseDataWarning) {
+      labelText += ' ⚠ legacy distance resolution';
+    }
+
+    labelEl.textContent = labelText;
     wrap.appendChild(labelEl);
 
     // Skip slip panel with a placeholder when neither lap has slip data
@@ -771,7 +976,7 @@ function renderAll(sessionEntry, sessionSegIdx, refEntry, refSegIdx) {
     let svgHtml;
     if (def.id === 'dt') {
       def.showXLabels = true;
-      svgHtml = renderDtPanel(def, currentDtBins, maxDist, sectorDists);
+      svgHtml = renderDtPanel(def, currentDtBins, maxDist, sectorDists, currentZoomRange);
     } else {
       def.showXLabels = (pi === lastIdx - 1); // second-to-last non-dt panel
       // Build bins map
@@ -780,7 +985,7 @@ function renderAll(sessionEntry, sessionSegIdx, refEntry, refSegIdx) {
         const srcBins = ch.trace === 'session' ? currentSessionBins : currentRefBins;
         binsMap[`${ch.trace}_${ch.col}`] = srcBins[ch.col];
       }
-      svgHtml = renderPanel(def, binsMap, maxDist, sectorDists);
+      svgHtml = renderPanel(def, binsMap, maxDist, sectorDists, currentZoomRange);
     }
 
     wrap.insertAdjacentHTML('beforeend', svgHtml);
@@ -796,7 +1001,10 @@ function renderAll(sessionEntry, sessionSegIdx, refEntry, refSegIdx) {
   document.getElementById('legend-ref').textContent     = rl;
   document.getElementById('legend').classList.add('visible');
 
-  // Reset cursor
+  // Render circuit map (F1)
+  renderCircuitMap();
+
+  // Reset cursor and zoom state
   state.maxDist = maxDist;
 }
 
@@ -966,13 +1174,13 @@ function setBadge(el, cls, text) {
 
 // ── Cursor and tooltip ────────────────────────────────────────────────────────
 
-const state = { maxDist: 0 };
+const state = { maxDist: 0, dragging: false, dragStartX: 0, dragStartDist: 0 };
 
 const plotArea     = document.getElementById('plot-area');
 const cursorLine   = document.getElementById('cursor-line');
 const tooltip      = document.getElementById('tooltip');
 
-plotArea.addEventListener('mousemove', e => {
+function updateCursorPosition(e) {
   if (!currentSessionBins) return;
   const rect = plotArea.getBoundingClientRect();
   const mx   = e.clientX - rect.left;
@@ -990,14 +1198,19 @@ plotArea.addEventListener('mousemove', e => {
   if (mx < plotLeft || mx > plotRight) {
     cursorLine.style.transform = 'translateX(-9999px)';
     tooltip.style.display = 'none';
+    updateCursorDot(null);
     return;
   }
 
   cursorLine.style.transform = `translateX(${mx}px)`;
 
+  const zRange = currentZoomRange.end - currentZoomRange.start;
   const fracX  = (mx - plotLeft) / (plotRight - plotLeft);
-  const dist   = Math.round(fracX * state.maxDist);
-  const binIdx = Math.max(0, Math.min(dist, state.maxDist));
+  const dist   = currentZoomRange.start + fracX * zRange;
+  const binIdx = Math.max(0, Math.min(Math.round(dist), state.maxDist));
+
+  // Update cursor dot on circuit map
+  updateCursorDot(binIdx);
 
   // Tooltip
   const sSpeed  = currentSessionBins.speed_kph?.[binIdx];
@@ -1016,14 +1229,143 @@ plotArea.addEventListener('mousemove', e => {
   tooltip.textContent = lines.join('\n');
   tooltip.style.display = 'block';
   const tx = Math.min(mx + 14, rect.width - 180);
-  const ty = 20;
+  // Fix 3: Tooltip Y position follows cursor vertically, clamped inside plot-area
+  const ty = Math.max(8, Math.min(e.clientY - rect.top - 30, rect.height - 130));
   tooltip.style.left = `${tx}px`;
   tooltip.style.top  = `${ty}px`;
+}
+
+function updateCursorDot(binIdx) {
+  const cursorDot = document.getElementById('cursor-dot');
+  if (!cursorDot || !currentTrackX || !currentTrackZ || !trackTransform) {
+    if (cursorDot) cursorDot.style.display = 'none';
+    return;
+  }
+
+  if (binIdx === null || !isFinite(currentTrackX[binIdx]) || !isFinite(currentTrackZ[binIdx])) {
+    cursorDot.style.display = 'none';
+    return;
+  }
+
+  const mapX = trackTransform.toMapX(currentTrackX[binIdx]);
+  const mapZ = trackTransform.toMapZ(currentTrackZ[binIdx]);
+  cursorDot.setAttribute('cx', mapX.toFixed(1));
+  cursorDot.setAttribute('cy', mapZ.toFixed(1));
+  cursorDot.style.display = 'block';
+}
+
+// F2: Zoom interaction handlers
+plotArea.addEventListener('mousedown', e => {
+  if (!currentSessionBins || !currentZoomRange) return;
+  const rect = plotArea.getBoundingClientRect();
+  const mx   = e.clientX - rect.left;
+
+  const firstSvg = plotArea.querySelector('.panel-svg');
+  if (!firstSvg) return;
+  const svgRect    = firstSvg.getBoundingClientRect();
+  const svgLeft    = svgRect.left - rect.left;
+  const svgWidth   = svgRect.width;
+  const plotLeft   = svgLeft + PAD.left * (svgWidth / SVG_W);
+  const plotRight  = svgLeft + (PAD.left + PLOT_W) * (svgWidth / SVG_W);
+
+  if (mx < plotLeft || mx > plotRight) return;
+
+  state.dragging = true;
+  state.dragStartX = mx;
+  const zRange = currentZoomRange.end - currentZoomRange.start;
+  const fracX  = (mx - plotLeft) / (plotRight - plotLeft);
+  state.dragStartDist = currentZoomRange.start + fracX * zRange;
+});
+
+plotArea.addEventListener('mousemove', e => {
+  if (state.dragging && currentSessionBins && currentZoomRange) {
+    const rect = plotArea.getBoundingClientRect();
+    const mx   = e.clientX - rect.left;
+
+    const firstSvg = plotArea.querySelector('.panel-svg');
+    if (!firstSvg) {
+      updateCursorPosition(e);
+      return;
+    }
+
+    const svgRect    = firstSvg.getBoundingClientRect();
+    const svgLeft    = svgRect.left - rect.left;
+    const svgWidth   = svgRect.width;
+    const plotLeft   = svgLeft + PAD.left * (svgWidth / SVG_W);
+    const plotRight  = svgLeft + (PAD.left + PLOT_W) * (svgWidth / SVG_W);
+
+    // Update selection rect
+    const selRect = document.getElementById('zoom-selection-rect');
+    const x1 = Math.max(plotLeft, Math.min(state.dragStartX, mx));
+    const x2 = Math.max(plotLeft, Math.min(Math.max(state.dragStartX, mx), plotRight));
+    selRect.style.left = `${x1}px`;
+    selRect.style.width = `${x2 - x1}px`;
+    selRect.classList.add('active');
+  } else {
+    updateCursorPosition(e);
+  }
+});
+
+plotArea.addEventListener('mouseup', e => {
+  if (!state.dragging) return;
+  state.dragging = false;
+
+  const selRect = document.getElementById('zoom-selection-rect');
+  selRect.classList.remove('active');
+  selRect.style.left = '0';
+  selRect.style.width = '0';
+
+  if (!currentSessionBins || !currentZoomRange) return;
+
+  const rect = plotArea.getBoundingClientRect();
+  const mx   = e.clientX - rect.left;
+
+  const firstSvg = plotArea.querySelector('.panel-svg');
+  if (!firstSvg) return;
+
+  const svgRect    = firstSvg.getBoundingClientRect();
+  const svgLeft    = svgRect.left - rect.left;
+  const svgWidth   = svgRect.width;
+  const plotLeft   = svgLeft + PAD.left * (svgWidth / SVG_W);
+  const plotRight  = svgLeft + (PAD.left + PLOT_W) * (svgWidth / SVG_W);
+
+  const zRange = currentZoomRange.end - currentZoomRange.start;
+  const fracX  = (mx - plotLeft) / (plotRight - plotLeft);
+  const dist2  = currentZoomRange.start + fracX * zRange;
+
+  const d1 = Math.max(0, Math.min(state.dragStartDist, dist2));
+  const d2 = Math.min(state.maxDist, Math.max(state.dragStartDist, dist2));
+
+  if (d2 - d1 > 10) {  // Only zoom if selection is large enough
+    currentZoomRange.start = d1;
+    currentZoomRange.end = d2;
+    renderAll(...state.currentRenderParams);
+  }
+});
+
+plotArea.addEventListener('dblclick', e => {
+  // F2: Reset zoom on double-click
+  if (!currentSessionBins || !currentZoomRange) return;
+  currentZoomRange.start = 0;
+  currentZoomRange.end = state.maxDist;
+  renderAll(...state.currentRenderParams);
 });
 
 plotArea.addEventListener('mouseleave', () => {
-  cursorLine.style.transform = 'translateX(-9999px)';
-  tooltip.style.display = 'none';
+  if (!state.dragging) {
+    cursorLine.style.transform = 'translateX(-9999px)';
+    tooltip.style.display = 'none';
+    updateCursorDot(null);
+  }
+});
+
+// F2: Keyboard shortcut for reset zoom
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape' && currentSessionBins && currentZoomRange) {
+    currentZoomRange.start = 0;
+    currentZoomRange.end = state.maxDist;
+    renderAll(...state.currentRenderParams);
+  }
 });
 
 // ── Error helper ──────────────────────────────────────────────────────────────
@@ -1059,6 +1401,7 @@ document.getElementById('compare-btn').addEventListener('click', () => {
   const rEntry = store.get(rp.key);
   if (!sEntry || !rEntry) return;
 
+  state.currentRenderParams = [sEntry, sp.segIdx, rEntry, rp.segIdx];
   renderAll(sEntry, sp.segIdx, rEntry, rp.segIdx);
 });
 
@@ -1068,7 +1411,14 @@ document.getElementById('compare-btn').addEventListener('click', () => {
     updateCompareBtn();
     const sp = parsePickerValue(document.getElementById('session-picker').value);
     const rp = parsePickerValue(document.getElementById('ref-picker').value);
-    if (sp && rp) document.getElementById('compare-btn').click();
+    if (sp && rp) {
+      const sEntry = store.get(sp.key);
+      const rEntry = store.get(rp.key);
+      if (sEntry && rEntry) {
+        state.currentRenderParams = [sEntry, sp.segIdx, rEntry, rp.segIdx];
+        renderAll(sEntry, sp.segIdx, rEntry, rp.segIdx);
+      }
+    }
   });
 });
 
