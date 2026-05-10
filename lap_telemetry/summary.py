@@ -177,11 +177,16 @@ def _run_file(path: Path) -> int:
 
         s1_str = s2_str = s3_str = "-"
         if not is_incomplete and lap in sector_for_lap:
-            s1, s2 = sector_for_lap[lap]
-            s1_str = _fmt_sector(s1)
-            s2_str = _fmt_sector(s2)
-            if not (math.isnan(s1) or math.isnan(s2)):
-                s3_str = _fmt_sector(max_lap_t - s1 - s2)
+            # SHM stores LastSector1 = S1 duration, LastSector2 = S1+S2
+            # cumulative. Convert to individual sector durations for display.
+            s1, cum_s2 = sector_for_lap[lap]
+            if not (math.isnan(s1) or math.isnan(cum_s2)):
+                s1_str = _fmt_sector(s1)
+                s2_str = _fmt_sector(cum_s2 - s1)
+                s3_str = _fmt_sector(max_lap_t - cum_s2)
+            else:
+                s1_str = _fmt_sector(s1)
+                s2_str = _fmt_sector(cum_s2)
 
         print(
             f"{lap:>4}   {frames:>6}   {duration_str:>10}   "
