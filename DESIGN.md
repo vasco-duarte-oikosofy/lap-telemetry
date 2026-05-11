@@ -401,3 +401,40 @@ computes `H = Math.round(def.height * (def.heightMultiplier ?? 1.0))` for the
 panel's SVG viewBox height, `plotH`, and `<clipPath>` bounds. Gear panel
 renders at 78 px (SVG units) vs 60 px for all other panels. No other panels
 are affected.
+
+---
+
+## 13. Future fixes — UX backlog (not yet scheduled)
+
+### U1. Panel drag must be grip-handle-only; plot area is zoom-only
+
+**Symptom.** Today every panel `<div>` has `draggable="true"`, so a click-drag
+anywhere on the plot area initiates an HTML5 drag operation instead of starting
+the F2 zoom-selection rect. Net effect: drag-to-zoom is broken on most of the
+visible panel surface — it only works in the narrow strips outside the SVG.
+
+**Fix direction.** Make the panel container `draggable="false"` by default and
+only set `draggable="true"` on `mousedown` over the `⠿` grip handle (reset on
+`mouseup`/`dragend`). Equivalently: bind drag start to the handle element and
+keep the rest of the panel as a normal pointer surface, so `mousedown` inside
+the plot region falls through to the existing zoom-selection handler in F2.
+
+**Scope.** `web/compare.html` only — F9 drag-reorder behaviour preserved when
+the user grips the handle; F2 zoom restored everywhere else.
+
+### U2. Circuit map needs more pixels for the brake/throttle overlays to be useful
+
+**Symptom.** The sidebar map is fixed at 250 px. When the user toggles the
+brake or throttle overlay, the resulting colour-coded track ribbon is so small
+that individual braking zones blur together — you can see *that* the driver
+braked, not *where exactly* or *how late* relative to a reference point.
+
+**Fix direction.** Enlarge the map when an overlay is active (or unconditionally
+— TBD). Options to consider when scheduling: (a) bump the sidebar to ~400 px
+fixed and let the plot stack shrink correspondingly; (b) make the map width
+user-resizable via a draggable column splitter with persistence in
+`localStorage`; (c) add a "expand map" toggle that swaps the map and plot
+proportions for analysis sessions focused on the map.
+
+**Scope.** `web/compare.html` layout + `renderCircuitMap` viewBox scaling. No
+schema or recorder changes.

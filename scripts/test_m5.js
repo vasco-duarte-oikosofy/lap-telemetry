@@ -99,7 +99,7 @@ def keep_indices(lap_time, lap_dist, track_len):
     half = track_len * 0.5
     out = []
     for i, (t, d) in enumerate(zip(lap_time, lap_dist)):
-        if t is not None and d is not None and t < -0.05 and d > half:
+        if t is not None and d is not None and t < 0.5 and d > half:
             continue
         out.append(i)
     return out
@@ -147,6 +147,13 @@ max_dist = max(max(sd), max(rd))
 max_dist = int(math.ceil(max_dist))
 s_bins = resample(sd, ss, max_dist)
 r_bins = resample(rd, rs, max_dist)
+
+# Forward-clamp lap_time_s bins to be non-decreasing (mirrors the
+# monotonicity guard in renderAll — see compare.html).
+for i in range(1, len(s_bins)):
+    if s_bins[i] < s_bins[i-1]: s_bins[i] = s_bins[i-1]
+for i in range(1, len(r_bins)):
+    if r_bins[i] < r_bins[i-1]: r_bins[i] = r_bins[i-1]
 
 raw_dt = [(s_bins[i] - r_bins[i]) * 1000.0 for i in range(min(len(s_bins), len(r_bins)))]
 

@@ -678,19 +678,19 @@ function computeDeltaT(sessionLapTime, refLapTime) {
 }
 
 // Drop the SHM lap-boundary artifact frame from a segment slice. The sim
-// updates `mLapNumber` one tick before resetting `mLapDist`, so the first
-// frame of every recorded lap can carry the previous lap's end-of-pit-
-// straight distance and a slightly-negative `lap_time_s`. Filter heuristic:
-// drop frames where lap_time_s < -0.05 AND lap_distance_m > trackLen × 0.5.
-// Both halves of the test are required so an honest negative clock tick
-// near the start/finish line (real first frame) is preserved.
+// updates `mLapNumber` one tick before resetting `mLapDist`/`mLapStartET`,
+// so the first frames of every recorded lap can carry the previous lap's
+// end-of-pit-straight distance and a tiny near-zero `lap_time_s`. Filter:
+// drop frames where lap_time_s < 0.5 s AND lap_distance_m > trackLen × 0.5.
+// A real frame at d > trackLen × 0.5 cannot have t < 0.5 s — that would
+// require covering > halfTrack metres in under half a second.
 function computeKeepIndices(lapTime, lapDist, start, end, trackLen) {
   const halfTrack = trackLen * 0.5;
   const keep = [];
   for (let i = start; i < end; i++) {
     const t = lapTime ? lapTime[i] : NaN;
     const d = lapDist ? lapDist[i] : NaN;
-    if (Number.isFinite(t) && Number.isFinite(d) && t < -0.05 && d > halfTrack) continue;
+    if (Number.isFinite(t) && Number.isFinite(d) && t < 0.5 && d > halfTrack) continue;
     keep.push(i);
   }
   return keep;
@@ -1492,6 +1492,17 @@ function renderAll(sessionEntry, sessionSegIdx, refEntry, refSegIdx) {
   const rLapTimeBins = (rLapTime && rLapTime.length)
     ? resample(rDistRaw, smoothLapTime(rLapTime, rKeep), maxDist)
     : new Float64Array(maxDist + 1);
+  // Forward-clamp so lap_time_s is non-decreasing in distance. This is a
+  // physical invariant (the sim's lap stopwatch only moves forward), so
+  // any drop is a corruption — e.g. a boundary-artifact frame that slipped
+  // through computeKeepIndices and got interpolated against a real frame.
+  // Defence-in-depth against the end-of-lap Δt blow-up.
+  for (let d = 1; d < sLapTimeBins.length; d++) {
+    if (sLapTimeBins[d] < sLapTimeBins[d - 1]) sLapTimeBins[d] = sLapTimeBins[d - 1];
+  }
+  for (let d = 1; d < rLapTimeBins.length; d++) {
+    if (rLapTimeBins[d] < rLapTimeBins[d - 1]) rLapTimeBins[d] = rLapTimeBins[d - 1];
+  }
   currentSessionBins['lap_time_s'] = sLapTimeBins;
   currentRefBins['lap_time_s']     = rLapTimeBins;
 
