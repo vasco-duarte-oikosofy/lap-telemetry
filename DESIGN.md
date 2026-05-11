@@ -438,3 +438,52 @@ proportions for analysis sessions focused on the map.
 
 **Scope.** `web/compare.html` layout + `renderCircuitMap` viewBox scaling. No
 schema or recorder changes.
+
+### U3. Throttle panel shows wrong colour and only one trace
+
+**Symptom.** The Throttle panel renders a single green trace instead of two
+traces (session + reference) coloured with the lap identity colours
+(`--session` / `--ref`) and the same solid/dashed line style used by Speed,
+RPM, Steering, and all other dual-trace panels.
+
+**Fix direction.** Audit the Throttle (and Brake) channel definitions in
+`PANEL_DEFS`. Both panels should declare two channel entries — one
+`trace: 'session'` in `var(--session)` solid, one `trace: 'ref'` in
+`var(--ref)` dashed — mirroring the Speed panel. Remove any channel-specific
+green/red colour overrides that were left from an earlier design.
+
+**Scope.** `PANEL_DEFS` channel entries in `web/compare.html`. No schema or
+recorder changes.
+
+### U4. Tooltip speed values should be coloured by lap identity
+
+**Symptom.** The cursor tooltip shows both laps' speed on the same line in
+plain text (e.g. `speed: 248.3 / 263.5 km/h`). There is no visual cue which
+value belongs to the session lap and which to the reference lap.
+
+**Fix direction.** Render each speed value in its lap colour — wrap in
+`<span style="color: var(--session)">…</span>` and
+`<span style="color: var(--ref)">…</span>` respectively. Switch the tooltip
+from `textContent` assignment to `innerHTML` (or a DOM-node build) and apply
+the same colouring to any other dual-value fields (throttle, brake, etc.) for
+consistency. Sanitise user-derived strings before inserting as HTML to avoid
+XSS from malformed parquet data.
+
+**Scope.** Tooltip rendering in `updateCursorPosition` in `web/compare.html`.
+No schema or recorder changes.
+
+### U5. Audit all panels for consistent colour / line-style
+
+**Symptom.** Reported inconsistency: some panels (slip angle confirmed) may not
+be applying `--session` / `--ref` colours and the solid/dashed trace convention
+used by Speed, RPM, etc.
+
+**Fix direction.** Walk every entry in `PANEL_DEFS` and confirm each channel
+with `trace: 'session'` uses `var(--session)` + solid, and each with
+`trace: 'ref'` uses `var(--ref)` + dashed. Fix any that deviate. Include ABS
+and TC panels (session-only by design — single solid trace in channel colour is
+correct for binary panels). Add a regression note to the test suite confirming
+the channel colour/dash for at least Speed, Throttle, Brake, Slip, and Δt.
+
+**Scope.** `PANEL_DEFS` in `web/compare.html`; optionally extend
+`test_f8f9f10f11.js` or a new test file. No schema or recorder changes.
