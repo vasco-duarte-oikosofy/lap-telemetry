@@ -359,59 +359,45 @@ CSV filename — the user can pick which CSV to load explicitly.
 
 ---
 
-## 12. Planned fixes
+## 12. UI features F8–F11 — shipped 2026-05-11
 
-### F8. ABS / TC full panels
+### F8. ABS / TC full panels ✅ shipped 2026-05-11
 
-**What.** Promote ABS and TC from 4 px activity strips on the brake/throttle
-panels into first-class binary panels (0 = inactive, 1 = active) rendered at
-full panel height alongside the existing 8 panels. The strips on the brake and
-throttle panels stay as a quick-glance overlay; the dedicated panels give a
-zoomable, cursor-readable view of exactly when each aid intervened.
+**What.** Promoted ABS and TC from 4 px activity strips into first-class binary
+panels (`abs`, `tc`) placed after the Brake and Throttle panels respectively in
+the default order (Speed → Throttle → TC → Brake → ABS → RPM → Gear → Steering
+→ Slip → Δt). Y-axis fixed 0–1 with a dashed midline at 0.5. Session trace
+only (session–only step polyline in `var(--brake)` / `var(--throttle)`).
+Panels are absent from the DOM entirely when the loaded session has no ABS/TC
+data (pre-M6 parquet or rF2 session) — the existing 4 px strips on brake and
+throttle panels remain as a quick-glance overlay. The `abs_active` /
+`tc_active` bin arrays are shared between the strip renderer and the new panels
+with no extra resampling.
 
-**Scope.** Two new panel definitions (`abs` and `tc`) added to the panel list.
-Y-axis fixed 0–1 with a single midline at 0.5. Session trace only (reference
-lap ABS/TC is not shown — same rationale as the tooltip). Panels hidden when
-the loaded session has no ABS/TC data (pre-M6 parquet or rF2 session).
+### F9. Draggable panel reorder ✅ shipped 2026-05-11
 
-### F9. Draggable panel reorder
+**What.** Each panel `<div>` has `draggable="true"` and a grip handle (`⠿`).
+`dragstart`/`dragover`/`drop` event delegation on `#panels` rewrites the
+`panelOrder` array in app state and re-renders. Persisted as a JSON array of
+panel IDs in `localStorage` under `lap-telemetry.panel-order.v1` (same
+try/catch + version-suffix pattern). `loadPersistedPanelOrder` validates length
+and all-known-ids before trusting the value. A "⟳ panels" reset button in the
+loader panel clears the key and restores the default order.
 
-**What.** The user can drag any panel up or down to reorder them. The new order
-persists in `localStorage` so it survives page reloads. A reset button restores
-the default order.
+### F10. Y-axis legibility — Δt and Slip Angle panels ✅ shipped 2026-05-11
 
-**Why.** The fixed order (Speed → Throttle → Brake → RPM → Gear → Steering →
-Slip → Δt) puts the most-compared channels (speed, throttle, brake, Δt) far
-apart. Letting the user pull Δt next to speed, or throttle next to brake,
-removes the need to scroll between the panels they care about most.
+**What.** New `computeNiceYTicks(yMin, yMax, plotH, niceSteps)` helper picks the
+smallest step from the panel's `niceSteps` list that produces 3–5 labels with
+≥ 30 px gap. Falls back to a magnitude-rounded step targeting ~4 ticks when the
+data range lies outside the niceSteps domain (e.g. slip angles at ±180° or
+near-zero Δt from same-lap comparison). Panel defs: `dt` uses
+`[1,2,5,10,25,50,100,250,500,1000]` ms; `slip` uses `[0.5,1,2,5]` °. All other
+panels retain their existing `yStep`-based tick logic unchanged.
 
-**Implementation sketch.** Each panel `<div>` gets `draggable="true"`.
-`dragstart`/`dragover`/`drop` handlers rewrite the panel order array in app
-state and re-render the container. Persist order as a JSON array of panel IDs
-in `localStorage` under `lap-telemetry.panel-order.v1`.
+### F11. Gear panel height ×1.3 ✅ shipped 2026-05-11
 
-### F10. Y-axis legibility — Δt and Slip Angle panels
-
-**What.** The Δt panel and the slip-angle panels currently display Y-axis tick
-labels that overlap or are too fine to read (typically 6–8 ticks crammed into
-a short pixel range). Fix by enforcing a minimum pixel gap between ticks
-(≥ 30 px) and rounding tick values to the nearest "nice" step (1, 2, 5, 10,
-25, 50, 100 ms for Δt; 0.5, 1, 2 ° for slip angle). The axis should always
-show at least 3 and at most 5 tick labels.
-
-**Scope.** Reader-side change in the tick-generation helper (`yTicks` or
-equivalent). No data or resampling changes. Should improve any panel where the
-auto-range produces an awkward step, but Δt and slip angle are the two panels
-where it is most visible in practice.
-
-### F11. Gear panel height +30%
-
-**What.** Increase the gear panel's rendered height by 30% relative to the
-other panels. The current height compresses the 8-step gear range (R, N, 1–6)
-so adjacent gears are barely one tick apart, making shift points hard to read.
-
-**Implementation.** Add a per-panel `heightMultiplier` field to the panel
-definition (default 1.0; gear panel set to 1.3). `renderPanel` multiplies
-`PANEL_H` by this value when computing the panel's SVG height and `<clipPath>`
-bounds. The overall plot container grows accordingly; no other panels are
-affected.
+**What.** Added `heightMultiplier: 1.3` to the gear panel definition. `renderPanel`
+computes `H = Math.round(def.height * (def.heightMultiplier ?? 1.0))` for the
+panel's SVG viewBox height, `plotH`, and `<clipPath>` bounds. Gear panel
+renders at 78 px (SVG units) vs 60 px for all other panels. No other panels
+are affected.

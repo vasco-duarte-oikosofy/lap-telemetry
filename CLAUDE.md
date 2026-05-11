@@ -12,11 +12,11 @@ See [m4-plan.md](m4-plan.md), [m5-plan.md](m5-plan.md), and [F1F2-plan.md](F1F2-
 
 ## Current state
 
-M1–M6 shipped + F1–F4 shipped. Recorder is stable; the comparison app
+M1–M6 shipped + F1–F11 shipped. Recorder is stable; the comparison app
 (`web/compare.html`) is the daily-use surface — load N session parquets,
-pick a session lap and a reference lap, see 8 panels (Speed, Throttle,
-Brake, RPM, Gear, Steering, Slip, Δt) plus a circuit map sidebar with
-distance-range zoom. Runs offline, no build step, ESM imports from CDN.
+pick a session lap and a reference lap, see up to 10 panels (Speed, Throttle,
+TC, Brake, ABS, RPM, Gear, Steering, Slip, Δt) plus a circuit map sidebar
+with distance-range zoom. Runs offline, no build step, ESM imports from CDN.
 
 **M6 additions.** Lap colours (`--session` / `--ref`) are user-customisable
 via two pickers in the loader panel; persisted in `localStorage` under
@@ -29,6 +29,17 @@ bin. The file picker accepts `.csv` alongside parquet+sidecar — TinyPedal
 deltabest CSVs (`distance_m, lap_time_s`) load as a single-segment
 synthetic entry with derived speed, usable as a reference lap against
 any recorded session.
+
+**F8–F11 additions.** ABS and TC promoted to full-height binary panels
+(0/1 step trace + midline at 0.5) placed after Brake and Throttle in the
+default panel order; panels are absent from the DOM for pre-M6 / rF2
+sessions (existing 4 px strips remain). Panel order is fully draggable
+via HTML5 drag-and-drop (grip handle on each panel label), persisted in
+`localStorage` under `lap-telemetry.panel-order.v1` with a "⟳ panels"
+reset button. Y-axis tick generation uses `computeNiceYTicks` for the Δt
+and Slip panels — targets 3–5 ticks with ≥ 30 px gap, using magnitude-
+rounded fallback for extreme ranges. Gear panel height increased by ×1.3
+(viewBox 78 px vs 60 px) via a per-panel `heightMultiplier` field.
 
 **Recorder.** `lap-telemetry record` is a long-running daemon — start it
 before the sim and leave it running across an evening of mixed sessions.
@@ -77,7 +88,8 @@ warning badge fires for those.
 - Copy-mode mmap (`create(0)`) is required when writing rows — direct mode can tear
 - App: `web/compare.html` is the only browser file; open via `file://` or any static server.
   Tests: `node scripts/test_m5.js`, `node scripts/test_f1f2.js`,
-  `node scripts/test_m6_extras.js`, `node scripts/test_m6.js`
+  `node scripts/test_m6_extras.js`, `node scripts/test_m6.js`,
+  `node scripts/test_f8f9f10f11.js`
   (Playwright + Chromium, pre-installed). Diagnostic harnesses:
   `scripts/verify_deltat_js.js`, `scripts/verify_render_perf.js`.
 

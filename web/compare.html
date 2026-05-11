@@ -307,6 +307,10 @@
   /* ── Error ── */
   .error-msg { color: var(--error); font-size: 12px; margin-top: 10px; display: none; }
   .error-msg.visible { display: block; }
+
+  /* ── Drag reorder (F9) ── */
+  .drag-handle { cursor: grab; opacity: 0.4; margin-right: 6px; user-select: none; font-size: 12px; }
+  .panel-wrap.drag-over { border-top: 2px solid var(--accent); margin-top: -2px; }
 </style>
 </head>
 <body>
@@ -324,6 +328,7 @@
       <label>Session <input type="color" id="colour-session" value="#4fc3f7"></label>
       <label>Ref <input type="color" id="colour-ref" value="#ff9800"></label>
       <button class="load-btn" id="colour-reset" title="Reset lap colours">reset</button>
+      <button class="load-btn" id="order-reset" title="Reset panel order">⟳ panels</button>
     </span>
   </div>
   <div class="session-list" id="session-list"></div>
@@ -435,6 +440,12 @@ const PANEL_DEFS = [
     yFixed: [0, 1], yStep: 0.5, zeroline: false,
     activityStrip: { col: 'tc_active',  color: 'var(--throttle)' } },
 
+  { id: 'tc',  label: 'TC active',                   height: 50,
+    channels: [
+      { col: 'tc_active', trace: 'session', color: 'var(--throttle)', dash: false, step: true },
+    ],
+    yFixed: [0, 1], yStep: 1, midline: 0.5, zeroline: false },
+
   { id: 'brake', label: 'Brake',                     height: 60,
     channels: [
       { col: 'brake_norm', trace: 'session', color: 'var(--session)', dash: false },
@@ -443,6 +454,12 @@ const PANEL_DEFS = [
     yFixed: [0, 1], yStep: 0.5, zeroline: false,
     activityStrip: { col: 'abs_active', color: 'var(--brake)' } },
 
+  { id: 'abs', label: 'ABS active',                  height: 50,
+    channels: [
+      { col: 'abs_active', trace: 'session', color: 'var(--brake)', dash: false, step: true },
+    ],
+    yFixed: [0, 1], yStep: 1, midline: 0.5, zeroline: false },
+
   { id: 'rpm', label: 'RPM',                         height: 80,
     channels: [
       { col: 'engine_rpm', trace: 'session', color: 'var(--session)', dash: false },
@@ -450,7 +467,7 @@ const PANEL_DEFS = [
     ],
     yFixed: null, yStep: 2000, zeroline: false },
 
-  { id: 'gear', label: 'Gear',                        height: 60,
+  { id: 'gear', label: 'Gear',                        height: 60, heightMultiplier: 1.3,
     channels: [
       { col: 'gear', trace: 'session', color: 'var(--session)', dash: false, step: true },
       { col: 'gear', trace: 'ref',     color: 'var(--ref)',     dash: true,  step: true },
@@ -471,11 +488,11 @@ const PANEL_DEFS = [
       { col: 'slip_angle_fr_deg', trace: 'session', color: 'var(--slip-fr)', dash: false },
       { col: 'slip_angle_fr_deg', trace: 'ref',     color: 'var(--slip-fr)', dash: true  },
     ],
-    yFixed: null, yStep: 2, zeroline: false },
+    yFixed: null, yStep: 2, zeroline: false, niceSteps: [0.5, 1, 2, 5] },
 
   { id: 'dt', label: 'Δt (ms, +session slower)',    height: 100,
     channels: null,  // special: computed from speed traces
-    yFixed: null, yStep: 100, zeroline: true },
+    yFixed: null, yStep: 100, zeroline: true, niceSteps: [1, 2, 5, 10, 25, 50, 100, 250, 500, 1000] },
 ];
 
 // ── Session store ─────────────────────────────────────────────────────────────
@@ -875,10 +892,71 @@ function computeMedianFrameDistanceDelta(distances) {
   return deltas[Math.floor(deltas.length / 2)];
 }
 
+// ── Nice Y-tick helper (F10) ─────────────────────────────────────────────────
+// Primary: smallest step from niceSteps giving 3–5 ticks with ≥30 px gap.
+// Fallback: magnitude-rounded step targeting ~4 ticks (handles ranges outside
+// the niceSteps domain — very small Δt when comparing same lap, or large slip
+// angles from extreme data).
+function computeNiceYTicks(yMin, yMax, plotH, niceSteps) {
+  const range = yMax - yMin;
+  if (!isFinite(range) || range <= 0) return [yMin, yMax].filter(isFinite);
+  for (const step of niceSteps) {
+    const startTick = Math.ceil(yMin / step - 1e-9) * step;
+    const ticks = [];
+    for (let y = startTick; y <= yMax + step * 1e-9; y += step) {
+      ticks.push(Math.round(y / step) * step);
+    }
+    if (ticks.length < 3 || ticks.length > 5) continue;
+    if (plotH / Math.max(ticks.length - 1, 1) >= 30) return ticks;
+  }
+  // Fallback: derive a nice step from magnitude of range/4
+  const rawStep = range / 4;
+  const mag = Math.pow(10, Math.floor(Math.log10(rawStep)));
+  const norm = rawStep / mag;
+  let niceNorm = 10;
+  for (const n of [1, 2, 2.5, 5, 10]) { if (n >= norm) { niceNorm = n; break; } }
+  const fbStep = niceNorm * mag;
+  const fbStart = Math.ceil(yMin / fbStep - 1e-9) * fbStep;
+  const fbTicks = [];
+  for (let y = fbStart; y <= yMax + fbStep * 1e-9 && fbTicks.length < 7; y += fbStep) {
+    fbTicks.push(Math.round(y / fbStep) * fbStep);
+  }
+  return fbTicks.length >= 2 ? fbTicks : [yMin, (yMin + yMax) / 2, yMax];
+}
+
+// ── Panel order (F9) ─────────────────────────────────────────────────────────
+const PANEL_ORDER_LS_KEY = 'lap-telemetry.panel-order.v1';
+const DEFAULT_PANEL_ORDER = PANEL_DEFS.map(d => d.id);
+let panelOrder = loadPersistedPanelOrder() || [...DEFAULT_PANEL_ORDER];
+
+function loadPersistedPanelOrder() {
+  try {
+    const raw = localStorage.getItem(PANEL_ORDER_LS_KEY);
+    if (!raw) return null;
+    const order = JSON.parse(raw);
+    if (!Array.isArray(order)) return null;
+    if (order.length !== DEFAULT_PANEL_ORDER.length) return null;
+    const known = new Set(DEFAULT_PANEL_ORDER);
+    if (!order.every(id => known.has(id))) return null;
+    if (new Set(order).size !== order.length) return null;
+    return order;
+  } catch { return null; }
+}
+
+function persistPanelOrder(order) {
+  try {
+    if (JSON.stringify(order) === JSON.stringify(DEFAULT_PANEL_ORDER)) {
+      localStorage.removeItem(PANEL_ORDER_LS_KEY);
+    } else {
+      localStorage.setItem(PANEL_ORDER_LS_KEY, JSON.stringify(order));
+    }
+  } catch {}
+}
+
 // ── Panel renderer ────────────────────────────────────────────────────────────
 
 function renderPanel(def, bins, maxDist, sectorDists, zoomRange) {
-  const H = def.height;
+  const H = Math.round(def.height * (def.heightMultiplier ?? 1.0));  // F11
   const plotH = H - PAD.top - PAD.bottom;
 
   // Collect all values to determine y range
@@ -942,10 +1020,13 @@ function renderPanel(def, bins, maxDist, sectorDists, zoomRange) {
 
     // Y ticks (once, same for all channels in panel)
     if (ch === def.channels[0]) {
-      const yTicks = [];
-      const step = def.yStep;
-      const start = Math.ceil(yMin / step) * step;
-      for (let y = start; y <= yMax; y += step) yTicks.push(y);
+      const yTicks = def.niceSteps
+        ? computeNiceYTicks(yMin, yMax, plotH, def.niceSteps)
+        : (() => {
+            const t = [], step = def.yStep;
+            for (let y = Math.ceil(yMin / step) * step; y <= yMax; y += step) t.push(y);
+            return t;
+          })();
       svgContent += yTicks.map(y =>
         `<text x="${PAD.left - 5}" y="${toYp(y) + 3}" text-anchor="end" fill="var(--muted)" font-size="9" font-family="monospace">${Number.isInteger(y) ? y : y.toFixed(1)}</text>`
       ).join('');
@@ -954,6 +1035,9 @@ function renderPanel(def, bins, maxDist, sectorDists, zoomRange) {
       ).join('');
       if (def.zeroline) {
         svgContent += `<line x1="${PAD.left}" y1="${toYp(0)}" x2="${PAD.left + PLOT_W}" y2="${toYp(0)}" stroke="rgba(255,255,255,0.2)" stroke-width="1"/>`;
+      }
+      if (def.midline != null) {
+        svgContent += `<line x1="${PAD.left}" y1="${toYp(def.midline)}" x2="${PAD.left + PLOT_W}" y2="${toYp(def.midline)}" stroke="rgba(255,255,255,0.15)" stroke-width="1" stroke-dasharray="4 4"/>`;
       }
       // Store range for cursor tooltip
       def._yMin = yMin; def._yMax = yMax;
@@ -1056,10 +1140,13 @@ function renderDtPanel(def, dtBins, maxDist, sectorDists, zoomRange, overlapRang
   }).join('');
   svg += `<text x="${PAD.left + PLOT_W / 2}" y="${H - 2}" text-anchor="middle" fill="var(--muted)" font-size="9" font-family="monospace">Distance (m)</text>`;
 
-  const yStep = def.yStep;
-  const yStart = Math.ceil(yMin / yStep) * yStep;
-  const yTicks = [];
-  for (let y = yStart; y <= yMax; y += yStep) yTicks.push(y);
+  const yTicks = def.niceSteps
+    ? computeNiceYTicks(yMin, yMax, plotH, def.niceSteps)
+    : (() => {
+        const t = [], step = def.yStep;
+        for (let y = Math.ceil(yMin / step) * step; y <= yMax; y += step) t.push(y);
+        return t;
+      })();
   svg += yTicks.map(y =>
     `<text x="${PAD.left - 5}" y="${toY(y) + 3}" text-anchor="end" fill="var(--muted)" font-size="9" font-family="monospace">${y > 0 ? '+' : ''}${y}</text>`
   ).join('');
@@ -1424,26 +1511,41 @@ function renderAll(sessionEntry, sessionSegIdx, refEntry, refSegIdx) {
   panelsDiv.innerHTML = '';
 
   const hasSlip = sessionEntry.hasSlip || refEntry.hasSlip;
-  const lastIdx = PANEL_DEFS.length - 1;
-  for (let pi = 0; pi < PANEL_DEFS.length; pi++) {
-    const def = PANEL_DEFS[pi];
+  const hasAbs  = currentSessionBins['abs_active']?.some(v => v >= 0.5) ?? false;
+  const hasTc   = currentSessionBins['tc_active']?.some(v => v >= 0.5) ?? false;
+
+  // Determine last visible non-dt panel in the current render order (for showXLabels)
+  const visibleIds = panelOrder.filter(id => {
+    if (id === 'slip' && !hasSlip) return false;
+    if (id === 'abs'  && !hasAbs)  return false;
+    if (id === 'tc'   && !hasTc)   return false;
+    return true;
+  });
+  const lastNonDtId = [...visibleIds].reverse().find(id => id !== 'dt');
+
+  for (const panelId of panelOrder) {
+    const def = PANEL_DEFS.find(d => d.id === panelId);
+    if (!def) continue;
+
     const wrap = document.createElement('div');
     wrap.className = 'panel-wrap';
+    wrap.draggable = true;
+    wrap.dataset.panelId = def.id;
 
     const labelEl = document.createElement('div');
     labelEl.className = 'panel-label';
     let labelText = def.label;
-
-    // Add coarse-data warning to Δt panel label
     if (def.id === 'dt' && coarseDataWarning) {
       labelText += ' ⚠ legacy distance resolution';
     }
-
-    labelEl.textContent = labelText;
+    labelEl.innerHTML = `<span class="drag-handle">⠿</span>${labelText}`;
     wrap.appendChild(labelEl);
 
-    // Skip slip panel with a placeholder when neither lap has slip data
-    // (old recordings pre-date the slip angle columns in the schema).
+    // Fully absent panels — don't add DOM nodes so legacy tests counting 8 panels still pass
+    if (def.id === 'abs' && !hasAbs) continue;
+    if (def.id === 'tc'  && !hasTc)  continue;
+
+    // Slip placeholder — kept in DOM (existing behaviour)
     if (def.id === 'slip' && !hasSlip) {
       const note = document.createElement('div');
       note.style.cssText = `height:32px;line-height:32px;color:var(--muted);font-size:11px;padding-left:${PAD.left}px`;
@@ -1458,8 +1560,7 @@ function renderAll(sessionEntry, sessionSegIdx, refEntry, refSegIdx) {
       def.showXLabels = true;
       svgHtml = renderDtPanel(def, currentDtBins, maxDist, sectorDists, currentZoomRange, currentOverlapRange);
     } else {
-      def.showXLabels = (pi === lastIdx - 1); // second-to-last non-dt panel
-      // Build bins map
+      def.showXLabels = (def.id === lastNonDtId);
       const binsMap = {};
       for (const ch of def.channels) {
         const srcBins = ch.trace === 'session' ? currentSessionBins : currentRefBins;
@@ -1844,7 +1945,7 @@ function setBadge(el, cls, text) {
 
 // ── Cursor and tooltip ────────────────────────────────────────────────────────
 
-const state = { maxDist: 0, dragging: false, dragStartX: 0, dragStartDist: 0 };
+const state = { maxDist: 0, dragging: false, dragStartX: 0, dragStartDist: 0, dragId: null };
 
 const plotArea     = document.getElementById('plot-area');
 const cursorLine   = document.getElementById('cursor-line');
@@ -2052,6 +2153,53 @@ document.addEventListener('keydown', e => {
     persistZoom(currentZoomRange);
     renderAll(...state.currentRenderParams);
   }
+});
+
+// ── F9: drag reorder — event delegation on #panels ───────────────────────────
+document.getElementById('panels').addEventListener('dragstart', e => {
+  const wrap = e.target.closest('.panel-wrap[draggable]');
+  if (!wrap) return;
+  state.dragId = wrap.dataset.panelId;
+  e.dataTransfer.effectAllowed = 'move';
+  e.dataTransfer.setData('text/plain', state.dragId);
+});
+document.getElementById('panels').addEventListener('dragover', e => {
+  e.preventDefault();
+  e.dataTransfer.dropEffect = 'move';
+  const wrap = e.target.closest('.panel-wrap[draggable]');
+  if (!wrap) return;
+  document.querySelectorAll('#panels .panel-wrap.drag-over').forEach(el => el.classList.remove('drag-over'));
+  wrap.classList.add('drag-over');
+});
+document.getElementById('panels').addEventListener('dragleave', e => {
+  const wrap = e.target.closest('.panel-wrap.drag-over');
+  if (wrap && !wrap.contains(e.relatedTarget)) wrap.classList.remove('drag-over');
+});
+document.getElementById('panels').addEventListener('drop', e => {
+  e.preventDefault();
+  document.querySelectorAll('#panels .panel-wrap.drag-over').forEach(el => el.classList.remove('drag-over'));
+  const targetWrap = e.target.closest('.panel-wrap[draggable]');
+  if (!targetWrap || !state.dragId) return;
+  const targetId = targetWrap.dataset.panelId;
+  if (targetId === state.dragId) return;
+  const from = panelOrder.indexOf(state.dragId);
+  const to   = panelOrder.indexOf(targetId);
+  if (from < 0 || to < 0) return;
+  panelOrder.splice(from, 1);
+  panelOrder.splice(to, 0, state.dragId);
+  persistPanelOrder(panelOrder);
+  if (state.currentRenderParams) renderAll(...state.currentRenderParams);
+  state.dragId = null;
+});
+document.getElementById('panels').addEventListener('dragend', () => {
+  document.querySelectorAll('#panels .panel-wrap.drag-over').forEach(el => el.classList.remove('drag-over'));
+  state.dragId = null;
+});
+
+document.getElementById('order-reset')?.addEventListener('click', () => {
+  panelOrder = [...DEFAULT_PANEL_ORDER];
+  persistPanelOrder(panelOrder);
+  if (state.currentRenderParams) renderAll(...state.currentRenderParams);
 });
 
 // ── Error helper ──────────────────────────────────────────────────────────────
