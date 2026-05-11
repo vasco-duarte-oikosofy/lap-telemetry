@@ -406,21 +406,21 @@ are affected.
 
 ## 13. Future fixes — UX backlog (not yet scheduled)
 
-### U1. Panel drag must be grip-handle-only; plot area is zoom-only
+### U1. Panel drag must be grip-handle-only; plot area is zoom-only ✅ shipped 2026-05-11
 
-**Symptom.** Today every panel `<div>` has `draggable="true"`, so a click-drag
-anywhere on the plot area initiates an HTML5 drag operation instead of starting
-the F2 zoom-selection rect. Net effect: drag-to-zoom is broken on most of the
-visible panel surface — it only works in the narrow strips outside the SVG.
+**Symptom.** F9 made every panel `<div>` `draggable="true"`, so a click-drag
+anywhere on the plot area initiated an HTML5 drag operation instead of starting
+the F2 zoom-selection rect. Net effect: drag-to-zoom was broken on most of the
+visible panel surface — it only worked in the narrow strips outside the SVG.
 
-**Fix direction.** Make the panel container `draggable="false"` by default and
-only set `draggable="true"` on `mousedown` over the `⠿` grip handle (reset on
-`mouseup`/`dragend`). Equivalently: bind drag start to the handle element and
-keep the rest of the panel as a normal pointer surface, so `mousedown` inside
-the plot region falls through to the existing zoom-selection handler in F2.
-
-**Scope.** `web/compare.html` only — F9 drag-reorder behaviour preserved when
-the user grips the handle; F2 zoom restored everywhere else.
+**As shipped.** Panel containers are non-draggable at creation time. A
+`mousedown` listener on `#panels` arms `draggable="true"` only when the event
+target is inside the `⠿` `.drag-handle` span; `mouseup` (handle-click without
+drag) and `dragend` (completed drag) both call `disarmAllPanels()` to strip
+the attribute. The `dragstart` handler now matches `.panel-wrap[draggable="true"]`
+so a stray dragstart on an unarmed panel is a no-op, and `dragover`/`drop` bail
+early when `state.dragId` is null. F9 reorder still works via the grip handle;
+F2 zoom is restored everywhere else.
 
 ### U2. Circuit map needs more pixels for the brake/throttle overlays to be useful
 

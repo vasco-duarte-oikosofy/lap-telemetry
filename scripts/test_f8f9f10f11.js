@@ -103,13 +103,19 @@ async function compare(page, sessionVal, refVal) {
     document.querySelectorAll('.panel-svg').length > 0, { timeout: 10000 });
 }
 
-// Simulate HTML5 drag-and-drop via DragEvent dispatch
+// Simulate HTML5 drag-and-drop via DragEvent dispatch.
+// Panels are non-draggable by default (U1 fix) — we must grip the ⠿ handle
+// (mousedown on .drag-handle) before dispatching dragstart, matching real
+// browser behaviour.
 async function simulateDrag(page, sourceId, targetId) {
   await page.evaluate(({ sourceId, targetId }) => {
     const panels = document.getElementById('panels');
     const src = panels.querySelector(`.panel-wrap[data-panel-id="${sourceId}"]`);
     const tgt = panels.querySelector(`.panel-wrap[data-panel-id="${targetId}"]`);
     if (!src || !tgt) throw new Error(`panels not found: ${sourceId} → ${targetId}`);
+    const handle = src.querySelector('.drag-handle');
+    if (!handle) throw new Error(`drag handle missing on ${sourceId}`);
+    handle.dispatchEvent(new MouseEvent('mousedown', { bubbles: true }));
     const dt = new DataTransfer();
     src.dispatchEvent(new DragEvent('dragstart', { bubbles: true, cancelable: true, dataTransfer: dt }));
     tgt.dispatchEvent(new DragEvent('dragover',  { bubbles: true, cancelable: true, dataTransfer: dt }));
@@ -497,11 +503,17 @@ async function getPanelOrder(page) {
       assert(gearClip && gearClip.includes('clip-gear'),
         'T13: gear polyline has clip-path after zoom', `got ${gearClip}`);
 
+      // Gear panel can be below the default 720px viewport — scroll it into
+      // view so mouse.move doesn't get clamped outside #plot-area's bounding
+      // box (whose mouseleave handler hides the tooltip).
+      await page.$eval('svg.panel-svg[data-panel-id="gear"]',
+        el => el.scrollIntoView({ block: 'center' }));
+      await page.waitForTimeout(50);
       const svgRect = await page.$eval('svg.panel-svg[data-panel-id="gear"]', el => {
         const r = el.getBoundingClientRect();
         return { cx: r.left + r.width * 0.5, cy: r.top + r.height * 0.5 };
       });
-      await page.mouse.move(svgRect.cx, svgRect.cy);
+      await page.mouse.move(svgRect.cx, svgRect.cy, { steps: 5 });
       await page.waitForTimeout(150);
       const tooltipVisible = await page.$eval('#tooltip', el => el.style.display !== 'none');
       assert(tooltipVisible, 'T13: tooltip visible on hover after zoom');

@@ -1540,7 +1540,6 @@ function renderAll(sessionEntry, sessionSegIdx, refEntry, refSegIdx) {
 
     const wrap = document.createElement('div');
     wrap.className = 'panel-wrap';
-    wrap.draggable = true;
     wrap.dataset.panelId = def.id;
 
     const labelEl = document.createElement('div');
@@ -2167,17 +2166,34 @@ document.addEventListener('keydown', e => {
 });
 
 // ── F9: drag reorder — event delegation on #panels ───────────────────────────
+// Panels are non-draggable by default so click-drag on the plot area falls
+// through to the F2 zoom handler. Gripping the ⠿ handle arms the panel for
+// HTML5 drag; dragend / mouseup (no-drag click) disarms it.
+function disarmAllPanels() {
+  document.querySelectorAll('#panels .panel-wrap[draggable="true"]').forEach(el => el.removeAttribute('draggable'));
+}
+document.getElementById('panels').addEventListener('mousedown', e => {
+  const handle = e.target.closest('.drag-handle');
+  if (!handle) return;
+  const wrap = handle.closest('.panel-wrap');
+  if (wrap) wrap.setAttribute('draggable', 'true');
+});
+document.getElementById('panels').addEventListener('mouseup', () => {
+  // Catches the case where the user clicked the handle but didn't drag.
+  disarmAllPanels();
+});
 document.getElementById('panels').addEventListener('dragstart', e => {
-  const wrap = e.target.closest('.panel-wrap[draggable]');
+  const wrap = e.target.closest('.panel-wrap[draggable="true"]');
   if (!wrap) return;
   state.dragId = wrap.dataset.panelId;
   e.dataTransfer.effectAllowed = 'move';
   e.dataTransfer.setData('text/plain', state.dragId);
 });
 document.getElementById('panels').addEventListener('dragover', e => {
+  if (!state.dragId) return;
   e.preventDefault();
   e.dataTransfer.dropEffect = 'move';
-  const wrap = e.target.closest('.panel-wrap[draggable]');
+  const wrap = e.target.closest('.panel-wrap');
   if (!wrap) return;
   document.querySelectorAll('#panels .panel-wrap.drag-over').forEach(el => el.classList.remove('drag-over'));
   wrap.classList.add('drag-over');
@@ -2187,10 +2203,11 @@ document.getElementById('panels').addEventListener('dragleave', e => {
   if (wrap && !wrap.contains(e.relatedTarget)) wrap.classList.remove('drag-over');
 });
 document.getElementById('panels').addEventListener('drop', e => {
+  if (!state.dragId) return;
   e.preventDefault();
   document.querySelectorAll('#panels .panel-wrap.drag-over').forEach(el => el.classList.remove('drag-over'));
-  const targetWrap = e.target.closest('.panel-wrap[draggable]');
-  if (!targetWrap || !state.dragId) return;
+  const targetWrap = e.target.closest('.panel-wrap');
+  if (!targetWrap) return;
   const targetId = targetWrap.dataset.panelId;
   if (targetId === state.dragId) return;
   const from = panelOrder.indexOf(state.dragId);
@@ -2204,6 +2221,7 @@ document.getElementById('panels').addEventListener('drop', e => {
 });
 document.getElementById('panels').addEventListener('dragend', () => {
   document.querySelectorAll('#panels .panel-wrap.drag-over').forEach(el => el.classList.remove('drag-over'));
+  disarmAllPanels();
   state.dragId = null;
 });
 
