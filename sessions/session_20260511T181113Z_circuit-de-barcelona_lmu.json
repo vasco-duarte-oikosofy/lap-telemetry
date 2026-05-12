@@ -1,0 +1,14 @@
+{
+  "schema_version": "1",
+  "recorder_version": "0.1.0a1",
+  "started_utc": "2026-05-11T18:11:13Z",
+  "ended_utc": "2026-05-11T18:24:28Z",
+  "sim": "lmu",
+  "track": "Circuit de Barcelona",
+  "vehicle_name": "DKR Engineering #4:ELMS25",
+  "setup_file_guess": "GT3_296_Balanced_Barcelona.svm",
+  "sample_rate_hz": 50.0,
+  "row_count": 39708,
+  "lap_count": 8,
+  "in_progress": false
+}

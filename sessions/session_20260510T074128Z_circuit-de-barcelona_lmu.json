@@ -1,0 +1,13 @@
+{
+  "schema_version": "1",
+  "recorder_version": "0.1.0a1",
+  "started_utc": "2026-05-10T07:41:28Z",
+  "ended_utc": "unknown",
+  "sim": "lmu",
+  "track": "circuit-de-barcelona",
+  "vehicle_name": "unknown",
+  "sample_rate_hz": 50.0,
+  "row_count": 1,
+  "lap_count": 1,
+  "recovered": true
+}

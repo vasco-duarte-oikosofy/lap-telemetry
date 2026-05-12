@@ -1,0 +1,14 @@
+{
+  "schema_version": "1",
+  "recorder_version": "0.1.0a1",
+  "started_utc": "2026-05-11T14:47:14Z",
+  "ended_utc": "2026-05-11T14:55:32Z",
+  "sim": "lmu",
+  "track": "Circuit de Barcelona",
+  "vehicle_name": "JMW Motorsport 2025 #66:ELMS",
+  "setup_file_guess": "GT3_296_Balanced_Barcelona.svm",
+  "sample_rate_hz": 50.0,
+  "row_count": 24873,
+  "lap_count": 5,
+  "in_progress": false
+}

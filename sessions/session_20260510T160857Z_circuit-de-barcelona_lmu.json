@@ -1,0 +1,14 @@
+{
+  "schema_version": "1",
+  "recorder_version": "0.1.0a1",
+  "started_utc": "2026-05-10T16:08:57Z",
+  "ended_utc": "2026-05-10T16:17:02Z",
+  "sim": "lmu",
+  "track": "Circuit de Barcelona",
+  "vehicle_name": "Richard Mille AF Corse 2025 #50:ELMS",
+  "setup_file_guess": "GT3_296_Balanced_Barcelona.svm",
+  "sample_rate_hz": 50.0,
+  "row_count": 24202,
+  "lap_count": 4,
+  "in_progress": false
+}

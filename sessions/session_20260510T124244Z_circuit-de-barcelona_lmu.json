@@ -1,0 +1,14 @@
+{
+  "schema_version": "1",
+  "recorder_version": "0.1.0a1",
+  "started_utc": "2026-05-10T12:42:44Z",
+  "ended_utc": "2026-05-10T12:54:31Z",
+  "sim": "lmu",
+  "track": "Circuit de Barcelona",
+  "vehicle_name": "WTM by Rinaldi Racing 2025 #12:ELMS",
+  "setup_file_guess": "LMP3_Duqueine_HDF_Barcelona.svm",
+  "sample_rate_hz": 50.0,
+  "row_count": 35312,
+  "lap_count": 7,
+  "in_progress": false
+}

@@ -10,8 +10,6 @@ venv/
 .pytest_cache/
 .mypy_cache/
 .ruff_cache/
-sessions/
-*.parquet
 *.parquet.tmp
 m*-test-report/
 f1f2-test-report/

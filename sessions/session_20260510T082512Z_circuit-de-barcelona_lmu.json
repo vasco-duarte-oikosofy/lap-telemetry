@@ -1,0 +1,13 @@
+{
+  "schema_version": "1",
+  "recorder_version": "0.1.0a1",
+  "started_utc": "2026-05-10T08:25:12Z",
+  "ended_utc": "2026-05-10T08:25:12Z",
+  "sim": "lmu",
+  "track": "Circuit de Barcelona",
+  "vehicle_name": "DKR Engineering #4:ELMS25",
+  "sample_rate_hz": 50.0,
+  "row_count": 1,
+  "lap_count": 1,
+  "in_progress": false
+}
