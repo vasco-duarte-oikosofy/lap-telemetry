@@ -9,11 +9,12 @@
 const path = require('path');
 const fs = require('fs');
 const { chromium } = require('playwright');
+const { startServer } = require('./lib/test-server');
 
 const REPO = path.resolve(__dirname, '..');
-const HTML = path.resolve(REPO, 'web', 'compare.html');
-const PARQUET = 'sessions/session_20260510T142624Z_circuit-de-barcelona_lmu.parquet';
-const JSON_SIDECAR = 'sessions/session_20260510T142624Z_circuit-de-barcelona_lmu.json';
+const WEB_DIR = path.join(REPO, 'web');
+const PARQUET = 'sessions/session_20260512T140000Z_spa-francorchamps_lmu.parquet';
+const JSON_SIDECAR = 'sessions/session_20260512T140000Z_spa-francorchamps_lmu.json';
 
 let pass = 0, fail = 0;
 function assert(cond, msg) {
@@ -22,13 +23,16 @@ function assert(cond, msg) {
 }
 
 (async () => {
+  const { server, port } = await startServer(WEB_DIR);
+  const url = `http://127.0.0.1:${port}`;
+  
   const browser = await chromium.launch();
   const ctx = await browser.newContext();
   const page = await ctx.newPage();
   page.on('pageerror', e => { fail++; console.log('  [pageerror]', e.message); });
   page.on('console', m => { if (m.type() === 'error') console.log('  [console err]', m.text()); });
 
-  await page.goto('file:///' + HTML.replace(/\\/g, '/'));
+  await page.goto(url);
 
   // ── Inject parquet + sidecar JSON via the multi-file picker ─────────────
   const pBuf = fs.readFileSync(path.resolve(REPO, PARQUET));
@@ -147,7 +151,9 @@ function assert(cond, msg) {
   // Cleanup so we don't leave persisted state behind.
   await page.evaluate(() => localStorage.removeItem('lap-telemetry.zoom.v1'));
 
+  await page.close();
   await browser.close();
+  server.close();
 
   console.log('\n═══════════════════════════════════');
   console.log(`  ${pass}/${pass + fail} assertions passed`);

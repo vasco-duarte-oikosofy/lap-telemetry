@@ -9,35 +9,22 @@
 'use strict';
 
 const { chromium } = require('playwright');
-const http = require('http');
 const fs = require('fs');
 const path = require('path');
 const { execSync, spawnSync } = require('child_process');
+const { startServer } = require('./lib/test-server');
 
 // ── Paths ─────────────────────────────────────────────────────────────────────
 const ROOT         = path.resolve(__dirname, '..');
-const HTML_FILE    = path.join(ROOT, 'web', 'compare.html');
+const WEB_DIR      = path.join(ROOT, 'web');
 const SESSIONS_DIR = path.join(ROOT, 'sessions');
 const REPORT_DIR   = path.join(ROOT, 'f1f2-test-report');
 const SHOTS_DIR    = path.join(REPORT_DIR, 'screenshots');
 
-const SESSION_CLEAN   = path.join(SESSIONS_DIR, 'session_20260510T093245Z_circuit-de-barcelona_lmu.parquet');
-const SESSION_RESTART = path.join(SESSIONS_DIR, 'session_20260510T091432Z_circuit-de-barcelona_lmu.parquet');
+const SESSION_CLEAN   = path.join(SESSIONS_DIR, 'Kyalami-mclaren_720s_gt3-15-2020.07.07-02.19.28.parquet');
+const SESSION_RESTART = path.join(SESSIONS_DIR, 'session_20260512T140000Z_spa-francorchamps_lmu.parquet');
 
 fs.mkdirSync(SHOTS_DIR, { recursive: true });
-
-// ── HTTP server ───────────────────────────────────────────────────────────────
-function startServer() {
-  const server = http.createServer((req, res) => {
-    res.setHeader('Content-Type', 'text/html; charset=utf-8');
-    res.end(fs.readFileSync(HTML_FILE));
-  });
-  return new Promise(resolve => {
-    server.listen(0, '127.0.0.1', () => {
-      resolve({ server, port: server.address().port });
-    });
-  });
-}
 
 // ── Test utilities ────────────────────────────────────────────────────────────
 const consoleLogs = [];
@@ -66,7 +53,7 @@ async function screenshot(page, name) {
 // ── Main test flow ────────────────────────────────────────────────────────────
 async function runTests() {
   console.log('═══ F1F2 AFK Test Suite ═══\n');
-  const { server, port } = await startServer();
+  const { server, port } = await startServer(WEB_DIR);
   const url = `http://127.0.0.1:${port}`;
   console.log(`URL: ${url}`);
   console.log(`Report: ${REPORT_DIR}\n`);

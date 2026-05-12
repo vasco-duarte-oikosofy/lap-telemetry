@@ -10,34 +10,23 @@
 'use strict';
 
 const { chromium } = require('playwright');
-const http = require('http');
 const fs = require('fs');
 const path = require('path');
 const os = require('os');
 const { spawnSync } = require('child_process');
+const { startServer } = require('./lib/test-server');
 
 // ── Paths ────────────────────────────────────────────────────────────────────
 const ROOT         = path.resolve(__dirname, '..');
-const HTML_FILE    = path.join(ROOT, 'web', 'compare.html');
+const WEB_DIR      = path.join(ROOT, 'web');
 const SESSIONS_DIR = path.join(ROOT, 'sessions');
 const REPORT_DIR   = path.join(ROOT, 'm6-test-report');
 const SHOTS_DIR    = path.join(REPORT_DIR, 'screenshots');
 
-const SESSION_FRESH    = path.join(SESSIONS_DIR, 'session_20260510T142624Z_circuit-de-barcelona_lmu.parquet');
-const SIDECAR_FRESH    = path.join(SESSIONS_DIR, 'session_20260510T142624Z_circuit-de-barcelona_lmu.json');
+const SESSION_FRESH    = path.join(SESSIONS_DIR, 'session_20260512T140000Z_spa-francorchamps_lmu.parquet');
+const SIDECAR_FRESH    = path.join(SESSIONS_DIR, 'session_20260512T140000Z_spa-francorchamps_lmu.json');
 
 fs.mkdirSync(SHOTS_DIR, { recursive: true });
-
-// ── HTTP server ──────────────────────────────────────────────────────────────
-function startServer() {
-  const server = http.createServer((req, res) => {
-    res.setHeader('Content-Type', 'text/html; charset=utf-8');
-    res.end(fs.readFileSync(HTML_FILE));
-  });
-  return new Promise(resolve => {
-    server.listen(0, '127.0.0.1', () => resolve({ server, port: server.address().port }));
-  });
-}
 
 // ── Test utilities ───────────────────────────────────────────────────────────
 const consoleLogs = [];
@@ -196,7 +185,7 @@ async function main() {
   const freshBuf = fs.readFileSync(SESSION_FRESH);
   const sidecarBuf = fs.readFileSync(SIDECAR_FRESH);
 
-  const { server, port } = await startServer();
+  const { server, port } = await startServer(WEB_DIR);
   const url = `http://127.0.0.1:${port}`;
   const browser = await chromium.launch({ headless: true });
 

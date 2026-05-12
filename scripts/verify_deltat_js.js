@@ -7,22 +7,26 @@
 const path = require('path');
 const fs = require('fs');
 const { chromium } = require('playwright');
+const { startServer } = require('./lib/test-server');
 
 const REPO = path.resolve(__dirname, '..');
-const HTML = path.resolve(REPO, 'web', 'compare.html');
+const WEB_DIR = path.join(REPO, 'web');
 
 const TARGETS = [
-  'sessions/session_20260510T132500Z_circuit-de-barcelona_lmu.parquet',
-  'sessions/session_20260510T134701Z_circuit-de-barcelona_lmu.parquet',
+  'sessions/Kyalami-mclaren_720s_gt3-15-2020.07.07-02.19.28.parquet',
+  'sessions/session_20260512T140000Z_spa-francorchamps_lmu.parquet',
 ];
 
 (async () => {
+  const { server, port } = await startServer(WEB_DIR);
+  const url = `http://127.0.0.1:${port}`;
+  
   const browser = await chromium.launch();
   const ctx = await browser.newContext();
   const page = await ctx.newPage();
   page.on('console', m => console.log('[console]', m.type(), m.text()));
 
-  await page.goto('file:///' + HTML.replace(/\\/g, '/'));
+  await page.goto(url);
 
   for (const rel of TARGETS) {
     const abs = path.resolve(REPO, rel);
@@ -78,43 +82,75 @@ const TARGETS = [
 
     console.log('Segments:', segs.map(s => `[${s.segIdx}] ${s.label.trim()}`).join(' | '));
 
-    // For each pair of consecutive racing-laps (skip first/last as out/in), compute Δt
-    const racing = segs.slice(1, -1);
-    if (racing.length < 2) { console.log('  not enough racing laps to compare'); continue; }
-
-    for (let i = 0; i + 1 < racing.length; i++) {
-      const sSeg = racing[i].segIdx;
-      const rSeg = racing[i + 1].segIdx;
-
-      const t1 = Date.now();
-      const out = await page.evaluate(({ key, sSeg, rSeg }) => {
-        const dtBins = window.__dtDebug(key, sSeg, key, rSeg);
-        // Also probe lap times by reading the picker labels directly is not easy,
-        // so call __resamplerDebug for distances and recompute lap-time span.
-        // Easiest: read raw via internal store. We have no store accessor, so
-        // expose it via a tiny shim if needed. Use lap_time_s + segments.
-        // We'll fetch via debug helper.
-        return {
-          dtTotal: dtBins[dtBins.length - 1],
-          dtLen: dtBins.length,
-          dtMax: Math.max(...dtBins),
-          dtMin: Math.min(...dtBins),
-        };
-      }, { key: info.key, sSeg, rSeg });
-      const tDt = Date.now() - t1;
-
-      console.log(`  laps [${sSeg}] vs [${rSeg}]: Δt total = ${out.dtTotal.toFixed(1)} ms (range ${out.dtMin.toFixed(0)}..${out.dtMax.toFixed(0)} ms over ${out.dtLen} bins, compute ${tDt} ms)`);
+    // Pick two racing laps from the last segment
+    const lastSeg = segs[segs.length - 1];
+    if (!lastSeg) {
+      console.log('No segments found, skipping');
+      continue;
     }
 
-    // Median frame-distance delta from raw
-    const md = await page.evaluate((key) => {
-      const segs = window.__getSessionKeys();
-      // Hack: re-implement here using exposed data — we don't have direct access.
-      // Instead, just compute via the resampler debug indirectly.
-      return null;
-    }, info.key);
+    const laps = await page.evaluate((key, segIdx) => {
+      const data = window.__resamplerDebug(key, segIdx);
+      // Return unique lap numbers
+      const lapSet = new Set(data.lapNumber);
+      return [...lapSet].sort((a, b) => a - b);
+    }, info.key, lastSeg.segIdx);
+
+    console.log('Lap numbers in segment:', laps.join(', '));
+
+    if (laps.length < 2) {
+      console.log('Not enough laps for Δt comparison');
+      continue;
+    }
+
+    // Compare lap N vs lap N+1
+    const lapA = laps[laps.length - 2];
+    const lapB = laps[laps.length - 1];
+
+    const dtResult = await page.evaluate((key, segIdx, lapA, lapB) => {
+      const data = window.__resamplerDebug(key, segIdx);
+      // Find indices for these laps
+      const idxA = data.lapNumber.indexOf(lapA);
+      const idxB = data.lapNumber.indexOf(lapB);
+      if (idxA === -1 || idxB === -1) return null;
+
+      // Use the lap time from the data
+      const lapTimeA = data.lapTime[idxA];
+      const lapTimeB = data.lapTime[idxB];
+
+      // Compute Δt using the page's algorithm
+      const dtData = window.__dtDebug(data, data);
+      // dtData is { dist, dtMs, lapTimeSession, lapTimeRef }
+      // Find the end-of-lap Δt for lapB
+      const endIdx = data.lapNumber.lastIndexOf(lapB);
+      const endDt = dtData.dtMs[endIdx];
+
+      return {
+        lapTimeA,
+        lapTimeB,
+        actualDelta: (lapTimeB - lapTimeA) * 1000,
+        computedEndDt: endDt
+      };
+    }, info.key, lastSeg.segIdx, lapA, lapB);
+
+    if (dtResult) {
+      console.log(`\nΔt comparison: lap ${lapA} vs lap ${lapB}`);
+      console.log(`  Lap time A: ${dtResult.lapTimeA.toFixed(3)} s`);
+      console.log(`  Lap time B: ${dtResult.lapTimeB.toFixed(3)} s`);
+      console.log(`  Actual Δt: ${(dtResult.actualDelta).toFixed(0)} ms`);
+      console.log(`  Computed Δt (end): ${dtResult.computedEndDt?.toFixed(0) ?? 'N/A'} ms`);
+      
+      if (dtResult.computedEndDt !== null && dtResult.computedEndDt !== undefined) {
+        const error = Math.abs(dtResult.computedEndDt - dtResult.actualDelta);
+        const pct = (error / Math.abs(dtResult.actualDelta) * 100).toFixed(1);
+        console.log(`  Error: ${error.toFixed(0)} ms (${pct}%)`);
+      }
+    }
   }
 
+  await page.close();
   await browser.close();
+  server.close();
+  
   console.log('\nDone.');
 })().catch(e => { console.error(e); process.exit(1); });

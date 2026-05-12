@@ -1,9 +1,15 @@
 {
   "devDependencies": {
+    "esbuild": "^0.28.0",
     "playwright": "^1.59.1"
   },
   "dependencies": {
     "hyparquet": "^1.25.8",
     "hyparquet-compressors": "^1.1.1"
+  },
+  "scripts": {
+    "build": "node scripts/bundle.js",
+    "test": "node scripts/test_m5.js && node scripts/test_m6.js && node scripts/test_f1f2.js && node scripts/test_m6_extras.js",
+    "validate": "node scripts/validate-build.js"
   }
 }

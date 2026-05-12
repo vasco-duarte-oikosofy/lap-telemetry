@@ -2,16 +2,20 @@
 const path = require('path');
 const fs = require('fs');
 const { chromium } = require('playwright');
+const { startServer } = require('./lib/test-server');
 
 const REPO = path.resolve(__dirname, '..');
-const HTML = path.resolve(REPO, 'web', 'compare.html');
-const FILE = 'sessions/session_20260510T132500Z_circuit-de-barcelona_lmu.parquet';
+const WEB_DIR = path.join(REPO, 'web');
+const FILE = 'sessions/Kyalami-mclaren_720s_gt3-15-2020.07.07-02.19.28.parquet';
 
 (async () => {
+  const { server, port } = await startServer(WEB_DIR);
+  const url = `http://127.0.0.1:${port}`;
+  
   const browser = await chromium.launch();
   const page = await (await browser.newContext()).newPage();
   page.on('pageerror', e => console.log('[pageerror]', e.message));
-  await page.goto('file:///' + HTML.replace(/\\/g, '/'));
+  await page.goto(url);
 
   const buf = fs.readFileSync(path.resolve(REPO, FILE));
   const fileName = path.basename(FILE);
@@ -59,6 +63,10 @@ const FILE = 'sessions/session_20260510T132500Z_circuit-de-barcelona_lmu.parquet
     // Reach into the module scope: not directly possible. Instead, override
     // by patching window.performance comparison: reload required.
   });
+  
+  await page.close();
   await browser.close();
+  server.close();
+  
   console.log('\nDone.');
 })().catch(e => { console.error(e); process.exit(1); });
