@@ -1,0 +1,14 @@
+{
+  "schema_version": "1",
+  "recorder_version": "0.6.0",
+  "started_utc": "2026-05-12T14:00:00Z",
+  "ended_utc": "2026-05-12T14:19:12Z",
+  "sim": "lmu",
+  "track": "Circuit de Spa-Francorchamps",
+  "vehicle_name": "WTM - #12 - LMP3 - Duqueine - HDF - Spa",
+  "setup_file_guess": "LMP3_Duqueine_HDF_Spa.svm",
+  "sample_rate_hz": 50,
+  "row_count": 34403,
+  "lap_count": 3,
+  "in_progress": false
+}
