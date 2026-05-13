@@ -13,8 +13,8 @@ const { startServer } = require('./lib/test-server');
 
 const REPO = path.resolve(__dirname, '..');
 const WEB_DIR = path.join(REPO, 'web');
-const PARQUET = 'sessions/session_20260512T140000Z_spa-francorchamps_lmu.parquet';
-const JSON_SIDECAR = 'sessions/session_20260512T140000Z_spa-francorchamps_lmu.json';
+const PARQUET = 'sessions/session_20260511T151203Z_circuit-de-barcelona_lmu.parquet';
+const JSON_SIDECAR = 'sessions/session_20260511T151203Z_circuit-de-barcelona_lmu.json';
 
 let pass = 0, fail = 0;
 function assert(cond, msg) {
@@ -58,10 +58,10 @@ function assert(cond, msg) {
 
   console.log('\n── Sidecar metadata ─────────────────────────────');
   const pickerHtml = await page.evaluate(() => document.getElementById('session-picker').innerHTML);
-  assert(pickerHtml.includes('WTM') || pickerHtml.includes('LMP3'), 'picker label includes vehicle short-name (WTM/LMP3)');
-  assert(pickerHtml.includes('LMP3_Duqueine'), 'picker label includes setup file (LMP3_Duqueine_HDF_Barcelona)');
+  assert(pickerHtml.includes('JMW') || pickerHtml.includes('GT3'), 'picker label includes vehicle short-name (JMW/GT3)');
+  assert(pickerHtml.includes('296') || pickerHtml.includes('Balanced'), 'picker label includes setup file (296/Balanced)');
   const sessionListBadge = await page.evaluate(() => document.querySelector('.session-entry .badge')?.textContent || '');
-  assert(/WTM|#12/.test(sessionListBadge), `session-list badge shows vehicle  →  ${sessionListBadge.slice(0,80)}`);
+  assert(/JMW|#66/.test(sessionListBadge), `session-list badge shows vehicle  →  ${sessionListBadge.slice(0,80)}`);
 
   // ── Compare two laps so renderAll fires (lap 1 vs 2) ────────────────────
   await page.evaluate(() => {

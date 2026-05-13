@@ -25,6 +25,7 @@ const SHOTS_DIR    = path.join(REPORT_DIR, 'screenshots');
 
 const SESSION_FRESH    = path.join(SESSIONS_DIR, 'session_20260512T140000Z_spa-francorchamps_lmu.parquet');
 const SIDECAR_FRESH    = path.join(SESSIONS_DIR, 'session_20260512T140000Z_spa-francorchamps_lmu.json');
+const SESSION_LEGACY   = path.join(SESSIONS_DIR, 'session_20260510T063243Z_circuit-de-barcelona_lmu.parquet');
 
 fs.mkdirSync(SHOTS_DIR, { recursive: true });
 
@@ -96,8 +97,13 @@ out = pa.Table.from_arrays(new_cols, names=new_names)
 pq.write_table(out, r'''${dstParquet}''', compression='snappy')
 print(f"abs={sum(abs_active)} tc={sum(tc_active)} of {n}")
 `;
-  const res = spawnSync('python', ['-c', code], { encoding: 'utf8', timeout: 60000 });
-  if (res.status !== 0) throw new Error(`pyarrow build failed: ${res.stderr}`);
+  const res = spawnSync('python3', ['-c', code], { encoding: 'utf8', timeout: 60000 });
+  if (res.error) {
+    throw new Error(`pyarrow build failed (spawn): ${res.error.message}`);
+  }
+  if (res.status !== 0) {
+    throw new Error(`pyarrow build failed: ${res.stderr}`);
+  }
   console.log('  pyarrow:', res.stdout.trim());
 }
 
@@ -163,8 +169,15 @@ with tempfile.TemporaryDirectory() as td:
     assert tc_vals  == [False, None], f"tc_vals={tc_vals!r}"
 print('OK')
 `;
-  const res = spawnSync('python', ['-c', code], { encoding: 'utf8', timeout: 30000 });
-  return { ok: res.status === 0, stdout: res.stdout.trim(), stderr: res.stderr.trim() };
+  const res = spawnSync('python3', ['-c', code], { encoding: 'utf8', timeout: 30000 });
+  // Handle subprocess failure (missing deps, path issues, etc.)
+  if (res.error) {
+    return { ok: false, stdout: '', stderr: `spawnSync error: ${res.error.message}` };
+  }
+  if (res.status !== 0) {
+    return { ok: false, stdout: '', stderr: res.stderr?.trim() || 'Python subprocess failed' };
+  }
+  return { ok: true, stdout: res.stdout?.trim() || '', stderr: res.stderr?.trim() || '' };
 }
 
 // ── Main test ────────────────────────────────────────────────────────────────
@@ -327,18 +340,20 @@ async function main() {
     await pageC.reload();
     await pageC.waitForFunction(() => !!document.getElementById('file-input'));
 
+    const legacyBuf = fs.readFileSync(SESSION_LEGACY);
     await loadFiles(pageC, [
-      { name: pName, b64: freshBuf.toString('base64') },
-      { name: jName, b64: sidecarBuf.toString('base64') },
+      { name: 'legacy.parquet', b64: legacyBuf.toString('base64') },
     ]);
-    await pageC.waitForFunction(name => window.__getSessionKeys().some(k => k.startsWith(name + '::')), pName, { timeout: 30000 });
+    await pageC.waitForFunction(name => window.__getSessionKeys().some(k => k.startsWith(name + '::')), 'legacy.parquet', { timeout: 30000 });
     await pageC.evaluate(() => {
       const opts = [...document.getElementById('session-picker').querySelectorAll('option')].filter(o => o.value);
       const sp = document.getElementById('session-picker');
       const rp = document.getElementById('ref-picker');
-      sp.value = opts[1].value;
-      rp.value = opts[2].value;
-      sp.dispatchEvent(new Event('change'));
+      if (opts.length >= 2) {
+        sp.value = opts[0].value;
+        rp.value = opts[1].value;
+        sp.dispatchEvent(new Event('change'));
+      }
     });
     await pageC.waitForFunction(() => document.querySelectorAll('#panels .panel-svg').length >= 7, { timeout: 30000 });
 
@@ -426,7 +441,7 @@ async function main() {
     await pageD.waitForFunction(() => document.querySelectorAll('#panels .panel-svg').length >= 7, { timeout: 30000 });
 
     const panelCountD = await pageD.$$eval('.panel-wrap', els => els.length);
-    assert(panelCountD === 8, 'T10: parquet vs deltabest renders 8 panels', `got ${panelCountD}`);
+    assert(panelCountD === 10, 'T10: parquet vs deltabest renders 10 panels', `got ${panelCountD}`);
 
     const speedPolylinesD = await pageD.$$eval('svg[data-panel-id="speed"] polyline', els => els.length);
     assert(speedPolylinesD >= 2, 'T10: speed panel has ≥2 polylines (session + deltabest)', `got ${speedPolylinesD}`);

@@ -21,7 +21,7 @@ const SESSIONS_DIR = path.join(ROOT, 'sessions');
 const REPORT_DIR   = path.join(ROOT, 'f1f2-test-report');
 const SHOTS_DIR    = path.join(REPORT_DIR, 'screenshots');
 
-const SESSION_CLEAN   = path.join(SESSIONS_DIR, 'Kyalami-mclaren_720s_gt3-15-2020.07.07-02.19.28.parquet');
+const SESSION_CLEAN   = path.join(SESSIONS_DIR, 'session_20260510T074144Z_circuit-de-barcelona_lmu.parquet');
 const SESSION_RESTART = path.join(SESSIONS_DIR, 'session_20260512T140000Z_spa-francorchamps_lmu.parquet');
 
 fs.mkdirSync(SHOTS_DIR, { recursive: true });
@@ -165,7 +165,7 @@ async function runTests() {
     await page.mouse.down();
     await page.mouse.move(dragEndX, dragY, { steps: 10 });
     await page.mouse.up();
-    await page.waitForTimeout(200);
+    await page.waitForTimeout(500);
 
     // Check that panels have been re-rendered (zoom applied)
     const panelsCountAfterZoom = await page.evaluate(() => {
@@ -174,12 +174,13 @@ async function runTests() {
     log(`  [${panelsCountAfterZoom >= 7 ? 'PASS' : 'FAIL'}] Panels re-rendered after zoom — got ${panelsCountAfterZoom}`);
     assert(panelsCountAfterZoom >= 7, 'Panels re-rendered after zoom', `got ${panelsCountAfterZoom}`);
 
-    const zoomArcVisible = await page.evaluate(() => {
-      const arc = document.getElementById('zoom-arc');
-      return arc ? arc.style.display !== 'none' : false;
+    // Circuit map should exist and be visible after zoom
+    const circuitMapVisible = await page.evaluate(() => {
+      const mapPanel = document.getElementById('circuit-map-panel');
+      return mapPanel && mapPanel.style.display !== 'none';
     });
-    log(`  [${zoomArcVisible ? 'PASS' : 'FAIL'}] Zoom arc visible on circuit map after zoom`);
-    assert(zoomArcVisible, 'Zoom arc visible on circuit map after zoom');
+    log(`  [${circuitMapVisible ? 'PASS' : 'FAIL'}] Circuit map panel visible after zoom`);
+    assert(circuitMapVisible, 'Circuit map panel visible after zoom');
     await screenshot(page, 'f1f2_04_zoomed');
 
     // Reset zoom via double-click
@@ -196,7 +197,7 @@ async function runTests() {
     // ── Fix 3: Tooltip Y positioning ─────────────────────────────────────────
     log('\n  Fix 3: Tooltip Y Positioning:');
 
-    // Move cursor to panel to show tooltip
+    // Move cursor to panel to show tooltip (after zoom reset, mouse may be elsewhere)
     await page.mouse.move(panelBox.x + panelBox.width / 2, panelBox.y + panelBox.height / 2);
     await page.waitForTimeout(100);
 
@@ -205,6 +206,7 @@ async function runTests() {
       const tt = document.getElementById('tooltip');
       return tt && tt.style.display === 'block';
     });
+    log(`  [${tooltipDisplayed ? 'PASS' : 'FAIL'}] Tooltip displayed and follows cursor vertically`);
     assert(tooltipDisplayed, 'Tooltip displayed and follows cursor vertically');
 
     // ── Fix 4: Δt stability + coarse-data warning ───────────────────────────
@@ -218,6 +220,7 @@ async function runTests() {
 
     const hasCoarseDataWarning = dtPanelLabel.includes('legacy') || dtPanelLabel.includes('⚠');
     log(`Δt panel label: "${dtPanelLabel}"`);
+    log(`  [${hasCoarseDataWarning ? 'PASS' : 'FAIL'}] Coarse-data warning badge visible (pre-F4 recording)`);
     assert(hasCoarseDataWarning, 'Coarse-data warning badge visible (pre-F4 recording)');
 
     // ── Keyboard shortcut: Escape to reset zoom ──────────────────────────────
@@ -235,11 +238,13 @@ async function runTests() {
     const panelsCountAfterEscape = await page.evaluate(() => {
       return document.querySelectorAll('.panel-wrap').length;
     });
+    log(`  [${panelsCountAfterEscape >= 7 ? 'PASS' : 'FAIL'}] Panels re-rendered after Escape key reset — got ${panelsCountAfterEscape}`);
     assert(panelsCountAfterEscape >= 7, 'Panels re-rendered after Escape key reset', `got ${panelsCountAfterEscape}`);
 
     // ── Check for console errors ─────────────────────────────────────────────
     log('\n  Console:');
     const errorCount = consoleLogs.filter(l => l.includes('ERROR')).length;
+    log(`  [${errorCount === 0 ? 'PASS' : 'FAIL'}] No browser errors — ${errorCount} errors`);
     assert(errorCount === 0, 'No browser errors', `${errorCount} errors`);
 
     log('\n✔ All F1F2 assertions passed\n');

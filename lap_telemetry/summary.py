@@ -180,19 +180,19 @@ def _run_file(path: Path) -> int:
             next_seg_start = segments[seg_idx + 1][1]
             next_seg_end   = segments[seg_idx + 1][2]
             walk_end = min(next_seg_start + 25, next_seg_end)
-            s1 = s2 = float("nan")
+            s1 = s2 = None
             for fi in range(next_seg_start, walk_end):
                 _s1 = s1_col[fi]
                 _cum = s2_col[fi]
                 if (
-                    not math.isnan(_s1)
-                    and not math.isnan(_cum)
+                    _s1 is not None
+                    and _cum is not None
                     and _s1 > 0.0
                     and _cum > _s1
                 ):
                     s1, cum_s2 = _s1, _cum
                     break
-            valid_sectors = not math.isnan(s1)
+            valid_sectors = s1 is not None
             if valid_sectors:
                 # SHM: LastSector1 = S1 dur, LastSector2 = S1+S2 cumulative.
                 s1_str = _fmt_sector(s1)

@@ -1,0 +1,59 @@
+/**
+ * Application state module — owns all mutable runtime state.
+ * Other modules import this and read/mutate state directly.
+ * No DOM access, no side effects — pure state container.
+ */
+
+// ── Session store ─────────────────────────────────────────────────────────────
+// Map from storeKey → { fileName, data: {col: Array}, segments, hasSlip, hasSectors }
+export const store = new Map();
+
+// Pending sidecar JSONs keyed by stem (filename without extension).
+// When the parquet for the same stem arrives, we attach the metadata.
+export const pendingSidecars = new Map();
+
+// ── Panel order (F9) ──────────────────────────────────────────────────────────
+export const PANEL_ORDER_LS_KEY = 'lap-telemetry.panel-order.v1';
+export const DEFAULT_PANEL_ORDER = [
+  'speed', 'throttle', 'tc', 'brake', 'abs', 'rpm', 'gear', 'steering', 'slip', 'dt'
+];
+export let panelOrder = loadPersistedPanelOrder() || [...DEFAULT_PANEL_ORDER];
+
+function loadPersistedPanelOrder() {
+  try {
+    const raw = localStorage.getItem(PANEL_ORDER_LS_KEY);
+    if (!raw) return null;
+    const order = JSON.parse(raw);
+    if (!Array.isArray(order)) return null;
+    if (order.length !== DEFAULT_PANEL_ORDER.length) return null;
+    const known = new Set(DEFAULT_PANEL_ORDER);
+    if (!order.every(id => known.has(id))) return null;
+    if (new Set(order).size !== order.length) return null;
+    return order;
+  } catch { return null; }
+}
+
+export function persistPanelOrder(order) {
+  try {
+    if (JSON.stringify(order) === JSON.stringify(DEFAULT_PANEL_ORDER)) {
+      localStorage.removeItem(PANEL_ORDER_LS_KEY);
+    } else {
+      localStorage.setItem(PANEL_ORDER_LS_KEY, JSON.stringify(order));
+    }
+  } catch {}
+}
+
+// ── Interaction state (drag, cursor, render params) ───────────────────────────
+export const state = {
+  maxDist: 0,
+  dragging: false,
+  dragStartX: 0,
+  dragStartDist: 0,
+  dragId: null,
+  currentRenderParams: null, // [sEntry, sSegIdx, rEntry, rSegIdx] for re-render after zoom
+};
+
+// ── Circuit map state ─────────────────────────────────────────────────────────
+let _currentMapMode = 'outline';
+export function getCurrentMapMode() { return _currentMapMode; }
+export function setCurrentMapMode(mode) { _currentMapMode = mode; }
