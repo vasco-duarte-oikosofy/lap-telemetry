@@ -319,7 +319,7 @@ async function main() {
     const svgBox = await svgEl.boundingBox();
     let foundActive = false;
     for (let frac = 0.1; frac <= 0.95; frac += 0.05) {
-      await pageB.mouse.move(svgBox.x + svgBox.width * frac, svgBox.y + svgBox.height / 2);
+      await pageB.hover('#plot-area', { position: { x: Math.round(svgBox.width * frac), y: Math.round(svgBox.height / 2) } });
       await pageB.waitForTimeout(40);
       const tt = await pageB.$eval('#tooltip', el => el.textContent || '');
       if (/active:\s*(ABS|TC)/.test(tt)) { foundActive = true; break; }

@@ -231,6 +231,89 @@ Add regression test confirming channel colour/dash for Speed, Throttle, Brake, S
 
 ---
 
+## Deferred Test Coverage
+
+### T1. Hover interaction triggers tooltip visibility
+
+**What.** Automated test that hovering over a chart panel causes the tooltip to become visible.
+
+**Why deferred.** Current test triggers hover via Playwright `mouse.move()` at calculated coordinates, but layout changes (Phase 00 centering the map) affect coordinate calculations. The tooltip content is verified, but the hover trigger mechanism is fragile.
+
+**Future approach.** Either:
+- Use Playwright's `hover()` method on the plot-area element directly
+- Dispatch a synthetic `mousemove` event with correct coordinates
+- Test hover behavior separately from content verification
+
+**Scope.** `scripts/test_m5.js` — split hover trigger test from content assertions.
+
+---
+
+## Test Writing Lessons (from Phase 00 debugging)
+
+### L1. Use Playwright's `.hover()` with relative positions, not `mouse.move()` with absolute coordinates
+
+**Problem.** `mouse.move(svgBox.x + svgBox.width / 2, svgBox.y + svgBox.height / 2)` calculates absolute screen coordinates. When layout changes (e.g., Phase 00 centered the map), these coordinates point to the wrong element.
+
+**Solution.** Use `element.hover({ position: { x: relativeX, y: relativeY } })` which positions relative to the element's bounding box, not the screen.
+
+**Example.**
+```javascript
+// Fragile: breaks when layout changes
+const svgBox = await page.$('.panel-svg');
+await page.mouse.move(svgBox.x + svgBox.width / 2, svgBox.y + svgBox.height / 2);
+
+// Robust: survives layout changes
+const plotArea = await page.$('#plot-area');
+await plotArea.hover({ position: { x: 450, y: 200 } });
+```
+
+---
+
+### L2. Wait for data state, not just DOM elements
+
+**Problem.** Waiting for `polyline` to appear doesn't guarantee `currentSessionBins` is populated. The tooltip div exists and is visible, but has no content because the render data isn't ready.
+
+**Solution.** Wait for the actual data state you need:
+```javascript
+await page.waitForFunction(() => {
+  const tooltip = document.getElementById('tooltip');
+  return tooltip && window.__getSessionKeys && window.__getSessionKeys().length > 0;
+}, { timeout: 5000 });
+```
+
+---
+
+### L3. Module-scoped variables aren't accessible in `page.evaluate()`
+
+**Problem.** `currentSessionBins` is a `let` at module scope in `main.js`. Trying to access it via `page.evaluate(() => currentSessionBins)` throws `ReferenceError`.
+
+**Solution.** Expose debug helpers on `window` for test access:
+```javascript
+// main.js
+window.__debugGetBins = () => ({ currentSessionBins, currentRefBins });
+
+// test
+const state = await page.evaluate(() => window.__debugGetBins());
+```
+
+---
+
+### L4. Add debug logging before asserting
+
+**Problem.** When tooltip tests failed, we couldn't tell if the tooltip was invisible, empty, or had wrong content.
+
+**Solution.** Log state before asserting:
+```javascript
+const tooltipText = await page.$eval('#tooltip', el => el.textContent);
+console.log(`  Tooltip visible: ${tooltipVisible}`);
+console.log(`  Tooltip text: ${tooltipText.slice(0, 200)}`);
+assert(tooltipText.includes('dist:'), ...);
+```
+
+This turns "test failed" into "tooltip is visible but textContent is empty string", which points directly at the root cause (data not populated).
+
+---
+
 ## References
 
 - [DESIGN.md](DESIGN.md) — Architecture, file format, milestone plan
