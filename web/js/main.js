@@ -1629,7 +1629,7 @@ plotArea.addEventListener('mouseup', e => {
   if (d2 - d1 > 10) {  // Only zoom if selection is large enough
     currentZoomRange.start = d1;
     currentZoomRange.end = d2;
-    persistZoom(currentZoomRange, maxDist);
+    persistZoom(currentZoomRange, state.maxDist);
     renderAll(...state.currentRenderParams);
   }
 });
