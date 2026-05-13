@@ -178,10 +178,11 @@ optgroup { color: var(--muted); font-style: normal; }
   flex: 1;
 }
 
-/* ── Circuit map panel (Phase 00-layout: promoted to top, 50% width) ── */
+/* ── Circuit map panel (Phase 00-layout: promoted to top, 50% width, centered) ── */
 #circuit-map-panel {
-  /* Desktop: 50% width, side-by-side with plots-container */
+  /* Desktop: 50% width, centered */
   width: 50%;
+  margin: 0 auto;
   /* Height: min(60vh, 720px) with 420px floor */
   height: clamp(420px, 60vh, 720px);
   background: var(--surface);
