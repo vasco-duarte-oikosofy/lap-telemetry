@@ -26,6 +26,50 @@ Extras: 17/17 ✔
 Total:  81/81 passing
 ```
 
+**Note:** Tests run via HTTP server (`scripts/lib/test-server.js`). Do not test by opening HTML files directly in browser.
+
+---
+
+## Known Issues / Gotchas
+
+### ES Modules Require HTTP(S)
+
+`web/compare.html` uses `<script type="module" src="js/main.js">`. **This does not work via `file://`** due to browser CORS restrictions on ES modules.
+
+**Symptoms:**
+- Console errors: "Cross-Origin Request Blocked" or "Module source URI is not allowed"
+- Button clicks do nothing (JavaScript never loaded)
+- Page renders but is non-functional
+
+**Solutions:**
+1. Use `dist/compare.html` — bundled single file, works via `file://`
+2. Serve `web/` via HTTP: `python3 -m http.server 8000` or any static server
+
+**Test runs must use HTTP** — the test server (`scripts/lib/test-server.js`) handles this correctly.
+
+### Event Handler Scope Rules
+
+Event handlers (e.g., `plotArea.addEventListener('mouseup', ...)`) **cannot access local variables** from functions like `renderAll()`. They must use:
+- Global/module-scope variables (e.g., `state.maxDist`, `currentZoomRange`)
+- Properties on `state` object for values that change per-render
+
+**Common mistake:** Using `maxDist` (local to `renderAll`) in event handlers → `undefined` at runtime.
+
+**Correct pattern:**
+```javascript
+// ❌ Wrong - maxDist is local to renderAll()
+plotArea.addEventListener('mouseup', e => {
+  const d2 = Math.min(state.maxDist, ...);  // OK
+  persistZoom(currentZoomRange, maxDist);   // undefined!
+});
+
+// ✅ Correct - use state.maxDist
+plotArea.addEventListener('mouseup', e => {
+  const d2 = Math.min(state.maxDist, ...);
+  persistZoom(currentZoomRange, state.maxDist);  // OK
+});
+```
+
 ---
 
 ## Goal for Step 6
@@ -47,27 +91,27 @@ Extract the **data pipeline** functions from `main.js` into a new `web/js/pipeli
 
 ### From `main.js` (approximate line numbers)
 
-| Function | Lines | Description | Dependencies |
-|----------|-------|-------------|--------------|
-| `fileToAsyncBuffer` | 112–119 | FileReader wrapper | None |
-| `readColumns` | 121–154 | hyparquet column reader | `fileToAsyncBuffer` |
-| `buildSegments` | 156–186 | Group rows by `lap_number` | None |
-| `annotateSegments` | 191–244 | Mark rolling/partial laps | `PARTIAL_*` constants |
-| `interpAt` | 246–257 | Linear interpolation helper | None |
-| `resample` | 259–277 | Distance-aligned resampler | `interpAt` |
-| `computeDeltaT` | 279–291 | Session vs ref lap time diff | None |
-| `computeKeepIndices` | 293–311 | Δt overlap window | None |
-| `smoothLapTime` | 313–340 | Δt smoothing (rolling median) | None |
-| `smoothDt` | 342–359 | Δt smoothing with radius | None |
-| `smoothGear` | 361–379 | Gear signal cleanup | None |
-| `deriveSectorDistances` | 381–428 | S1/S2 distances from sidecar | None |
-| `niceRange` | 430–437 | Y-axis range computation | None |
-| `buildPolylinePts` | 439–451 | SVG polyline builder | None |
-| `computeTrackBounds` | 453–463 | Circuit map bounding box | None |
-| `buildTrackTransform` | 465–477 | Map coordinate transform | `computeTrackBounds` |
-| `buildTrackPolylinePts` | 479–487 | Track outline polyline | `buildTrackTransform` |
-| `computeMedianFrameDistanceDelta` | 489–504 | Coarse-data detection | None |
-| `computeNiceYTicks` | 506–534 | Δt/Slip tick generation | `niceRange` |
+| Function | Lines | Description | Dependencies | Scope Notes |
+|----------|-------|-------------|--------------|-------------|
+| `fileToAsyncBuffer` | 112–119 | FileReader wrapper | None | Pure helper — OK to extract |
+| `readColumns` | 121–154 | hyparquet column reader | `fileToAsyncBuffer` | Called from `loadFile` — OK to extract |
+| `buildSegments` | 156–186 | Group rows by `lap_number` | None | Pure function — OK to extract |
+| `annotateSegments` | 191–244 | Mark rolling/partial laps | `PARTIAL_*` constants | Called from `loadFile` — OK to extract |
+| `interpAt` | 246–257 | Linear interpolation helper | None | Called by `resample` — OK to extract |
+| `resample` | 259–277 | Distance-aligned resampler | `interpAt` | Called from `renderAll` — OK to extract |
+| `computeDeltaT` | 279–291 | Session vs ref lap time diff | None | Pure function — OK to extract |
+| `computeKeepIndices` | 293–311 | Δt overlap window | None | Pure function — OK to extract |
+| `smoothLapTime` | 313–340 | Δt smoothing (rolling median) | None | Pure function — OK to extract |
+| `smoothDt` | 342–359 | Δt smoothing with radius | None | Pure function — OK to extract |
+| `smoothGear` | 361–379 | Gear signal cleanup | None | Pure function — OK to extract |
+| `deriveSectorDistances` | 381–428 | S1/S2 distances from sidecar | None | Called from `renderAll` — OK to extract |
+| `niceRange` | 430–437 | Y-axis range computation | None | Called from render functions — OK to extract |
+| `buildPolylinePts` | 439–451 | SVG polyline builder | None | Pure helper — OK to extract |
+| `computeTrackBounds` | 453–463 | Circuit map bounding box | None | Pure helper — OK to extract |
+| `buildTrackTransform` | 465–477 | Map coordinate transform | `computeTrackBounds` | Pure helper — OK to extract |
+| `buildTrackPolylinePts` | 479–487 | Track outline polyline | `buildTrackTransform` | Pure helper — OK to extract |
+| `computeMedianFrameDistanceDelta` | 489–504 | Coarse-data detection | None | Pure helper — OK to extract |
+| `computeNiceYTicks` | 506–534 | Δt/Slip tick generation | `niceRange` | Pure helper — OK to extract |
 
 ### Constants to Move
 
@@ -153,6 +197,71 @@ All call sites remain unchanged — function names and signatures are preserved.
 
 ---
 
+## Extraction Guidelines
+
+### Safe to Extract
+- **Pure functions** with no DOM access or global state
+- Functions that only use their parameters and imported constants
+- Helper functions called only from other extractable functions
+
+### Keep in main.js
+- **Event handlers** (mouse, keyboard, click listeners)
+- Functions that access DOM elements directly
+- Functions that read/write `state` object properties
+- Functions that use `currentZoomRange`, `currentSessionBins`, etc.
+
+### Watch Out For
+- Functions called from event handlers must not rely on closure over local variables
+- If a function uses `maxDist`, `zoomRange`, etc., ensure these are on `state` or passed as parameters
+- Test extraction by running `npm run build` — esbuild will catch import errors
+
+---
+
+## Validation Checklist
+
+Before considering Step 6 complete:
+
+- [ ] Run `npm run build` — verify no esbuild errors
+- [ ] Run `npm test` — all 81 assertions must pass
+- [ ] Open `dist/compare.html` in browser — verify zoom drag works
+- [ ] Check console for "undefined" errors (scope issues)
+- [ ] Verify file picker button works (when served via HTTP)
+
+**Quick smoke test:**
+```bash
+npm run build && npm test
+open dist/compare.html  # Manual verification
+```
+
+---
+
+## Debug Tips
+
+### Scope Issues in Event Handlers
+If zoom/click interactions stop working after refactoring:
+1. Check browser console for `undefined` errors
+2. Search event handlers for variables that should be `state.xxx`
+3. Common culprits: `maxDist`, `zoomRange`, `currentRenderParams`
+
+### Module Import Errors
+If `npm run build` fails with import errors:
+1. Verify all exports in `pipeline.js` are named correctly
+2. Check import statement in `main.js` matches exports exactly
+3. Ensure no circular dependencies (pipeline.js should not import main.js)
+
+### Testing File Picker
+The "+ Load parquet" button requires HTTP:
+```bash
+# Option 1: Use dist/ (bundled, works via file://)
+open dist/compare.html
+
+# Option 2: Serve web/ via HTTP
+python3 -m http.server 8000
+# Then open http://localhost:8000
+```
+
+---
+
 ## Acceptance Criteria
 
 - [ ] `web/js/pipeline.js` created with all exports above
@@ -180,3 +289,28 @@ All call sites remain unchanged — function names and signatures are preserved.
 - Extract `panels.js` — `renderPanel`, `renderDtPanel`, panel-specific SVG logic
 - Extract `circuitMap.js` — `renderCircuitMap`, `renderHeatmapSegments`, `renderMapLegend`, `updateZoomArc`
 - Extract `ui.js` — picker rebuild, compare button, drag-and-drop handlers
+
+**Caution:** Event handlers in `ui.js` must use `state` object, not closure over local variables. Review the "Known Issues / Gotchas" section before extracting.
+
+---
+
+## Appendix: Recent Bug Fixes (2026-05-13)
+
+### Bug 1: Zoom Not Working in dist/compare.html
+**Root cause:** Event handler used `maxDist` (local to `renderAll`) instead of `state.maxDist`.  
+**Fix:** Changed line 1632 in `web/js/main.js`:
+```javascript
+// Before (broken)
+persistZoom(currentZoomRange, maxDist);
+
+// After (fixed)
+persistZoom(currentZoomRange, state.maxDist);
+```
+
+### Bug 2: File Picker Not Opening in web/compare.html
+**Root cause:** Not a code bug — ES modules don't load via `file://` protocol.  
+**Workaround:** Use `dist/compare.html` or serve via HTTP.
+
+### Test Suites Added
+- `scripts/test_zoom_bug.js` — Verifies drag-to-zoom in dist/compare.html
+- `scripts/test_file_picker_bug.js` — Verifies file picker works via HTTP
