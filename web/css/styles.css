@@ -160,11 +160,18 @@ optgroup { color: var(--muted); font-style: normal; }
   background: repeating-linear-gradient(90deg, currentColor 0 6px, transparent 6px 9px);
 }
 
-/* ── Plots container ── */
+/* ── Plots container (Phase 00-layout: 50% width, side-by-side with map) ── */
 #plots-container {
   display: flex;
   gap: 12px;
   align-items: flex-start;
+  width: 50%;
+}
+@media (max-width: 1023px) {
+  #plots-container {
+    /* Mobile: full-width, stacked below map */
+    width: 100%;
+  }
 }
 
 /* ── Plot area ── */
@@ -179,9 +186,12 @@ optgroup { color: var(--muted); font-style: normal; }
   flex: 1;
 }
 
-/* ── Circuit map panel ── */
+/* ── Circuit map panel (Phase 00-layout: promoted to top, 50% width) ── */
 #circuit-map-panel {
-  flex: 0 0 250px;
+  /* Desktop: 50% width, side-by-side with plots-container */
+  width: 50%;
+  /* Height: min(60vh, 720px) with 420px floor */
+  height: clamp(420px, 60vh, 720px);
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: 6px;
@@ -189,6 +199,12 @@ optgroup { color: var(--muted); font-style: normal; }
   display: flex;
   flex-direction: column;
   gap: 8px;
+}
+@media (max-width: 1023px) {
+  #circuit-map-panel {
+    /* Mobile: full-width, stacked */
+    width: 100%;
+  }
 }
 #circuit-map-panel .panel-label {
   margin-bottom: 0;
@@ -207,8 +223,8 @@ optgroup { color: var(--muted); font-style: normal; }
 }
 #circuit-map-svg {
   width: 100%;
-  height: auto;
-  min-height: 250px;
+  height: 100%;
+  min-height: 0;
   background: rgba(0,0,0,0.2);
   border-radius: 4px;
 }
