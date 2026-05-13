@@ -4,6 +4,10 @@ Status: **v0.1 — M5 + F1–F4 + M6 (F5/F6/F7) shipped** · 2026-05-10
 
 A telemetry recorder + lap-comparison tool for rFactor 2 and Le Mans Ultimate. Reads the same shared memory that TinyPedal reads, writes laps to a standard columnar format, and lets you overlay throttle/brake/speed/RPM/slip traces between two laps to find where time was lost or gained.
 
+**See [RENDER_DESIGN.md](RENDER_DESIGN.md) for detailed rendering architecture of the comparison app.**
+
+**See [track-heatmap-spec.md](track-heatmap-spec.md) for the side-by-side track heatmap feature specification (Phase 0–6).**
+
 ### Approved decisions (locked for v0.1)
 
 1. **Storage format: Parquet (Snappy) + JSON sidecar.** Not CSV, not SQLite, not MoTeC `.ld`. Columnar, ~10× smaller than CSV, universally readable.
@@ -75,6 +79,8 @@ Two entry points:
 - `lap-telemetry summary <session.parquet>` — print a table of laps with lap time, sectors, valid flag.
 - `lap-telemetry summary <dir>` — one-line-per-session overview of every `session_*.parquet` in the directory: started_utc, sim, track, vehicle, laps, duration. Sorted by `started_utc`.
 - **Comparison app** — a single HTML/JS/CSS file (no server, no build step) where the user uploads a session parquet plus a separate reference-lap parquet, picks a lap from the session, and compares it against the loaded reference. Speed-vs-distance overlay on a shared lap-distance x-axis. Replaces the originally-planned `lap-telemetry compare` CLI / PyQtGraph desktop window. Two-upload flow is a v0.1 limitation (see §7 M5 for the unified-load improvement).
+
+**Rendering architecture:** See [RENDER_DESIGN.md](RENDER_DESIGN.md) for the module structure, panel rendering pipeline, zoom interaction, and circuit map implementation.
 
 Layout (full vision, populated incrementally across M4 → M5): vertical stack of linked plots — speed, throttle/brake, RPM/gear, steering, slip angle (per axle), Δt — all on a shared lap-distance x-axis with a synced cursor.
 
