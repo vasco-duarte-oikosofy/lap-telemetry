@@ -152,21 +152,25 @@ This is the mechanism that makes "independently shippable" real instead of aspir
 
 **Independence:** stands alone. Layout change only.
 
-**Goal:** promote the map to the top of the telemetry page and give it 50% of the page width as a starting point.
+**Goal:** promote the map to the top of the telemetry page and give it 50% of the page width (centered). The trace charts move below the map at full width.
 
 **Tasks:**
-1. Restructure the telemetry page so the map is the **first** element (top of page, above the trace charts and any tables/readouts).
-2. Allocate the map **50% of the page content width** at desktop breakpoints. The remaining 50% on the right is whatever currently lives next to the map — leave that content where it is, just constrained to its new column.
+1. Restructure the telemetry page so the map is the **first** element (top of page, above the trace charts).
+2. Allocate the map **50% of the page content width** at desktop breakpoints, **centered** with `margin: 0 auto`.
 3. Map height: start at **`min(60vh, 720px)`**, floor of 420px.
-4. Below the desktop breakpoint (`< 1024px`), the layout stacks: map full-width on top, the right-column content below it. Map height stays the same formula.
-5. **Do not** touch the map renderer itself in this phase.
+4. Below the desktop breakpoint (`< 1024px`), the layout stacks: map full-width on top, charts below it also full-width. Map height stays the same formula.
+5. Charts container: **100% width**, displayed below the map (not side-by-side).
+6. **Do not** touch the map renderer itself in this phase.
 
 **Acceptance (executable tests):**
-- Visual regression test: at a 1440×900 viewport, the map's bounding box is between 700px and 740px wide and between 700px and 740px tall.
-- Visual regression test: at a 768×1024 viewport, the map is full-width (≥ 720px wide) and stacked above the right-column content.
+- Visual regression test: at a 1440×900 viewport, the map's bounding box is between 700px and 740px wide and between 700px and 740px tall, **centered horizontally**.
+- Visual regression test: at a 768×1024 viewport, the map is full-width (≥ 720px wide) and stacked above the charts.
 - Render test: the existing renderer mounts and paints without errors in the new container. Pixel-diff against the pre-change render is permitted to differ in scale only, not in content.
+- Layout test: charts container is 100% width below the map (not side-by-side).
 
 **Decision gate after Phase 0:** look at the result. If 50% width feels right, leave it. If the map still feels small, bump to 60% or 66% (one-line CSS change) before continuing. Document whichever final share you settled on.
+
+**Layout decision:** We chose to place charts at 100% width **below** the map rather than 50% side-by-side. This gives the map visual prominence as the primary comparison tool while keeping charts readable at full width. The map is centered to emphasize it as the focal point.
 
 **Out of scope:** anything that touches the renderer.
 
