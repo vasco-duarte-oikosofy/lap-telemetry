@@ -160,18 +160,10 @@ optgroup { color: var(--muted); font-style: normal; }
   background: repeating-linear-gradient(90deg, currentColor 0 6px, transparent 6px 9px);
 }
 
-/* ── Plots container (Phase 00-layout: 50% width, side-by-side with map) ── */
+/* ── Plots container (Phase 00-layout: full-width, below map) ── */
 #plots-container {
-  display: flex;
-  gap: 12px;
-  align-items: flex-start;
-  width: 50%;
-}
-@media (max-width: 1023px) {
-  #plots-container {
-    /* Mobile: full-width, stacked below map */
-    width: 100%;
-  }
+  display: block;
+  width: 100%;
 }
 
 /* ── Plot area ── */
