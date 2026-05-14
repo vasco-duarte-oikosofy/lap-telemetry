@@ -9,7 +9,7 @@
   },
   "scripts": {
     "build": "node scripts/bundle.js",
-    "test": "node scripts/test_m5.js && node scripts/test_m6.js && node scripts/test_f1f2.js && node scripts/test_m6_extras.js && node scripts/test_001_responsive.js && node scripts/test_01a_heatmap_single_lap.js",
+    "test": "node scripts/test_m5.js && node scripts/test_m6.js && node scripts/test_f1f2.js && node scripts/test_m6_extras.js && node scripts/test_001_responsive.js && node scripts/test_01a_heatmap_single_lap.js && node scripts/test_feature_flag_dropdown.js",
     "validate": "node scripts/validate-build.js"
   }
 }

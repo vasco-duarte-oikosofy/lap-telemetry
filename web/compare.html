@@ -60,12 +60,17 @@
 <div id="circuit-map-panel" style="display: none;">
   <div class="map-header">
     <div class="panel-label">Circuit Map</div>
-    <select id="map-mode" class="map-mode-select">
-      <option value="outline">outline</option>
-      <option value="speed">speed</option>
-      <option value="brake">brake</option>
-      <option value="throttle">throttle</option>
-    </select>
+    <div class="map-controls">
+      <select id="map-mode" class="map-mode-select">
+        <option value="outline">outline</option>
+        <option value="speed">speed</option>
+        <option value="brake">brake</option>
+        <option value="throttle">throttle</option>
+      </select>
+      <select id="feature-flag-menu" class="map-mode-select feature-flag-menu" aria-label="Feature flags">
+        <option value="">feature flags</option>
+      </select>
+    </div>
   </div>
   <svg id="circuit-map-svg" viewBox="0 0 250 250" data-panel-id="circuit-map" preserveAspectRatio="xMidYMid meet">
     <g id="track-segments"></g>

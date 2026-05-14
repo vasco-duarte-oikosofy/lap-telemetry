@@ -4,7 +4,8 @@
 export { rebuildPickers, updateCompareBtn, parsePickerValue,
          addSessionEntry, refreshSessionListBadges } from './pickers.js';
 
-import { store, pendingSidecars, state, persistPanelOrder, DEFAULT_PANEL_ORDER } from './appState.js';
+import { store, pendingSidecars, state, persistPanelOrder, DEFAULT_PANEL_ORDER,
+         features, setFeatureFlag } from './appState.js';
 import { storeKey, fileStem, formatDuration, lapStatusBadges, formatPickLabel,
          shortVehicle, shortSetup, showError, clearError, setBadge,
          persistLapColours, LAP_COLOUR_DEFAULTS, loadPersistedColours, applyLapColour
@@ -234,6 +235,19 @@ export function setupPanelDragHandlers(renderAll) {
 
 // ── Event wiring ──────────────────────────────────────────────────────────────
 
+function syncFeatureFlagMenu(menu) {
+  if (!menu) return;
+  const current = menu.value;
+  menu.innerHTML = '<option value="">feature flags</option>';
+  for (const [name, enabled] of Object.entries(features)) {
+    const opt = document.createElement('option');
+    opt.value = name;
+    opt.textContent = `${enabled ? '✓' : '○'} ${name}`;
+    menu.appendChild(opt);
+  }
+  menu.value = current && features[current] !== undefined ? current : '';
+}
+
 export function initUI(renderAll) {
   // Load button
   document.getElementById('load-btn').addEventListener('click', () => {
@@ -285,6 +299,17 @@ export function initUI(renderAll) {
     import('./appState.js').then(({ setCurrentMapMode }) => {
       setCurrentMapMode(e.target.value);
     });
+  });
+
+  const featureFlagMenu = document.getElementById('feature-flag-menu');
+  syncFeatureFlagMenu(featureFlagMenu);
+  featureFlagMenu?.addEventListener('change', e => {
+    const name = e.target.value;
+    if (!name) return;
+    setFeatureFlag(name, !features[name]);
+    syncFeatureFlagMenu(featureFlagMenu);
+    e.target.value = '';
+    if (state.currentRenderParams) renderAll(...state.currentRenderParams);
   });
 
   // Lap colour pickers (M6 F1) - state changes only, caller handles visual update

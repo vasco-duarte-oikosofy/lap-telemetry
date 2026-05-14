@@ -1,11 +1,22 @@
 // ── Debug hooks for Playwright and browser-console verification ──────────────
 
+function syncFeatureFlagMenuLabels(features) {
+  const menu = document.getElementById('feature-flag-menu');
+  if (!menu) return;
+  for (const option of menu.options) {
+    if (option.value && features[option.value] !== undefined) {
+      option.textContent = `${features[option.value] ? '✓' : '○'} ${option.value}`;
+    }
+  }
+}
+
 export function installDebugHooks(deps) {
   const {
-    store, resample, smoothLapTime, smoothDt, computeDeltaT,
+    store, features, resample, smoothLapTime, smoothDt, computeDeltaT,
     computeKeepIndices, fitToView, setFeatureFlag, renderTrackHeatmapMap,
   } = deps;
 
+  window.__features = features;
   window.__getSessionKeys = () => [...store.keys()];
 
   window.__resamplerDebug = function(storeKeyStr, segIdx) {
@@ -60,6 +71,7 @@ export function installDebugHooks(deps) {
 
   window.__setFeatureFlag = (name, value) => {
     setFeatureFlag(name, value);
+    syncFeatureFlagMenuLabels(features);
     if (name === 'mapWalkingSkeleton' || name === 'mapTrackOutline' || name === 'mapHeatmapSingleLap') {
       renderTrackHeatmapMap();
     }
@@ -68,5 +80,10 @@ export function installDebugHooks(deps) {
   window.__fitToView = function(bounds, w, h, padding) {
     const r = fitToView(bounds, bounds, w, h, padding);
     return { scale: r.scale, offsetX: r.offsetX, offsetY: r.offsetY };
+  };
+
+  window.__setFeatureFlagMenuEnabled = function(enabled) {
+    const menu = document.getElementById('feature-flag-menu');
+    if (menu) menu.style.display = enabled ? '' : 'none';
   };
 }

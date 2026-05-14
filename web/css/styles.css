@@ -209,10 +209,18 @@ optgroup { color: var(--muted); font-style: normal; }
   gap: 8px;
   margin-bottom: 4px;
 }
+.map-controls {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
 .map-mode-select {
   width: auto;
   font-size: 11px;
   padding: 3px 6px;
+}
+.feature-flag-menu {
+  max-width: 190px;
 }
 #circuit-map-svg {
   width: 100%;

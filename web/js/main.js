@@ -391,6 +391,7 @@ initCursorAndZoom(renderAll, getRenderState);
 
 installDebugHooks({
   store,
+  features,
   resample,
   smoothLapTime,
   smoothDt,
