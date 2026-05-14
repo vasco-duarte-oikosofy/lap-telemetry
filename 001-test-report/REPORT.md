@@ -1,7 +1,7 @@
 # Phase 00.1 — Responsive Renderer Test Report
 
-**Date:** 2026-05-14T05:53:13.577Z
-**URL:** http://127.0.0.1:58556
+**Date:** 2026-05-14T08:44:50.232Z
+**URL:** http://127.0.0.1:61186
 
 ## Results
 
@@ -29,7 +29,7 @@ Screenshots are saved for manual review. Automated assertions above verify layou
 - [PASS] Panel SVGs stay inside plot area at 320px: plot=320px panels=286,286,286,286,286,286,286
 - [PASS] Panels rendered at 320px: got 7 panels
 - [PASS] No browser console errors at 320px: none
-- [PASS] Screenshot artifact written: responsive-320px.png: 67339 bytes
+- [PASS] Screenshot artifact written: responsive-320px.png: 87158 bytes
 - [PASS] Explicit content width at 768px: content=768px viewport=816px
 - [PASS] Map panel width at 768px: got 768px (expected ≥691px)
 - [PASS] Map panel height at 768px: got 720px (expected ≥420px)
@@ -39,7 +39,7 @@ Screenshots are saved for manual review. Automated assertions above verify layou
 - [PASS] Panel SVGs stay inside plot area at 768px: plot=768px panels=734,734,734,734,734,734,734
 - [PASS] Panels rendered at 768px: got 7 panels
 - [PASS] No browser console errors at 768px: none
-- [PASS] Screenshot artifact written: responsive-768px.png: 109328 bytes
+- [PASS] Screenshot artifact written: responsive-768px.png: 152591 bytes
 - [PASS] Explicit content width at 1024px: content=1024px viewport=1072px
 - [PASS] Map panel width at 1024px: got 512px (expected ≥461px)
 - [PASS] Map panel height at 1024px: got 720px (expected ≥420px)
@@ -49,7 +49,7 @@ Screenshots are saved for manual review. Automated assertions above verify layou
 - [PASS] Panel SVGs stay inside plot area at 1024px: plot=1024px panels=990,990,990,990,990,990,990
 - [PASS] Panels rendered at 1024px: got 7 panels
 - [PASS] No browser console errors at 1024px: none
-- [PASS] Screenshot artifact written: responsive-1024px.png: 110550 bytes
+- [PASS] Screenshot artifact written: responsive-1024px.png: 147565 bytes
 - [PASS] Explicit content width at 1440px: content=1440px viewport=1488px
 - [PASS] Map panel width at 1440px: got 720px (expected ≥648px)
 - [PASS] Map panel height at 1440px: got 720px (expected ≥420px)
@@ -59,7 +59,7 @@ Screenshots are saved for manual review. Automated assertions above verify layou
 - [PASS] Panel SVGs stay inside plot area at 1440px: plot=1440px panels=1406,1406,1406,1406,1406,1406,1406
 - [PASS] Panels rendered at 1440px: got 7 panels
 - [PASS] No browser console errors at 1440px: none
-- [PASS] Screenshot artifact written: responsive-1440px.png: 128802 bytes
+- [PASS] Screenshot artifact written: responsive-1440px.png: 172998 bytes
 - [PASS] Explicit content width at 2000px: content=2000px viewport=2048px
 - [PASS] Map panel width at 2000px: got 1000px (expected ≥900px)
 - [PASS] Map panel height at 2000px: got 720px (expected ≥420px)
@@ -69,9 +69,9 @@ Screenshots are saved for manual review. Automated assertions above verify layou
 - [PASS] Panel SVGs stay inside plot area at 2000px: plot=2000px panels=1966,1966,1966,1966,1966,1966,1966
 - [PASS] Panels rendered at 2000px: got 7 panels
 - [PASS] No browser console errors at 2000px: none
-- [PASS] Screenshot artifact written: responsive-2000px.png: 143257 bytes
+- [PASS] Screenshot artifact written: responsive-2000px.png: 188034 bytes
 - [PASS] Panel SVG viewBox widths match rendered widths: 918/918, 918/918, 918/918
 - [PASS] Circuit map SVG has correct viewBox: got "0 0 250 250"
 - [PASS] No browser console errors in baseline scenario: none
-- [PASS] Screenshot artifact written: baseline-900px.png: 115169 bytes
+- [PASS] Screenshot artifact written: baseline-900px.png: 158871 bytes
 - [PASS] No browser console errors: none
