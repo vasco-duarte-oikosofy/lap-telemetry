@@ -1,0 +1,14 @@
+{
+  "schema_version": "1",
+  "recorder_version": "0.1.0a1",
+  "started_utc": "2026-05-14T11:24:35Z",
+  "ended_utc": "2026-05-14T11:25:04Z",
+  "sim": "lmu",
+  "track": "Circuit de Spa-Francorchamps",
+  "vehicle_name": "Vista AF Corse 2025 #21:LM",
+  "setup_file_guess": null,
+  "sample_rate_hz": 50.0,
+  "row_count": 1194,
+  "lap_count": 1,
+  "in_progress": false
+}

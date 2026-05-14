@@ -1,0 +1,14 @@
+{
+  "schema_version": "1",
+  "recorder_version": "0.1.0a1",
+  "started_utc": "2026-05-14T11:32:46Z",
+  "ended_utc": "2026-05-14T11:53:55Z",
+  "sim": "lmu",
+  "track": "Circuit de Spa-Francorchamps Endurance",
+  "vehicle_name": "DKR Engineering #4:ELMS25",
+  "setup_file_guess": null,
+  "sample_rate_hz": 50.0,
+  "row_count": 63157,
+  "lap_count": 10,
+  "in_progress": false
+}
