@@ -4,6 +4,8 @@ Status: **v0.1 — M5 + F1–F4 + M6 (F5/F6/F7) shipped** · 2026-05-10
 
 A telemetry recorder + lap-comparison tool for rFactor 2 and Le Mans Ultimate. Reads the same shared memory that TinyPedal reads, writes laps to a standard columnar format, and lets you overlay throttle/brake/speed/RPM/slip traces between two laps to find where time was lost or gained.
 
+**See [ARCHITECTURE.md](ARCHITECTURE.md) for a high-level system overview with component diagram.**
+
 **See [RENDER_DESIGN.md](RENDER_DESIGN.md) for detailed rendering architecture of the comparison app.**
 
 **See [track-heatmap-spec.md](track-heatmap-spec.md) for the side-by-side track heatmap feature specification (Phase 0–6).**
