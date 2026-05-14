@@ -35,3 +35,25 @@ export function rawLapDistanceAt(data, index, opts = {}) {
 
   return null;
 }
+
+export function warnInvalidTrackOutlineSamples(data, label = 'session') {
+  if (!data) return;
+  const numericChannels = [
+    'raw_lap_distance_m',
+    'path_lateral_m',
+    'track_edge_m',
+    'distance_to_track_edge_m',
+  ];
+  for (const col of numericChannels) {
+    const values = data[col];
+    if (!values || values.length === 0) continue;
+    for (let i = 0; i < values.length; i++) {
+      const value = values[i];
+      if (value == null) continue;
+      if (Number.isNaN(value) || (col === 'track_edge_m' && value < 0)) {
+        console.warn(`track outline ${label}: invalid ${col} at row ${i}: ${value}`);
+        break;
+      }
+    }
+  }
+}

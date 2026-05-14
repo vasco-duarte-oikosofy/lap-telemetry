@@ -19,6 +19,7 @@ export function installDebugHooks(deps) {
   window.__features = features;
   window.__devFeatures = devFeatures;
   window.__getSessionKeys = () => [...store.keys()];
+  window.__getSessionData = key => store.get(key)?.data || null;
 
   window.__resamplerDebug = function(storeKeyStr, segIdx) {
     const entry = store.get(storeKeyStr);

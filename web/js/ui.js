@@ -16,6 +16,7 @@ import { readColumns, buildSegments, annotateSegments, resample,
 import { rebuildPickers, updateCompareBtn, parsePickerValue,
          addSessionEntry, refreshSessionListBadges } from './pickers.js';
 import { parseDeltabestCsv, buildDeltabestSidecar } from './dataTransforms.js';
+import { TRACK_OUTLINE_CHANNELS, warnInvalidTrackOutlineSamples } from './trackOutlineChannels.js';
 
 // ── File loading ──────────────────────────────────────────────────────────────
 
@@ -101,7 +102,10 @@ export async function loadFile(file, renderAll) {
       'last_sector_1_s', 'last_sector_2_s',
       'pos_x_m', 'pos_z_m',
       'abs_active', 'tc_active',
+      ...TRACK_OUTLINE_CHANNELS,
     ]);
+    warnInvalidTrackOutlineSamples(data, file.name);
+
     const segments = buildSegments(data.lap_number);
     annotateSegments(segments, data.lap_distance_m, data.lap_time_s);
 
@@ -126,6 +130,7 @@ export async function loadFile(file, renderAll) {
       'last_sector_1_s', 'last_sector_2_s',
       'slip_angle_fl_deg', 'slip_angle_fr_deg',
       'abs_active', 'tc_active',
+      ...TRACK_OUTLINE_CHANNELS,
     ]);
     const missing = missingCols.filter(c => !expectedOptional.has(c));
     const metaSuffix = sidecar ? ` · ${shortVehicle(sidecar.vehicle_name)}` : '';

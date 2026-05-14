@@ -2870,6 +2870,43 @@ function buildDeltabestSidecar(rowCount) {
   };
 }
 
+// web/js/trackOutlineChannels.js
+var TRACK_OUTLINE_CHANNELS = [
+  "raw_lap_distance_m",
+  "path_lateral_m",
+  "track_edge_m",
+  "distance_to_track_edge_m",
+  "surface_type_fl",
+  "surface_type_fr",
+  "surface_type_rl",
+  "surface_type_rr",
+  "terrain_name_fl",
+  "terrain_name_fr",
+  "terrain_name_rl",
+  "terrain_name_rr"
+];
+function warnInvalidTrackOutlineSamples(data, label = "session") {
+  if (!data) return;
+  const numericChannels = [
+    "raw_lap_distance_m",
+    "path_lateral_m",
+    "track_edge_m",
+    "distance_to_track_edge_m"
+  ];
+  for (const col of numericChannels) {
+    const values = data[col];
+    if (!values || values.length === 0) continue;
+    for (let i = 0; i < values.length; i++) {
+      const value = values[i];
+      if (value == null) continue;
+      if (Number.isNaN(value) || col === "track_edge_m" && value < 0) {
+        console.warn(`track outline ${label}: invalid ${col} at row ${i}: ${value}`);
+        break;
+      }
+    }
+  }
+}
+
 // web/js/ui.js
 async function loadDeltabestCsv(file) {
   const key = storeKey(file);
@@ -2950,8 +2987,10 @@ async function loadFile(file, renderAll2) {
       "pos_x_m",
       "pos_z_m",
       "abs_active",
-      "tc_active"
+      "tc_active",
+      ...TRACK_OUTLINE_CHANNELS
     ]);
+    warnInvalidTrackOutlineSamples(data, file.name);
     const segments = buildSegments(data.lap_number);
     annotateSegments(segments, data.lap_distance_m, data.lap_time_s);
     const hasSlip = data.slip_angle_fl_deg.length > 0;
@@ -2973,7 +3012,8 @@ async function loadFile(file, renderAll2) {
       "slip_angle_fl_deg",
       "slip_angle_fr_deg",
       "abs_active",
-      "tc_active"
+      "tc_active",
+      ...TRACK_OUTLINE_CHANNELS
     ]);
     const missing = missingCols.filter((c) => !expectedOptional.has(c));
     const metaSuffix = sidecar ? ` \xB7 ${shortVehicle(sidecar.vehicle_name)}` : "";
@@ -3183,6 +3223,7 @@ function installDebugHooks(deps) {
   window.__features = features2;
   window.__devFeatures = devFeatures2;
   window.__getSessionKeys = () => [...store2.keys()];
+  window.__getSessionData = (key) => store2.get(key)?.data || null;
   window.__resamplerDebug = function(storeKeyStr, segIdx) {
     const entry = store2.get(storeKeyStr);
     if (!entry) throw new Error(`store key not found: ${storeKeyStr}`);
