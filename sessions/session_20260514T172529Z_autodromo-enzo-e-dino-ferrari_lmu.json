@@ -1,0 +1,14 @@
+{
+  "schema_version": "2",
+  "recorder_version": "0.1.0a1",
+  "started_utc": "2026-05-14T17:25:29Z",
+  "ended_utc": "2026-05-14T17:25:41Z",
+  "sim": "lmu",
+  "track": "Autodromo Enzo e Dino Ferrari",
+  "vehicle_name": "DKR Engineering #4:ELMS25",
+  "setup_file_guess": null,
+  "sample_rate_hz": 50.0,
+  "row_count": 352,
+  "lap_count": 1,
+  "in_progress": false
+}
