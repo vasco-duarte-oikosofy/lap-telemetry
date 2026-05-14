@@ -256,7 +256,7 @@ optgroup { color: var(--muted); font-style: normal; }
 /* Phase 03 — Map legend overlays */
 .map-legend-overlay {
   position: absolute;
-  top: 8px;
+  top: 48px;
   pointer-events: none;
   user-select: none;
   z-index: 5;
