@@ -1,7 +1,6 @@
 // ── Track Heatmap Map — Walking Skeleton (Phase 00.5) ─────────────────────────
 // Draws both laps as 1px polylines on a Canvas 2D, fitted to view.
-// No heatmap, no ribbons, no interaction — just proof that we can render two
-// laps side by side on one map.
+// Phase 02: supports user zoom/pan composed with base fit-to-view transform.
 //
 // Feature flags:
 // - features.mapWalkingSkeleton (default: off)
@@ -46,6 +45,27 @@ export function fitToView(boundsA, boundsB, canvasWidth, canvasHeight, padding) 
     toScreenX: (x) => offsetX + (x - minX) * scale,
     toScreenY: (z) => offsetY + (maxZ - z) * scale,  // Z-up → Y-down
     bounds: { minX, maxX, minZ, maxZ },
+  };
+}
+
+// ── applyUserTransform ──────────────────────────────────────────────────────
+// Compose a base fit-to-view transform with user zoom/pan.
+// Returns a new transform object whose toScreenX/Y include the user scale and pan.
+
+export function applyUserTransform(base, userScale, userPanX, userPanY) {
+  const mScale = userScale ?? 1;
+  const tx = userPanX ?? 0;
+  const ty = userPanY ?? 0;
+  return {
+    scale: base.scale * mScale,
+    offsetX: base.offsetX,
+    offsetY: base.offsetY,
+    toScreenX: (x) => base.offsetX + (x - base.bounds.minX) * base.scale * mScale + tx,
+    toScreenY: (z) => base.offsetY + (base.bounds.maxZ - z) * base.scale * mScale + ty,
+    bounds: base.bounds,
+    userScale: mScale,
+    userPanX: tx,
+    userPanY: ty,
   };
 }
 
@@ -256,7 +276,7 @@ function drawDebugTicks(ctx, lap, transform, color, labelPrefix) {
 // Phase 00.6: adds track outline background underneath.
 
 export function renderWalkingSkeleton(canvas, lapA, lapB, options = {}) {
-  const { showOutline = false, showHeatmapSingleLap = false, showSAlignmentDebug = false, showDualRibbon = false, ribbonWidthPx = 8, ribbonGapPx = 2 } = options;
+  const { showOutline = false, showHeatmapSingleLap = false, showSAlignmentDebug = false, showDualRibbon = false, ribbonWidthPx = 8, ribbonGapPx = 2, userScale = 1, userPanX = 0, userPanY = 0 } = options;
   
   const ctx = canvas.getContext('2d');
   const rect = canvas.getBoundingClientRect();
@@ -277,7 +297,8 @@ export function renderWalkingSkeleton(canvas, lapA, lapB, options = {}) {
   const boundsB = computeTrackBounds(Array.from(lapB.x), Array.from(lapB.z));
 
   const padding = 15;
-  const transform = fitToView(boundsA, boundsB, rect.width, rect.height, padding);
+  const baseTransform = fitToView(boundsA, boundsB, rect.width, rect.height, padding);
+  const transform = applyUserTransform(baseTransform, userScale, userPanX, userPanY);
 
   // Draw background
   ctx.fillStyle = 'rgba(0, 0, 0, 0.2)';
