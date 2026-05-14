@@ -1,0 +1,3606 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lap Telemetry — Compare</title>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg:         #0d1117;
+  --surface:    #161b22;
+  --surface2:   #1c2128;
+  --border:     #30363d;
+  --text:       #c9d1d9;
+  --muted:      #8b949e;
+  --accent:     #58a6ff;
+  --session:    #4fc3f7;
+  --ref:        #ff9800;
+  --throttle:   #4caf50;
+  --brake:      #f44336;
+  --slip-fl:    #ce93d8;
+  --slip-fr:    #80cbc4;
+  --dt-pos:     #ef5350;
+  --dt-neg:     #66bb6a;
+  --error:      #f85149;
+  --ok:         #3fb950;
+  --sector-clr: #ffd54f;
+}
+
+html { font-size: 14px; }
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: ui-monospace, 'Cascadia Code', 'Fira Code', monospace;
+  min-height: 100vh;
+  padding: 20px 24px 40px;
+}
+
+h1 { font-size: 18px; font-weight: 600; color: var(--accent); margin-bottom: 18px; }
+
+/* ── Loader panel ── */
+.loader-panel {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 14px 16px;
+  margin-bottom: 16px;
+}
+.loader-panel h2 { font-size: 11px; text-transform: uppercase; letter-spacing: 1px; color: var(--muted); margin-bottom: 10px; }
+
+.load-row { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+.load-btn {
+  background: var(--border);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 6px 14px;
+  font-family: inherit;
+  font-size: 12px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.load-btn:hover { background: #3a4049; }
+#file-input { display: none; }
+
+.colour-controls {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-left: auto;
+  font-size: 11px;
+  color: var(--muted);
+}
+.colour-controls label { display: inline-flex; align-items: center; gap: 5px; }
+.colour-controls input[type="color"] {
+  width: 22px;
+  height: 22px;
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  background: none;
+  padding: 0;
+  cursor: pointer;
+}
+.colour-controls .load-btn { padding: 4px 10px; font-size: 11px; }
+
+.session-list { display: flex; flex-direction: column; gap: 6px; }
+.session-entry {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 6px 10px;
+  font-size: 12px;
+}
+.session-entry .fname { flex: 1; color: var(--text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.session-entry .remove-btn { background: none; border: none; color: var(--muted); cursor: pointer; font-size: 14px; padding: 0 2px; }
+.session-entry .remove-btn:hover { color: var(--error); }
+
+/* ── Pickers ── */
+.pickers-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr auto;
+  gap: 12px;
+  align-items: end;
+  margin-bottom: 16px;
+}
+.picker-group label { display: block; font-size: 11px; text-transform: uppercase; letter-spacing: 1px; color: var(--muted); margin-bottom: 5px; }
+select {
+  width: 100%;
+  background: var(--surface);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 7px 10px;
+  font-family: inherit;
+  font-size: 12px;
+  cursor: pointer;
+}
+select:disabled { opacity: 0.4; cursor: default; }
+optgroup { color: var(--muted); font-style: normal; }
+
+.compare-btn {
+  background: var(--accent);
+  color: #000;
+  border: none;
+  border-radius: 4px;
+  padding: 8px 20px;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  align-self: end;
+}
+.compare-btn:disabled { opacity: 0.35; cursor: default; }
+.compare-btn:not(:disabled):hover { filter: brightness(1.15); }
+
+/* ── Status badge ── */
+.badge {
+  font-size: 10px;
+  padding: 2px 7px;
+  border-radius: 10px;
+  background: var(--border);
+  color: var(--muted);
+  white-space: nowrap;
+}
+.badge.ok      { background: #1a3a1a; color: var(--ok); }
+.badge.err     { background: #2a1a1a; color: var(--error); }
+.badge.loading { background: #1a2a3a; color: var(--accent); }
+
+/* ── Legend ── */
+.legend {
+  display: none;
+  gap: 20px;
+  margin-bottom: 8px;
+  font-size: 11px;
+  color: var(--muted);
+  flex-wrap: wrap;
+}
+.legend.visible { display: flex; }
+.legend-item { display: flex; align-items: center; gap: 6px; }
+.legend-swatch { width: 20px; height: 3px; border-radius: 1px; }
+.legend-swatch.dashed {
+  background: repeating-linear-gradient(90deg, currentColor 0 6px, transparent 6px 9px);
+}
+
+/* ── Plots container (Phase 00-layout: full-width, below map) ── */
+#plots-container {
+  display: block;
+  width: 100%;
+}
+
+/* ── Plot area ── */
+#plot-area {
+  position: relative;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 12px 16px;
+  cursor: crosshair;
+  overflow: hidden;
+  flex: 1;
+}
+
+/* ── Circuit map panel (Phase 00-layout: promoted to top, 50% width, centered) ── */
+#circuit-map-panel {
+  /* Desktop: 50% width, centered */
+  width: 50%;
+  margin: 0 auto;
+  /* Height: min(60vh, 720px) with 420px floor */
+  height: clamp(420px, 60vh, 720px);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  position: relative;
+}
+@media (max-width: 1023px) {
+  #circuit-map-panel {
+    /* Mobile: full-width, stacked */
+    width: 100%;
+  }
+}
+#circuit-map-panel .panel-label {
+  margin-bottom: 0;
+}
+#circuit-map-panel .map-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+.map-controls {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.map-mode-select {
+  width: auto;
+  font-size: 11px;
+  padding: 3px 6px;
+}
+.feature-flag-menu {
+  max-width: 190px;
+}
+#circuit-map-svg {
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  background: rgba(0,0,0,0.2);
+  border-radius: 4px;
+}
+#track-heatmap-canvas {
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  background: rgba(0,0,0,0.2);
+  border-radius: 4px;
+  cursor: grab;
+  touch-action: none;
+}
+.map-zoom-indicator {
+  position: absolute;
+  bottom: 8px;
+  right: 8px;
+  font-size: 11px;
+  color: var(--muted);
+  background: rgba(0,0,0,0.5);
+  padding: 2px 6px;
+  border-radius: 3px;
+  pointer-events: none;
+  user-select: none;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Phase 03 — Map legend overlays */
+.map-legend-overlay {
+  position: absolute;
+  top: 48px;
+  pointer-events: none;
+  user-select: none;
+  z-index: 5;
+}
+.map-lap-legend {
+  left: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  background: rgba(13,17,23,0.85);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 6px 8px;
+}
+.map-lap-legend .legend-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  color: var(--text);
+}
+.map-lap-legend .legend-swatch {
+  width: 12px;
+  height: 12px;
+  border-radius: 2px;
+  flex-shrink: 0;
+}
+.map-lap-legend .legend-label {
+  white-space: nowrap;
+}
+.map-ramp-legend {
+  right: 8px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(13,17,23,0.85);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 4px 8px;
+}
+.map-ramp-legend .ramp-label {
+  font-size: 10px;
+  color: var(--muted);
+  white-space: nowrap;
+}
+.map-ramp-legend .ramp-wrap {
+  width: 160px;
+  height: 16px;
+  border-radius: 2px;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+.map-ramp-legend .ramp-wrap canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+.map-legend {
+  font-size: 10px;
+  color: var(--muted);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  height: 14px;
+}
+.map-legend-bar {
+  flex: 1;
+  height: 8px;
+  border-radius: 2px;
+}
+
+/* ── Zoom selection rect ── */
+.zoom-selection-rect {
+  position: absolute;
+  top: 0;
+  height: 100%;
+  background: rgba(88, 166, 255, 0.15);
+  border-left: 1px solid var(--accent);
+  border-right: 1px solid var(--accent);
+  pointer-events: none;
+  z-index: 5;
+  display: none;
+}
+.zoom-selection-rect.active { display: block; }
+
+.placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 280px;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+/* Individual panels */
+.panel-wrap { margin-bottom: 8px; }
+.panel-wrap:last-child { margin-bottom: 0; }
+.panel-label {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  color: var(--muted);
+  margin-bottom: 2px;
+}
+.panel-svg { display: block; width: 100%; overflow: visible; }
+
+/* SVG text styles (applied via inline attributes) */
+
+/* ── Cursor overlay ── */
+#cursor-overlay {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 10;
+}
+.cursor-line {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 1px;
+  background: rgba(255,255,255,0.3);
+  transform: translateX(-9999px);
+  pointer-events: none;
+}
+
+/* ── Tooltip ── */
+#tooltip {
+  position: absolute;
+  background: rgba(13,17,23,0.92);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 8px 10px;
+  font-size: 11px;
+  color: var(--text);
+  pointer-events: none;
+  z-index: 20;
+  display: none;
+  max-width: 240px;
+  white-space: pre;
+  line-height: 1.6;
+}
+
+/* Phase 04 — Hover readout */
+.map-hover-readout {
+  position: absolute;
+  background: rgba(13,17,23,0.92);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 6px 8px;
+  font-size: 11px;
+  color: var(--text);
+  pointer-events: none;
+  user-select: none;
+  z-index: 15;
+  display: none;
+  font-family: ui-monospace, 'Cascadia Code', 'Fira Code', monospace;
+  line-height: 1.5;
+}
+.readout-dist {
+  font-size: 10px;
+  color: var(--muted);
+  margin-bottom: 4px;
+  font-variant-numeric: tabular-nums;
+}
+.readout-row {
+  font-size: 11px;
+  white-space: nowrap;
+}
+.readout-row span {
+  font-weight: 600;
+}
+
+/* ── Error ── */
+.error-msg { color: var(--error); font-size: 12px; margin-top: 10px; display: none; }
+.error-msg.visible { display: block; }
+
+/* ── Drag reorder (F9) ── */
+.drag-handle { cursor: grab; opacity: 0.4; margin-right: 6px; user-select: none; font-size: 12px; }
+.panel-wrap.drag-over { border-top: 2px solid var(--accent); margin-top: -2px; }
+
+</style>
+</head>
+<body>
+
+<h1>Lap Telemetry — Compare</h1>
+
+<!-- Loader panel -->
+<div class="loader-panel">
+  <h2>Sessions</h2>
+  <div class="load-row">
+    <button class="load-btn" id="load-btn">+ Load parquet…</button>
+    <input type="file" id="file-input" accept=".parquet,.json,.csv" multiple>
+    <span id="load-status" class="badge">no files loaded</span>
+    <span class="colour-controls">
+      <label>Session <input type="color" id="colour-session" value="#4fc3f7"></label>
+      <label>Ref <input type="color" id="colour-ref" value="#ff9800"></label>
+      <button class="load-btn" id="colour-reset" title="Reset lap colours">reset</button>
+      <button class="load-btn" id="order-reset" title="Reset panel order">⟳ panels</button>
+    </span>
+  </div>
+  <div class="session-list" id="session-list"></div>
+</div>
+
+<!-- Pickers -->
+<div class="pickers-row">
+  <div class="picker-group">
+    <label>Session lap</label>
+    <select id="session-picker" disabled>
+      <option value="">— load a session file —</option>
+    </select>
+  </div>
+  <div class="picker-group">
+    <label>Reference lap</label>
+    <select id="ref-picker" disabled>
+      <option value="">— load a session file —</option>
+    </select>
+  </div>
+  <button class="compare-btn" id="compare-btn" disabled>Compare</button>
+</div>
+
+<!-- Legend -->
+<div class="legend" id="legend">
+  <div class="legend-item">
+    <div class="legend-swatch" style="background:var(--session)"></div>
+    <span id="legend-session">Session</span>
+  </div>
+  <div class="legend-item">
+    <div class="legend-swatch dashed" style="color:var(--ref)"></div>
+    <span id="legend-ref">Reference</span>
+  </div>
+</div>
+
+<!-- Circuit map panel (Phase 00-layout: promoted to top, 50% width) -->
+<div id="circuit-map-panel" style="display: none;">
+  <div class="map-header">
+    <div class="panel-label">Circuit Map</div>
+    <div class="map-controls">
+      <select id="map-mode" class="map-mode-select">
+        <option value="outline">outline</option>
+        <option value="speed">speed</option>
+        <option value="brake">brake</option>
+        <option value="throttle">throttle</option>
+      </select>
+      <select id="feature-flag-menu" class="map-mode-select feature-flag-menu" aria-label="Feature flags">
+        <option value="">feature flags</option>
+      </select>
+    </div>
+  </div>
+  <svg id="circuit-map-svg" viewBox="0 0 250 250" data-panel-id="circuit-map" preserveAspectRatio="xMidYMid meet">
+    <g id="track-segments"></g>
+    <polyline id="track-outline" fill="none" stroke="var(--text)" stroke-width="1.5" stroke-linejoin="round"/>
+    <polyline id="zoom-arc" fill="none" stroke="var(--sector-clr)" stroke-width="2.5" stroke-linejoin="round" style="display: none;"/>
+    <circle id="cursor-dot" r="4" fill="var(--accent)" style="display: none;"/>
+  </svg>
+  <canvas id="track-heatmap-canvas" style="display: none;"></canvas>
+  <div id="map-legend" class="map-legend"></div>
+</div>
+
+<!-- Plots container -->
+<div id="plots-container">
+  <!-- Plot area -->
+  <div id="plot-area">
+    <div class="placeholder" id="placeholder">Load sessions and pick two laps to compare</div>
+    <div id="panels"></div>
+    <div class="zoom-selection-rect" id="zoom-selection-rect"></div>
+    <div id="cursor-overlay">
+      <div class="cursor-line" id="cursor-line"></div>
+    </div>
+    <div id="tooltip"></div>
+  </div>
+</div>
+
+<p class="error-msg" id="error-msg"></p>
+
+<script type="module">
+var __defProp = Object.defineProperty;
+var __getOwnPropNames = Object.getOwnPropertyNames;
+var __esm = (fn, res) => function __init() {
+  return fn && (res = (0, fn[__getOwnPropNames(fn)[0]])(fn = 0)), res;
+};
+var __export = (target, all) => {
+  for (var name in all)
+    __defProp(target, name, { get: all[name], enumerable: true });
+};
+
+// web/js/appState.js
+var appState_exports = {};
+__export(appState_exports, {
+  DEFAULT_PANEL_ORDER: () => DEFAULT_PANEL_ORDER,
+  PANEL_ORDER_LS_KEY: () => PANEL_ORDER_LS_KEY,
+  devFeatures: () => devFeatures,
+  features: () => features,
+  getCurrentMapMode: () => getCurrentMapMode,
+  panelOrder: () => panelOrder,
+  pendingSidecars: () => pendingSidecars,
+  persistPanelOrder: () => persistPanelOrder,
+  setCurrentMapMode: () => setCurrentMapMode,
+  setDevFeatureFlag: () => setDevFeatureFlag,
+  setFeatureFlag: () => setFeatureFlag,
+  state: () => state,
+  store: () => store
+});
+function loadPersistedPanelOrder() {
+  try {
+    const raw = localStorage.getItem(PANEL_ORDER_LS_KEY);
+    if (!raw) return null;
+    const order = JSON.parse(raw);
+    if (!Array.isArray(order)) return null;
+    if (order.length !== DEFAULT_PANEL_ORDER.length) return null;
+    const known = new Set(DEFAULT_PANEL_ORDER);
+    if (!order.every((id) => known.has(id))) return null;
+    if (new Set(order).size !== order.length) return null;
+    return order;
+  } catch {
+    return null;
+  }
+}
+function persistPanelOrder(order) {
+  try {
+    if (JSON.stringify(order) === JSON.stringify(DEFAULT_PANEL_ORDER)) {
+      localStorage.removeItem(PANEL_ORDER_LS_KEY);
+    } else {
+      localStorage.setItem(PANEL_ORDER_LS_KEY, JSON.stringify(order));
+    }
+  } catch {
+  }
+}
+function getCurrentMapMode() {
+  return _currentMapMode;
+}
+function setCurrentMapMode(mode) {
+  _currentMapMode = mode;
+}
+function setFeatureFlag(name, value) {
+  if (name in features) {
+    features[name] = value;
+  }
+}
+function setDevFeatureFlag(name, value) {
+  if (name in devFeatures) {
+    devFeatures[name] = value;
+  }
+}
+var store, pendingSidecars, PANEL_ORDER_LS_KEY, DEFAULT_PANEL_ORDER, panelOrder, state, _currentMapMode, features, devFeatures;
+var init_appState = __esm({
+  "web/js/appState.js"() {
+    store = /* @__PURE__ */ new Map();
+    pendingSidecars = /* @__PURE__ */ new Map();
+    PANEL_ORDER_LS_KEY = "lap-telemetry.panel-order.v1";
+    DEFAULT_PANEL_ORDER = [
+      "speed",
+      "throttle",
+      "tc",
+      "brake",
+      "abs",
+      "rpm",
+      "gear",
+      "steering",
+      "slip",
+      "dt"
+    ];
+    panelOrder = loadPersistedPanelOrder() || [...DEFAULT_PANEL_ORDER];
+    state = {
+      maxDist: 0,
+      dragging: false,
+      dragStartX: 0,
+      dragStartDist: 0,
+      dragId: null,
+      currentRenderParams: null
+      // [sEntry, sSegIdx, rEntry, rSegIdx] for re-render after zoom
+    };
+    _currentMapMode = "outline";
+    features = {
+      mapWalkingSkeleton: true,
+      // Phase 00.5 - ON for development
+      mapTrackOutline: true,
+      // Phase 00.6 - ON for testing
+      mapHeatmapSingleLap: false,
+      // Phase 01a - default OFF until accepted
+      mapSAlignment: false,
+      // Phase 01b - s-based cross-lap alignment
+      mapDualRibbon: false,
+      // Phase 01c - side-by-side dual heatmap ribbons
+      mapZoomPan: false,
+      // Phase 02 - zoom and pan interaction
+      mapLegend: false,
+      // Phase 03 - lap legend and identification
+      mapHover: false,
+      // Phase 04 - hover crosshair and per-lap readout
+      mapLinkedHighlight: false
+      // Phase 05a - linked highlight band from trace charts
+    };
+    devFeatures = {
+      devMapSAlignmentDebug: false
+      // Phase 01b - debug tick overlay
+    };
+  }
+});
+
+// web/js/utils.js
+function storeKey(file) {
+  return `${file.name}::${file.size}`;
+}
+function fileStem(name) {
+  const i = name.lastIndexOf(".");
+  return i > 0 ? name.slice(0, i) : name;
+}
+function formatDuration(s) {
+  const m = Math.floor(s / 60);
+  const ss = (s % 60).toFixed(3).padStart(6, "0");
+  return `${m}:${ss}`;
+}
+function lapStatusBadges(seg) {
+  const tags = [];
+  if (seg.rolling) tags.push("rolling");
+  if (seg.partial) tags.push("partial");
+  return tags.length ? ` (${tags.join(", ")})` : "";
+}
+function formatPickLabel(entry, segIdx) {
+  const seg = entry.segments[segIdx];
+  const lapTimes = entry.data.lap_time_s;
+  const sliceTimes = lapTimes.slice(seg.start, seg.end);
+  const dur = sliceTimes.length ? Math.max(...sliceTimes) : 0;
+  const sc = entry.sidecar;
+  const vehicleLabel = entry.isDeltabest ? sc?.vehicle_name : sc ? shortVehicle(sc.vehicle_name) : null;
+  const meta = sc ? ` \xB7 ${vehicleLabel}${sc.setup_file_guess ? ` \xB7 ${shortSetup(sc.setup_file_guess)}` : ""}` : "";
+  const star = seg.fastest ? " \u2605" : "";
+  return `${entry.fileName} / Lap ${segIdx + 1} #${seg.lapNum} ${formatDuration(dur)}${lapStatusBadges(seg)}${star}${meta}`;
+}
+function shortVehicle(name) {
+  if (!name) return "unknown vehicle";
+  const colon = name.indexOf(":");
+  const tail = colon >= 0 ? name.slice(colon) : "";
+  const head = (colon >= 0 ? name.slice(0, colon) : name).trim();
+  const m = head.match(/^(\S+).*?(\#\d+)?\s*$/);
+  return (m && m[1] || head.slice(0, 20)) + (m && m[2] ? ` ${m[2]}` : "") + tail;
+}
+function shortSetup(name) {
+  if (!name) return null;
+  return name.replace(/\.svm$/i, "");
+}
+function showError(msg) {
+  const el = document.getElementById("error-msg");
+  el.textContent = msg;
+  el.classList.add("visible");
+}
+function clearError() {
+  document.getElementById("error-msg").classList.remove("visible");
+}
+function setBadge(el, cls, text) {
+  el.className = "badge" + (cls ? ` ${cls}` : "");
+  el.textContent = text;
+}
+var LAP_COLOUR_DEFAULTS = { session: "#4fc3f7", ref: "#ff9800" };
+var LAP_COLOUR_LS_KEY = "lap-telemetry.colours.v1";
+var HEX_RE = /^#[0-9a-fA-F]{6}$/;
+function applyLapColour(slot, value) {
+  document.documentElement.style.setProperty(`--${slot}`, value);
+}
+function persistLapColours(colours) {
+  try {
+    if (colours.session === LAP_COLOUR_DEFAULTS.session && colours.ref === LAP_COLOUR_DEFAULTS.ref) {
+      localStorage.removeItem(LAP_COLOUR_LS_KEY);
+    } else {
+      localStorage.setItem(LAP_COLOUR_LS_KEY, JSON.stringify(colours));
+    }
+  } catch {
+  }
+}
+function loadPersistedColours() {
+  try {
+    const raw = localStorage.getItem(LAP_COLOUR_LS_KEY);
+    if (!raw) return null;
+    const c = JSON.parse(raw);
+    if (!HEX_RE.test(c.session) || !HEX_RE.test(c.ref)) return null;
+    return { session: c.session, ref: c.ref };
+  } catch {
+    return null;
+  }
+}
+var ZOOM_LS_KEY = "lap-telemetry.zoom.v1";
+function persistZoom(zoom, maxDist) {
+  try {
+    if (zoom.start === 0 && zoom.end >= maxDist) {
+      localStorage.removeItem(ZOOM_LS_KEY);
+    } else {
+      localStorage.setItem(ZOOM_LS_KEY, JSON.stringify({ start: zoom.start, end: zoom.end }));
+    }
+  } catch {
+  }
+}
+function loadPersistedZoom(maxDist) {
+  try {
+    const raw = localStorage.getItem(ZOOM_LS_KEY);
+    if (!raw) return null;
+    const z = JSON.parse(raw);
+    if (typeof z.start !== "number" || typeof z.end !== "number") return null;
+    if (z.start < 0 || z.end > maxDist || z.end - z.start < 10) return null;
+    return { start: z.start, end: z.end };
+  } catch {
+    return null;
+  }
+}
+
+// web/js/pipeline.js
+var PARTIAL_DIST_FRAC = 0.95;
+var PARTIAL_DUR_FRAC = 0.5;
+var ROLLING_DIST_M = 50;
+function fileToAsyncBuffer(file) {
+  return {
+    byteLength: file.size,
+    slice: async (start, end) => {
+      return await file.slice(start, end).arrayBuffer();
+    }
+  };
+}
+async function readColumns(file, columns) {
+  const result = Object.fromEntries(columns.map((c) => [c, []]));
+  const asyncBuffer = fileToAsyncBuffer(file);
+  const { parquetMetadataAsync: parquetMetadataAsync2 } = await import("https://cdn.jsdelivr.net/npm/hyparquet@1/+esm");
+  const meta = await parquetMetadataAsync2(asyncBuffer);
+  const schemaNames = new Set(
+    meta.schema.flatMap((s) => s.name ? [s.name] : [])
+  );
+  const availableCols = columns.filter((c) => schemaNames.has(c));
+  const missingCols = columns.filter((c) => !schemaNames.has(c));
+  if (missingCols.length) {
+    console.log(`readColumns: columns absent in schema: ${missingCols.join(", ")}`);
+  }
+  const { parquetRead: parquetRead2 } = await import("https://cdn.jsdelivr.net/npm/hyparquet@1/+esm");
+  const { compressors: compressors2 } = await import("https://cdn.jsdelivr.net/npm/hyparquet-compressors@1/+esm");
+  await parquetRead2({
+    file: fileToAsyncBuffer(file),
+    compressors: compressors2,
+    columns: availableCols,
+    onChunk({ columnName, columnData }) {
+      if (Object.prototype.hasOwnProperty.call(result, columnName)) {
+        for (let i = 0; i < columnData.length; i++) {
+          result[columnName].push(columnData[i]);
+        }
+      }
+    }
+  });
+  return { data: result, missingCols };
+}
+function buildSegments(lapNumbers) {
+  if (!lapNumbers.length) return [];
+  const segs = [];
+  let prev = lapNumbers[0], start = 0;
+  for (let i = 1; i < lapNumbers.length; i++) {
+    if (lapNumbers[i] !== prev) {
+      segs.push({ lapNum: prev, start, end: i });
+      prev = lapNumbers[i];
+      start = i;
+    }
+  }
+  segs.push({ lapNum: prev, start, end: lapNumbers.length });
+  return segs;
+}
+function annotateSegments(segments, distances, lapTimes) {
+  if (!segments.length) return;
+  let trackLen = 0;
+  for (const seg of segments) {
+    let mn = Infinity, mx = -Infinity, mt = 0;
+    for (let i = seg.start; i < seg.end; i++) {
+      const d = distances[i];
+      if (Number.isFinite(d)) {
+        if (d < mn) mn = d;
+        if (d > mx) mx = d;
+      }
+      const t = lapTimes ? lapTimes[i] : null;
+      if (Number.isFinite(t) && t > mt) mt = t;
+    }
+    seg.minDist = isFinite(mn) ? mn : 0;
+    seg.maxDist = isFinite(mx) ? mx : 0;
+    seg.duration = mt;
+    if (seg.maxDist > trackLen) trackLen = seg.maxDist;
+  }
+  const candidateDurs = segments.filter((s) => s.maxDist >= trackLen * PARTIAL_DIST_FRAC && Math.abs(s.minDist) <= ROLLING_DIST_M).map((s) => s.duration).filter((d) => d > 0).sort((a, b) => a - b);
+  const medDur = candidateDurs.length ? candidateDurs[Math.floor(candidateDurs.length / 2)] : 0;
+  const durFloor = medDur * PARTIAL_DUR_FRAC;
+  for (const seg of segments) {
+    const distTruncated = seg.maxDist < trackLen * PARTIAL_DIST_FRAC;
+    const durTruncated = durFloor > 0 && seg.duration > 0 && seg.duration < durFloor;
+    seg.partial = distTruncated || durTruncated;
+    seg.rolling = Math.abs(seg.minDist) > ROLLING_DIST_M;
+    seg.fastest = false;
+  }
+  let bestIdx = -1, bestDur = Infinity;
+  for (let i = 0; i < segments.length; i++) {
+    const seg = segments[i];
+    if (seg.partial || seg.rolling) continue;
+    if (seg.duration > 0 && seg.duration < bestDur) {
+      bestDur = seg.duration;
+      bestIdx = i;
+    }
+  }
+  if (bestIdx >= 0) segments[bestIdx].fastest = true;
+}
+function interpAt(xs, ys, x) {
+  if (x <= xs[0]) return ys[0];
+  if (x >= xs[xs.length - 1]) return ys[ys.length - 1];
+  let lo = 0, hi = xs.length - 1;
+  while (hi - lo > 1) {
+    const mid = lo + hi >> 1;
+    if (xs[mid] <= x) lo = mid;
+    else hi = mid;
+  }
+  if (xs[hi] === xs[lo]) return ys[lo];
+  const t = (x - xs[lo]) / (xs[hi] - xs[lo]);
+  return ys[lo] + t * (ys[hi] - ys[lo]);
+}
+function resample(distances, values, maxDist) {
+  const n = distances.length;
+  if (!n) return new Float64Array(maxDist + 1);
+  const idx = Array.from({ length: n }, (_, i) => i);
+  idx.sort((a, b) => distances[a] - distances[b] || a - b);
+  const xs = idx.map((i) => distances[i]);
+  const ys = idx.map((i) => values[i]);
+  const bins = new Float64Array(maxDist + 1);
+  for (let bin = 0; bin <= maxDist; bin++) bins[bin] = interpAt(xs, ys, bin);
+  return bins;
+}
+function computeDeltaT(sessionLapTime, refLapTime) {
+  const len = Math.min(sessionLapTime.length, refLapTime.length);
+  const dt = new Float64Array(len);
+  for (let i = 0; i < len; i++) dt[i] = (sessionLapTime[i] - refLapTime[i]) * 1e3;
+  return dt;
+}
+function computeKeepIndices(lapTime, lapDist, start, end, trackLen) {
+  const halfTrack = trackLen * 0.5;
+  const keep = [];
+  for (let i = start; i < end; i++) {
+    const t = lapTime ? lapTime[i] : NaN;
+    const d = lapDist ? lapDist[i] : NaN;
+    if (Number.isFinite(t) && Number.isFinite(d) && t < 0.5 && d > halfTrack) continue;
+    keep.push(i);
+  }
+  return keep;
+}
+function smoothLapTime(lapTime, indices) {
+  const n = indices.length;
+  const out = new Float64Array(n);
+  for (let i2 = 0; i2 < n; i2++) out[i2] = lapTime[indices[i2]];
+  let i = 0;
+  while (i < n) {
+    let j = i + 1;
+    while (j < n && out[j] === out[i]) j++;
+    if (j === n) break;
+    const v0 = out[i], v1 = out[j], span = j - i;
+    for (let k = 1; k < span; k++) out[i + k] = v0 + (v1 - v0) * k / span;
+    i = j;
+  }
+  return out;
+}
+function smoothDt(dt, maxRadius = 20) {
+  const n = dt.length;
+  const out = new Float64Array(n);
+  for (let i = 0; i < n; i++) {
+    const r = Math.min(maxRadius, i, n - 1 - i);
+    let sum = 0, cnt = 0;
+    for (let k = i - r; k <= i + r; k++) {
+      if (isFinite(dt[k])) {
+        sum += dt[k];
+        cnt++;
+      }
+    }
+    out[i] = cnt > 0 ? sum / cnt : dt[i];
+  }
+  return out;
+}
+function smoothGear(gear, indices, maxNeutralRun = 5) {
+  const n = indices.length;
+  const out = new Float64Array(n);
+  for (let i2 = 0; i2 < n; i2++) out[i2] = gear[indices[i2]];
+  let i = 0;
+  while (i < n) {
+    if (out[i] !== 0) {
+      i++;
+      continue;
+    }
+    let j = i;
+    while (j < n && out[j] === 0) j++;
+    if (j - i <= maxNeutralRun && i > 0 && j < n) {
+      const prevG = out[i - 1];
+      for (let k = i; k < j; k++) out[k] = prevG;
+    }
+    i = j;
+  }
+  return out;
+}
+function deriveSectorDistances(entry, segIdx) {
+  const segs = entry.segments;
+  const seg = segs[segIdx];
+  if (!entry.data.last_sector_1_s || !entry.data.last_sector_2_s) return null;
+  if (segIdx >= segs.length - 1) return null;
+  const nextSeg = segs[segIdx + 1];
+  const s1col = entry.data.last_sector_1_s;
+  const s2col = entry.data.last_sector_2_s;
+  const walkEnd = Math.min(nextSeg.start + 25, nextSeg.end);
+  let s1 = NaN, cumS2 = NaN;
+  for (let fi = nextSeg.start; fi < walkEnd; fi++) {
+    const _s1 = s1col[fi], _cs2 = s2col[fi];
+    if (!isNaN(_s1) && !isNaN(_cs2) && _s1 > 0 && _cs2 > _s1) {
+      s1 = _s1;
+      cumS2 = _cs2;
+      break;
+    }
+  }
+  if (isNaN(s1)) return null;
+  const lapT = entry.data.lap_time_s;
+  const lapD = entry.data.lap_distance_m;
+  let d1 = null, d2 = null;
+  let prev = seg.start;
+  for (let fi = seg.start; fi < seg.end; fi++) {
+    if (d1 === null && lapT[fi] >= s1) {
+      const t0 = lapT[prev], t1 = lapT[fi];
+      const d0 = lapD[prev], d1v = lapD[fi];
+      const frac = t0 === t1 ? 0 : (s1 - t0) / (t1 - t0);
+      d1 = d0 + frac * (d1v - d0);
+    }
+    if (d2 === null && lapT[fi] >= cumS2) {
+      const t0 = lapT[prev], t1 = lapT[fi];
+      const d0 = lapD[prev], d1v = lapD[fi];
+      const frac = t0 === t1 ? 0 : (cumS2 - t0) / (t1 - t0);
+      d2 = d0 + frac * (d1v - d0);
+      break;
+    }
+    prev = fi;
+  }
+  return d1 !== null || d2 !== null ? { s1dist: d1, s2dist: d2 } : null;
+}
+function niceRange(arr, yFixed, margin = 0.05) {
+  if (yFixed) return yFixed;
+  let mn = Infinity, mx = -Infinity;
+  for (const x of arr) {
+    if (isFinite(x)) {
+      if (x < mn) mn = x;
+      if (x > mx) mx = x;
+    }
+  }
+  if (!isFinite(mn)) return [0, 1];
+  const span = mx - mn || 1;
+  return [mn - span * margin, mx + span * margin];
+}
+function buildPolylinePts(xs, ys, toX, toY, step = false) {
+  const pts = [];
+  for (let i = 0; i < xs.length; i++) {
+    if (step && i > 0) {
+      pts.push(`${toX(xs[i]).toFixed(1)},${toY(ys[i - 1]).toFixed(1)}`);
+    }
+    pts.push(`${toX(xs[i]).toFixed(1)},${toY(ys[i]).toFixed(1)}`);
+  }
+  return pts.join(" ");
+}
+function computeTrackBounds(trackX, trackZ) {
+  let minX = Infinity, maxX = -Infinity, minZ = Infinity, maxZ = -Infinity;
+  for (let i = 0; i < trackX.length; i++) {
+    const x = trackX[i], z = trackZ[i];
+    if (isFinite(x) && isFinite(z)) {
+      if (x < minX) minX = x;
+      if (x > maxX) maxX = x;
+      if (z < minZ) minZ = z;
+      if (z > maxZ) maxZ = z;
+    }
+  }
+  return { minX, maxX, minZ, maxZ };
+}
+function buildTrackTransform(bounds) {
+  const width = bounds.maxX - bounds.minX || 1;
+  const height = bounds.maxZ - bounds.minZ || 1;
+  const scale = Math.min((250 - 2 * 20) / width, (250 - 2 * 20) / height);
+  const offsetX = 20 + (250 - 2 * 20 - width * scale) / 2;
+  const offsetZ = 20 + (250 - 2 * 20 - height * scale) / 2;
+  return {
+    toMapX: (x) => offsetX + (x - bounds.minX) * scale,
+    // Invert Z-axis: world Z increases in one direction, SVG Y increases downward
+    toMapZ: (z) => offsetZ + (bounds.maxZ - z) * scale,
+    bounds,
+    scale,
+    offsetX,
+    offsetZ
+  };
+}
+function buildTrackPolylinePts(trackX, trackZ, toMapX, toMapZ) {
+  const pts = [];
+  for (let i = 0; i < trackX.length; i++) {
+    if (isFinite(trackX[i]) && isFinite(trackZ[i])) {
+      pts.push(`${toMapX(trackX[i]).toFixed(1)},${toMapZ(trackZ[i]).toFixed(1)}`);
+    }
+  }
+  return pts.join(" ");
+}
+function computeMedianFrameDistanceDelta(distances) {
+  if (distances.length < 2) return 0;
+  const deltas = [];
+  for (let i = 1; i < distances.length; i++) {
+    const d = distances[i] - distances[i - 1];
+    if (d > 0) deltas.push(d);
+  }
+  if (!deltas.length) return 0;
+  deltas.sort((a, b) => a - b);
+  return deltas[Math.floor(deltas.length / 2)];
+}
+function computeNiceYTicks(yMin, yMax, plotH, niceSteps) {
+  const range = yMax - yMin;
+  if (!isFinite(range) || range <= 0) return [yMin, yMax].filter(isFinite);
+  for (const step of niceSteps) {
+    const startTick = Math.ceil(yMin / step - 1e-9) * step;
+    const ticks = [];
+    for (let y = startTick; y <= yMax + step * 1e-9; y += step) {
+      ticks.push(Math.round(y / step) * step);
+    }
+    if (ticks.length < 3 || ticks.length > 5) continue;
+    if (plotH / Math.max(ticks.length - 1, 1) >= 30) return ticks;
+  }
+  const rawStep = range / 4;
+  const mag = Math.pow(10, Math.floor(Math.log10(rawStep)));
+  const norm = rawStep / mag;
+  let niceNorm = 10;
+  for (const n of [1, 2, 2.5, 5, 10]) {
+    if (n >= norm) {
+      niceNorm = n;
+      break;
+    }
+  }
+  const fbStep = niceNorm * mag;
+  const fbStart = Math.ceil(yMin / fbStep - 1e-9) * fbStep;
+  const fbTicks = [];
+  for (let y = fbStart; y <= yMax + fbStep * 1e-9 && fbTicks.length < 7; y += fbStep) {
+    fbTicks.push(Math.round(y / fbStep) * fbStep);
+  }
+  return fbTicks.length >= 2 ? fbTicks : [yMin, (yMin + yMax) / 2, yMax];
+}
+
+// web/js/main.js
+init_appState();
+
+// web/js/circuitMap.js
+init_appState();
+
+// web/js/constants.js
+var SVG_W = 900;
+var PAD = { top: 6, right: 20, bottom: 24, left: 58 };
+var PLOT_W = SVG_W - PAD.left - PAD.right;
+
+// web/js/circuitMap.js
+var HEATMAP_RAMPS = {
+  // speed: cool (slow) → warm (fast). HSL hue 220 (blue) → 0 (red), high saturation.
+  speed: (v) => `hsl(${(220 - 220 * v).toFixed(0)}, 85%, 55%)`,
+  // brake: faint grey (no brake) → bright red (full brake).
+  brake: (v) => `rgba(244, 67, 54, ${(0.15 + 0.85 * v).toFixed(2)})`,
+  // throttle: faint grey (off) → bright green (full).
+  throttle: (v) => `rgba(76, 175, 80, ${(0.15 + 0.85 * v).toFixed(2)})`
+};
+var HEATMAP_CHANNELS = { speed: "speed_kph", brake: "brake_norm", throttle: "throttle_norm" };
+function renderCircuitMap(currentTrackX2, currentTrackZ2, trackTransform2, currentZoomRange2, currentMaxDist2, currentSessionBins2) {
+  if (!currentTrackX2 || !currentTrackZ2) return null;
+  const trackOutline = document.getElementById("track-outline");
+  const segGroup = document.getElementById("track-segments");
+  const mapPanel = document.getElementById("circuit-map-panel");
+  if (!trackOutline) return null;
+  const bounds = computeTrackBounds(Array.from(currentTrackX2), Array.from(currentTrackZ2));
+  trackTransform2 = buildTrackTransform(bounds);
+  const pts = buildTrackPolylinePts(Array.from(currentTrackX2), Array.from(currentTrackZ2), trackTransform2.toMapX, trackTransform2.toMapZ);
+  if (getCurrentMapMode() === "outline") {
+    trackOutline.setAttribute("points", pts);
+    trackOutline.style.display = "";
+    segGroup.innerHTML = "";
+  } else {
+    trackOutline.style.display = "none";
+    segGroup.innerHTML = renderHeatmapSegments(getCurrentMapMode(), currentTrackX2, currentTrackZ2, trackTransform2, currentSessionBins2);
+  }
+  renderMapLegend(getCurrentMapMode(), currentTrackX2, currentSessionBins2);
+  mapPanel.style.display = "block";
+  updateZoomArc(currentTrackX2, currentTrackZ2, trackTransform2, currentZoomRange2, currentMaxDist2);
+  return trackTransform2;
+}
+function renderHeatmapSegments(mode, currentTrackX2, currentTrackZ2, trackTransform2, currentSessionBins2) {
+  const col = HEATMAP_CHANNELS[mode];
+  const bins = currentSessionBins2?.[col];
+  if (!bins) return "";
+  let lo = 0, hi = 1;
+  if (mode === "speed") {
+    lo = Infinity;
+    hi = -Infinity;
+    for (const v of bins) {
+      if (isFinite(v)) {
+        if (v < lo) lo = v;
+        if (v > hi) hi = v;
+      }
+    }
+    if (!isFinite(lo) || hi <= lo) {
+      lo = 0;
+      hi = 1;
+    }
+  }
+  const ramp = HEATMAP_RAMPS[mode];
+  const out = [];
+  const STEP = 2;
+  for (let i = 0; i + STEP < currentTrackX2.length; i += STEP) {
+    const x1 = currentTrackX2[i], z1 = currentTrackZ2[i];
+    const x2 = currentTrackX2[i + STEP], z2 = currentTrackZ2[i + STEP];
+    if (!isFinite(x1) || !isFinite(z1) || !isFinite(x2) || !isFinite(z2)) continue;
+    const v = bins[i + Math.floor(STEP / 2)];
+    if (!isFinite(v)) continue;
+    const norm = Math.max(0, Math.min(1, (v - lo) / (hi - lo || 1)));
+    const colour = ramp(norm);
+    const X1 = trackTransform2.toMapX(x1).toFixed(1);
+    const Y1 = trackTransform2.toMapZ(z1).toFixed(1);
+    const X2 = trackTransform2.toMapX(x2).toFixed(1);
+    const Y2 = trackTransform2.toMapZ(z2).toFixed(1);
+    out.push(`<line x1="${X1}" y1="${Y1}" x2="${X2}" y2="${Y2}" stroke="${colour}" stroke-width="2.5" stroke-linecap="round"/>`);
+  }
+  return out.join("");
+}
+function renderMapLegend(mode, currentTrackX2, currentSessionBins2) {
+  const el = document.getElementById("map-legend");
+  if (!el) return;
+  if (mode === "outline") {
+    el.innerHTML = "";
+    return;
+  }
+  const col = HEATMAP_CHANNELS[mode];
+  const bins = currentSessionBins2?.[col];
+  let lo = 0, hi = 1, unit = "";
+  if (mode === "speed" && bins) {
+    lo = Infinity;
+    hi = -Infinity;
+    for (const v of bins) {
+      if (isFinite(v)) {
+        if (v < lo) lo = v;
+        if (v > hi) hi = v;
+      }
+    }
+    if (!isFinite(lo) || hi <= lo) {
+      lo = 0;
+      hi = 1;
+    }
+    unit = " km/h";
+  } else if (mode === "brake" || mode === "throttle") {
+    lo = 0;
+    hi = 1;
+    unit = "";
+  }
+  const ramp = HEATMAP_RAMPS[mode];
+  const stops = [];
+  for (let i = 0; i <= 10; i++) stops.push(`${ramp(i / 10)} ${i * 10}%`);
+  const fmt = mode === "speed" ? (v) => v.toFixed(0) : (v) => v.toFixed(1);
+  el.innerHTML = `<span>${fmt(lo)}${unit}</span><div class="map-legend-bar" style="background:linear-gradient(to right, ${stops.join(",")})"></div><span>${fmt(hi)}${unit}</span>`;
+}
+function updateZoomArc(currentTrackX2, currentTrackZ2, trackTransform2, currentZoomRange2, currentMaxDist2) {
+  const zoomArc = document.getElementById("zoom-arc");
+  if (!currentTrackX2 || !currentTrackZ2 || !trackTransform2 || !currentZoomRange2) {
+    if (zoomArc) zoomArc.style.display = "none";
+    return;
+  }
+  const isZoomed = currentZoomRange2.start > 0 || currentZoomRange2.end < currentMaxDist2;
+  if (!isZoomed) {
+    zoomArc.style.display = "none";
+    return;
+  }
+  const startIdx = Math.max(0, Math.floor(currentZoomRange2.start));
+  const endIdx = Math.min(currentMaxDist2, Math.ceil(currentZoomRange2.end));
+  const pts = [];
+  for (let i = startIdx; i <= endIdx && i < currentTrackX2.length; i++) {
+    if (isFinite(currentTrackX2[i]) && isFinite(currentTrackZ2[i])) {
+      pts.push(`${trackTransform2.toMapX(currentTrackX2[i]).toFixed(1)},${trackTransform2.toMapZ(currentTrackZ2[i]).toFixed(1)}`);
+    }
+  }
+  if (pts.length > 0) {
+    zoomArc.setAttribute("points", pts.join(" "));
+    zoomArc.style.display = "block";
+  } else {
+    zoomArc.style.display = "none";
+  }
+}
+
+// web/js/sLookup.js
+function sLookup(lap, targetS) {
+  const sArr = lap.s;
+  if (!sArr || sArr.length === 0) return null;
+  const len = sArr.length;
+  if (len === 1) {
+    const r = {};
+    for (const key of Object.keys(lap)) r[key] = lap[key][0];
+    return r;
+  }
+  if (targetS <= sArr[0]) {
+    const r = {};
+    for (const key of Object.keys(lap)) r[key] = lap[key][0];
+    return r;
+  }
+  if (targetS >= sArr[len - 1]) {
+    const r = {};
+    for (const key of Object.keys(lap)) r[key] = lap[key][len - 1];
+    return r;
+  }
+  let lo = 0, hi = len - 1;
+  while (hi - lo > 1) {
+    const mid = lo + hi >>> 1;
+    if (sArr[mid] < targetS) lo = mid;
+    else hi = mid;
+  }
+  const s0 = sArr[lo];
+  const s1 = sArr[hi];
+  const denom = s1 - s0;
+  const frac = denom > 0 ? (targetS - s0) / denom : 0;
+  const result = {};
+  for (const key of Object.keys(lap)) {
+    const arr = lap[key];
+    if (!Array.isArray(arr) && !(arr instanceof Float64Array) && !(arr instanceof Float32Array)) {
+      continue;
+    }
+    if (arr.length <= hi) continue;
+    const v0 = arr[lo];
+    const v1 = arr[hi];
+    if (!isFinite(v0) || !isFinite(v1)) {
+      result[key] = v0;
+      continue;
+    }
+    result[key] = v0 + (v1 - v0) * frac;
+  }
+  return result;
+}
+function assertStrictlyMonotonic(distances, label = "s") {
+  for (let i = 1; i < distances.length; i++) {
+    if (distances[i] <= distances[i - 1]) {
+      const msg = `[sAlignment] ${label} is NOT strictly monotonic at index ${i}: ${distances[i - 1]} \u2192 ${distances[i]}`;
+      console.error(msg);
+      throw new Error(msg);
+    }
+  }
+}
+
+// web/js/colorRamp.js
+var BRAKE = "#0a3d91";
+var NEUTRAL = "#2a3340";
+var THROTTLE = "#0f7a2e";
+function clamp(value, min, max) {
+  return Math.max(min, Math.min(max, value));
+}
+function hexToRgb(hex) {
+  const n = Number.parseInt(hex.slice(1), 16);
+  return { r: n >> 16 & 255, g: n >> 8 & 255, b: n & 255 };
+}
+function rgbToHex({ r, g, b }) {
+  const toHex = (v) => clamp(Math.round(v), 0, 255).toString(16).padStart(2, "0");
+  return `#${toHex(r)}${toHex(g)}${toHex(b)}`;
+}
+function rgbToHsl({ r, g, b }) {
+  r /= 255;
+  g /= 255;
+  b /= 255;
+  const max = Math.max(r, g, b), min = Math.min(r, g, b);
+  const l = (max + min) / 2;
+  if (max === min) return { h: 0, s: 0, l };
+  const d = max - min;
+  const s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+  let h;
+  if (max === r) h = (g - b) / d + (g < b ? 6 : 0);
+  else if (max === g) h = (b - r) / d + 2;
+  else h = (r - g) / d + 4;
+  return { h: h * 60, s, l };
+}
+function hslToRgb({ h, s, l }) {
+  const c = (1 - Math.abs(2 * l - 1)) * s;
+  const hp = (h % 360 + 360) % 360 / 60;
+  const x = c * (1 - Math.abs(hp % 2 - 1));
+  let r1 = 0, g1 = 0, b1 = 0;
+  if (hp < 1) [r1, g1, b1] = [c, x, 0];
+  else if (hp < 2) [r1, g1, b1] = [x, c, 0];
+  else if (hp < 3) [r1, g1, b1] = [0, c, x];
+  else if (hp < 4) [r1, g1, b1] = [0, x, c];
+  else if (hp < 5) [r1, g1, b1] = [x, 0, c];
+  else [r1, g1, b1] = [c, 0, x];
+  const m = l - c / 2;
+  return { r: (r1 + m) * 255, g: (g1 + m) * 255, b: (b1 + m) * 255 };
+}
+function lerp(a, b, t) {
+  return a + (b - a) * t;
+}
+function lerpHue(a, b, t) {
+  let delta = (b - a + 540) % 360 - 180;
+  return a + delta * t;
+}
+function interpolateHsl(fromHex, toHex, t) {
+  const from = rgbToHsl(hexToRgb(fromHex));
+  const to = rgbToHsl(hexToRgb(toHex));
+  return rgbToHex(hslToRgb({
+    h: lerpHue(from.h, to.h, t),
+    s: lerp(from.s, to.s, t),
+    l: lerp(from.l, to.l, t)
+  }));
+}
+function colorForNet(net) {
+  const n = clamp(Number.isFinite(net) ? net : 0, -1, 1);
+  if (n === -1) return BRAKE;
+  if (n === 0) return NEUTRAL;
+  if (n === 1) return THROTTLE;
+  const t = Math.sqrt(Math.abs(n));
+  return n < 0 ? interpolateHsl(NEUTRAL, BRAKE, t) : interpolateHsl(NEUTRAL, THROTTLE, t);
+}
+var NET_COLOR_LUT = Array.from({ length: 256 }, (_, i) => {
+  const net = -1 + 2 * i / 255;
+  return colorForNet(net);
+});
+
+// web/js/ribbon.js
+function darkenHex(hex) {
+  const n = Number.parseInt(hex.slice(1), 16);
+  const r = (n >> 16 & 255) * 0.55;
+  const g = (n >> 8 & 255) * 0.55;
+  const b = (n & 255) * 0.55;
+  const toHex = (v) => Math.round(v).toString(16).padStart(2, "0");
+  return `#${toHex(r)}${toHex(g)}${toHex(b)}`;
+}
+function drawRibbonSegment(ctx, a, b, nx, ny, offsetPx, halfWidth, color) {
+  const inner = offsetPx - halfWidth;
+  const outer = offsetPx + halfWidth;
+  const p1 = { x: a.x + nx * inner, y: a.y + ny * inner };
+  const p2 = { x: b.x + nx * inner, y: b.y + ny * inner };
+  const p3 = { x: b.x + nx * outer, y: b.y + ny * outer };
+  const p4 = { x: a.x + nx * outer, y: a.y + ny * outer };
+  ctx.fillStyle = color;
+  ctx.beginPath();
+  ctx.moveTo(p1.x, p1.y);
+  ctx.lineTo(p2.x, p2.y);
+  ctx.lineTo(p3.x, p3.y);
+  ctx.lineTo(p4.x, p4.y);
+  ctx.closePath();
+  ctx.fill();
+  ctx.strokeStyle = darkenHex(color);
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  ctx.moveTo(p1.x, p1.y);
+  ctx.lineTo(p2.x, p2.y);
+  ctx.moveTo(p4.x, p4.y);
+  ctx.lineTo(p3.x, p3.y);
+  ctx.stroke();
+}
+function drawRibbon(ctx, points, offsetPx, widthPx, colorAt) {
+  const halfWidth = widthPx / 2;
+  for (let i = 0; i < points.length - 1; i++) {
+    const a = points[i];
+    const b = points[i + 1];
+    if (!a || !b) continue;
+    const dx = b.x - a.x;
+    const dy = b.y - a.y;
+    const len = Math.hypot(dx, dy);
+    if (len < 1e-3) continue;
+    const nx = -dy / len;
+    const ny = dx / len;
+    drawRibbonSegment(ctx, a, b, nx, ny, offsetPx, halfWidth, colorAt(i));
+  }
+}
+function buildScreenPoints(trackX, trackZ, transform) {
+  return Array.from(trackX, (x, i) => {
+    const z = trackZ[i];
+    if (!isFinite(x) || !isFinite(z)) return null;
+    return { x: transform.toScreenX(x), y: transform.toScreenY(z) };
+  });
+}
+function netAt(lap, index) {
+  const throttle = lap.throttle?.[index] ?? 0;
+  const brake = lap.brake?.[index] ?? 0;
+  return throttle - brake;
+}
+function drawHeatmapRibbon(ctx, lap, transform, widthPx) {
+  const points = buildScreenPoints(lap.x, lap.z, transform);
+  drawRibbon(ctx, points, 0, widthPx, (i) => colorForNet((netAt(lap, i) + netAt(lap, i + 1)) / 2));
+}
+function drawDualRibbons(ctx, lapA, lapB, transform, widthPx, gapPx) {
+  const points = buildScreenPoints(lapA.x, lapA.z, transform);
+  const halfWidth = widthPx / 2;
+  const offsetA = -(widthPx + gapPx) / 2;
+  const offsetB = +(widthPx + gapPx) / 2;
+  for (let i = 0; i < points.length - 1; i++) {
+    const a = points[i];
+    const b = points[i + 1];
+    if (!a || !b) continue;
+    const dx = b.x - a.x;
+    const dy = b.y - a.y;
+    const len = Math.hypot(dx, dy);
+    if (len < 1e-3) continue;
+    const nx = -dy / len;
+    const ny = dx / len;
+    const colorA = colorForNet((netAt(lapA, i) + netAt(lapA, i + 1)) / 2);
+    drawRibbonSegment(ctx, a, b, nx, ny, offsetA, halfWidth, colorA);
+    const colorB = colorForNet((netAt(lapB, i) + netAt(lapB, i + 1)) / 2);
+    drawRibbonSegment(ctx, a, b, nx, ny, offsetB, halfWidth, colorB);
+    const outA = offsetA - halfWidth;
+    ctx.strokeStyle = lapA.color;
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(a.x + nx * outA, a.y + ny * outA);
+    ctx.lineTo(b.x + nx * outA, b.y + ny * outA);
+    ctx.stroke();
+    const outB = offsetB + halfWidth;
+    ctx.strokeStyle = lapB.color;
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(a.x + nx * outB, a.y + ny * outB);
+    ctx.lineTo(b.x + nx * outB, b.y + ny * outB);
+    ctx.stroke();
+  }
+}
+
+// web/js/mapLegend.js
+var RAMP_W = 160;
+var RAMP_H = 16;
+function createLapLegend(panel) {
+  const el = document.createElement("div");
+  el.id = "map-lap-legend";
+  el.className = "map-legend-overlay map-lap-legend";
+  el.innerHTML = `
+    <div class="legend-row">
+      <span class="legend-swatch" id="map-lap-swatch-a"></span>
+      <span class="legend-label" id="map-lap-label-a">Session</span>
+    </div>
+    <div class="legend-row">
+      <span class="legend-swatch" id="map-lap-swatch-b"></span>
+      <span class="legend-label" id="map-lap-label-b">Reference</span>
+    </div>
+  `;
+  panel.appendChild(el);
+  return el;
+}
+function createRampLegend(panel) {
+  const el = document.createElement("div");
+  el.id = "map-ramp-legend";
+  el.className = "map-legend-overlay map-ramp-legend";
+  const rampCanvas = document.createElement("canvas");
+  rampCanvas.width = RAMP_W;
+  rampCanvas.height = RAMP_H;
+  rampCanvas.className = "ramp-bar";
+  const ctx = rampCanvas.getContext("2d");
+  for (let x = 0; x < RAMP_W; x++) {
+    const net = -1 + 2 * x / (RAMP_W - 1);
+    ctx.fillStyle = colorForNet(net);
+    ctx.fillRect(x, 0, 1, RAMP_H);
+  }
+  el.innerHTML = `
+    <span class="ramp-label">Brake</span>
+    <div class="ramp-wrap"></div>
+    <span class="ramp-label">Throttle</span>
+  `;
+  el.querySelector(".ramp-wrap").appendChild(rampCanvas);
+  panel.appendChild(el);
+  return el;
+}
+function updateMapLegend(panel, lapA, lapB, visible) {
+  if (!panel) return;
+  let lapLegend = document.getElementById("map-lap-legend");
+  let rampLegend = document.getElementById("map-ramp-legend");
+  if (!visible) {
+    if (lapLegend) lapLegend.style.display = "none";
+    if (rampLegend) rampLegend.style.display = "none";
+    return;
+  }
+  if (!lapLegend) lapLegend = createLapLegend(panel);
+  if (!rampLegend) rampLegend = createRampLegend(panel);
+  lapLegend.style.display = "";
+  rampLegend.style.display = "";
+  document.getElementById("map-lap-swatch-a").style.background = lapA.color || "#4fc3f7";
+  document.getElementById("map-lap-swatch-b").style.background = lapB.color || "#ff9800";
+}
+
+// web/js/trackHeatmapMap.js
+var _lastTransform = null;
+function getLastTransform() {
+  return _lastTransform;
+}
+function setLastTransform(tf) {
+  _lastTransform = tf;
+}
+function fitToView(boundsA, boundsB, canvasWidth, canvasHeight, padding) {
+  const minX = Math.min(boundsA.minX, boundsB.minX);
+  const maxX = Math.max(boundsA.maxX, boundsB.maxX);
+  const minZ = Math.min(boundsA.minZ, boundsB.minZ);
+  const maxZ = Math.max(boundsA.maxZ, boundsB.maxZ);
+  const worldW = maxX - minX || 1;
+  const worldH = maxZ - minZ || 1;
+  const availW = canvasWidth - 2 * padding;
+  const availH = canvasHeight - 2 * padding;
+  const scale = Math.min(availW / worldW, availH / worldH);
+  const drawnW = worldW * scale;
+  const drawnH = worldH * scale;
+  const offsetX = padding + (availW - drawnW) / 2;
+  const offsetY = padding + (availH - drawnH) / 2;
+  return {
+    scale,
+    offsetX,
+    offsetY,
+    toScreenX: (x) => offsetX + (x - minX) * scale,
+    toScreenY: (z) => offsetY + (maxZ - z) * scale,
+    // Z-up → Y-down
+    bounds: { minX, maxX, minZ, maxZ }
+  };
+}
+function applyUserTransform(base, userScale, userPanX, userPanY) {
+  const mScale = userScale ?? 1;
+  const tx = userPanX ?? 0;
+  const ty = userPanY ?? 0;
+  return {
+    scale: base.scale * mScale,
+    offsetX: base.offsetX,
+    offsetY: base.offsetY,
+    toScreenX: (x) => base.offsetX + (x - base.bounds.minX) * base.scale * mScale + tx,
+    toScreenY: (z) => base.offsetY + (base.bounds.maxZ - z) * base.scale * mScale + ty,
+    bounds: base.bounds,
+    userScale: mScale,
+    userPanX: tx,
+    userPanY: ty
+  };
+}
+function drawPolyline(ctx, trackX, trackZ, transform, color, lineWidth = 1) {
+  ctx.strokeStyle = color;
+  ctx.lineWidth = lineWidth;
+  ctx.beginPath();
+  let started = false;
+  for (let i = 0; i < trackX.length; i++) {
+    const x = trackX[i];
+    const z = trackZ[i];
+    if (!isFinite(x) || !isFinite(z)) continue;
+    const sx = transform.toScreenX(x);
+    const sy = transform.toScreenY(z);
+    if (!started) {
+      ctx.moveTo(sx, sy);
+      started = true;
+    } else {
+      ctx.lineTo(sx, sy);
+    }
+  }
+  ctx.stroke();
+}
+function drawTrackOutline(ctx, trackX, trackZ, transform) {
+  const innerColor = "rgba(255, 0, 255, 0.7)";
+  const outerColor = "rgba(0, 255, 255, 0.7)";
+  const trackHalfWidth = 15;
+  drawOffsetPolyline(ctx, trackX, trackZ, transform, -trackHalfWidth, innerColor);
+  drawOffsetPolyline(ctx, trackX, trackZ, transform, trackHalfWidth, outerColor);
+}
+function drawOffsetPolyline(ctx, trackX, trackZ, transform, offsetMeters, color) {
+  ctx.strokeStyle = color;
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  const offsetPoints = [];
+  const lookAhead = 5;
+  for (let i = 0; i < trackX.length; i++) {
+    const x = trackX[i];
+    const z = trackZ[i];
+    if (!isFinite(x) || !isFinite(z)) {
+      offsetPoints.push(null);
+      continue;
+    }
+    let aheadIdx = i + lookAhead;
+    while (aheadIdx < trackX.length && (!isFinite(trackX[aheadIdx]) || !isFinite(trackZ[aheadIdx]))) {
+      aheadIdx++;
+    }
+    let behindIdx = i - lookAhead;
+    while (behindIdx >= 0 && (!isFinite(trackX[behindIdx]) || !isFinite(trackZ[behindIdx]))) {
+      behindIdx--;
+    }
+    let dx, dz;
+    if (aheadIdx < trackX.length && behindIdx >= 0) {
+      dx = trackX[aheadIdx] - trackX[behindIdx];
+      dz = trackZ[aheadIdx] - trackZ[behindIdx];
+    } else if (aheadIdx < trackX.length) {
+      dx = trackX[aheadIdx] - x;
+      dz = trackZ[aheadIdx] - z;
+    } else if (behindIdx >= 0) {
+      dx = x - trackX[behindIdx];
+      dz = z - trackZ[behindIdx];
+    } else {
+      offsetPoints.push(null);
+      continue;
+    }
+    const len = Math.sqrt(dx * dx + dz * dz);
+    if (len < 1e-3) {
+      offsetPoints.push(null);
+      continue;
+    }
+    const tx = dx / len;
+    const tz = dz / len;
+    const nx = -tz;
+    const nz = tx;
+    const ox = x + nx * offsetMeters;
+    const oz = z + nz * offsetMeters;
+    offsetPoints.push({ x: ox, z: oz });
+  }
+  const smoothedPoints = [];
+  const smoothWindow = 3;
+  for (let i = 0; i < offsetPoints.length; i++) {
+    if (!offsetPoints[i]) {
+      smoothedPoints.push(null);
+      continue;
+    }
+    let sumX = 0, sumZ = 0, count = 0;
+    for (let j = Math.max(0, i - smoothWindow); j <= Math.min(offsetPoints.length - 1, i + smoothWindow); j++) {
+      if (offsetPoints[j]) {
+        sumX += offsetPoints[j].x;
+        sumZ += offsetPoints[j].z;
+        count++;
+      }
+    }
+    if (count > 0) {
+      smoothedPoints.push({ x: sumX / count, z: sumZ / count });
+    } else {
+      smoothedPoints.push(null);
+    }
+  }
+  let started = false;
+  for (let i = 0; i < smoothedPoints.length; i++) {
+    const pt = smoothedPoints[i];
+    if (!pt) {
+      started = false;
+      continue;
+    }
+    const sx = transform.toScreenX(pt.x);
+    const sy = transform.toScreenY(pt.z);
+    if (!started) {
+      ctx.moveTo(sx, sy);
+      started = true;
+    } else {
+      ctx.lineTo(sx, sy);
+    }
+  }
+  ctx.stroke();
+}
+function drawHoverTick(ctx, hoverState, transform, ribbonWidthPx, ribbonGapPx) {
+  if (!hoverState || !hoverState.nearest) return;
+  const { nearest } = hoverState;
+  const sx = transform.toScreenX(nearest.x);
+  const sy = transform.toScreenY(nearest.z);
+  const dxWorld = 1;
+  const xFwd = nearest.x + dxWorld;
+  const zFwd = nearest.z;
+  const p = { x: sx, y: sy };
+  const sx2 = transform.toScreenX(nearest.x + 0.5);
+  const sy2 = transform.toScreenY(nearest.z);
+  const tx = sx2 - sx;
+  const ty = sy2 - sy;
+  const tlen = Math.hypot(tx, ty) || 1;
+  const nx = -ty / tlen;
+  const ny = tx / tlen;
+  const halfSpan = ribbonWidthPx + ribbonGapPx / 2 + 4;
+  ctx.strokeStyle = "#ffffff";
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  ctx.moveTo(sx + nx * -halfSpan, sy + ny * -halfSpan);
+  ctx.lineTo(sx + nx * halfSpan, sy + ny * halfSpan);
+  ctx.stroke();
+}
+function drawLinkedHighlight(ctx, lapA, transform, visibleRange, ribbonWidthPx, ribbonGapPx) {
+  if (!visibleRange) return;
+  const maxIdx = lapA.x.length - 1;
+  const startIdx = Math.max(0, Math.floor(visibleRange.start));
+  const endIdx = Math.min(maxIdx, Math.ceil(visibleRange.end));
+  if (startIdx === 0 && endIdx >= maxIdx) return;
+  if (startIdx >= endIdx) return;
+  ctx.save();
+  ctx.beginPath();
+  let started = false;
+  for (let i = startIdx; i <= endIdx; i++) {
+    const x = lapA.x[i];
+    const z = lapA.z[i];
+    if (!isFinite(x) || !isFinite(z)) {
+      started = false;
+      continue;
+    }
+    const sx = transform.toScreenX(x);
+    const sy = transform.toScreenY(z);
+    if (!started) {
+      ctx.moveTo(sx, sy);
+      started = true;
+    } else {
+      ctx.lineTo(sx, sy);
+    }
+  }
+  ctx.globalCompositeOperation = "lighten";
+  ctx.strokeStyle = "rgba(255,255,255,0.18)";
+  ctx.lineWidth = ribbonWidthPx + 10;
+  ctx.lineCap = "round";
+  ctx.lineJoin = "round";
+  ctx.stroke();
+  ctx.globalCompositeOperation = "source-over";
+  const halfSpan = ribbonWidthPx / 2 + ribbonGapPx / 2 + 6;
+  [startIdx, endIdx].forEach((idx) => {
+    const x = lapA.x[idx];
+    const z = lapA.z[idx];
+    if (!isFinite(x) || !isFinite(z)) return;
+    let dx = 0, dy = 0;
+    let found = false;
+    for (let j = idx + 1; j <= maxIdx && !found; j++) {
+      const x2 = lapA.x[j];
+      const z2 = lapA.z[j];
+      if (isFinite(x2) && isFinite(z2)) {
+        dx = transform.toScreenX(x2) - transform.toScreenX(x);
+        dy = transform.toScreenY(z2) - transform.toScreenY(z);
+        found = true;
+      }
+    }
+    if (!found) {
+      for (let j = idx - 1; j >= 0 && !found; j--) {
+        const x2 = lapA.x[j];
+        const z2 = lapA.z[j];
+        if (isFinite(x2) && isFinite(z2)) {
+          dx = transform.toScreenX(x) - transform.toScreenX(x2);
+          dy = transform.toScreenY(z) - transform.toScreenY(z2);
+          found = true;
+        }
+      }
+    }
+    if (!found) return;
+    const tlen = Math.hypot(dx, dy) || 1;
+    const nx = -dy / tlen;
+    const ny = dx / tlen;
+    const sx = transform.toScreenX(x);
+    const sy = transform.toScreenY(z);
+    ctx.strokeStyle = "#ffffff";
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(sx + nx * -halfSpan, sy + ny * -halfSpan);
+    ctx.lineTo(sx + nx * halfSpan, sy + ny * halfSpan);
+    ctx.stroke();
+  });
+  ctx.restore();
+}
+function drawStartFinishTick(ctx, startX, startZ, transform) {
+  const sx = transform.toScreenX(startX);
+  const sy = transform.toScreenY(startZ);
+  const len = 6;
+  ctx.strokeStyle = "#ffffff";
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.moveTo(sx - len, sy);
+  ctx.lineTo(sx + len, sy);
+  ctx.moveTo(sx, sy - len);
+  ctx.lineTo(sx, sy + len);
+  ctx.stroke();
+}
+function drawDebugTicks(ctx, lap, transform, color, labelPrefix) {
+  if (!lap || !lap.raw || !lap.raw.s || lap.raw.s.length < 2) return;
+  const maxS = lap.raw.s[lap.raw.s.length - 1];
+  for (let tickS = 100; tickS < maxS; tickS += 100) {
+    const pt = sLookup(lap.raw, tickS);
+    if (!pt || !isFinite(pt.x) || !isFinite(pt.z)) continue;
+    const sx = transform.toScreenX(pt.x);
+    const sy = transform.toScreenY(pt.z);
+    const tickLen = 4;
+    ctx.strokeStyle = color;
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.moveTo(sx - tickLen, sy - tickLen);
+    ctx.lineTo(sx + tickLen, sy + tickLen);
+    ctx.moveTo(sx - tickLen, sy + tickLen);
+    ctx.lineTo(sx + tickLen, sy - tickLen);
+    ctx.stroke();
+    ctx.fillStyle = color;
+    ctx.font = "9px sans-serif";
+    ctx.fillText(`${labelPrefix}${Math.round(tickS)}`, sx + 6, sy - 4);
+  }
+}
+function renderWalkingSkeleton(canvas, lapA, lapB, options = {}) {
+  const { showOutline = false, showHeatmapSingleLap = false, showSAlignmentDebug = false, showDualRibbon = false, showLegend = false, ribbonWidthPx = 8, ribbonGapPx = 2, userScale = 1, userPanX = 0, userPanY = 0 } = options;
+  const ctx = canvas.getContext("2d");
+  const rect = canvas.getBoundingClientRect();
+  const dpr = window.devicePixelRatio || 1;
+  canvas.width = rect.width * dpr;
+  canvas.height = rect.height * dpr;
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  ctx.clearRect(0, 0, rect.width, rect.height);
+  if (!lapA || !lapA.x || !lapA.z || !lapB || !lapB.x || !lapB.z) return;
+  const boundsA = computeTrackBounds(Array.from(lapA.x), Array.from(lapA.z));
+  const boundsB = computeTrackBounds(Array.from(lapB.x), Array.from(lapB.z));
+  const padding = 15;
+  const baseTransform = fitToView(boundsA, boundsB, rect.width, rect.height, padding);
+  const transform = applyUserTransform(baseTransform, userScale, userPanX, userPanY);
+  ctx.fillStyle = "rgba(0, 0, 0, 0.2)";
+  ctx.fillRect(0, 0, rect.width, rect.height);
+  if (showOutline) {
+    console.log("[trackHeatmapMap] Drawing outline with", lapA.x.length, "points");
+    drawTrackOutline(ctx, lapA.x, lapA.z, transform);
+  } else {
+    console.log("[trackHeatmapMap] showOutline is false, skipping outline");
+  }
+  if (showDualRibbon) {
+    drawDualRibbons(ctx, lapA, lapB, transform, ribbonWidthPx, ribbonGapPx);
+  } else {
+    drawPolyline(ctx, lapB.x, lapB.z, transform, lapB.color);
+    if (showHeatmapSingleLap) {
+      drawHeatmapRibbon(ctx, lapA, transform, ribbonWidthPx);
+    } else {
+      drawPolyline(ctx, lapA.x, lapA.z, transform, lapA.color);
+    }
+  }
+  if (showSAlignmentDebug) {
+    drawDebugTicks(ctx, lapA, transform, "#ffffff", "A ");
+    drawDebugTicks(ctx, lapB, transform, "#ff9800", "B ");
+  }
+  if (lapA.x.length > 0 && lapA.z.length > 0) {
+    drawStartFinishTick(ctx, lapA.x[0], lapA.z[0], transform);
+  }
+  if (options.showHover && options.hoverState) {
+    drawHoverTick(ctx, options.hoverState, transform, ribbonWidthPx, ribbonGapPx);
+  }
+  if (options.showLinkedHighlight && options.visibleRange) {
+    drawLinkedHighlight(ctx, lapA, transform, options.visibleRange, ribbonWidthPx, ribbonGapPx);
+  }
+  const panel = canvas.parentElement;
+  updateMapLegend(panel, lapA, lapB, showLegend);
+  setLastTransform(transform);
+}
+function initTrackHeatmapResize(canvas, getLaps, getOptions) {
+  const observer = new ResizeObserver(() => {
+    const laps = getLaps();
+    if (laps) {
+      const options = getOptions ? getOptions() : {};
+      renderWalkingSkeleton(canvas, laps.lapA, laps.lapB, options);
+    }
+  });
+  observer.observe(canvas.parentElement || canvas);
+  return observer;
+}
+
+// web/js/mapHover.js
+var CELL_SIZE = 20;
+function buildGrid(lapARaw) {
+  if (!lapARaw || !lapARaw.x || !lapARaw.z) return null;
+  const grid = /* @__PURE__ */ new Map();
+  for (let i = 0; i < lapARaw.x.length; i++) {
+    const x = lapARaw.x[i];
+    const z = lapARaw.z[i];
+    if (!isFinite(x) || !isFinite(z)) continue;
+    const cx = Math.floor(x / CELL_SIZE);
+    const cz = Math.floor(z / CELL_SIZE);
+    const key = `${cx},${cz}`;
+    if (!grid.has(key)) grid.set(key, []);
+    grid.get(key).push({ x, z, s: lapARaw.s[i], i });
+  }
+  return grid;
+}
+function findNearest(grid, worldX, worldZ) {
+  if (!grid) return null;
+  const cx = Math.floor(worldX / CELL_SIZE);
+  const cz = Math.floor(worldZ / CELL_SIZE);
+  let best = null;
+  let bestDist = Infinity;
+  for (let dx = -1; dx <= 1; dx++) {
+    for (let dz = -1; dz <= 1; dz++) {
+      const key = `${cx + dx},${cz + dz}`;
+      const pts = grid.get(key);
+      if (!pts) continue;
+      for (const pt of pts) {
+        const d2 = (pt.x - worldX) ** 2 + (pt.z - worldZ) ** 2;
+        if (d2 < bestDist) {
+          bestDist = d2;
+          best = pt;
+        }
+      }
+    }
+  }
+  return best;
+}
+function worldFromScreen(sx, sy, transform) {
+  const x = (sx - transform.offsetX - (transform.userPanX || 0)) / transform.scale + transform.bounds.minX;
+  const z = transform.bounds.maxZ - (sy - transform.offsetY - (transform.userPanY || 0)) / transform.scale;
+  return { x, z };
+}
+function ensureReadout(panel) {
+  let el = document.getElementById("map-hover-readout");
+  if (!el) {
+    el = document.createElement("div");
+    el.id = "map-hover-readout";
+    el.className = "map-hover-readout";
+    el.style.display = "none";
+    el.innerHTML = `
+      <div class="readout-dist"></div>
+      <div class="readout-row" id="readout-row-a"></div>
+      <div class="readout-row" id="readout-row-b"></div>
+    `;
+    panel.appendChild(el);
+  }
+  return el;
+}
+function updateReadout(el, state2, lapA, lapB) {
+  if (!state2 || !el) {
+    if (el) el.style.display = "none";
+    return;
+  }
+  const distEl = el.querySelector(".readout-dist");
+  const rowA = el.querySelector("#readout-row-a");
+  const rowB = el.querySelector("#readout-row-b");
+  const s = Math.round(state2.s);
+  distEl.textContent = `Distance: ${s} m`;
+  const ta = state2.lapASample?.throttle ?? 0;
+  const ba = state2.lapASample?.brake ?? 0;
+  rowA.innerHTML = `
+    <span style="color:${lapA.color}">Lap A</span>
+    \u2014 Throttle <span style="color:#4caf50">${Math.round(ta * 100)}%</span>
+    / Brake <span style="color:#2196f3">${Math.round(ba * 100)}%</span>
+  `;
+  const tb = state2.lapBSample?.throttle ?? 0;
+  const bb = state2.lapBSample?.brake ?? 0;
+  rowB.innerHTML = `
+    <span style="color:${lapB.color}">Lap B</span>
+    \u2014 Throttle <span style="color:#4caf50">${Math.round(tb * 100)}%</span>
+    / Brake <span style="color:#2196f3">${Math.round(bb * 100)}%</span>
+  `;
+  el.style.display = "block";
+}
+function positionReadout(el, sx, sy, canvasWidth, canvasHeight) {
+  if (!el || el.style.display === "none") return;
+  const rect = el.getBoundingClientRect();
+  const w = rect.width || 180;
+  const h = rect.height || 60;
+  const offset = 12;
+  let left = sx + offset;
+  let top = sy + offset;
+  if (left + w > canvasWidth) {
+    left = sx - w - offset;
+  }
+  if (top + h > canvasHeight) {
+    top = sy - h - offset;
+  }
+  el.style.left = `${Math.round(left)}px`;
+  el.style.top = `${Math.round(top)}px`;
+}
+function createMapHover(canvas, getLapData, onUpdate) {
+  let hoverState = null;
+  let rafId = null;
+  let pendingEvent = null;
+  let isDragging = false;
+  let grid = null;
+  let readoutEl = null;
+  function build() {
+    const { lapA } = getLapData();
+    grid = buildGrid(lapA?.raw);
+  }
+  function doUpdate() {
+    if (!pendingEvent || isDragging) {
+      hoverState = null;
+      onUpdate?.(null);
+      return;
+    }
+    const rect = canvas.getBoundingClientRect();
+    const sx = pendingEvent.clientX - rect.left;
+    const sy = pendingEvent.clientY - rect.top;
+    const { lapA, lapB, transform } = getLapData();
+    if (!lapA || !transform) {
+      hoverState = null;
+      onUpdate?.(null);
+      return;
+    }
+    const world = worldFromScreen(sx, sy, transform);
+    const nearest = findNearest(grid, world.x, world.z);
+    if (!nearest) {
+      hoverState = null;
+      onUpdate?.(null);
+      return;
+    }
+    const s = nearest.s;
+    const lapASample = sLookup(lapA.raw, s);
+    const lapBSample = lapB?.raw ? sLookup(lapB.raw, s) : null;
+    hoverState = {
+      s,
+      screenX: sx,
+      screenY: sy,
+      lapASample,
+      lapBSample,
+      nearest
+    };
+    const panel = canvas.parentElement;
+    readoutEl = ensureReadout(panel);
+    updateReadout(readoutEl, hoverState, lapA, lapB);
+    positionReadout(readoutEl, sx, sy, rect.width, rect.height);
+    onUpdate?.(hoverState);
+  }
+  function onPointerMove(e) {
+    if (isDragging) {
+      hoverState = null;
+      onUpdate?.(null);
+      return;
+    }
+    pendingEvent = e;
+    if (!rafId) {
+      rafId = requestAnimationFrame(() => {
+        rafId = null;
+        doUpdate();
+      });
+    }
+  }
+  function onPointerLeave() {
+    pendingEvent = null;
+    if (rafId) {
+      cancelAnimationFrame(rafId);
+      rafId = null;
+    }
+    hoverState = null;
+    if (readoutEl) readoutEl.style.display = "none";
+    onUpdate?.(null);
+  }
+  function onPointerDown() {
+    isDragging = true;
+    pendingEvent = null;
+    if (rafId) {
+      cancelAnimationFrame(rafId);
+      rafId = null;
+    }
+    hoverState = null;
+    if (readoutEl) readoutEl.style.display = "none";
+    onUpdate?.(null);
+  }
+  function onPointerUp() {
+    isDragging = false;
+  }
+  canvas.addEventListener("pointermove", onPointerMove);
+  canvas.addEventListener("pointerleave", onPointerLeave);
+  canvas.addEventListener("pointerdown", onPointerDown);
+  canvas.addEventListener("pointerup", onPointerUp);
+  canvas.addEventListener("pointercancel", onPointerUp);
+  return {
+    getState: () => hoverState,
+    rebuild: build,
+    destroy: () => {
+      canvas.removeEventListener("pointermove", onPointerMove);
+      canvas.removeEventListener("pointerleave", onPointerLeave);
+      canvas.removeEventListener("pointerdown", onPointerDown);
+      canvas.removeEventListener("pointerup", onPointerUp);
+      canvas.removeEventListener("pointercancel", onPointerUp);
+      if (rafId) cancelAnimationFrame(rafId);
+      if (readoutEl) readoutEl.remove();
+    }
+  };
+}
+
+// web/js/mapInteraction.js
+var MIN_SCALE = 1;
+var MAX_SCALE = 40;
+var WHEEL_SENSITIVITY = 1.0015;
+var baseTransformRef = { offsetX: 0, offsetY: 0 };
+function setBaseTransform(transform) {
+  baseTransformRef = transform || { offsetX: 0, offsetY: 0 };
+}
+function createMapInteraction(canvas, onChange) {
+  const state2 = { scale: 1, tx: 0, ty: 0 };
+  let dragging = false;
+  let dragStartX = 0;
+  let dragStartY = 0;
+  let panStartX = 0;
+  let panStartY = 0;
+  function trigger() {
+    if (onChange) onChange();
+  }
+  function onWheel(e) {
+    e.preventDefault();
+    const rect = canvas.getBoundingClientRect();
+    const mx = e.clientX - rect.left;
+    const my = e.clientY - rect.top;
+    const oldScale = state2.scale;
+    const newScale = Math.min(MAX_SCALE, Math.max(MIN_SCALE, oldScale * WHEEL_SENSITIVITY ** -e.deltaY));
+    if (newScale === oldScale) return;
+    const zoomRatio = newScale / oldScale;
+    const ox = baseTransformRef.offsetX || 0;
+    const oy = baseTransformRef.offsetY || 0;
+    state2.tx = state2.tx * zoomRatio + (mx - ox) * (1 - zoomRatio);
+    state2.ty = state2.ty * zoomRatio + (my - oy) * (1 - zoomRatio);
+    state2.scale = newScale;
+    updateZoomIndicator(canvas, state2.scale);
+    trigger();
+  }
+  function onPointerDown(e) {
+    if (!e.isPrimary) return;
+    dragging = true;
+    canvas.setPointerCapture(e.pointerId);
+    canvas.style.cursor = "grabbing";
+    dragStartX = e.clientX;
+    dragStartY = e.clientY;
+    panStartX = state2.tx;
+    panStartY = state2.ty;
+  }
+  function onPointerMove(e) {
+    if (!dragging) return;
+    state2.tx = panStartX + (e.clientX - dragStartX);
+    state2.ty = panStartY + (e.clientY - dragStartY);
+    trigger();
+  }
+  function onPointerUp(e) {
+    if (!dragging) return;
+    dragging = false;
+    canvas.style.cursor = "grab";
+    try {
+      canvas.releasePointerCapture(e.pointerId);
+    } catch {
+    }
+  }
+  function onDblClick(e) {
+    state2.scale = 1;
+    state2.tx = 0;
+    state2.ty = 0;
+    updateZoomIndicator(canvas, state2.scale);
+    trigger();
+  }
+  function onTestEvent(e) {
+    if (e.type === "mapZoomPanChange") trigger();
+  }
+  canvas.style.cursor = "grab";
+  canvas.style.touchAction = "none";
+  canvas.addEventListener("wheel", onWheel, { passive: false });
+  canvas.addEventListener("pointerdown", onPointerDown);
+  canvas.addEventListener("pointermove", onPointerMove);
+  canvas.addEventListener("pointerup", onPointerUp);
+  canvas.addEventListener("pointercancel", onPointerUp);
+  canvas.addEventListener("dblclick", onDblClick);
+  canvas.addEventListener("mapZoomPanChange", onTestEvent);
+  window.__mapZoomPanState = state2;
+  return {
+    getState: () => state2,
+    setState: (next) => {
+      state2.scale = next.scale ?? state2.scale;
+      state2.tx = next.tx ?? state2.tx;
+      state2.ty = next.ty ?? state2.ty;
+      updateZoomIndicator(canvas, state2.scale);
+      trigger();
+    },
+    destroy: () => {
+      canvas.removeEventListener("wheel", onWheel);
+      canvas.removeEventListener("pointerdown", onPointerDown);
+      canvas.removeEventListener("pointermove", onPointerMove);
+      canvas.removeEventListener("pointerup", onPointerUp);
+      canvas.removeEventListener("pointercancel", onPointerUp);
+      canvas.removeEventListener("dblclick", onDblClick);
+      canvas.removeEventListener("mapZoomPanChange", onTestEvent);
+      delete window.__mapZoomPanState;
+    }
+  };
+}
+function updateZoomIndicator(canvas, scale) {
+  const indicator = document.getElementById("map-zoom-indicator");
+  if (!indicator) return;
+  indicator.textContent = `${scale.toFixed(1)}\xD7`;
+}
+
+// web/js/panels.js
+function renderPanel(def, bins, maxDist, sectorDists, zoomRange, containerWidth = SVG_W) {
+  const H = Math.round(def.height * (def.heightMultiplier ?? 1));
+  const plotH = H - PAD.top - PAD.bottom;
+  const scaleX = containerWidth / SVG_W;
+  const scaledPlotW = PLOT_W * scaleX;
+  const scaledLeft = PAD.left * scaleX;
+  const scaledRight = PAD.right * scaleX;
+  const allVals = [];
+  const zoomStart = Math.ceil(zoomRange.start);
+  const zoomEnd = Math.floor(zoomRange.end);
+  for (const { key } of Object.values(bins)) {
+    if (key) {
+      for (let i = zoomStart; i <= zoomEnd && i < key.length; i++) {
+        const v = key[i];
+        if (isFinite(v)) allVals.push(v);
+      }
+    }
+  }
+  const toX = (d) => {
+    const zRange2 = zoomRange.end - zoomRange.start;
+    if (zRange2 <= 0) return scaledLeft;
+    const fracD = (d - zoomRange.start) / zRange2;
+    return scaledLeft + fracD * scaledPlotW;
+  };
+  const toY = (s, yMin, yMax) => PAD.top + plotH - (s - yMin) / (yMax - yMin) * plotH;
+  const distBins = Array.from({ length: maxDist + 1 }, (_, i) => i);
+  let svgContent = `<defs><clipPath id="clip-${def.id}"><rect x="${scaledLeft}" y="${PAD.top}" width="${scaledPlotW}" height="${plotH}"/></clipPath></defs>`;
+  const zRange = zoomRange.end - zoomRange.start;
+  const distStep = Math.max(100, Math.ceil(zRange / 6 / 100) * 100);
+  const xTicks = [];
+  const startTick = Math.ceil(zoomRange.start / distStep) * distStep;
+  for (let d = startTick; d <= zoomRange.end; d += distStep) xTicks.push(d);
+  svgContent += xTicks.map(
+    (d) => `<line x1="${toX(d)}" y1="${PAD.top}" x2="${toX(d)}" y2="${PAD.top + plotH}" stroke="var(--border)" stroke-width="0.5" stroke-dasharray="3 3"/>`
+  ).join("");
+  svgContent += `<line x1="${scaledLeft}" y1="${PAD.top}" x2="${scaledLeft}" y2="${PAD.top + plotH}" stroke="var(--border)" stroke-width="1"/>`;
+  svgContent += `<line x1="${scaledLeft}" y1="${PAD.top + plotH}" x2="${scaledLeft + scaledPlotW}" y2="${PAD.top + plotH}" stroke="var(--border)" stroke-width="1"/>`;
+  if (def.showXLabels) {
+    svgContent += xTicks.map((d) => {
+      const x = toX(d);
+      if (x < scaledLeft || x > scaledLeft + scaledPlotW) return "";
+      return `<text x="${x}" y="${PAD.top + plotH + 16}" text-anchor="middle" fill="var(--muted)" font-size="9" font-family="monospace">${d >= 1e3 ? (d / 1e3).toFixed(1) + "k" : d}</text>`;
+    }).join("");
+    svgContent += `<text x="${scaledLeft + scaledPlotW / 2}" y="${H - 2}" text-anchor="middle" fill="var(--muted)" font-size="9" font-family="monospace">Distance (m)</text>`;
+  }
+  for (const ch of def.channels || []) {
+    const key = `${ch.trace}_${ch.col}`;
+    const binArr = bins[key];
+    if (!binArr) continue;
+    const allChVals = [];
+    for (const ch2 of def.channels) {
+      const k2 = `${ch2.trace}_${ch2.col}`;
+      if (bins[k2]) {
+        for (let i = zoomStart; i <= zoomEnd && i < bins[k2].length; i++) {
+          const v = bins[k2][i];
+          if (isFinite(v)) allChVals.push(v);
+        }
+      }
+    }
+    const [yMin, yMax] = niceRange(allChVals.filter(isFinite), def.yFixed);
+    const toYp = (s) => toY(s, yMin, yMax);
+    if (ch === def.channels[0]) {
+      const yTicks = def.niceSteps ? computeNiceYTicks(yMin, yMax, plotH, def.niceSteps) : (() => {
+        const t = [], step = def.yStep;
+        for (let y = Math.ceil(yMin / step) * step; y <= yMax; y += step) t.push(y);
+        return t;
+      })();
+      svgContent += yTicks.map(
+        (y) => `<text x="${scaledLeft - 5}" y="${toYp(y) + 3}" text-anchor="end" fill="var(--muted)" font-size="9" font-family="monospace">${Number.isInteger(y) ? y : y.toFixed(1)}</text>`
+      ).join("");
+      svgContent += yTicks.map(
+        (y) => `<line x1="${scaledLeft}" y1="${toYp(y)}" x2="${scaledLeft + scaledPlotW}" y2="${toYp(y)}" stroke="var(--border)" stroke-width="0.4" stroke-dasharray="3 3"/>`
+      ).join("");
+      if (def.zeroline) {
+        svgContent += `<line x1="${scaledLeft}" y1="${toYp(0)}" x2="${scaledLeft + scaledPlotW}" y2="${toYp(0)}" stroke="rgba(255,255,255,0.2)" stroke-width="1"/>`;
+      }
+      if (def.midline != null) {
+        svgContent += `<line x1="${scaledLeft}" y1="${toYp(def.midline)}" x2="${scaledLeft + scaledPlotW}" y2="${toYp(def.midline)}" stroke="rgba(255,255,255,0.15)" stroke-width="1" stroke-dasharray="4 4"/>`;
+      }
+      def._yMin = yMin;
+      def._yMax = yMax;
+    }
+    const hasData = binArr.some && binArr.some((v) => v !== 0 && isFinite(v));
+    if (hasData) {
+      const pts = buildPolylinePts(distBins, Array.from(binArr), toX, toYp, ch.step);
+      const strokeDash = ch.dash ? 'stroke-dasharray="6 3"' : "";
+      svgContent += `<polyline points="${pts}" fill="none" stroke="${ch.color}" stroke-width="0.9" stroke-linejoin="round" ${strokeDash} clip-path="url(#clip-${def.id})"/>`;
+    }
+  }
+  if (sectorDists) {
+    for (const [dist, label] of [[sectorDists.s1dist, "S2"], [sectorDists.s2dist, "S3"]]) {
+      if (dist == null || dist < 0 || dist > maxDist) continue;
+      const x = toX(dist);
+      const yMin = def._yMin ?? 0, yMax = def._yMax ?? 1;
+      svgContent += `<line x1="${x}" y1="${PAD.top}" x2="${x}" y2="${PAD.top + plotH}" stroke="var(--sector-clr)" stroke-width="1" stroke-dasharray="4 4" clip-path="url(#clip-${def.id})"/>`;
+      svgContent += `<text x="${x + 3}" y="${PAD.top + 11}" fill="var(--sector-clr)" font-size="9" font-family="monospace">${label}</text>`;
+    }
+  }
+  if (def.activityStrip) {
+    const stripBins = bins[`session_${def.activityStrip.col}`];
+    if (stripBins && stripBins.length) {
+      const stripH = 4;
+      const stripY = PAD.top + plotH - stripH;
+      let runStart = -1;
+      for (let i = 0; i <= stripBins.length; i++) {
+        const on = i < stripBins.length && stripBins[i] >= 0.5;
+        if (on && runStart < 0) runStart = i;
+        else if (!on && runStart >= 0) {
+          const x1 = toX(runStart), x2 = toX(i);
+          if (x2 > x1) {
+            svgContent += `<rect x="${x1.toFixed(1)}" y="${stripY}" width="${(x2 - x1).toFixed(1)}" height="${stripH}" fill="${def.activityStrip.color}" fill-opacity="0.85" clip-path="url(#clip-${def.id})"/>`;
+          }
+          runStart = -1;
+        }
+      }
+    }
+  }
+  return `<svg class="panel-svg" viewBox="0 0 ${containerWidth} ${H}" data-panel-id="${def.id}" preserveAspectRatio="none">${svgContent}</svg>`;
+}
+function renderDtPanel(def, dtBins, maxDist, sectorDists, zoomRange, overlapRange, containerWidth = SVG_W) {
+  const H = def.height;
+  const plotH = H - PAD.top - PAD.bottom;
+  const scaleX = containerWidth / SVG_W;
+  const scaledPlotW = PLOT_W * scaleX;
+  const scaledLeft = PAD.left * scaleX;
+  const overlapStart = overlapRange ? Math.max(0, Math.ceil(overlapRange.start)) : 0;
+  const overlapEnd = overlapRange ? Math.min(maxDist, Math.floor(overlapRange.end)) : maxDist;
+  const zoomStart = Math.ceil(zoomRange.start);
+  const zoomEnd = Math.floor(zoomRange.end);
+  const rangeStart = Math.max(overlapStart, zoomStart);
+  const rangeEnd = Math.min(overlapEnd, zoomEnd);
+  const inRangeVals = [];
+  for (let i = rangeStart; i <= rangeEnd; i++) {
+    if (isFinite(dtBins[i])) inRangeVals.push(dtBins[i]);
+  }
+  const [yMin, yMax] = niceRange(inRangeVals, def.yFixed);
+  def._yMin = yMin;
+  def._yMax = yMax;
+  const toX = (d) => {
+    const zRange2 = zoomRange.end - zoomRange.start;
+    if (zRange2 <= 0) return scaledLeft;
+    const fracD = (d - zoomRange.start) / zRange2;
+    return scaledLeft + fracD * scaledPlotW;
+  };
+  const toY = (s) => PAD.top + plotH - (s - yMin) / (yMax - yMin) * plotH;
+  const distBins = Array.from({ length: maxDist + 1 }, (_, i) => i);
+  let svg = `<defs><clipPath id="clip-dt"><rect x="${scaledLeft}" y="${PAD.top}" width="${scaledPlotW}" height="${plotH}"/></clipPath></defs>`;
+  const zRange = zoomRange.end - zoomRange.start;
+  const distStep = Math.max(100, Math.ceil(zRange / 6 / 100) * 100);
+  const xTicks = [];
+  const startTick = Math.ceil(zoomRange.start / distStep) * distStep;
+  for (let d = startTick; d <= zoomRange.end; d += distStep) xTicks.push(d);
+  svg += xTicks.map(
+    (d) => `<line x1="${toX(d)}" y1="${PAD.top}" x2="${toX(d)}" y2="${PAD.top + plotH}" stroke="var(--border)" stroke-width="0.5" stroke-dasharray="3 3"/>`
+  ).join("");
+  svg += `<line x1="${scaledLeft}" y1="${PAD.top}" x2="${scaledLeft}" y2="${PAD.top + plotH}" stroke="var(--border)" stroke-width="1"/>`;
+  svg += `<line x1="${scaledLeft}" y1="${PAD.top + plotH}" x2="${scaledLeft + scaledPlotW}" y2="${PAD.top + plotH}" stroke="var(--border)" stroke-width="1"/>`;
+  svg += xTicks.map((d) => {
+    const x = toX(d);
+    if (x < scaledLeft || x > scaledLeft + scaledPlotW) return "";
+    return `<text x="${x}" y="${PAD.top + plotH + 16}" text-anchor="middle" fill="var(--muted)" font-size="9" font-family="monospace">${d >= 1e3 ? (d / 1e3).toFixed(1) + "k" : d}</text>`;
+  }).join("");
+  svg += `<text x="${scaledLeft + scaledPlotW / 2}" y="${H - 2}" text-anchor="middle" fill="var(--muted)" font-size="9" font-family="monospace">Distance (m)</text>`;
+  const yTicks = def.niceSteps ? computeNiceYTicks(yMin, yMax, plotH, def.niceSteps) : (() => {
+    const t = [], step = def.yStep;
+    for (let y = Math.ceil(yMin / step) * step; y <= yMax; y += step) t.push(y);
+    return t;
+  })();
+  svg += yTicks.map(
+    (y) => `<text x="${scaledLeft - 5}" y="${toY(y) + 3}" text-anchor="end" fill="var(--muted)" font-size="9" font-family="monospace">${y > 0 ? "+" : ""}${y}</text>`
+  ).join("");
+  svg += yTicks.map(
+    (y) => `<line x1="${scaledLeft}" y1="${toY(y)}" x2="${scaledLeft + scaledPlotW}" y2="${toY(y)}" stroke="var(--border)" stroke-width="0.4" stroke-dasharray="3 3"/>`
+  ).join("");
+  const zeroY = toY(Math.max(yMin, Math.min(yMax, 0)));
+  svg += `<polyline points="${scaledLeft},${zeroY} ${scaledLeft + scaledPlotW},${zeroY}" fill="none" stroke="var(--ref)" stroke-width="0.9" stroke-dasharray="6 3" clip-path="url(#clip-dt)"/>`;
+  const ptsArr = [];
+  for (let i = overlapStart; i <= overlapEnd; i++) {
+    ptsArr.push(`${toX(i).toFixed(1)},${toY(dtBins[i]).toFixed(1)}`);
+  }
+  svg += `<polyline points="${ptsArr.join(" ")}" fill="none" stroke="var(--session)" stroke-width="0.9" stroke-linejoin="round" clip-path="url(#clip-dt)"/>`;
+  const dtAt = (dist) => {
+    if (dist == null || dist < overlapStart || dist > overlapEnd) return null;
+    const i = Math.max(0, Math.min(Math.round(dist), dtBins.length - 1));
+    return dtBins[i];
+  };
+  const fmtMs = (v) => `${v >= 0 ? "+" : ""}${v.toFixed(0)} ms`;
+  const dtColor = (v) => v > 5 ? "var(--dt-pos)" : v < -5 ? "var(--dt-neg)" : "var(--muted)";
+  if (sectorDists) {
+    for (const [dist, label] of [[sectorDists.s1dist, "S2"], [sectorDists.s2dist, "S3"]]) {
+      if (dist == null || dist < 0 || dist > maxDist) continue;
+      const x = toX(dist);
+      svg += `<line x1="${x}" y1="${PAD.top}" x2="${x}" y2="${PAD.top + plotH}" stroke="var(--sector-clr)" stroke-width="1" stroke-dasharray="4 4" clip-path="url(#clip-dt)"/>`;
+      svg += `<text x="${x + 3}" y="${PAD.top + 11}" fill="var(--sector-clr)" font-size="9" font-family="monospace">${label}</text>`;
+      const v = dtAt(dist);
+      if (v != null && isFinite(v)) {
+        svg += `<text x="${x + 3}" y="${PAD.top + 22}" fill="${dtColor(v)}" font-size="9" font-family="monospace" font-weight="600">${fmtMs(v)}</text>`;
+      }
+    }
+  }
+  const lastDt = dtBins[overlapEnd];
+  if (isFinite(lastDt)) {
+    svg += `<text x="${scaledLeft + scaledPlotW - 4}" y="${PAD.top + 11}" text-anchor="end" fill="${dtColor(lastDt)}" font-size="10" font-family="monospace" font-weight="600">end ${fmtMs(lastDt)}</text>`;
+  }
+  return `<svg class="panel-svg" viewBox="0 0 ${containerWidth} ${H}" data-panel-id="dt" preserveAspectRatio="none">${svg}</svg>`;
+}
+
+// web/js/cursor.js
+init_appState();
+function initCursorAndZoom(renderAll2, getRenderState2) {
+  const plotArea = document.getElementById("plot-area");
+  const cursorLine = document.getElementById("cursor-line");
+  const tooltip = document.getElementById("tooltip");
+  function updateCursorDot(binIdx) {
+    const { currentTrackX: currentTrackX2, currentTrackZ: currentTrackZ2, trackTransform: trackTransform2 } = getRenderState2();
+    const cursorDot = document.getElementById("cursor-dot");
+    if (!cursorDot || !currentTrackX2 || !currentTrackZ2 || !trackTransform2) {
+      if (cursorDot) cursorDot.style.display = "none";
+      return;
+    }
+    if (binIdx === null || !isFinite(currentTrackX2[binIdx]) || !isFinite(currentTrackZ2[binIdx])) {
+      cursorDot.style.display = "none";
+      return;
+    }
+    const mapX = trackTransform2.toMapX(currentTrackX2[binIdx]);
+    const mapZ = trackTransform2.toMapZ(currentTrackZ2[binIdx]);
+    cursorDot.setAttribute("cx", mapX.toFixed(1));
+    cursorDot.setAttribute("cy", mapZ.toFixed(1));
+    cursorDot.style.display = "block";
+  }
+  function updateCursorPosition(e) {
+    const { currentSessionBins: currentSessionBins2, currentRefBins: currentRefBins2, currentZoomRange: currentZoomRange2, currentOverlapRange: currentOverlapRange2, currentDtBins: currentDtBins2 } = getRenderState2();
+    if (!currentSessionBins2) return;
+    const rect = plotArea.getBoundingClientRect();
+    const mx = e.clientX - rect.left;
+    const firstSvg = plotArea.querySelector(".panel-svg");
+    if (!firstSvg) return;
+    const svgRect = firstSvg.getBoundingClientRect();
+    const svgLeft = svgRect.left - rect.left;
+    const svgWidth = svgRect.width;
+    const plotLeft = svgLeft + PAD.left * (svgWidth / SVG_W);
+    const plotRight = svgLeft + (PAD.left + PLOT_W) * (svgWidth / SVG_W);
+    if (mx < plotLeft || mx > plotRight) {
+      cursorLine.style.transform = "translateX(-9999px)";
+      tooltip.style.display = "none";
+      updateCursorDot(null);
+      return;
+    }
+    cursorLine.style.transform = `translateX(${mx}px)`;
+    const zRange = currentZoomRange2.end - currentZoomRange2.start;
+    const fracX = (mx - plotLeft) / (plotRight - plotLeft);
+    const dist = currentZoomRange2.start + fracX * zRange;
+    const binIdx = Math.max(0, Math.min(Math.round(dist), state.maxDist));
+    updateCursorDot(binIdx);
+    const sSpeed = currentSessionBins2.speed_kph?.[binIdx];
+    const rSpeed = currentRefBins2.speed_kph?.[binIdx];
+    const inOverlap = currentOverlapRange2 && binIdx >= Math.ceil(currentOverlapRange2.start) && binIdx <= Math.floor(currentOverlapRange2.end);
+    const sDt = inOverlap ? currentDtBins2?.[binIdx] : null;
+    const sThrottle = currentSessionBins2.throttle_norm?.[binIdx];
+    const sBrake = currentSessionBins2.brake_norm?.[binIdx];
+    const sAbs = currentSessionBins2.abs_active?.[binIdx];
+    const sTc = currentSessionBins2.tc_active?.[binIdx];
+    const flags = [
+      sAbs != null && sAbs >= 0.5 ? "ABS" : null,
+      sTc != null && sTc >= 0.5 ? "TC" : null
+    ].filter(Boolean);
+    const lines = [
+      `dist: ${binIdx} m`,
+      sSpeed != null ? `speed: ${sSpeed.toFixed(1)} / ${rSpeed?.toFixed(1) ?? "\u2014"} km/h` : "",
+      sThrottle != null ? `thr:   ${(sThrottle * 100).toFixed(0)}%   brk: ${((sBrake ?? 0) * 100).toFixed(0)}%` : "",
+      sDt != null ? `\u0394t:   ${sDt > 0 ? "+" : ""}${sDt.toFixed(0)} ms` : "",
+      flags.length ? `active: ${flags.join(", ")}` : ""
+    ].filter(Boolean);
+    tooltip.textContent = lines.join("\n");
+    tooltip.style.display = "block";
+    const tx = Math.min(mx + 14, rect.width - 180);
+    const ty = Math.max(8, Math.min(e.clientY - rect.top - 30, rect.height - 130));
+    tooltip.style.left = `${tx}px`;
+    tooltip.style.top = `${ty}px`;
+  }
+  function getPlotGeometry() {
+    const firstSvg = plotArea.querySelector(".panel-svg");
+    if (!firstSvg) return null;
+    const rect = plotArea.getBoundingClientRect();
+    const svgRect = firstSvg.getBoundingClientRect();
+    const svgLeft = svgRect.left - rect.left;
+    const svgWidth = svgRect.width;
+    const plotLeft = svgLeft + PAD.left * (svgWidth / SVG_W);
+    const plotRight = svgLeft + (PAD.left + PLOT_W) * (svgWidth / SVG_W);
+    return { rect, plotLeft, plotRight };
+  }
+  function distFromMx(mx, plotLeft, plotRight, zoomRange) {
+    const zRange = zoomRange.end - zoomRange.start;
+    const fracX = (mx - plotLeft) / (plotRight - plotLeft);
+    return zoomRange.start + fracX * zRange;
+  }
+  plotArea.addEventListener("mousedown", (e) => {
+    const { currentZoomRange: currentZoomRange2 } = getRenderState2();
+    if (!currentZoomRange2) return;
+    const geo = getPlotGeometry();
+    if (!geo) return;
+    if (e.clientX - geo.rect.left < geo.plotLeft || e.clientX - geo.rect.left > geo.plotRight) return;
+    state.dragging = true;
+    state.dragStartX = e.clientX - geo.rect.left;
+    state.dragStartDist = distFromMx(state.dragStartX, geo.plotLeft, geo.plotRight, currentZoomRange2);
+  });
+  plotArea.addEventListener("mousemove", (e) => {
+    const { currentSessionBins: currentSessionBins2, currentZoomRange: currentZoomRange2 } = getRenderState2();
+    if (state.dragging && currentSessionBins2 && currentZoomRange2) {
+      const geo = getPlotGeometry();
+      if (!geo) {
+        updateCursorPosition(e);
+        return;
+      }
+      const mx = e.clientX - geo.rect.left;
+      const selRect = document.getElementById("zoom-selection-rect");
+      const x1 = Math.max(geo.plotLeft, Math.min(state.dragStartX, mx));
+      const x2 = Math.max(geo.plotLeft, Math.min(Math.max(state.dragStartX, mx), geo.plotRight));
+      selRect.style.left = `${x1}px`;
+      selRect.style.width = `${x2 - x1}px`;
+      selRect.classList.add("active");
+    } else {
+      updateCursorPosition(e);
+    }
+  });
+  plotArea.addEventListener("mouseup", (e) => {
+    if (!state.dragging) return;
+    state.dragging = false;
+    const selRect = document.getElementById("zoom-selection-rect");
+    selRect.classList.remove("active");
+    selRect.style.left = "0";
+    selRect.style.width = "0";
+    const { currentSessionBins: currentSessionBins2, currentZoomRange: currentZoomRange2, maxDist } = getRenderState2();
+    if (!currentSessionBins2 || !currentZoomRange2) return;
+    const geo = getPlotGeometry();
+    if (!geo) return;
+    const mx = e.clientX - geo.rect.left;
+    const dist2 = distFromMx(mx, geo.plotLeft, geo.plotRight, currentZoomRange2);
+    const d1 = Math.max(0, Math.min(state.dragStartDist, dist2));
+    const d2 = Math.min(maxDist, Math.max(state.dragStartDist, dist2));
+    if (d2 - d1 > 10) {
+      currentZoomRange2.start = d1;
+      currentZoomRange2.end = d2;
+      persistZoom(currentZoomRange2, maxDist);
+      renderAll2(...state.currentRenderParams);
+    }
+  });
+  plotArea.addEventListener("dblclick", (e) => {
+    const { currentSessionBins: currentSessionBins2, currentZoomRange: currentZoomRange2, maxDist } = getRenderState2();
+    if (!currentSessionBins2 || !currentZoomRange2) return;
+    currentZoomRange2.start = 0;
+    currentZoomRange2.end = maxDist;
+    persistZoom(currentZoomRange2, maxDist);
+    renderAll2(...state.currentRenderParams);
+  });
+  plotArea.addEventListener("mouseleave", () => {
+    if (!state.dragging) {
+      cursorLine.style.transform = "translateX(-9999px)";
+      tooltip.style.display = "none";
+      updateCursorDot(null);
+    }
+  });
+  document.addEventListener("keydown", (e) => {
+    const { currentSessionBins: currentSessionBins2, currentZoomRange: currentZoomRange2, maxDist } = getRenderState2();
+    if (e.key === "Escape" && currentSessionBins2 && currentZoomRange2) {
+      currentZoomRange2.start = 0;
+      currentZoomRange2.end = maxDist;
+      persistZoom(currentZoomRange2, maxDist);
+      renderAll2(...state.currentRenderParams);
+    }
+  });
+  document.getElementById("map-mode").addEventListener("change", (e) => {
+    setCurrentMapMode(e.target.value);
+    const { currentTrackX: currentTrackX2, currentTrackZ: currentTrackZ2, trackTransform: trackTransform2, currentZoomRange: currentZoomRange2, currentMaxDist: currentMaxDist2, currentSessionBins: currentSessionBins2 } = getRenderState2();
+    if (currentSessionBins2) {
+      renderCircuitMap(currentTrackX2, currentTrackZ2, trackTransform2, currentZoomRange2, currentMaxDist2, currentSessionBins2);
+    }
+  });
+}
+
+// web/js/pickers.js
+init_appState();
+function rebuildPickers() {
+  const sessionPicker = document.getElementById("session-picker");
+  const refPicker = document.getElementById("ref-picker");
+  const prevSession = sessionPicker.value;
+  const prevRef = refPicker.value;
+  const optHtml = [];
+  let hasOptions = false;
+  for (const [key, entry] of store) {
+    const total = entry.segments.length;
+    const sc = entry.sidecar;
+    const vehicleLabel = entry.isDeltabest ? sc?.vehicle_name : sc ? shortVehicle(sc.vehicle_name) : "";
+    const groupMeta = sc ? ` \u2014 ${vehicleLabel}${sc.setup_file_guess ? ` (${shortSetup(sc.setup_file_guess)})` : ""}` : "";
+    const groupLabel = `${entry.fileName}${groupMeta}`;
+    let groupHtml = `<optgroup label="${groupLabel}">`;
+    for (let i = 0; i < total; i++) {
+      const seg = entry.segments[i];
+      const lapTimes = entry.data.lap_time_s;
+      const sliceTimes = lapTimes.slice(seg.start, seg.end);
+      const dur = sliceTimes.length ? Math.max(...sliceTimes) : 0;
+      let label = `  Lap ${i + 1}  (lap# ${seg.lapNum})  ${formatDuration(dur)}`;
+      label += lapStatusBadges(seg);
+      if (seg.fastest) label += "  \u2605";
+      const valStr = `${key}::${i}`;
+      groupHtml += `<option value="${valStr}">${label}</option>`;
+      hasOptions = true;
+    }
+    groupHtml += "</optgroup>";
+    optHtml.push(groupHtml);
+  }
+  const placeholder = '<option value="">\u2014 load a session file \u2014</option>';
+  const inner = hasOptions ? optHtml.join("") : placeholder;
+  sessionPicker.innerHTML = inner;
+  refPicker.innerHTML = inner;
+  if (hasOptions) {
+    sessionPicker.disabled = false;
+    refPicker.disabled = false;
+    if (prevSession && sessionPicker.querySelector(`option[value="${prevSession}"]`))
+      sessionPicker.value = prevSession;
+    if (prevRef && refPicker.querySelector(`option[value="${prevRef}"]`))
+      refPicker.value = prevRef;
+  } else {
+    sessionPicker.disabled = true;
+    refPicker.disabled = true;
+  }
+  updateCompareBtn();
+}
+function updateCompareBtn() {
+  const sp = document.getElementById("session-picker");
+  const rp = document.getElementById("ref-picker");
+  document.getElementById("compare-btn").disabled = !sp.value || !rp.value;
+}
+function parsePickerValue(val) {
+  if (!val) return null;
+  const lastSep = val.lastIndexOf("::");
+  if (lastSep < 0) return null;
+  const key = val.slice(0, lastSep);
+  const segIdx = parseInt(val.slice(lastSep + 2), 10);
+  return { key, segIdx };
+}
+function addSessionEntry(name, key, statusText) {
+  const list = document.getElementById("session-list");
+  const entry = document.createElement("div");
+  entry.className = "session-entry";
+  entry.dataset.key = key;
+  entry.innerHTML = `
+    <span class="fname" title="${name}">${name}</span>
+    <span class="badge loading" id="badge-${CSS.escape(key)}">${statusText}</span>
+    <button class="remove-btn" title="Remove" aria-label="Remove">\xD7</button>
+  `;
+  entry.querySelector(".remove-btn").addEventListener("click", () => {
+    store.delete(key);
+    entry.remove();
+    rebuildPickers();
+    const count = store.size;
+    const ls = document.getElementById("load-status");
+    ls.textContent = count ? `${count} file(s) loaded` : "no files loaded";
+    ls.className = count ? "badge ok" : "badge";
+  });
+  list.appendChild(entry);
+  return document.getElementById(`badge-${CSS.escape(key)}`);
+}
+function refreshSessionListBadges() {
+  for (const [key, entry] of store) {
+    const badge = document.getElementById(`badge-${CSS.escape(key)}`);
+    if (!badge) continue;
+    const meta = entry.sidecar ? ` \xB7 ${shortVehicle(entry.sidecar.vehicle_name)}` : "";
+    const text = `${entry.data.lap_number.length} rows \xB7 ${entry.segments.length} laps${meta}`;
+    setBadge(badge, "ok", text);
+  }
+}
+
+// web/js/ui.js
+init_appState();
+
+// web/js/dataTransforms.js
+function parseDeltabestCsv(text) {
+  const dist = [], time = [];
+  for (const rawLine of text.split(/\r?\n/)) {
+    const line = rawLine.trim();
+    if (!line || line.startsWith("#")) continue;
+    const parts = line.split(",");
+    if (parts.length < 2) continue;
+    const d = parseFloat(parts[0]);
+    const t = parseFloat(parts[1]);
+    if (!Number.isFinite(d) || !Number.isFinite(t)) continue;
+    dist.push(d);
+    time.push(t);
+  }
+  if (dist.length < 10) {
+    throw new Error(`only ${dist.length} valid rows`);
+  }
+  const n = dist.length;
+  const speedRaw = new Float32Array(n);
+  for (let i = 1; i < n; i++) {
+    const dd = dist[i] - dist[i - 1];
+    const dt = Math.max(time[i] - time[i - 1], 1e-3);
+    speedRaw[i] = dd / dt * 3.6;
+  }
+  speedRaw[0] = speedRaw[1];
+  const speed = new Float32Array(n);
+  for (let i = 0; i < n; i++) {
+    const a = speedRaw[Math.max(0, i - 1)];
+    const b = speedRaw[i];
+    const c = speedRaw[Math.min(n - 1, i + 1)];
+    speed[i] = (a + b + c) / 3;
+  }
+  const lapNum = new Int32Array(n);
+  const lapDist = new Float32Array(dist);
+  const lapTime = new Float32Array(time);
+  return {
+    data: {
+      lap_number: lapNum,
+      lap_time_s: lapTime,
+      lap_distance_m: lapDist,
+      speed_kph: speed,
+      throttle_norm: [],
+      brake_norm: [],
+      engine_rpm: [],
+      gear: [],
+      steering_norm: [],
+      slip_angle_fl_deg: [],
+      slip_angle_fr_deg: [],
+      last_sector_1_s: [],
+      last_sector_2_s: [],
+      pos_x_m: [],
+      pos_z_m: [],
+      abs_active: [],
+      tc_active: []
+    },
+    segments: [{ lapNum: 0, start: 0, end: n }],
+    rowCount: n
+  };
+}
+function buildDeltabestSidecar(rowCount) {
+  return {
+    schema_version: "tinypedal-deltabest",
+    sim: "tinypedal",
+    track: "unknown",
+    vehicle_name: "TinyPedal deltabest",
+    setup_file_guess: null,
+    sample_rate_hz: null,
+    row_count: rowCount,
+    lap_count: 1,
+    in_progress: false
+  };
+}
+
+// web/js/ui.js
+async function loadDeltabestCsv(file) {
+  const key = storeKey(file);
+  if (store.has(key)) return;
+  const badge = addSessionEntry(file.name, key, "parsing\u2026");
+  setBadge(badge, "loading", "parsing\u2026");
+  try {
+    const text = await file.text();
+    const { data, segments, rowCount } = parseDeltabestCsv(text);
+    const sidecar = buildDeltabestSidecar(rowCount);
+    annotateSegments(segments, data.lap_distance_m, data.lap_time_s);
+    store.set(key, {
+      fileName: file.name,
+      data,
+      segments,
+      hasSlip: false,
+      hasSectors: false,
+      sidecar,
+      isDeltabest: true
+    });
+    setBadge(badge, "ok", `${rowCount} rows \xB7 TinyPedal deltabest`);
+    rebuildPickers();
+    document.getElementById("load-status").textContent = `${store.size} file(s) loaded`;
+    document.getElementById("load-status").className = "badge ok";
+  } catch (e) {
+    setBadge(badge, "err", `csv: ${e.message.slice(0, 60)}`);
+    console.error("deltabest csv error", e);
+    showError(`Failed to parse ${file.name}: ${e.message}`);
+  }
+}
+async function loadSidecar(file) {
+  try {
+    const text = await file.text();
+    const sidecar = JSON.parse(text);
+    const stem = fileStem(file.name);
+    let attached = false;
+    for (const [key, entry] of store) {
+      if (fileStem(entry.fileName) === stem) {
+        entry.sidecar = sidecar;
+        attached = true;
+        break;
+      }
+    }
+    if (!attached) pendingSidecars.set(stem, sidecar);
+    rebuildPickers();
+    refreshSessionListBadges();
+  } catch (e) {
+    console.warn(`sidecar parse failed for ${file.name}: ${e.message}`);
+  }
+}
+async function loadFile(file, renderAll2) {
+  const lname = file.name.toLowerCase();
+  if (lname.endsWith(".json")) {
+    return loadSidecar(file);
+  }
+  if (lname.endsWith(".csv")) {
+    return loadDeltabestCsv(file);
+  }
+  const key = storeKey(file);
+  if (store.has(key)) return;
+  const badge = addSessionEntry(file.name, key, "loading\u2026");
+  setBadge(badge, "loading", "loading\u2026");
+  try {
+    const { data, missingCols } = await readColumns(file, [
+      "lap_number",
+      "lap_time_s",
+      "lap_distance_m",
+      "speed_kph",
+      "throttle_norm",
+      "brake_norm",
+      "engine_rpm",
+      "gear",
+      "steering_norm",
+      "slip_angle_fl_deg",
+      "slip_angle_fr_deg",
+      "last_sector_1_s",
+      "last_sector_2_s",
+      "pos_x_m",
+      "pos_z_m",
+      "abs_active",
+      "tc_active"
+    ]);
+    const segments = buildSegments(data.lap_number);
+    annotateSegments(segments, data.lap_distance_m, data.lap_time_s);
+    const hasSlip = data.slip_angle_fl_deg.length > 0;
+    const hasSectors = data.last_sector_1_s.length > 0;
+    const stem = fileStem(file.name);
+    const sidecar = pendingSidecars.get(stem) || null;
+    if (sidecar) pendingSidecars.delete(stem);
+    store.set(key, {
+      fileName: file.name,
+      data,
+      segments,
+      hasSlip,
+      hasSectors,
+      sidecar
+    });
+    const expectedOptional = /* @__PURE__ */ new Set([
+      "last_sector_1_s",
+      "last_sector_2_s",
+      "slip_angle_fl_deg",
+      "slip_angle_fr_deg",
+      "abs_active",
+      "tc_active"
+    ]);
+    const missing = missingCols.filter((c) => !expectedOptional.has(c));
+    const metaSuffix = sidecar ? ` \xB7 ${shortVehicle(sidecar.vehicle_name)}` : "";
+    if (missing.length) {
+      setBadge(badge, "ok", `${data.lap_number.length} rows \xB7 ${segments.length} laps${metaSuffix} (\u26A0 missing: ${missing.join(",")})`);
+    } else {
+      setBadge(badge, "ok", `${data.lap_number.length} rows \xB7 ${segments.length} laps${metaSuffix}`);
+    }
+    rebuildPickers();
+    document.getElementById("load-status").textContent = `${store.size} file(s) loaded`;
+    document.getElementById("load-status").className = "badge ok";
+  } catch (e) {
+    setBadge(badge, "err", `error: ${e.message.slice(0, 60)}`);
+    console.error("load error", e);
+    showError(`Failed to load ${file.name}: ${e.message}`);
+  }
+}
+function disarmAllPanels() {
+  document.querySelectorAll('#panels .panel-wrap[draggable="true"]').forEach((el) => el.removeAttribute("draggable"));
+}
+function setupPanelDragHandlers(renderAll2) {
+  const panelsEl = document.getElementById("panels");
+  panelsEl.addEventListener("mousedown", (e) => {
+    const handle = e.target.closest(".drag-handle");
+    if (!handle) return;
+    const wrap = handle.closest(".panel-wrap");
+    if (wrap) wrap.setAttribute("draggable", "true");
+  });
+  panelsEl.addEventListener("mouseup", () => {
+    disarmAllPanels();
+  });
+  panelsEl.addEventListener("dragstart", (e) => {
+    const wrap = e.target.closest('.panel-wrap[draggable="true"]');
+    if (!wrap) return;
+    state.dragId = wrap.dataset.panelId;
+    e.dataTransfer.effectAllowed = "move";
+    e.dataTransfer.setData("text/plain", state.dragId);
+  });
+  panelsEl.addEventListener("dragover", (e) => {
+    if (!state.dragId) return;
+    e.preventDefault();
+    e.dataTransfer.dropEffect = "move";
+    const wrap = e.target.closest(".panel-wrap");
+    if (!wrap) return;
+    document.querySelectorAll("#panels .panel-wrap.drag-over").forEach((el) => el.classList.remove("drag-over"));
+    wrap.classList.add("drag-over");
+  });
+  panelsEl.addEventListener("dragleave", (e) => {
+    const wrap = e.target.closest(".panel-wrap.drag-over");
+    if (wrap && !wrap.contains(e.relatedTarget)) wrap.classList.remove("drag-over");
+  });
+  panelsEl.addEventListener("drop", (e) => {
+    if (!state.dragId) return;
+    e.preventDefault();
+    document.querySelectorAll("#panels .panel-wrap.drag-over").forEach((el) => el.classList.remove("drag-over"));
+    const targetWrap = e.target.closest(".panel-wrap");
+    if (!targetWrap) return;
+    const targetId = targetWrap.dataset.panelId;
+    if (targetId === state.dragId) return;
+    Promise.resolve().then(() => (init_appState(), appState_exports)).then(({ panelOrder: panelOrder2 }) => {
+      const from = panelOrder2.indexOf(state.dragId);
+      const to = panelOrder2.indexOf(targetId);
+      if (from < 0 || to < 0) return;
+      panelOrder2.splice(from, 1);
+      panelOrder2.splice(to, 0, state.dragId);
+      persistPanelOrder([...panelOrder2]);
+      if (state.currentRenderParams && renderAll2) renderAll2(...state.currentRenderParams);
+      state.dragId = null;
+    });
+  });
+  panelsEl.addEventListener("dragend", () => {
+    document.querySelectorAll("#panels .panel-wrap.drag-over").forEach((el) => el.classList.remove("drag-over"));
+    disarmAllPanels();
+    state.dragId = null;
+  });
+  const orderReset = document.getElementById("order-reset");
+  if (orderReset) {
+    orderReset.addEventListener("click", () => {
+      Promise.resolve().then(() => (init_appState(), appState_exports)).then(({ panelOrder: panelOrder2, DEFAULT_PANEL_ORDER: DEFAULT_PANEL_ORDER2 }) => {
+        panelOrder2.splice(0, panelOrder2.length, ...DEFAULT_PANEL_ORDER2);
+        persistPanelOrder([...panelOrder2]);
+        if (state.currentRenderParams && renderAll2) renderAll2(...state.currentRenderParams);
+      });
+    });
+  }
+}
+function syncFeatureFlagMenu(menu) {
+  if (!menu) return;
+  const current = menu.value;
+  menu.innerHTML = '<option value="">feature flags</option>';
+  for (const [name, enabled] of Object.entries(features)) {
+    const opt = document.createElement("option");
+    opt.value = name;
+    opt.textContent = `${enabled ? "\u2713" : "\u25CB"} ${name}`;
+    menu.appendChild(opt);
+  }
+  menu.value = current && features[current] !== void 0 ? current : "";
+}
+function initUI(renderAll2) {
+  document.getElementById("load-btn").addEventListener("click", () => {
+    document.getElementById("file-input").click();
+  });
+  document.getElementById("file-input").addEventListener("change", async (e) => {
+    clearError();
+    const files = Array.from(e.target.files || []);
+    await Promise.all(files.map((f) => loadFile(f, renderAll2)));
+    e.target.value = "";
+  });
+  document.getElementById("compare-btn").addEventListener("click", () => {
+    clearError();
+    const sp = parsePickerValue(document.getElementById("session-picker").value);
+    const rp = parsePickerValue(document.getElementById("ref-picker").value);
+    if (!sp || !rp) return;
+    const sEntry = store.get(sp.key);
+    const rEntry = store.get(rp.key);
+    if (!sEntry || !rEntry) return;
+    state.currentRenderParams = [sEntry, sp.segIdx, rEntry, rp.segIdx];
+    renderAll2(sEntry, sp.segIdx, rEntry, rp.segIdx);
+  });
+  ["session-picker", "ref-picker"].forEach((id) => {
+    document.getElementById(id).addEventListener("change", () => {
+      updateCompareBtn();
+      const sp = parsePickerValue(document.getElementById("session-picker").value);
+      const rp = parsePickerValue(document.getElementById("ref-picker").value);
+      if (sp && rp) {
+        const sEntry = store.get(sp.key);
+        const rEntry = store.get(rp.key);
+        if (sEntry && rEntry) {
+          state.currentRenderParams = [sEntry, sp.segIdx, rEntry, rp.segIdx];
+          renderAll2(sEntry, sp.segIdx, rEntry, rp.segIdx);
+        }
+      }
+    });
+  });
+  document.getElementById("map-mode").addEventListener("change", (e) => {
+    Promise.resolve().then(() => (init_appState(), appState_exports)).then(({ setCurrentMapMode: setCurrentMapMode2 }) => {
+      setCurrentMapMode2(e.target.value);
+    });
+  });
+  const featureFlagMenu = document.getElementById("feature-flag-menu");
+  syncFeatureFlagMenu(featureFlagMenu);
+  featureFlagMenu?.addEventListener("change", (e) => {
+    const name = e.target.value;
+    if (!name) return;
+    setFeatureFlag(name, !features[name]);
+    syncFeatureFlagMenu(featureFlagMenu);
+    e.target.value = "";
+    if (state.currentRenderParams) renderAll2(...state.currentRenderParams);
+  });
+  const colourSessionInput = document.getElementById("colour-session");
+  const colourRefInput = document.getElementById("colour-ref");
+  const colourResetBtn = document.getElementById("colour-reset");
+  function syncColourInputs(colours) {
+    colourSessionInput.value = colours.session;
+    colourRefInput.value = colours.ref;
+  }
+  colourSessionInput.addEventListener("input", (e) => {
+    const colours = { session: e.target.value, ref: colourRefInput.value };
+    applyLapColour("session", colours.session);
+    applyLapColour("ref", colours.ref);
+    persistLapColours(colours);
+  });
+  colourRefInput.addEventListener("input", (e) => {
+    const colours = { session: colourSessionInput.value, ref: e.target.value };
+    applyLapColour("session", colours.session);
+    applyLapColour("ref", colours.ref);
+    persistLapColours(colours);
+  });
+  colourResetBtn.addEventListener("click", () => {
+    applyLapColour("session", LAP_COLOUR_DEFAULTS.session);
+    applyLapColour("ref", LAP_COLOUR_DEFAULTS.ref);
+    syncColourInputs(LAP_COLOUR_DEFAULTS);
+    persistLapColours(LAP_COLOUR_DEFAULTS);
+  });
+  const initialColours = loadPersistedColours() || { ...LAP_COLOUR_DEFAULTS };
+  applyLapColour("session", initialColours.session);
+  applyLapColour("ref", initialColours.ref);
+  syncColourInputs(initialColours);
+  setupPanelDragHandlers(renderAll2);
+}
+
+// web/js/debugHooks.js
+function syncFeatureFlagMenuLabels(features2) {
+  const menu = document.getElementById("feature-flag-menu");
+  if (!menu) return;
+  for (const option of menu.options) {
+    if (option.value && features2[option.value] !== void 0) {
+      option.textContent = `${features2[option.value] ? "\u2713" : "\u25CB"} ${option.value}`;
+    }
+  }
+}
+function installDebugHooks(deps) {
+  const {
+    store: store2,
+    features: features2,
+    devFeatures: devFeatures2,
+    resample: resample2,
+    smoothLapTime: smoothLapTime2,
+    smoothDt: smoothDt2,
+    computeDeltaT: computeDeltaT2,
+    computeKeepIndices: computeKeepIndices2,
+    fitToView: fitToView2,
+    setFeatureFlag: setFeatureFlag2,
+    setDevFeatureFlag: setDevFeatureFlag2,
+    renderTrackHeatmapMap: renderTrackHeatmapMap2
+  } = deps;
+  window.__features = features2;
+  window.__devFeatures = devFeatures2;
+  window.__getSessionKeys = () => [...store2.keys()];
+  window.__resamplerDebug = function(storeKeyStr, segIdx) {
+    const entry = store2.get(storeKeyStr);
+    if (!entry) throw new Error(`store key not found: ${storeKeyStr}`);
+    const seg = entry.segments[segIdx];
+    const dists = Array.from(entry.data.lap_distance_m.slice(seg.start, seg.end));
+    const speeds = Array.from(entry.data.speed_kph.slice(seg.start, seg.end));
+    const maxD = Math.ceil(Math.max(...dists));
+    return Array.from(resample2(dists, speeds, maxD));
+  };
+  window.__refResamplerDebug = function(storeKeyStr, segIdx) {
+    return window.__resamplerDebug(storeKeyStr, segIdx);
+  };
+  window.__dtDebug = function(sessionKey, sessionSeg, refKey, refSeg) {
+    const se = store2.get(sessionKey);
+    const re = store2.get(refKey);
+    if (!se || !re) throw new Error("store keys not found");
+    const sSeg = se.segments[sessionSeg];
+    const rSeg = re.segments[refSeg];
+    const sTrackLen = se.segments.reduce((m, s) => Math.max(m, s.maxDist || 0), 0);
+    const rTrackLen = re.segments.reduce((m, s) => Math.max(m, s.maxDist || 0), 0);
+    const sKeep = computeKeepIndices2(se.data.lap_time_s, se.data.lap_distance_m, sSeg.start, sSeg.end, sTrackLen);
+    const rKeep = computeKeepIndices2(re.data.lap_time_s, re.data.lap_distance_m, rSeg.start, rSeg.end, rTrackLen);
+    const sDist = sKeep.map((i) => se.data.lap_distance_m[i]);
+    const rDist = rKeep.map((i) => re.data.lap_distance_m[i]);
+    const maxD = Math.max(Math.ceil(Math.max(...sDist)), Math.ceil(Math.max(...rDist)));
+    const sBins = resample2(sDist, smoothLapTime2(se.data.lap_time_s, sKeep), maxD);
+    const rBins = resample2(rDist, smoothLapTime2(re.data.lap_time_s, rKeep), maxD);
+    return Array.from(smoothDt2(computeDeltaT2(sBins, rBins)));
+  };
+  window.__dtDebugOverlap = function(sessionKey, sessionSeg, refKey, refSeg) {
+    const se = store2.get(sessionKey);
+    const re = store2.get(refKey);
+    if (!se || !re) throw new Error("store keys not found");
+    const sSeg = se.segments[sessionSeg];
+    const rSeg = re.segments[refSeg];
+    const sTrackLen = se.segments.reduce((m, s) => Math.max(m, s.maxDist || 0), 0);
+    const rTrackLen = re.segments.reduce((m, s) => Math.max(m, s.maxDist || 0), 0);
+    const sKeep = computeKeepIndices2(se.data.lap_time_s, se.data.lap_distance_m, sSeg.start, sSeg.end, sTrackLen);
+    const rKeep = computeKeepIndices2(re.data.lap_time_s, re.data.lap_distance_m, rSeg.start, rSeg.end, rTrackLen);
+    const sDist = sKeep.map((i) => se.data.lap_distance_m[i]);
+    const rDist = rKeep.map((i) => re.data.lap_distance_m[i]);
+    return {
+      start: Math.max(Math.min(...sDist), Math.min(...rDist)),
+      end: Math.min(Math.ceil(Math.max(...sDist)), Math.ceil(Math.max(...rDist)))
+    };
+  };
+  window.__setFeatureFlag = (name, value) => {
+    setFeatureFlag2(name, value);
+    syncFeatureFlagMenuLabels(features2);
+    if (name === "mapWalkingSkeleton" || name === "mapTrackOutline" || name === "mapHeatmapSingleLap" || name === "mapSAlignment" || name === "mapDualRibbon" || name === "mapZoomPan" || name === "mapLegend" || name === "mapHover" || name === "mapLinkedHighlight") {
+      renderTrackHeatmapMap2();
+    }
+  };
+  window.__setDevFeatureFlag = (name, value) => {
+    setDevFeatureFlag2(name, value);
+    if (name === "devMapSAlignmentDebug") {
+      renderTrackHeatmapMap2();
+    }
+  };
+  window.__fitToView = function(bounds, w, h, padding) {
+    const r = fitToView2(bounds, bounds, w, h, padding);
+    return { scale: r.scale, offsetX: r.offsetX, offsetY: r.offsetY };
+  };
+  window.__setFeatureFlagMenuEnabled = function(enabled) {
+    const menu = document.getElementById("feature-flag-menu");
+    if (menu) menu.style.display = enabled ? "" : "none";
+  };
+}
+
+// web/js/panelConfig.js
+var PANEL_DEFS = [
+  {
+    id: "speed",
+    label: "Speed (km/h)",
+    height: 140,
+    channels: [
+      { col: "speed_kph", trace: "session", color: "var(--session)", dash: false },
+      { col: "speed_kph", trace: "ref", color: "var(--ref)", dash: true }
+    ],
+    yFixed: null,
+    yStep: 50,
+    zeroline: false
+  },
+  {
+    id: "throttle",
+    label: "Throttle",
+    height: 60,
+    channels: [
+      { col: "throttle_norm", trace: "session", color: "var(--session)", dash: false },
+      { col: "throttle_norm", trace: "ref", color: "var(--ref)", dash: true }
+    ],
+    yFixed: [0, 1],
+    yStep: 0.5,
+    zeroline: false,
+    activityStrip: { col: "tc_active", color: "var(--throttle)" }
+  },
+  {
+    id: "tc",
+    label: "TC active",
+    height: 50,
+    channels: [
+      { col: "tc_active", trace: "session", color: "var(--throttle)", dash: false, step: true }
+    ],
+    yFixed: [0, 1],
+    yStep: 1,
+    midline: 0.5,
+    zeroline: false
+  },
+  {
+    id: "brake",
+    label: "Brake",
+    height: 60,
+    channels: [
+      { col: "brake_norm", trace: "session", color: "var(--session)", dash: false },
+      { col: "brake_norm", trace: "ref", color: "var(--ref)", dash: true }
+    ],
+    yFixed: [0, 1],
+    yStep: 0.5,
+    zeroline: false,
+    activityStrip: { col: "abs_active", color: "var(--brake)" }
+  },
+  {
+    id: "abs",
+    label: "ABS active",
+    height: 50,
+    channels: [
+      { col: "abs_active", trace: "session", color: "var(--brake)", dash: false, step: true }
+    ],
+    yFixed: [0, 1],
+    yStep: 1,
+    midline: 0.5,
+    zeroline: false
+  },
+  {
+    id: "rpm",
+    label: "RPM",
+    height: 80,
+    channels: [
+      { col: "engine_rpm", trace: "session", color: "var(--session)", dash: false },
+      { col: "engine_rpm", trace: "ref", color: "var(--ref)", dash: true }
+    ],
+    yFixed: null,
+    yStep: 2e3,
+    zeroline: false
+  },
+  {
+    id: "gear",
+    label: "Gear",
+    height: 60,
+    heightMultiplier: 1.3,
+    channels: [
+      { col: "gear", trace: "session", color: "var(--session)", dash: false, step: true },
+      { col: "gear", trace: "ref", color: "var(--ref)", dash: true, step: true }
+    ],
+    yFixed: null,
+    yStep: 1,
+    zeroline: false
+  },
+  {
+    id: "steering",
+    label: "Steering",
+    height: 80,
+    channels: [
+      { col: "steering_norm", trace: "session", color: "var(--session)", dash: false },
+      { col: "steering_norm", trace: "ref", color: "var(--ref)", dash: true }
+    ],
+    yFixed: [-1, 1],
+    yStep: 0.5,
+    zeroline: true
+  },
+  {
+    id: "slip",
+    label: "Slip angle FL / FR (deg)",
+    height: 80,
+    channels: [
+      { col: "slip_angle_fl_deg", trace: "session", color: "var(--slip-fl)", dash: false },
+      { col: "slip_angle_fl_deg", trace: "ref", color: "var(--slip-fl)", dash: true },
+      { col: "slip_angle_fr_deg", trace: "session", color: "var(--slip-fr)", dash: false },
+      { col: "slip_angle_fr_deg", trace: "ref", color: "var(--slip-fr)", dash: true }
+    ],
+    yFixed: null,
+    yStep: 2,
+    zeroline: false,
+    niceSteps: [0.5, 1, 2, 5]
+  },
+  {
+    id: "dt",
+    label: "\u0394t (ms, +session slower)",
+    height: 100,
+    channels: null,
+    yFixed: null,
+    yStep: 100,
+    zeroline: true,
+    niceSteps: [1, 2, 5, 10, 25, 50, 100, 250, 500, 1e3]
+  }
+];
+
+// web/js/main.js
+import { parquetRead, parquetMetadataAsync } from "https://cdn.jsdelivr.net/npm/hyparquet@1/+esm";
+import { compressors } from "https://cdn.jsdelivr.net/npm/hyparquet-compressors@1/+esm";
+var currentSessionBins = null;
+var currentRefBins = null;
+var currentMaxDist = 0;
+var currentDtBins = null;
+var currentTrackX = null;
+var currentTrackZ = null;
+var currentRefTrackX = null;
+var currentRefTrackZ = null;
+var trackHeatmapObserver = null;
+var currentZoomRange = null;
+var currentOverlapRange = null;
+var trackTransform = null;
+var currentLapARaw = null;
+var currentLapBRaw = null;
+var mapInteraction = null;
+var mapHover = null;
+function renderAll(sessionEntry, sessionSegIdx, refEntry, refSegIdx) {
+  const sSeg = sessionEntry.segments[sessionSegIdx];
+  const rSeg = refEntry.segments[refSegIdx];
+  const sTrackLen = sessionEntry.segments.reduce((m, s) => Math.max(m, s.maxDist || 0), 0);
+  const rTrackLen = refEntry.segments.reduce((m, s) => Math.max(m, s.maxDist || 0), 0);
+  const sKeep = computeKeepIndices(sessionEntry.data.lap_time_s, sessionEntry.data.lap_distance_m, sSeg.start, sSeg.end, sTrackLen);
+  const rKeep = computeKeepIndices(refEntry.data.lap_time_s, refEntry.data.lap_distance_m, rSeg.start, rSeg.end, rTrackLen);
+  const sDistRaw = sKeep.map((i) => sessionEntry.data.lap_distance_m[i]);
+  const rDistRaw = rKeep.map((i) => refEntry.data.lap_distance_m[i]);
+  if (devFeatures.devMapSAlignmentDebug) {
+    assertStrictlyMonotonic(sDistRaw);
+    assertStrictlyMonotonic(rDistRaw);
+  }
+  const sMaxDist = Math.ceil(Math.max(...sDistRaw));
+  const rMaxDist = Math.ceil(Math.max(...rDistRaw));
+  const sMinDist = Math.min(...sDistRaw);
+  const rMinDist = Math.min(...rDistRaw);
+  const maxDist = Math.max(sMaxDist, rMaxDist);
+  currentOverlapRange = {
+    start: Math.max(sMinDist, rMinDist),
+    end: Math.min(sMaxDist, rMaxDist)
+  };
+  currentMaxDist = maxDist;
+  currentSessionBins = {};
+  currentRefBins = {};
+  if (!currentZoomRange) {
+    currentZoomRange = loadPersistedZoom(maxDist) || { start: 0, end: maxDist };
+  } else {
+    currentZoomRange.end = Math.min(currentZoomRange.end, maxDist);
+  }
+  for (const def of PANEL_DEFS) {
+    if (!def.channels) continue;
+    for (const ch of def.channels) {
+      const entry = ch.trace === "session" ? sessionEntry : refEntry;
+      const keep = ch.trace === "session" ? sKeep : rKeep;
+      const raw = entry.data[ch.col];
+      if (!raw || raw.length === 0) {
+        const bins2 = new Float64Array(maxDist + 1);
+        if (ch.trace === "session") currentSessionBins[ch.col] = bins2;
+        else currentRefBins[ch.col] = bins2;
+        continue;
+      }
+      const distSlice = ch.trace === "session" ? sDistRaw : rDistRaw;
+      const valSlice = ch.col === "gear" ? smoothGear(raw, keep) : keep.map((i) => raw[i]);
+      const bins = resample(distSlice, valSlice, maxDist);
+      if (ch.col === "gear") {
+        for (let k = 0; k < bins.length; k++) bins[k] = Math.round(bins[k]);
+      }
+      if (ch.trace === "session") currentSessionBins[ch.col] = bins;
+      else currentRefBins[ch.col] = bins;
+    }
+  }
+  for (const def of PANEL_DEFS) {
+    if (!def.activityStrip) continue;
+    const col = def.activityStrip.col;
+    if (currentSessionBins[col]) continue;
+    const raw = sessionEntry.data[col];
+    if (!raw || raw.length === 0) continue;
+    const valSlice = sKeep.map((i) => raw[i]);
+    currentSessionBins[col] = resample(sDistRaw, valSlice, maxDist);
+  }
+  if (sessionEntry.data.pos_x_m && sessionEntry.data.pos_z_m) {
+    const sTrackX = resample(sDistRaw, sKeep.map((i) => sessionEntry.data.pos_x_m[i]), maxDist);
+    const sTrackZ = resample(sDistRaw, sKeep.map((i) => sessionEntry.data.pos_z_m[i]), maxDist);
+    currentTrackX = sTrackX;
+    currentTrackZ = sTrackZ;
+  }
+  if (refEntry.data.pos_x_m && refEntry.data.pos_z_m) {
+    const rTrackX = resample(rDistRaw, rKeep.map((i) => refEntry.data.pos_x_m[i]), maxDist);
+    const rTrackZ = resample(rDistRaw, rKeep.map((i) => refEntry.data.pos_z_m[i]), maxDist);
+    currentRefTrackX = rTrackX;
+    currentRefTrackZ = rTrackZ;
+  } else {
+    currentRefTrackX = null;
+    currentRefTrackZ = null;
+    currentLapBRaw = null;
+  }
+  currentLapARaw = {
+    s: new Float64Array(sDistRaw),
+    x: new Float64Array(sKeep.map((i) => sessionEntry.data.pos_x_m?.[i] ?? NaN)),
+    z: new Float64Array(sKeep.map((i) => sessionEntry.data.pos_z_m?.[i] ?? NaN)),
+    throttle: new Float64Array(sKeep.map((i) => sessionEntry.data.throttle_norm?.[i] ?? 0)),
+    brake: new Float64Array(sKeep.map((i) => sessionEntry.data.brake_norm?.[i] ?? 0))
+  };
+  if (currentRefTrackX) {
+    currentLapBRaw = {
+      s: new Float64Array(rDistRaw),
+      x: new Float64Array(rKeep.map((i) => refEntry.data.pos_x_m?.[i] ?? NaN)),
+      z: new Float64Array(rKeep.map((i) => refEntry.data.pos_z_m?.[i] ?? NaN)),
+      throttle: new Float64Array(rKeep.map((i) => refEntry.data.throttle_norm?.[i] ?? 0)),
+      brake: new Float64Array(rKeep.map((i) => refEntry.data.brake_norm?.[i] ?? 0))
+    };
+  }
+  const sLapTime = sessionEntry.data.lap_time_s;
+  const rLapTime = refEntry.data.lap_time_s;
+  const sLapTimeBins = sLapTime && sLapTime.length ? resample(sDistRaw, smoothLapTime(sLapTime, sKeep), maxDist) : new Float64Array(maxDist + 1);
+  const rLapTimeBins = rLapTime && rLapTime.length ? resample(rDistRaw, smoothLapTime(rLapTime, rKeep), maxDist) : new Float64Array(maxDist + 1);
+  for (let d = 1; d < sLapTimeBins.length; d++) {
+    if (sLapTimeBins[d] < sLapTimeBins[d - 1]) sLapTimeBins[d] = sLapTimeBins[d - 1];
+  }
+  for (let d = 1; d < rLapTimeBins.length; d++) {
+    if (rLapTimeBins[d] < rLapTimeBins[d - 1]) rLapTimeBins[d] = rLapTimeBins[d - 1];
+  }
+  currentSessionBins["lap_time_s"] = sLapTimeBins;
+  currentRefBins["lap_time_s"] = rLapTimeBins;
+  currentDtBins = smoothDt(computeDeltaT(sLapTimeBins, rLapTimeBins));
+  const medianDelta = computeMedianFrameDistanceDelta(Array.from(sDistRaw));
+  const coarseDataWarning = medianDelta > 2;
+  const sectorDists = deriveSectorDistances(sessionEntry, sessionSegIdx);
+  const panelsDiv = document.getElementById("panels");
+  panelsDiv.innerHTML = "";
+  const hasSlip = sessionEntry.hasSlip || refEntry.hasSlip;
+  const hasAbs = currentSessionBins["abs_active"]?.some((v) => v >= 0.5) ?? false;
+  const hasTc = currentSessionBins["tc_active"]?.some((v) => v >= 0.5) ?? false;
+  const visibleIds = panelOrder.filter((id) => {
+    if (id === "slip" && !hasSlip) return false;
+    if (id === "abs" && !hasAbs) return false;
+    if (id === "tc" && !hasTc) return false;
+    return true;
+  });
+  const lastNonDtId = [...visibleIds].reverse().find((id) => id !== "dt");
+  for (const panelId of panelOrder) {
+    const def = PANEL_DEFS.find((d) => d.id === panelId);
+    if (!def) continue;
+    const wrap = document.createElement("div");
+    wrap.className = "panel-wrap";
+    wrap.dataset.panelId = def.id;
+    const labelEl = document.createElement("div");
+    labelEl.className = "panel-label";
+    let labelText = def.label;
+    if (def.id === "dt" && coarseDataWarning) {
+      labelText += " \u26A0 legacy distance resolution";
+    }
+    labelEl.innerHTML = `<span class="drag-handle">\u283F</span>${labelText}`;
+    wrap.appendChild(labelEl);
+    if (def.id === "abs" && !hasAbs) continue;
+    if (def.id === "tc" && !hasTc) continue;
+    if (def.id === "slip" && !hasSlip) {
+      const note = document.createElement("div");
+      note.style.cssText = `height:32px;line-height:32px;color:var(--muted);font-size:11px;padding-left:${PAD.left}px`;
+      note.textContent = "no slip angle data \u2014 requires a new recording";
+      wrap.appendChild(note);
+      panelsDiv.appendChild(wrap);
+      continue;
+    }
+    const containerWidth = panelsDiv.clientWidth || SVG_W;
+    let svgHtml;
+    if (def.id === "dt") {
+      def.showXLabels = true;
+      svgHtml = renderDtPanel(def, currentDtBins, maxDist, sectorDists, currentZoomRange, currentOverlapRange, containerWidth);
+    } else {
+      def.showXLabels = def.id === lastNonDtId;
+      const binsMap = {};
+      for (const ch of def.channels) {
+        const srcBins = ch.trace === "session" ? currentSessionBins : currentRefBins;
+        binsMap[`${ch.trace}_${ch.col}`] = srcBins[ch.col];
+      }
+      if (def.activityStrip && currentSessionBins[def.activityStrip.col]) {
+        binsMap[`session_${def.activityStrip.col}`] = currentSessionBins[def.activityStrip.col];
+      }
+      svgHtml = renderPanel(def, binsMap, maxDist, sectorDists, currentZoomRange, containerWidth);
+    }
+    wrap.insertAdjacentHTML("beforeend", svgHtml);
+    panelsDiv.appendChild(wrap);
+  }
+  document.getElementById("placeholder").style.display = "none";
+  const sl = formatPickLabel(sessionEntry, sessionSegIdx);
+  const rl = formatPickLabel(refEntry, refSegIdx);
+  document.getElementById("legend-session").textContent = sl;
+  document.getElementById("legend-ref").textContent = rl;
+  document.getElementById("legend").classList.add("visible");
+  trackTransform = renderCircuitMap(currentTrackX, currentTrackZ, trackTransform, currentZoomRange, currentMaxDist, currentSessionBins);
+  renderTrackHeatmapMap();
+  state.maxDist = maxDist;
+}
+function renderTrackHeatmapMap() {
+  const canvas = document.getElementById("track-heatmap-canvas");
+  const svg = document.getElementById("circuit-map-svg");
+  if (!canvas || !svg) return;
+  const anyMapFeature = features.mapWalkingSkeleton || features.mapTrackOutline || features.mapHeatmapSingleLap || features.mapSAlignment || features.mapDualRibbon || features.mapZoomPan || features.mapLegend || features.mapHover || features.mapLinkedHighlight;
+  if (!anyMapFeature) {
+    canvas.style.display = "none";
+    svg.style.display = "";
+    return;
+  }
+  canvas.style.display = "";
+  svg.style.display = "none";
+  if (features.mapZoomPan && !mapInteraction) {
+    let indicator = document.getElementById("map-zoom-indicator");
+    if (!indicator) {
+      indicator = document.createElement("span");
+      indicator.id = "map-zoom-indicator";
+      indicator.className = "map-zoom-indicator";
+      indicator.textContent = "1.0\xD7";
+      const panel = document.getElementById("circuit-map-panel");
+      if (panel) panel.appendChild(indicator);
+    }
+    mapInteraction = createMapInteraction(canvas, () => renderTrackHeatmapMap());
+  }
+  if (features.mapHover && !mapHover) {
+    mapHover = createMapHover(canvas, () => ({
+      lapA: {
+        x: currentTrackX,
+        z: currentTrackZ,
+        throttle: currentSessionBins?.throttle_norm,
+        brake: currentSessionBins?.brake_norm,
+        color: getComputedStyle(document.documentElement).getPropertyValue("--session").trim() || "#4fc3f7",
+        raw: currentLapARaw
+      },
+      lapB: {
+        x: currentRefTrackX,
+        z: currentRefTrackZ,
+        throttle: currentRefBins?.throttle_norm,
+        brake: currentRefBins?.brake_norm,
+        color: getComputedStyle(document.documentElement).getPropertyValue("--ref").trim() || "#ff9800",
+        raw: currentLapBRaw
+      },
+      transform: getLastTransform()
+    }), () => renderTrackHeatmapMap());
+  }
+  if (!currentTrackX || !currentTrackZ || !currentRefTrackX || !currentRefTrackZ) return;
+  function buildLaps(sessionColor2, refColor2) {
+    return {
+      lapA: {
+        x: currentTrackX,
+        z: currentTrackZ,
+        throttle: currentSessionBins?.throttle_norm,
+        brake: currentSessionBins?.brake_norm,
+        color: sessionColor2,
+        raw: currentLapARaw
+      },
+      lapB: {
+        x: currentRefTrackX,
+        z: currentRefTrackZ,
+        throttle: currentRefBins?.throttle_norm,
+        brake: currentRefBins?.brake_norm,
+        color: refColor2,
+        raw: currentLapBRaw
+      }
+    };
+  }
+  function buildOpts({ respectZoomFlag = true, includeMapSAlignment = true } = {}) {
+    const s = (!respectZoomFlag || features.mapZoomPan) && mapInteraction ? mapInteraction.getState() : { scale: 1, tx: 0, ty: 0 };
+    return {
+      showOutline: !!features.mapTrackOutline,
+      showHeatmapSingleLap: !!features.mapHeatmapSingleLap,
+      showSAlignmentDebug: includeMapSAlignment && !!features.mapSAlignment || !!devFeatures.devMapSAlignmentDebug,
+      showDualRibbon: !!features.mapDualRibbon,
+      showLegend: !!features.mapLegend,
+      showHover: !!features.mapHover,
+      hoverState: mapHover ? mapHover.getState() : null,
+      showLinkedHighlight: !!features.mapLinkedHighlight,
+      visibleRange: currentZoomRange,
+      ribbonWidthPx: 8,
+      ribbonGapPx: 2,
+      userScale: s.scale,
+      userPanX: s.tx,
+      userPanY: s.ty
+    };
+  }
+  const sessionColor = getComputedStyle(document.documentElement).getPropertyValue("--session").trim() || "#4fc3f7";
+  const refColor = getComputedStyle(document.documentElement).getPropertyValue("--ref").trim() || "#ff9800";
+  const { lapA, lapB } = buildLaps(sessionColor, refColor);
+  renderWalkingSkeleton(canvas, lapA, lapB, buildOpts());
+  if (mapHover) mapHover.rebuild();
+  if (features.mapZoomPan) {
+    const boundsA = computeTrackBounds(Array.from(lapA.x), Array.from(lapA.z));
+    const boundsB = computeTrackBounds(Array.from(lapB.x), Array.from(lapB.z));
+    const rect = canvas.getBoundingClientRect();
+    const tf = fitToView(boundsA, boundsB, rect.width, rect.height, 15);
+    setBaseTransform(tf);
+  }
+  if (!trackHeatmapObserver) {
+    trackHeatmapObserver = initTrackHeatmapResize(canvas, () => {
+      if (!currentTrackX || !currentRefTrackX) return null;
+      const sColor = getComputedStyle(document.documentElement).getPropertyValue("--session").trim() || "#4fc3f7";
+      const rColor = getComputedStyle(document.documentElement).getPropertyValue("--ref").trim() || "#ff9800";
+      return buildLaps(sColor, rColor);
+    }, () => buildOpts({ respectZoomFlag: false, includeMapSAlignment: false }));
+  }
+}
+function getRenderState() {
+  return {
+    currentSessionBins,
+    currentRefBins,
+    currentZoomRange,
+    currentOverlapRange,
+    currentTrackX,
+    currentTrackZ,
+    currentRefTrackX,
+    currentRefTrackZ,
+    trackTransform,
+    currentDtBins,
+    maxDist: state.maxDist,
+    currentMaxDist
+  };
+}
+initUI(renderAll);
+initCursorAndZoom(renderAll, getRenderState);
+installDebugHooks({
+  store,
+  features,
+  devFeatures,
+  resample,
+  smoothLapTime,
+  smoothDt,
+  computeDeltaT,
+  computeKeepIndices,
+  fitToView,
+  setFeatureFlag,
+  setDevFeatureFlag,
+  renderTrackHeatmapMap
+});
+
+</script></script>
+
+</body>
