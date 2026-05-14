@@ -19,9 +19,34 @@
 | `pipeline.js` | 432 | Data loading/processing |
 | `ui.js` | 327 | UI interaction (file loading, event handlers) |
 | `utils.js` | 129 | Helpers, formatting, persistence |
-| `main.js` | 437 | App entry point, `renderAll` orchestration, debug hooks |
+| `main.js` | 543 | App entry point, `renderAll` orchestration, debug hooks |
+
+**⚠️ `main.js` exceeds the 437-line hard ceiling.** See "Urgent: Refactor `main.js`" below.
 
 **Total:** 2272 lines · **All 81 tests passing**
+
+---
+
+## 🚨 Urgent: Refactor `main.js` to Hard Ceiling (437 lines)
+
+**Status:** `main.js` is currently **543 lines** — 106 lines over the hard ceiling of 437 (see `AGENTS.md`).
+
+**Why.** Since the web refactor landed at exactly 437 lines, subsequent phase work (04-hover, 05a-linked-highlight, and other map feature wiring) has grown `main.js` past the limit. This is a **blocking violation** of the standing architecture rules.
+
+**What to move out:**
+1. **`renderTrackHeatmapMap()` (~100 lines)** — the entire canvas map rendering orchestration function, including `trackHeatmapObserver`, `mapInteraction`, `mapHover` init, and `currentZoomRange` plumbing. Move to a new `trackHeatmapController.js` module that exports `initTrackHeatmap(canvas, getState, onRender)` and `renderTrackHeatmap()`.
+2. **`renderAll()` resampling loop (~40 lines)** — the channel resampling for `currentSessionBins`/`currentRefBins` is a self-contained data pipeline step. Extract to `resampleChannels(sDistRaw, rDistRaw, maxDist, sessionEntry, refEntry, sKeep, rKeep)` in `pipeline.js` or a new `resampleAll.js`.
+3. **Debug hook wiring (~20 lines)** — the `installDebugHooks` call and its import list are already flagged as optional in the "Extract Debug Hooks" section below. Do this first for easy wins.
+
+**Target.** After extraction, `main.js` should contain only:
+- Imports
+- Top-level mutable refs (`currentSessionBins`, `currentZoomRange`, etc.)
+- `renderAll()` call sequence (the orchestration, not the implementation details)
+- `getRenderState()`
+- `initUI` / `initCursorAndZoom` / `installDebugHooks` calls
+- Module-level exports
+
+**Effort:** ~2–3 commits (refactor only, no behavior change).
 
 ---
 
