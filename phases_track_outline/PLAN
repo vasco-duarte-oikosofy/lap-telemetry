@@ -7,7 +7,7 @@
 | 02-loader-new-channels | Frontend/session loader exposes the new channels read-only | ✅ DONE |
 | 03-apex-annotations | Add apex annotation files and validator | ✅ DONE |
 | 04-apex-metrics-one-corner | Compute apex metrics for one lap and one configured corner | ✅ DONE |
-| 04.1-apex-metrics-all-corners | Aggregate apex metrics for all laps and configured corners | ⬜ TODO |
+| 04.1-apex-metrics-all-corners | Aggregate apex metrics for all laps and configured corners | ✅ DONE |
 | 04.2-apex-surface-terrain | Include apex-side surface and terrain in metrics | ⬜ TODO |
 | 05-apex-metrics-ui | Render text-only apex metrics UI | ⬜ TODO |
 | 06-apex-sidecar-export | Optional CLI/helper to export apex metrics JSON sidecar | ⬜ TODO |

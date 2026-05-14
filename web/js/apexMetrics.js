@@ -81,3 +81,61 @@ export function computeApexMetricForLap(data, corner, opts = {}) {
     sample_s_m: sampleS,
   };
 }
+
+function okResult(metrics) {
+  return { status: 'ok', metrics, reason: null };
+}
+
+function emptyResult(status, reason = null) {
+  return { status, metrics: [], reason };
+}
+
+function normalizeAnnotations(annotationInput) {
+  if (!annotationInput) return { status: 'not_configured', annotations: null };
+  if (annotationInput.status && annotationInput.status !== 'ok') return annotationInput;
+  if (annotationInput.status === 'ok') return annotationInput;
+  return { status: 'ok', annotations: annotationInput };
+}
+
+function hasValues(values) {
+  return !!values && values.length > 0;
+}
+
+function telemetryUnavailableReason(data) {
+  if (!hasValues(data?.raw_lap_distance_m)) return 'missing raw_lap_distance_m';
+  if (hasValues(data.distance_to_track_edge_m)) return null;
+  if (hasValues(data.path_lateral_m) && hasValues(data.track_edge_m)) return null;
+  return 'missing edge distance inputs';
+}
+
+function sliceData(data, start, end) {
+  const lapData = {};
+  for (const [key, values] of Object.entries(data || {})) {
+    if (values && typeof values.slice === 'function') {
+      lapData[key] = values.slice(start, end);
+    } else {
+      lapData[key] = values;
+    }
+  }
+  return lapData;
+}
+
+export function computeApexMetricsForSession(entry, annotationInput) {
+  const normalized = normalizeAnnotations(annotationInput);
+  if (normalized.status !== 'ok') return emptyResult(normalized.status, null);
+
+  const data = entry?.data;
+  const reason = telemetryUnavailableReason(data);
+  if (reason) return emptyResult('unavailable', reason);
+
+  const corners = normalized.annotations?.corners || [];
+  const segments = entry?.segments || [];
+  const metrics = [];
+  for (const seg of segments) {
+    const lapData = sliceData(data, seg.start, seg.end);
+    for (const corner of corners) {
+      metrics.push(computeApexMetricForLap(lapData, corner, { lap: seg.lapNum }));
+    }
+  }
+  return okResult(metrics);
+}
