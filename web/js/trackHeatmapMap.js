@@ -268,6 +268,99 @@ function drawHoverTick(ctx, hoverState, transform, ribbonWidthPx, ribbonGapPx) {
   ctx.stroke();
 }
 
+function drawLinkedHighlight(ctx, lapA, transform, visibleRange, ribbonWidthPx, ribbonGapPx) {
+  if (!visibleRange) return;
+  const maxIdx = lapA.x.length - 1;
+  const startIdx = Math.max(0, Math.floor(visibleRange.start));
+  const endIdx = Math.min(maxIdx, Math.ceil(visibleRange.end));
+
+  // No-op if full lap or invalid range
+  if (startIdx === 0 && endIdx >= maxIdx) return;
+  if (startIdx >= endIdx) return;
+
+  // Build centerline path from startIdx to endIdx
+  ctx.save();
+  ctx.beginPath();
+  let started = false;
+  for (let i = startIdx; i <= endIdx; i++) {
+    const x = lapA.x[i];
+    const z = lapA.z[i];
+    if (!isFinite(x) || !isFinite(z)) {
+      started = false;
+      continue;
+    }
+    const sx = transform.toScreenX(x);
+    const sy = transform.toScreenY(z);
+    if (!started) {
+      ctx.moveTo(sx, sy);
+      started = true;
+    } else {
+      ctx.lineTo(sx, sy);
+    }
+  }
+
+  // Stroke with lighten composite
+  ctx.globalCompositeOperation = 'lighten';
+  ctx.strokeStyle = 'rgba(255,255,255,0.18)';
+  ctx.lineWidth = ribbonWidthPx + 10;
+  ctx.lineCap = 'round';
+  ctx.lineJoin = 'round';
+  ctx.stroke();
+
+  // Restore composite operation
+  ctx.globalCompositeOperation = 'source-over';
+
+  // Draw perpendicular ticks at startIdx and endIdx
+  const halfSpan = ribbonWidthPx / 2 + ribbonGapPx / 2 + 6;
+
+  [startIdx, endIdx].forEach(idx => {
+    const x = lapA.x[idx];
+    const z = lapA.z[idx];
+    if (!isFinite(x) || !isFinite(z)) return;
+
+    // Compute screen-space tangent by looking at neighbors
+    let dx = 0, dy = 0;
+    let found = false;
+    for (let j = idx + 1; j <= maxIdx && !found; j++) {
+      const x2 = lapA.x[j];
+      const z2 = lapA.z[j];
+      if (isFinite(x2) && isFinite(z2)) {
+        dx = transform.toScreenX(x2) - transform.toScreenX(x);
+        dy = transform.toScreenY(z2) - transform.toScreenY(z);
+        found = true;
+      }
+    }
+    if (!found) {
+      for (let j = idx - 1; j >= 0 && !found; j--) {
+        const x2 = lapA.x[j];
+        const z2 = lapA.z[j];
+        if (isFinite(x2) && isFinite(z2)) {
+          dx = transform.toScreenX(x) - transform.toScreenX(x2);
+          dy = transform.toScreenY(z) - transform.toScreenY(z2);
+          found = true;
+        }
+      }
+    }
+    if (!found) return;
+
+    const tlen = Math.hypot(dx, dy) || 1;
+    const nx = -dy / tlen;
+    const ny = dx / tlen;
+
+    const sx = transform.toScreenX(x);
+    const sy = transform.toScreenY(z);
+
+    ctx.strokeStyle = '#ffffff';
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(sx + nx * -halfSpan, sy + ny * -halfSpan);
+    ctx.lineTo(sx + nx * halfSpan, sy + ny * halfSpan);
+    ctx.stroke();
+  });
+
+  ctx.restore();
+}
+
 function drawStartFinishTick(ctx, startX, startZ, transform) {
   // Find the tangent direction at the start to draw a perpendicular tick
   // For the walking skeleton, we just draw a short white tick at s=0
@@ -388,6 +481,11 @@ export function renderWalkingSkeleton(canvas, lapA, lapB, options = {}) {
   // Phase 04: draw hover tick across both ribbons
   if (options.showHover && options.hoverState) {
     drawHoverTick(ctx, options.hoverState, transform, ribbonWidthPx, ribbonGapPx);
+  }
+
+  // Phase 05a: draw linked highlight band
+  if (options.showLinkedHighlight && options.visibleRange) {
+    drawLinkedHighlight(ctx, lapA, transform, options.visibleRange, ribbonWidthPx, ribbonGapPx);
   }
 
   // Phase 03: update legend overlays
