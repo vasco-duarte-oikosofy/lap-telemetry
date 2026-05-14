@@ -336,7 +336,7 @@ function renderTrackHeatmapMap() {
 
   // Feature flag: only show when enabled
   // If no map feature flags are enabled, fall back to the old SVG map
-  const anyMapFeature = features.mapWalkingSkeleton || features.mapTrackOutline || features.mapHeatmapSingleLap || features.mapSAlignment;
+  const anyMapFeature = features.mapWalkingSkeleton || features.mapTrackOutline || features.mapHeatmapSingleLap || features.mapSAlignment || features.mapDualRibbon;
   if (!anyMapFeature) {
     canvas.style.display = 'none';
     svg.style.display    = '';
@@ -361,13 +361,21 @@ function renderTrackHeatmapMap() {
     color: sessionColor,
     raw: currentLapARaw,
   };
-  const lapB = { x: currentRefTrackX, z: currentRefTrackZ, color: refColor, raw: currentLapBRaw };
+  const lapB = {
+    x: currentRefTrackX,
+    z: currentRefTrackZ,
+    throttle: currentRefBins?.throttle_norm,
+    brake: currentRefBins?.brake_norm,
+    color: refColor,
+    raw: currentLapBRaw,
+  };
 
-  // Phase 00.6/01a/01b: pass feature-flagged renderer options.
+  const showDualRibbon = !!features.mapDualRibbon;
+  // Phase 00.6/01a/01b/01c: pass feature-flagged renderer options.
   const showOutline = !!features.mapTrackOutline;
   const showHeatmapSingleLap = !!features.mapHeatmapSingleLap;
   const showSAlignmentDebug = !!features.mapSAlignment || !!devFeatures.devMapSAlignmentDebug;
-  renderWalkingSkeleton(canvas, lapA, lapB, { showOutline, showHeatmapSingleLap, showSAlignmentDebug });
+  renderWalkingSkeleton(canvas, lapA, lapB, { showOutline, showHeatmapSingleLap, showSAlignmentDebug, showDualRibbon, ribbonWidthPx: 8, ribbonGapPx: 2 });
 
   // Set up ResizeObserver on first render
   if (!trackHeatmapObserver) {
@@ -384,12 +392,22 @@ function renderTrackHeatmapMap() {
           color: sColor,
           raw: currentLapARaw,
         },
-        lapB: { x: currentRefTrackX, z: currentRefTrackZ, color: rColor, raw: currentLapBRaw },
+        lapB: {
+          x: currentRefTrackX,
+          z: currentRefTrackZ,
+          throttle: currentRefBins?.throttle_norm,
+          brake: currentRefBins?.brake_norm,
+          color: rColor,
+          raw: currentLapBRaw,
+        },
       };
     }, () => ({
       showOutline: !!features.mapTrackOutline,
       showHeatmapSingleLap: !!features.mapHeatmapSingleLap,
       showSAlignmentDebug: !!devFeatures.devMapSAlignmentDebug,
+      showDualRibbon: !!features.mapDualRibbon,
+      ribbonWidthPx: 8,
+      ribbonGapPx: 2,
     }));
   }
 }

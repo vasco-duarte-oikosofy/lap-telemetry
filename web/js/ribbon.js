@@ -76,3 +76,30 @@ export function drawHeatmapRibbon(ctx, lap, transform, widthPx) {
   const points = buildScreenPoints(lap.x, lap.z, transform);
   drawRibbon(ctx, points, 0, widthPx, (i) => colorForNet((netAt(lap, i) + netAt(lap, i + 1)) / 2));
 }
+
+export function drawDualRibbons(ctx, lapA, lapB, transform, widthPx, gapPx) {
+  const points = buildScreenPoints(lapA.x, lapA.z, transform);
+  const halfWidth = widthPx / 2;
+  const offsetA = -(widthPx + gapPx) / 2;
+  const offsetB = +(widthPx + gapPx) / 2;
+
+  for (let i = 0; i < points.length - 1; i++) {
+    const a = points[i];
+    const b = points[i + 1];
+    if (!a || !b) continue;
+
+    const dx = b.x - a.x;
+    const dy = b.y - a.y;
+    const len = Math.hypot(dx, dy);
+    if (len < 0.001) continue;
+
+    const nx = -dy / len;
+    const ny = dx / len;
+
+    const colorA = colorForNet((netAt(lapA, i) + netAt(lapA, i + 1)) / 2);
+    drawRibbonSegment(ctx, a, b, nx, ny, offsetA, halfWidth, colorA);
+
+    const colorB = colorForNet((netAt(lapB, i) + netAt(lapB, i + 1)) / 2);
+    drawRibbonSegment(ctx, a, b, nx, ny, offsetB, halfWidth, colorB);
+  }
+}

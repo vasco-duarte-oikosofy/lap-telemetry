@@ -10,7 +10,7 @@
 
 import { computeTrackBounds } from './pipeline.js';
 import { sLookup } from './sLookup.js';
-import { drawRibbon, drawHeatmapRibbon } from './ribbon.js';
+import { drawRibbon, drawHeatmapRibbon, drawDualRibbons } from './ribbon.js';
 
 // ── fitToView ─────────────────────────────────────────────────────────────────
 // Given track bounding boxes for both laps, compute a world→screen transform
@@ -256,7 +256,7 @@ function drawDebugTicks(ctx, lap, transform, color, labelPrefix) {
 // Phase 00.6: adds track outline background underneath.
 
 export function renderWalkingSkeleton(canvas, lapA, lapB, options = {}) {
-  const { showOutline = false, showHeatmapSingleLap = false, showSAlignmentDebug = false, ribbonWidthPx = 8 } = options;
+  const { showOutline = false, showHeatmapSingleLap = false, showSAlignmentDebug = false, showDualRibbon = false, ribbonWidthPx = 8, ribbonGapPx = 2 } = options;
   
   const ctx = canvas.getContext('2d');
   const rect = canvas.getBoundingClientRect();
@@ -292,14 +292,19 @@ export function renderWalkingSkeleton(canvas, lapA, lapB, options = {}) {
     console.log('[trackHeatmapMap] showOutline is false, skipping outline');
   }
 
-  // Draw Lap B first (reference — underneath Lap A)
-  drawPolyline(ctx, lapB.x, lapB.z, transform, lapB.color);
-
-  // Draw Lap A on top (session — over reference)
-  if (showHeatmapSingleLap) {
-    drawHeatmapRibbon(ctx, lapA, transform, ribbonWidthPx);
+  // Draw order: background → outline → Lap A ribbon → Lap B ribbon → start/finish marker
+  if (showDualRibbon) {
+    drawDualRibbons(ctx, lapA, lapB, transform, ribbonWidthPx, ribbonGapPx);
   } else {
-    drawPolyline(ctx, lapA.x, lapA.z, transform, lapA.color);
+    // Draw Lap B first (reference — underneath Lap A)
+    drawPolyline(ctx, lapB.x, lapB.z, transform, lapB.color);
+
+    // Draw Lap A on top (session — over reference)
+    if (showHeatmapSingleLap) {
+      drawHeatmapRibbon(ctx, lapA, transform, ribbonWidthPx);
+    } else {
+      drawPolyline(ctx, lapA.x, lapA.z, transform, lapA.color);
+    }
   }
 
   // Phase 01b: s-alignment debug overlay (dev-only)
