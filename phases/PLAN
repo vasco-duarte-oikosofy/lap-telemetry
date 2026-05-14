@@ -12,7 +12,7 @@
 | 02-zoom-pan | Zoom and pan | ✅ DONE |
 | 03-legend | Lap legend and identification | ✅ DONE |
 | 04-hover | Hover crosshair and per-lap readout | ✅ DONE |
-| 05a-linked-highlight | Linked highlight band from trace charts | ⬜ TODO |
+| 05a-linked-highlight | Linked highlight band from trace charts | ✅ DONE |
 | 05b-click-to-scrub | Click-to-scrub (reverse binding) | ⬜ TODO |
 | 06.1-dpr-aware | DPR-aware canvas | ⬜ TODO |
 | 06.2-perf-pass | Performance pass (RDP downsampling) | ⬜ TODO |
