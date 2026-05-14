@@ -28,6 +28,9 @@ import { renderCircuitMap, renderHeatmapSegments, renderMapLegend, updateZoomArc
 import { renderWalkingSkeleton, initTrackHeatmapResize, fitToView } from './trackHeatmapMap.js';
 import { assertStrictlyMonotonic } from './sLookup.js';
 
+// ── Map interaction (Phase 02 zoom/pan) ──────────────────────────────────────
+import { createMapInteraction, setBaseTransform } from './mapInteraction.js';
+
 // ── Panel rendering ─────────────────────────────────────────────────────────────
 import { renderPanel, renderDtPanel } from './panels.js';
 
@@ -66,6 +69,7 @@ let currentOverlapRange = null; // { start, end } — distance window covered by
 let trackTransform     = null; // Updated by renderCircuitMap
 let currentLapARaw     = null;   // Phase 01b: raw arrays for s alignment
 let currentLapBRaw     = null;   // Phase 01b: raw arrays for s alignment
+let mapInteraction     = null;   // Phase 02: zoom/pan interaction controller
 function renderAll(sessionEntry, sessionSegIdx, refEntry, refSegIdx) {
   const sSeg = sessionEntry.segments[sessionSegIdx];
   const rSeg = refEntry.segments[refSegIdx];
@@ -328,15 +332,14 @@ function renderAll(sessionEntry, sessionSegIdx, refEntry, refSegIdx) {
 // Heatmap mode change re-renders the circuit map only (no panel re-render needed).
 // Extracted to cursor.js
 
-// ── Track heatmap rendering (Phase 00.5) ───────────────────────────────────
+// ── Track heatmap rendering (Phase 00.5+) ───────────────────────────────────
 function renderTrackHeatmapMap() {
   const canvas = document.getElementById('track-heatmap-canvas');
   const svg    = document.getElementById('circuit-map-svg');
   if (!canvas || !svg) return;
 
   // Feature flag: only show when enabled
-  // If no map feature flags are enabled, fall back to the old SVG map
-  const anyMapFeature = features.mapWalkingSkeleton || features.mapTrackOutline || features.mapHeatmapSingleLap || features.mapSAlignment || features.mapDualRibbon;
+  const anyMapFeature = features.mapWalkingSkeleton || features.mapTrackOutline || features.mapHeatmapSingleLap || features.mapSAlignment || features.mapDualRibbon || features.mapZoomPan;
   if (!anyMapFeature) {
     canvas.style.display = 'none';
     svg.style.display    = '';
@@ -346,6 +349,20 @@ function renderTrackHeatmapMap() {
   // Hide old SVG, show canvas
   canvas.style.display = '';
   svg.style.display    = 'none';
+
+  // Phase 02: init interaction once, even before data loads
+  if (features.mapZoomPan && !mapInteraction) {
+    let indicator = document.getElementById('map-zoom-indicator');
+    if (!indicator) {
+      indicator = document.createElement('span');
+      indicator.id = 'map-zoom-indicator';
+      indicator.className = 'map-zoom-indicator';
+      indicator.textContent = '1.0×';
+      const panel = document.getElementById('circuit-map-panel');
+      if (panel) panel.appendChild(indicator);
+    }
+    mapInteraction = createMapInteraction(canvas, () => renderTrackHeatmapMap());
+  }
 
   // Need both laps' track data
   if (!currentTrackX || !currentTrackZ || !currentRefTrackX || !currentRefTrackZ) return;
@@ -370,12 +387,36 @@ function renderTrackHeatmapMap() {
     raw: currentLapBRaw,
   };
 
+  // Phase 02: read current zoom/pan state
+  let userScale = 1;
+  let userPanX = 0;
+  let userPanY = 0;
+  if (features.mapZoomPan && mapInteraction) {
+    const s = mapInteraction.getState();
+    userScale = s.scale;
+    userPanX = s.tx;
+    userPanY = s.ty;
+  }
+
   const showDualRibbon = !!features.mapDualRibbon;
-  // Phase 00.6/01a/01b/01c: pass feature-flagged renderer options.
   const showOutline = !!features.mapTrackOutline;
   const showHeatmapSingleLap = !!features.mapHeatmapSingleLap;
   const showSAlignmentDebug = !!features.mapSAlignment || !!devFeatures.devMapSAlignmentDebug;
-  renderWalkingSkeleton(canvas, lapA, lapB, { showOutline, showHeatmapSingleLap, showSAlignmentDebug, showDualRibbon, ribbonWidthPx: 8, ribbonGapPx: 2 });
+  const opts = {
+    showOutline, showHeatmapSingleLap, showSAlignmentDebug, showDualRibbon,
+    ribbonWidthPx: 8, ribbonGapPx: 2,
+    userScale, userPanX, userPanY,
+  };
+  renderWalkingSkeleton(canvas, lapA, lapB, opts);
+
+  // Phase 02: notify interaction layer of base transform for cursor-centered zoom
+  if (features.mapZoomPan) {
+    const boundsA = computeTrackBounds(Array.from(lapA.x), Array.from(lapA.z));
+    const boundsB = computeTrackBounds(Array.from(lapB.x), Array.from(lapB.z));
+    const rect = canvas.getBoundingClientRect();
+    const tf = fitToView(boundsA, boundsB, rect.width, rect.height, 15);
+    setBaseTransform(tf);
+  }
 
   // Set up ResizeObserver on first render
   if (!trackHeatmapObserver) {
@@ -401,14 +442,20 @@ function renderTrackHeatmapMap() {
           raw: currentLapBRaw,
         },
       };
-    }, () => ({
-      showOutline: !!features.mapTrackOutline,
-      showHeatmapSingleLap: !!features.mapHeatmapSingleLap,
-      showSAlignmentDebug: !!devFeatures.devMapSAlignmentDebug,
-      showDualRibbon: !!features.mapDualRibbon,
-      ribbonWidthPx: 8,
-      ribbonGapPx: 2,
-    }));
+    }, () => {
+      const s = mapInteraction ? mapInteraction.getState() : { scale: 1, tx: 0, ty: 0 };
+      return {
+        showOutline: !!features.mapTrackOutline,
+        showHeatmapSingleLap: !!features.mapHeatmapSingleLap,
+        showSAlignmentDebug: !!devFeatures.devMapSAlignmentDebug,
+        showDualRibbon: !!features.mapDualRibbon,
+        ribbonWidthPx: 8,
+        ribbonGapPx: 2,
+        userScale: s.scale,
+        userPanX: s.tx,
+        userPanY: s.ty,
+      };
+    });
   }
 }
 
