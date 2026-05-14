@@ -123,6 +123,10 @@ def _player_scor_index(scor_vehicles, count: int) -> int:
     for i in range(count):
         if scor_vehicles[i].mIsPlayer:
             return i
+    # mIsPlayer is not set in LMU qualifying/race sessions; mControl==0 is local player
+    for i in range(count):
+        if int(scor_vehicles[i].mControl) == 0:
+            return i
     return -1
 
 
