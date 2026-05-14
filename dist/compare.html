@@ -1242,63 +1242,6 @@ function updateZoomArc(currentTrackX2, currentTrackZ2, trackTransform2, currentZ
   }
 }
 
-// web/js/sLookup.js
-function sLookup(lap, targetS) {
-  const sArr = lap.s;
-  if (!sArr || sArr.length === 0) return null;
-  const len = sArr.length;
-  if (len === 1) {
-    const r = {};
-    for (const key of Object.keys(lap)) r[key] = lap[key][0];
-    return r;
-  }
-  if (targetS <= sArr[0]) {
-    const r = {};
-    for (const key of Object.keys(lap)) r[key] = lap[key][0];
-    return r;
-  }
-  if (targetS >= sArr[len - 1]) {
-    const r = {};
-    for (const key of Object.keys(lap)) r[key] = lap[key][len - 1];
-    return r;
-  }
-  let lo = 0, hi = len - 1;
-  while (hi - lo > 1) {
-    const mid = lo + hi >>> 1;
-    if (sArr[mid] < targetS) lo = mid;
-    else hi = mid;
-  }
-  const s0 = sArr[lo];
-  const s1 = sArr[hi];
-  const denom = s1 - s0;
-  const frac = denom > 0 ? (targetS - s0) / denom : 0;
-  const result = {};
-  for (const key of Object.keys(lap)) {
-    const arr = lap[key];
-    if (!Array.isArray(arr) && !(arr instanceof Float64Array) && !(arr instanceof Float32Array)) {
-      continue;
-    }
-    if (arr.length <= hi) continue;
-    const v0 = arr[lo];
-    const v1 = arr[hi];
-    if (!isFinite(v0) || !isFinite(v1)) {
-      result[key] = v0;
-      continue;
-    }
-    result[key] = v0 + (v1 - v0) * frac;
-  }
-  return result;
-}
-function assertStrictlyMonotonic(distances, label = "s") {
-  for (let i = 1; i < distances.length; i++) {
-    if (distances[i] <= distances[i - 1]) {
-      const msg = `[sAlignment] ${label} is NOT strictly monotonic at index ${i}: ${distances[i - 1]} \u2192 ${distances[i]}`;
-      console.error(msg);
-      throw new Error(msg);
-    }
-  }
-}
-
 // web/js/colorRamp.js
 var BRAKE = "#0a3d91";
 var NEUTRAL = "#2a3340";
@@ -1532,54 +1475,64 @@ function updateMapLegend(panel, lapA, lapB, visible) {
   document.getElementById("map-lap-swatch-b").style.background = lapB.color || "#ff9800";
 }
 
-// web/js/trackHeatmapMap.js
-var _lastTransform = null;
-function getLastTransform() {
-  return _lastTransform;
+// web/js/sLookup.js
+function sLookup(lap, targetS) {
+  const sArr = lap.s;
+  if (!sArr || sArr.length === 0) return null;
+  const len = sArr.length;
+  if (len === 1) {
+    const r = {};
+    for (const key of Object.keys(lap)) r[key] = lap[key][0];
+    return r;
+  }
+  if (targetS <= sArr[0]) {
+    const r = {};
+    for (const key of Object.keys(lap)) r[key] = lap[key][0];
+    return r;
+  }
+  if (targetS >= sArr[len - 1]) {
+    const r = {};
+    for (const key of Object.keys(lap)) r[key] = lap[key][len - 1];
+    return r;
+  }
+  let lo = 0, hi = len - 1;
+  while (hi - lo > 1) {
+    const mid = lo + hi >>> 1;
+    if (sArr[mid] < targetS) lo = mid;
+    else hi = mid;
+  }
+  const s0 = sArr[lo];
+  const s1 = sArr[hi];
+  const denom = s1 - s0;
+  const frac = denom > 0 ? (targetS - s0) / denom : 0;
+  const result = {};
+  for (const key of Object.keys(lap)) {
+    const arr = lap[key];
+    if (!Array.isArray(arr) && !(arr instanceof Float64Array) && !(arr instanceof Float32Array)) {
+      continue;
+    }
+    if (arr.length <= hi) continue;
+    const v0 = arr[lo];
+    const v1 = arr[hi];
+    if (!isFinite(v0) || !isFinite(v1)) {
+      result[key] = v0;
+      continue;
+    }
+    result[key] = v0 + (v1 - v0) * frac;
+  }
+  return result;
 }
-function setLastTransform(tf) {
-  _lastTransform = tf;
+function assertStrictlyMonotonic(distances, label = "s") {
+  for (let i = 1; i < distances.length; i++) {
+    if (distances[i] <= distances[i - 1]) {
+      const msg = `[sAlignment] ${label} is NOT strictly monotonic at index ${i}: ${distances[i - 1]} \u2192 ${distances[i]}`;
+      console.error(msg);
+      throw new Error(msg);
+    }
+  }
 }
-function fitToView(boundsA, boundsB, canvasWidth, canvasHeight, padding) {
-  const minX = Math.min(boundsA.minX, boundsB.minX);
-  const maxX = Math.max(boundsA.maxX, boundsB.maxX);
-  const minZ = Math.min(boundsA.minZ, boundsB.minZ);
-  const maxZ = Math.max(boundsA.maxZ, boundsB.maxZ);
-  const worldW = maxX - minX || 1;
-  const worldH = maxZ - minZ || 1;
-  const availW = canvasWidth - 2 * padding;
-  const availH = canvasHeight - 2 * padding;
-  const scale = Math.min(availW / worldW, availH / worldH);
-  const drawnW = worldW * scale;
-  const drawnH = worldH * scale;
-  const offsetX = padding + (availW - drawnW) / 2;
-  const offsetY = padding + (availH - drawnH) / 2;
-  return {
-    scale,
-    offsetX,
-    offsetY,
-    toScreenX: (x) => offsetX + (x - minX) * scale,
-    toScreenY: (z) => offsetY + (maxZ - z) * scale,
-    // Z-up → Y-down
-    bounds: { minX, maxX, minZ, maxZ }
-  };
-}
-function applyUserTransform(base, userScale, userPanX, userPanY) {
-  const mScale = userScale ?? 1;
-  const tx = userPanX ?? 0;
-  const ty = userPanY ?? 0;
-  return {
-    scale: base.scale * mScale,
-    offsetX: base.offsetX,
-    offsetY: base.offsetY,
-    toScreenX: (x) => base.offsetX + (x - base.bounds.minX) * base.scale * mScale + tx,
-    toScreenY: (z) => base.offsetY + (base.bounds.maxZ - z) * base.scale * mScale + ty,
-    bounds: base.bounds,
-    userScale: mScale,
-    userPanX: tx,
-    userPanY: ty
-  };
-}
+
+// web/js/trackHeatmapDrawing.js
 function drawPolyline(ctx, trackX, trackZ, transform, color, lineWidth = 1) {
   ctx.strokeStyle = color;
   ctx.lineWidth = lineWidth;
@@ -1621,13 +1574,9 @@ function drawOffsetPolyline(ctx, trackX, trackZ, transform, offsetMeters, color)
       continue;
     }
     let aheadIdx = i + lookAhead;
-    while (aheadIdx < trackX.length && (!isFinite(trackX[aheadIdx]) || !isFinite(trackZ[aheadIdx]))) {
-      aheadIdx++;
-    }
+    while (aheadIdx < trackX.length && (!isFinite(trackX[aheadIdx]) || !isFinite(trackZ[aheadIdx]))) aheadIdx++;
     let behindIdx = i - lookAhead;
-    while (behindIdx >= 0 && (!isFinite(trackX[behindIdx]) || !isFinite(trackZ[behindIdx]))) {
-      behindIdx--;
-    }
+    while (behindIdx >= 0 && (!isFinite(trackX[behindIdx]) || !isFinite(trackZ[behindIdx]))) behindIdx--;
     let dx, dz;
     if (aheadIdx < trackX.length && behindIdx >= 0) {
       dx = trackX[aheadIdx] - trackX[behindIdx];
@@ -1649,11 +1598,7 @@ function drawOffsetPolyline(ctx, trackX, trackZ, transform, offsetMeters, color)
     }
     const tx = dx / len;
     const tz = dz / len;
-    const nx = -tz;
-    const nz = tx;
-    const ox = x + nx * offsetMeters;
-    const oz = z + nz * offsetMeters;
-    offsetPoints.push({ x: ox, z: oz });
+    offsetPoints.push({ x: x + -tz * offsetMeters, z: z + tx * offsetMeters });
   }
   const smoothedPoints = [];
   const smoothWindow = 3;
@@ -1670,15 +1615,10 @@ function drawOffsetPolyline(ctx, trackX, trackZ, transform, offsetMeters, color)
         count++;
       }
     }
-    if (count > 0) {
-      smoothedPoints.push({ x: sumX / count, z: sumZ / count });
-    } else {
-      smoothedPoints.push(null);
-    }
+    smoothedPoints.push(count > 0 ? { x: sumX / count, z: sumZ / count } : null);
   }
   let started = false;
-  for (let i = 0; i < smoothedPoints.length; i++) {
-    const pt = smoothedPoints[i];
+  for (const pt of smoothedPoints) {
     if (!pt) {
       started = false;
       continue;
@@ -1699,10 +1639,6 @@ function drawHoverTick(ctx, hoverState, transform, ribbonWidthPx, ribbonGapPx) {
   const { nearest } = hoverState;
   const sx = transform.toScreenX(nearest.x);
   const sy = transform.toScreenY(nearest.z);
-  const dxWorld = 1;
-  const xFwd = nearest.x + dxWorld;
-  const zFwd = nearest.z;
-  const p = { x: sx, y: sy };
   const sx2 = transform.toScreenX(nearest.x + 0.5);
   const sy2 = transform.toScreenY(nearest.z);
   const tx = sx2 - sx;
@@ -1752,46 +1688,47 @@ function drawLinkedHighlight(ctx, lapA, transform, visibleRange, ribbonWidthPx, 
   ctx.stroke();
   ctx.globalCompositeOperation = "source-over";
   const halfSpan = ribbonWidthPx / 2 + ribbonGapPx / 2 + 6;
-  [startIdx, endIdx].forEach((idx) => {
-    const x = lapA.x[idx];
-    const z = lapA.z[idx];
-    if (!isFinite(x) || !isFinite(z)) return;
-    let dx = 0, dy = 0;
-    let found = false;
-    for (let j = idx + 1; j <= maxIdx && !found; j++) {
+  [startIdx, endIdx].forEach((idx) => drawHighlightTick(ctx, lapA, transform, idx, maxIdx, halfSpan));
+  ctx.restore();
+}
+function drawHighlightTick(ctx, lapA, transform, idx, maxIdx, halfSpan) {
+  const x = lapA.x[idx];
+  const z = lapA.z[idx];
+  if (!isFinite(x) || !isFinite(z)) return;
+  let dx = 0, dy = 0;
+  let found = false;
+  for (let j = idx + 1; j <= maxIdx && !found; j++) {
+    const x2 = lapA.x[j];
+    const z2 = lapA.z[j];
+    if (isFinite(x2) && isFinite(z2)) {
+      dx = transform.toScreenX(x2) - transform.toScreenX(x);
+      dy = transform.toScreenY(z2) - transform.toScreenY(z);
+      found = true;
+    }
+  }
+  if (!found) {
+    for (let j = idx - 1; j >= 0 && !found; j--) {
       const x2 = lapA.x[j];
       const z2 = lapA.z[j];
       if (isFinite(x2) && isFinite(z2)) {
-        dx = transform.toScreenX(x2) - transform.toScreenX(x);
-        dy = transform.toScreenY(z2) - transform.toScreenY(z);
+        dx = transform.toScreenX(x) - transform.toScreenX(x2);
+        dy = transform.toScreenY(z) - transform.toScreenY(z2);
         found = true;
       }
     }
-    if (!found) {
-      for (let j = idx - 1; j >= 0 && !found; j--) {
-        const x2 = lapA.x[j];
-        const z2 = lapA.z[j];
-        if (isFinite(x2) && isFinite(z2)) {
-          dx = transform.toScreenX(x) - transform.toScreenX(x2);
-          dy = transform.toScreenY(z) - transform.toScreenY(z2);
-          found = true;
-        }
-      }
-    }
-    if (!found) return;
-    const tlen = Math.hypot(dx, dy) || 1;
-    const nx = -dy / tlen;
-    const ny = dx / tlen;
-    const sx = transform.toScreenX(x);
-    const sy = transform.toScreenY(z);
-    ctx.strokeStyle = "#ffffff";
-    ctx.lineWidth = 1;
-    ctx.beginPath();
-    ctx.moveTo(sx + nx * -halfSpan, sy + ny * -halfSpan);
-    ctx.lineTo(sx + nx * halfSpan, sy + ny * halfSpan);
-    ctx.stroke();
-  });
-  ctx.restore();
+  }
+  if (!found) return;
+  const tlen = Math.hypot(dx, dy) || 1;
+  const nx = -dy / tlen;
+  const ny = dx / tlen;
+  const sx = transform.toScreenX(x);
+  const sy = transform.toScreenY(z);
+  ctx.strokeStyle = "#ffffff";
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  ctx.moveTo(sx + nx * -halfSpan, sy + ny * -halfSpan);
+  ctx.lineTo(sx + nx * halfSpan, sy + ny * halfSpan);
+  ctx.stroke();
 }
 function drawStartFinishTick(ctx, startX, startZ, transform) {
   const sx = transform.toScreenX(startX);
@@ -1827,6 +1764,55 @@ function drawDebugTicks(ctx, lap, transform, color, labelPrefix) {
     ctx.font = "9px sans-serif";
     ctx.fillText(`${labelPrefix}${Math.round(tickS)}`, sx + 6, sy - 4);
   }
+}
+
+// web/js/trackHeatmapMap.js
+var _lastTransform = null;
+function getLastTransform() {
+  return _lastTransform;
+}
+function setLastTransform(tf) {
+  _lastTransform = tf;
+}
+function fitToView(boundsA, boundsB, canvasWidth, canvasHeight, padding) {
+  const minX = Math.min(boundsA.minX, boundsB.minX);
+  const maxX = Math.max(boundsA.maxX, boundsB.maxX);
+  const minZ = Math.min(boundsA.minZ, boundsB.minZ);
+  const maxZ = Math.max(boundsA.maxZ, boundsB.maxZ);
+  const worldW = maxX - minX || 1;
+  const worldH = maxZ - minZ || 1;
+  const availW = canvasWidth - 2 * padding;
+  const availH = canvasHeight - 2 * padding;
+  const scale = Math.min(availW / worldW, availH / worldH);
+  const drawnW = worldW * scale;
+  const drawnH = worldH * scale;
+  const offsetX = padding + (availW - drawnW) / 2;
+  const offsetY = padding + (availH - drawnH) / 2;
+  return {
+    scale,
+    offsetX,
+    offsetY,
+    toScreenX: (x) => offsetX + (x - minX) * scale,
+    toScreenY: (z) => offsetY + (maxZ - z) * scale,
+    // Z-up → Y-down
+    bounds: { minX, maxX, minZ, maxZ }
+  };
+}
+function applyUserTransform(base, userScale, userPanX, userPanY) {
+  const mScale = userScale ?? 1;
+  const tx = userPanX ?? 0;
+  const ty = userPanY ?? 0;
+  return {
+    scale: base.scale * mScale,
+    offsetX: base.offsetX,
+    offsetY: base.offsetY,
+    toScreenX: (x) => base.offsetX + (x - base.bounds.minX) * base.scale * mScale + tx,
+    toScreenY: (z) => base.offsetY + (base.bounds.maxZ - z) * base.scale * mScale + ty,
+    bounds: base.bounds,
+    userScale: mScale,
+    userPanX: tx,
+    userPanY: ty
+  };
 }
 function renderWalkingSkeleton(canvas, lapA, lapB, options = {}) {
   const { showOutline = false, showHeatmapSingleLap = false, showSAlignmentDebug = false, showDualRibbon = false, showLegend = false, ribbonWidthPx = 8, ribbonGapPx = 2, userScale = 1, userPanX = 0, userPanY = 0 } = options;
