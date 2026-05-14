@@ -35,12 +35,13 @@ to be reminded of these rules in each prompt.
 You are not done until all of these exist:
 
 1. `npm test` (or whatever `TEST_CMD` is configured) exits 0.
-2. `phases/<this-phase>/learnings.md` — what surprised you, anything the
+2. `npm run build` succeeds and `dist/compare.html` is current (no stale bundle).
+3. `phases/<this-phase>/learnings.md` — what surprised you, anything the
    next agent needs to know that is not in the spec.
-3. `phases/<this-phase>/handoff.md` — concrete state: what is on disk now,
+4. `phases/<this-phase>/handoff.md` — concrete state: what is on disk now,
    what feature flags are live, new helpers worth knowing about, deferred
    TODOs.
-4. Commits on branch `phase/<this-phase>`, with `refactor:` prefixes where
+5. Commits on branch `phase/<this-phase>`, with `refactor:` prefixes where
    appropriate.
 
 ## Build instructions
