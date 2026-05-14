@@ -58,6 +58,18 @@ class Frame:
     track_name: str
     vehicle_name: str
     player_scor_index: int
+    raw_lap_distance_m: Optional[float] = None
+    path_lateral_m: Optional[float] = None
+    track_edge_m: Optional[float] = None
+    distance_to_track_edge_m: Optional[float] = None
+    surface_type_fl: Optional[int] = None
+    surface_type_fr: Optional[int] = None
+    surface_type_rl: Optional[int] = None
+    surface_type_rr: Optional[int] = None
+    terrain_name_fl: Optional[str] = None
+    terrain_name_fr: Optional[str] = None
+    terrain_name_rl: Optional[str] = None
+    terrain_name_rr: Optional[str] = None
 
 
 class _BaseConnection:
@@ -148,6 +160,33 @@ def _slip_deg(wheel) -> float:
     return math.degrees(math.atan2(lat, lon))
 
 
+def _optional_float(obj, attr: str) -> Optional[float]:
+    try:
+        return float(getattr(obj, attr))
+    except AttributeError:
+        return None
+
+
+def _distance_to_track_edge(track_edge: Optional[float], path_lateral: Optional[float]) -> Optional[float]:
+    if track_edge is None or path_lateral is None:
+        return None
+    return track_edge - abs(path_lateral)
+
+
+def _wheel_surface(wheel) -> Optional[int]:
+    try:
+        return int(wheel.mSurfaceType)
+    except AttributeError:
+        return None
+
+
+def _wheel_terrain(wheel) -> Optional[str]:
+    try:
+        return _decode(bytes(wheel.mTerrainName))
+    except AttributeError:
+        return None
+
+
 # ---------- LMU ---------------------------------------------------------------
 
 class LMUConnection(_BaseConnection):
@@ -201,12 +240,15 @@ class LMUConnection(_BaseConnection):
         vx, vy, vz = tele_v.mLocalVel.x, tele_v.mLocalVel.y, tele_v.mLocalVel.z
         speed_mps = (vx * vx + vy * vy + vz * vz) ** 0.5
         sim_time = float(scor_info.mCurrentET)
+        raw_lap_dist = float(scor_v.mLapDist)
+        path_lateral = _optional_float(scor_v, "mPathLateral")
+        track_edge = _optional_float(scor_v, "mTrackEdge")
 
         return Frame(
             sim=self.sim,
             session_time_s=sim_time,
             lap_number=int(tele_v.mLapNumber),
-            lap_distance_m=self._estimate_dist(float(scor_v.mLapDist), speed_mps, sim_time),
+            lap_distance_m=self._estimate_dist(raw_lap_dist, speed_mps, sim_time),
             lap_time_s=float(scor_info.mCurrentET - tele_v.mLapStartET),
             speed_kph=speed_mps * 3.6,
             throttle_norm=float(tele_v.mUnfilteredThrottle),
@@ -231,6 +273,18 @@ class LMUConnection(_BaseConnection):
             track_name=_decode(bytes(scor_info.mTrackName)),
             vehicle_name=_decode(bytes(tele_v.mVehicleName)),
             player_scor_index=idx,
+            raw_lap_distance_m=raw_lap_dist,
+            path_lateral_m=path_lateral,
+            track_edge_m=track_edge,
+            distance_to_track_edge_m=_distance_to_track_edge(track_edge, path_lateral),
+            surface_type_fl=_wheel_surface(tele_v.mWheels[0]),
+            surface_type_fr=_wheel_surface(tele_v.mWheels[1]),
+            surface_type_rl=_wheel_surface(tele_v.mWheels[2]),
+            surface_type_rr=_wheel_surface(tele_v.mWheels[3]),
+            terrain_name_fl=_wheel_terrain(tele_v.mWheels[0]),
+            terrain_name_fr=_wheel_terrain(tele_v.mWheels[1]),
+            terrain_name_rl=_wheel_terrain(tele_v.mWheels[2]),
+            terrain_name_rr=_wheel_terrain(tele_v.mWheels[3]),
         )
 
 
@@ -287,12 +341,15 @@ class RF2Connection(_BaseConnection):
         vx, vy, vz = tele_v.mLocalVel.x, tele_v.mLocalVel.y, tele_v.mLocalVel.z
         speed_mps = (vx * vx + vy * vy + vz * vz) ** 0.5
         sim_time = float(scor_info.mCurrentET)
+        raw_lap_dist = float(scor_v.mLapDist)
+        path_lateral = _optional_float(scor_v, "mPathLateral")
+        track_edge = _optional_float(scor_v, "mTrackEdge")
 
         return Frame(
             sim=self.sim,
             session_time_s=sim_time,
             lap_number=int(tele_v.mLapNumber),
-            lap_distance_m=self._estimate_dist(float(scor_v.mLapDist), speed_mps, sim_time),
+            lap_distance_m=self._estimate_dist(raw_lap_dist, speed_mps, sim_time),
             lap_time_s=float(scor_info.mCurrentET - tele_v.mLapStartET),
             speed_kph=speed_mps * 3.6,
             throttle_norm=float(tele_v.mUnfilteredThrottle),
@@ -317,6 +374,18 @@ class RF2Connection(_BaseConnection):
             track_name=_decode(bytes(scor_info.mTrackName)),
             vehicle_name=_decode(bytes(tele_v.mVehicleName)),
             player_scor_index=idx,
+            raw_lap_distance_m=raw_lap_dist,
+            path_lateral_m=path_lateral,
+            track_edge_m=track_edge,
+            distance_to_track_edge_m=_distance_to_track_edge(track_edge, path_lateral),
+            surface_type_fl=_wheel_surface(tele_v.mWheels[0]),
+            surface_type_fr=_wheel_surface(tele_v.mWheels[1]),
+            surface_type_rl=_wheel_surface(tele_v.mWheels[2]),
+            surface_type_rr=_wheel_surface(tele_v.mWheels[3]),
+            terrain_name_fl=_wheel_terrain(tele_v.mWheels[0]),
+            terrain_name_fr=_wheel_terrain(tele_v.mWheels[1]),
+            terrain_name_rl=_wheel_terrain(tele_v.mWheels[2]),
+            terrain_name_rr=_wheel_terrain(tele_v.mWheels[3]),
         )
 
 

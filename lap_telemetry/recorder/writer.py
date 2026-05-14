@@ -36,7 +36,25 @@ _SCHEMA = pa.schema([
     pa.field("slip_angle_rr_deg", pa.float32()),
     pa.field("abs_active", pa.bool_(), nullable=True),
     pa.field("tc_active",  pa.bool_(), nullable=True),
+    pa.field("raw_lap_distance_m", pa.float32(), nullable=True),
+    pa.field("path_lateral_m", pa.float32(), nullable=True),
+    pa.field("track_edge_m", pa.float32(), nullable=True),
+    pa.field("distance_to_track_edge_m", pa.float32(), nullable=True),
+    pa.field("surface_type_fl", pa.int8(), nullable=True),
+    pa.field("surface_type_fr", pa.int8(), nullable=True),
+    pa.field("surface_type_rl", pa.int8(), nullable=True),
+    pa.field("surface_type_rr", pa.int8(), nullable=True),
+    pa.field("terrain_name_fl", pa.string(), nullable=True),
+    pa.field("terrain_name_fr", pa.string(), nullable=True),
+    pa.field("terrain_name_rl", pa.string(), nullable=True),
+    pa.field("terrain_name_rr", pa.string(), nullable=True),
 ])
+
+
+def _distance_to_track_edge(frame: Frame) -> float | None:
+    if frame.track_edge_m is None or frame.path_lateral_m is None:
+        return None
+    return frame.track_edge_m - abs(frame.path_lateral_m)
 
 
 def _track_slug(track: str) -> str:
@@ -144,7 +162,7 @@ def recover_orphaned_shards(out_dir: Path) -> None:
             sim_name   = parts[3] if len(parts) > 3 else "unknown"
             track_slug = parts[2] if len(parts) > 2 else "unknown"
             new_sidecar = {
-                "schema_version": "1",
+                "schema_version": "2",
                 "recorder_version": __version__,
                 "started_utc": started_iso,
                 "ended_utc": "unknown",
@@ -215,6 +233,18 @@ class SessionWriter:
         b["slip_angle_rr_deg"].append(frame.slip_angle_rr_deg)
         b["abs_active"].append(frame.abs_active)
         b["tc_active"].append(frame.tc_active)
+        b["raw_lap_distance_m"].append(frame.raw_lap_distance_m)
+        b["path_lateral_m"].append(frame.path_lateral_m)
+        b["track_edge_m"].append(frame.track_edge_m)
+        b["distance_to_track_edge_m"].append(_distance_to_track_edge(frame))
+        b["surface_type_fl"].append(frame.surface_type_fl)
+        b["surface_type_fr"].append(frame.surface_type_fr)
+        b["surface_type_rl"].append(frame.surface_type_rl)
+        b["surface_type_rr"].append(frame.surface_type_rr)
+        b["terrain_name_fl"].append(frame.terrain_name_fl)
+        b["terrain_name_fr"].append(frame.terrain_name_fr)
+        b["terrain_name_rl"].append(frame.terrain_name_rl)
+        b["terrain_name_rr"].append(frame.terrain_name_rr)
         self._lap_numbers.add(frame.lap_number)
         self._last_vehicle = frame.vehicle_name
 
@@ -257,7 +287,7 @@ class SessionWriter:
         recovered: bool = False,
     ) -> None:
         sidecar: dict = {
-            "schema_version": "1",
+            "schema_version": "2",
             "recorder_version": __version__,
             "started_utc": self._started_utc,
             "ended_utc": ended_utc,
