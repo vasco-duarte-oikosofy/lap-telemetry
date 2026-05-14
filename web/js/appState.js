@@ -66,6 +66,7 @@ export const features = {
   mapHeatmapSingleLap: false,    // Phase 01a - default OFF until accepted
   mapSAlignment: false,          // Phase 01b - s-based cross-lap alignment
   mapDualRibbon: false,          // Phase 01c - side-by-side dual heatmap ribbons
+  mapZoomPan: false,             // Phase 02 - zoom and pan interaction
 };
 
 // Dev-only flags (not exposed in production UI)
