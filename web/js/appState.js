@@ -71,6 +71,7 @@ export const features = {
   mapHover: false,                // Phase 04 - hover crosshair and per-lap readout
   mapLinkedHighlight: false,       // Phase 05a - linked highlight band from trace charts
   apexAnnotations: false,          // Track outline Phase 03 - apex annotation loading
+  apexMetrics: false,              // Track outline Phase 04 - in-memory apex metrics
 };
 
 // Dev-only flags (not exposed in production UI)
