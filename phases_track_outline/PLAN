@@ -5,7 +5,7 @@
 | 00-schema-compatibility | Add safety tests so old sessions and future-shaped rows both load | ✅ DONE |
 | 01-recorder-track-edge-channels | Recorder writes raw lap distance, lateral/edge, surface, and terrain channels | ✅ DONE |
 | 02-loader-new-channels | Frontend/session loader exposes the new channels read-only | ✅ DONE |
-| 03-apex-annotations | Add apex annotation files and validator | ⬜ TODO |
+| 03-apex-annotations | Add apex annotation files and validator | ✅ DONE |
 | 04-apex-metrics-one-corner | Compute apex metrics for one lap and one configured corner | ⬜ TODO |
 | 04.1-apex-metrics-all-corners | Aggregate apex metrics for all laps and configured corners | ⬜ TODO |
 | 04.2-apex-surface-terrain | Include apex-side surface and terrain in metrics | ⬜ TODO |
