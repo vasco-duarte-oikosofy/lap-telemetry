@@ -335,7 +335,9 @@ function renderTrackHeatmapMap() {
   if (!canvas || !svg) return;
 
   // Feature flag: only show when enabled
-  if (!features.mapWalkingSkeleton) {
+  // If no map feature flags are enabled, fall back to the old SVG map
+  const anyMapFeature = features.mapWalkingSkeleton || features.mapTrackOutline || features.mapHeatmapSingleLap || features.mapSAlignment;
+  if (!anyMapFeature) {
     canvas.style.display = 'none';
     svg.style.display    = '';
     return;
@@ -364,7 +366,7 @@ function renderTrackHeatmapMap() {
   // Phase 00.6/01a/01b: pass feature-flagged renderer options.
   const showOutline = !!features.mapTrackOutline;
   const showHeatmapSingleLap = !!features.mapHeatmapSingleLap;
-  const showSAlignmentDebug = !!devFeatures.devMapSAlignmentDebug;
+  const showSAlignmentDebug = !!features.mapSAlignment || !!devFeatures.devMapSAlignmentDebug;
   renderWalkingSkeleton(canvas, lapA, lapB, { showOutline, showHeatmapSingleLap, showSAlignmentDebug });
 
   // Set up ResizeObserver on first render
