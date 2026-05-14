@@ -10,6 +10,7 @@
 import { computeTrackBounds } from './pipeline.js';
 import { sLookup } from './sLookup.js';
 import { drawRibbon, drawHeatmapRibbon, drawDualRibbons } from './ribbon.js';
+import { updateMapLegend } from './mapLegend.js';
 
 // ── fitToView ─────────────────────────────────────────────────────────────────
 // Given track bounding boxes for both laps, compute a world→screen transform
@@ -276,7 +277,7 @@ function drawDebugTicks(ctx, lap, transform, color, labelPrefix) {
 // Phase 00.6: adds track outline background underneath.
 
 export function renderWalkingSkeleton(canvas, lapA, lapB, options = {}) {
-  const { showOutline = false, showHeatmapSingleLap = false, showSAlignmentDebug = false, showDualRibbon = false, ribbonWidthPx = 8, ribbonGapPx = 2, userScale = 1, userPanX = 0, userPanY = 0 } = options;
+  const { showOutline = false, showHeatmapSingleLap = false, showSAlignmentDebug = false, showDualRibbon = false, showLegend = false, ribbonWidthPx = 8, ribbonGapPx = 2, userScale = 1, userPanX = 0, userPanY = 0 } = options;
   
   const ctx = canvas.getContext('2d');
   const rect = canvas.getBoundingClientRect();
@@ -339,6 +340,10 @@ export function renderWalkingSkeleton(canvas, lapA, lapB, options = {}) {
   if (lapA.x.length > 0 && lapA.z.length > 0) {
     drawStartFinishTick(ctx, lapA.x[0], lapA.z[0], transform);
   }
+
+  // Phase 03: update legend overlays
+  const panel = canvas.parentElement;
+  updateMapLegend(panel, lapA, lapB, showLegend);
 }
 
 // ── ResizeObserver setup ──────────────────────────────────────────────────────
