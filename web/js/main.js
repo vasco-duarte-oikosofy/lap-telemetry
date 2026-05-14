@@ -345,7 +345,7 @@ function renderTrackHeatmapMap() {
   if (!canvas || !svg) return;
 
   // Feature flag: only show when enabled
-  const anyMapFeature = features.mapWalkingSkeleton || features.mapTrackOutline || features.mapHeatmapSingleLap || features.mapSAlignment || features.mapDualRibbon || features.mapZoomPan || features.mapLegend || features.mapHover;
+  const anyMapFeature = features.mapWalkingSkeleton || features.mapTrackOutline || features.mapHeatmapSingleLap || features.mapSAlignment || features.mapDualRibbon || features.mapZoomPan || features.mapLegend || features.mapHover || features.mapLinkedHighlight;
   if (!anyMapFeature) {
     canvas.style.display = 'none';
     svg.style.display    = '';
@@ -434,8 +434,11 @@ function renderTrackHeatmapMap() {
   const showLegend = !!features.mapLegend;
   const showHover = !!features.mapHover;
   const hoverState = mapHover ? mapHover.getState() : null;
+  const showLinkedHighlight = !!features.mapLinkedHighlight;
   const opts = {
     showOutline, showHeatmapSingleLap, showSAlignmentDebug, showDualRibbon, showLegend, showHover, hoverState,
+    showLinkedHighlight,
+    visibleRange: currentZoomRange,
     ribbonWidthPx: 8, ribbonGapPx: 2,
     userScale, userPanX, userPanY,
   };
@@ -486,6 +489,8 @@ function renderTrackHeatmapMap() {
         showDualRibbon: !!features.mapDualRibbon,
         showLegend: !!features.mapLegend,
         showHover: !!features.mapHover,
+        showLinkedHighlight: !!features.mapLinkedHighlight,
+        visibleRange: currentZoomRange,
         ribbonWidthPx: 8,
         ribbonGapPx: 2,
         userScale: s.scale,

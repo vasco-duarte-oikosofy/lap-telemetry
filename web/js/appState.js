@@ -69,6 +69,7 @@ export const features = {
   mapZoomPan: false,             // Phase 02 - zoom and pan interaction
   mapLegend: false,              // Phase 03 - lap legend and identification
   mapHover: false,                // Phase 04 - hover crosshair and per-lap readout
+  mapLinkedHighlight: false,       // Phase 05a - linked highlight band from trace charts
 };
 
 // Dev-only flags (not exposed in production UI)
