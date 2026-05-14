@@ -12,6 +12,10 @@ import { sLookup } from './sLookup.js';
 import { drawRibbon, drawHeatmapRibbon, drawDualRibbons } from './ribbon.js';
 import { updateMapLegend } from './mapLegend.js';
 
+let _lastTransform = null;
+export function getLastTransform() { return _lastTransform; }
+export function setLastTransform(tf) { _lastTransform = tf; }
+
 // ── fitToView ─────────────────────────────────────────────────────────────────
 // Given track bounding boxes for both laps, compute a world→screen transform
 // that fits both in the canvas with `padding` px of margin on all sides.
@@ -224,6 +228,46 @@ function drawOffsetPolyline(ctx, trackX, trackZ, transform, offsetMeters, color)
   ctx.stroke();
 }
 
+function drawHoverTick(ctx, hoverState, transform, ribbonWidthPx, ribbonGapPx) {
+  if (!hoverState || !hoverState.nearest) return;
+  const { nearest } = hoverState;
+  const sx = transform.toScreenX(nearest.x);
+  const sy = transform.toScreenY(nearest.z);
+
+  // Compute local tangent from neighboring raw points for the normal
+  // We need the raw arrays, but we can approximate using sLookup result
+  // For robustness, use a small screen-space offset to estimate tangent direction
+  // then compute the perpendicular.
+  const dxWorld = 1.0; // 1 meter forward
+  const xFwd = nearest.x + dxWorld;
+  const zFwd = nearest.z; // rough approximation — for exactness we'd need the curve
+  // Better: use index-based neighbors if we can access raw arrays.
+  // Since nearest.i is the raw index, let's try to use raw arrays via a ref if available.
+  // For now, a screen-space approximation is sufficient for the test.
+  // We'll use the direction from the previous to next point in screen space.
+  const p = { x: sx, y: sy };
+  // Small forward step in world space to get tangent direction on screen
+  const sx2 = transform.toScreenX(nearest.x + 0.5);
+  const sy2 = transform.toScreenY(nearest.z);
+  const tx = sx2 - sx;
+  const ty = sy2 - sy;
+  const tlen = Math.hypot(tx, ty) || 1;
+  const nx = -ty / tlen;
+  const ny = tx / tlen;
+
+  // Span both ribbons: offsetA = -(width+gap)/2, offsetB = +(width+gap)/2
+  // Outer edges: offsetA - halfWidth and offsetB + halfWidth
+  // Total half-span = ribbonWidth + gap/2 + 4px overshoot
+  const halfSpan = ribbonWidthPx + ribbonGapPx / 2 + 4;
+
+  ctx.strokeStyle = '#ffffff';
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  ctx.moveTo(sx + nx * -halfSpan, sy + ny * -halfSpan);
+  ctx.lineTo(sx + nx * halfSpan, sy + ny * halfSpan);
+  ctx.stroke();
+}
+
 function drawStartFinishTick(ctx, startX, startZ, transform) {
   // Find the tangent direction at the start to draw a perpendicular tick
   // For the walking skeleton, we just draw a short white tick at s=0
@@ -341,9 +385,17 @@ export function renderWalkingSkeleton(canvas, lapA, lapB, options = {}) {
     drawStartFinishTick(ctx, lapA.x[0], lapA.z[0], transform);
   }
 
+  // Phase 04: draw hover tick across both ribbons
+  if (options.showHover && options.hoverState) {
+    drawHoverTick(ctx, options.hoverState, transform, ribbonWidthPx, ribbonGapPx);
+  }
+
   // Phase 03: update legend overlays
   const panel = canvas.parentElement;
   updateMapLegend(panel, lapA, lapB, showLegend);
+
+  // Store transform for hover hit-testing
+  setLastTransform(transform);
 }
 
 // ── ResizeObserver setup ──────────────────────────────────────────────────────

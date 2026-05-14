@@ -25,8 +25,11 @@ import { renderCircuitMap, renderHeatmapSegments, renderMapLegend, updateZoomArc
          HEATMAP_RAMPS, HEATMAP_CHANNELS } from './circuitMap.js';
 
 // ── Track heatmap map (Phase 00.5 walking skeleton) ────────────────────────────
-import { renderWalkingSkeleton, initTrackHeatmapResize, fitToView } from './trackHeatmapMap.js';
+import { renderWalkingSkeleton, initTrackHeatmapResize, fitToView, getLastTransform } from './trackHeatmapMap.js';
 import { assertStrictlyMonotonic } from './sLookup.js';
+
+// ── Map hover (Phase 04) ──────────────────────────────────────────────────────
+import { createMapHover } from './mapHover.js';
 
 // ── Map interaction (Phase 02 zoom/pan) ──────────────────────────────────────
 import { createMapInteraction, setBaseTransform } from './mapInteraction.js';
@@ -70,6 +73,7 @@ let trackTransform     = null; // Updated by renderCircuitMap
 let currentLapARaw     = null;   // Phase 01b: raw arrays for s alignment
 let currentLapBRaw     = null;   // Phase 01b: raw arrays for s alignment
 let mapInteraction     = null;   // Phase 02: zoom/pan interaction controller
+let mapHover           = null;   // Phase 04: hover readout controller
 function renderAll(sessionEntry, sessionSegIdx, refEntry, refSegIdx) {
   const sSeg = sessionEntry.segments[sessionSegIdx];
   const rSeg = refEntry.segments[refSegIdx];
@@ -193,6 +197,8 @@ function renderAll(sessionEntry, sessionSegIdx, refEntry, refSegIdx) {
       s: new Float64Array(rDistRaw),
       x: new Float64Array(rKeep.map(i => refEntry.data.pos_x_m?.[i] ?? NaN)),
       z: new Float64Array(rKeep.map(i => refEntry.data.pos_z_m?.[i] ?? NaN)),
+      throttle: new Float64Array(rKeep.map(i => refEntry.data.throttle_norm?.[i] ?? 0)),
+      brake: new Float64Array(rKeep.map(i => refEntry.data.brake_norm?.[i] ?? 0)),
     };
   }
 
@@ -339,7 +345,7 @@ function renderTrackHeatmapMap() {
   if (!canvas || !svg) return;
 
   // Feature flag: only show when enabled
-  const anyMapFeature = features.mapWalkingSkeleton || features.mapTrackOutline || features.mapHeatmapSingleLap || features.mapSAlignment || features.mapDualRibbon || features.mapZoomPan || features.mapLegend;
+  const anyMapFeature = features.mapWalkingSkeleton || features.mapTrackOutline || features.mapHeatmapSingleLap || features.mapSAlignment || features.mapDualRibbon || features.mapZoomPan || features.mapLegend || features.mapHover;
   if (!anyMapFeature) {
     canvas.style.display = 'none';
     svg.style.display    = '';
@@ -362,6 +368,29 @@ function renderTrackHeatmapMap() {
       if (panel) panel.appendChild(indicator);
     }
     mapInteraction = createMapInteraction(canvas, () => renderTrackHeatmapMap());
+  }
+
+  // Phase 04: init hover helper once
+  if (features.mapHover && !mapHover) {
+    mapHover = createMapHover(canvas, () => ({
+      lapA: {
+        x: currentTrackX,
+        z: currentTrackZ,
+        throttle: currentSessionBins?.throttle_norm,
+        brake: currentSessionBins?.brake_norm,
+        color: getComputedStyle(document.documentElement).getPropertyValue('--session').trim() || '#4fc3f7',
+        raw: currentLapARaw,
+      },
+      lapB: {
+        x: currentRefTrackX,
+        z: currentRefTrackZ,
+        throttle: currentRefBins?.throttle_norm,
+        brake: currentRefBins?.brake_norm,
+        color: getComputedStyle(document.documentElement).getPropertyValue('--ref').trim() || '#ff9800',
+        raw: currentLapBRaw,
+      },
+      transform: getLastTransform(),
+    }), () => renderTrackHeatmapMap());
   }
 
   // Need both laps' track data
@@ -403,12 +432,17 @@ function renderTrackHeatmapMap() {
   const showHeatmapSingleLap = !!features.mapHeatmapSingleLap;
   const showSAlignmentDebug = !!features.mapSAlignment || !!devFeatures.devMapSAlignmentDebug;
   const showLegend = !!features.mapLegend;
+  const showHover = !!features.mapHover;
+  const hoverState = mapHover ? mapHover.getState() : null;
   const opts = {
-    showOutline, showHeatmapSingleLap, showSAlignmentDebug, showDualRibbon, showLegend,
+    showOutline, showHeatmapSingleLap, showSAlignmentDebug, showDualRibbon, showLegend, showHover, hoverState,
     ribbonWidthPx: 8, ribbonGapPx: 2,
     userScale, userPanX, userPanY,
   };
   renderWalkingSkeleton(canvas, lapA, lapB, opts);
+
+  // Phase 04: rebuild spatial index after render so grid matches current data
+  if (mapHover) mapHover.rebuild();
 
   // Phase 02: notify interaction layer of base transform for cursor-centered zoom
   if (features.mapZoomPan) {
@@ -451,6 +485,7 @@ function renderTrackHeatmapMap() {
         showSAlignmentDebug: !!devFeatures.devMapSAlignmentDebug,
         showDualRibbon: !!features.mapDualRibbon,
         showLegend: !!features.mapLegend,
+        showHover: !!features.mapHover,
         ribbonWidthPx: 8,
         ribbonGapPx: 2,
         userScale: s.scale,

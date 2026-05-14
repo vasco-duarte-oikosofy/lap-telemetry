@@ -1,0 +1,257 @@
+/**
+ * Map hover helper — spatial index, pointer hit-testing, and readout DOM.
+ * One file, one job: everything the user sees when hovering over the track map.
+ */
+
+import { sLookup } from './sLookup.js';
+
+const CELL_SIZE = 20; // meters — uniform grid cell size
+
+// ── Spatial index ─────────────────────────────────────────────────────────────
+// Simple uniform grid keyed by integer world-cell coordinates.
+
+function buildGrid(lapARaw) {
+  if (!lapARaw || !lapARaw.x || !lapARaw.z) return null;
+  const grid = new Map();
+  for (let i = 0; i < lapARaw.x.length; i++) {
+    const x = lapARaw.x[i];
+    const z = lapARaw.z[i];
+    if (!isFinite(x) || !isFinite(z)) continue;
+    const cx = Math.floor(x / CELL_SIZE);
+    const cz = Math.floor(z / CELL_SIZE);
+    const key = `${cx},${cz}`;
+    if (!grid.has(key)) grid.set(key, []);
+    grid.get(key).push({ x, z, s: lapARaw.s[i], i });
+  }
+  return grid;
+}
+
+function findNearest(grid, worldX, worldZ) {
+  if (!grid) return null;
+  const cx = Math.floor(worldX / CELL_SIZE);
+  const cz = Math.floor(worldZ / CELL_SIZE);
+  let best = null;
+  let bestDist = Infinity;
+  for (let dx = -1; dx <= 1; dx++) {
+    for (let dz = -1; dz <= 1; dz++) {
+      const key = `${cx + dx},${cz + dz}`;
+      const pts = grid.get(key);
+      if (!pts) continue;
+      for (const pt of pts) {
+        const d2 = (pt.x - worldX) ** 2 + (pt.z - worldZ) ** 2;
+        if (d2 < bestDist) {
+          bestDist = d2;
+          best = pt;
+        }
+      }
+    }
+  }
+  return best;
+}
+
+// ── Screen ↔ world conversion ───────────────────────────────────────────────
+
+function worldFromScreen(sx, sy, transform) {
+  const x = (sx - transform.offsetX - (transform.userPanX || 0)) / transform.scale + transform.bounds.minX;
+  const z = transform.bounds.maxZ - (sy - transform.offsetY - (transform.userPanY || 0)) / transform.scale;
+  return { x, z };
+}
+
+// ── Readout DOM ───────────────────────────────────────────────────────────────
+
+function ensureReadout(panel) {
+  let el = document.getElementById('map-hover-readout');
+  if (!el) {
+    el = document.createElement('div');
+    el.id = 'map-hover-readout';
+    el.className = 'map-hover-readout';
+    el.style.display = 'none';
+    el.innerHTML = `
+      <div class="readout-dist"></div>
+      <div class="readout-row" id="readout-row-a"></div>
+      <div class="readout-row" id="readout-row-b"></div>
+    `;
+    panel.appendChild(el);
+  }
+  return el;
+}
+
+function updateReadout(el, state, lapA, lapB) {
+  if (!state || !el) {
+    if (el) el.style.display = 'none';
+    return;
+  }
+
+  const distEl = el.querySelector('.readout-dist');
+  const rowA = el.querySelector('#readout-row-a');
+  const rowB = el.querySelector('#readout-row-b');
+
+  const s = Math.round(state.s);
+  distEl.textContent = `Distance: ${s} m`;
+
+  const ta = state.lapASample?.throttle ?? 0;
+  const ba = state.lapASample?.brake ?? 0;
+  rowA.innerHTML = `
+    <span style="color:${lapA.color}">Lap A</span>
+    — Throttle <span style="color:#4caf50">${Math.round(ta * 100)}%</span>
+    / Brake <span style="color:#2196f3">${Math.round(ba * 100)}%</span>
+  `;
+
+  const tb = state.lapBSample?.throttle ?? 0;
+  const bb = state.lapBSample?.brake ?? 0;
+  rowB.innerHTML = `
+    <span style="color:${lapB.color}">Lap B</span>
+    — Throttle <span style="color:#4caf50">${Math.round(tb * 100)}%</span>
+    / Brake <span style="color:#2196f3">${Math.round(bb * 100)}%</span>
+  `;
+
+  el.style.display = 'block';
+}
+
+function positionReadout(el, sx, sy, canvasWidth, canvasHeight) {
+  if (!el || el.style.display === 'none') return;
+  const rect = el.getBoundingClientRect();
+  const w = rect.width || 180;
+  const h = rect.height || 60;
+  const offset = 12;
+
+  let left = sx + offset;
+  let top = sy + offset;
+
+  // Flip horizontally if near right edge
+  if (left + w > canvasWidth) {
+    left = sx - w - offset;
+  }
+  // Flip vertically if near bottom edge
+  if (top + h > canvasHeight) {
+    top = sy - h - offset;
+  }
+
+  el.style.left = `${Math.round(left)}px`;
+  el.style.top = `${Math.round(top)}px`;
+}
+
+// ── Public API ────────────────────────────────────────────────────────────────
+
+export function createMapHover(canvas, getLapData, onUpdate) {
+  let hoverState = null;
+  let rafId = null;
+  let pendingEvent = null;
+  let isDragging = false;
+  let grid = null;
+  let readoutEl = null;
+
+  function build() {
+    const { lapA } = getLapData();
+    grid = buildGrid(lapA?.raw);
+  }
+
+  function doUpdate() {
+    if (!pendingEvent || isDragging) {
+      hoverState = null;
+      onUpdate?.(null);
+      return;
+    }
+    const rect = canvas.getBoundingClientRect();
+    const sx = pendingEvent.clientX - rect.left;
+    const sy = pendingEvent.clientY - rect.top;
+
+    const { lapA, lapB, transform } = getLapData();
+    if (!lapA || !transform) {
+      hoverState = null;
+      onUpdate?.(null);
+      return;
+    }
+
+    const world = worldFromScreen(sx, sy, transform);
+    const nearest = findNearest(grid, world.x, world.z);
+    if (!nearest) {
+      hoverState = null;
+      onUpdate?.(null);
+      return;
+    }
+
+    const s = nearest.s;
+    const lapASample = sLookup(lapA.raw, s);
+    const lapBSample = lapB?.raw ? sLookup(lapB.raw, s) : null;
+
+    hoverState = {
+      s,
+      screenX: sx,
+      screenY: sy,
+      lapASample,
+      lapBSample,
+      nearest,
+    };
+
+    // Update readout DOM
+    const panel = canvas.parentElement;
+    readoutEl = ensureReadout(panel);
+    updateReadout(readoutEl, hoverState, lapA, lapB);
+    positionReadout(readoutEl, sx, sy, rect.width, rect.height);
+
+    onUpdate?.(hoverState);
+  }
+
+  function onPointerMove(e) {
+    if (isDragging) {
+      hoverState = null;
+      onUpdate?.(null);
+      return;
+    }
+    pendingEvent = e;
+    if (!rafId) {
+      rafId = requestAnimationFrame(() => {
+        rafId = null;
+        doUpdate();
+      });
+    }
+  }
+
+  function onPointerLeave() {
+    pendingEvent = null;
+    if (rafId) {
+      cancelAnimationFrame(rafId);
+      rafId = null;
+    }
+    hoverState = null;
+    if (readoutEl) readoutEl.style.display = 'none';
+    onUpdate?.(null);
+  }
+
+  function onPointerDown() {
+    isDragging = true;
+    pendingEvent = null;
+    if (rafId) {
+      cancelAnimationFrame(rafId);
+      rafId = null;
+    }
+    hoverState = null;
+    if (readoutEl) readoutEl.style.display = 'none';
+    onUpdate?.(null);
+  }
+
+  function onPointerUp() {
+    isDragging = false;
+  }
+
+  canvas.addEventListener('pointermove', onPointerMove);
+  canvas.addEventListener('pointerleave', onPointerLeave);
+  canvas.addEventListener('pointerdown', onPointerDown);
+  canvas.addEventListener('pointerup', onPointerUp);
+  canvas.addEventListener('pointercancel', onPointerUp);
+
+  return {
+    getState: () => hoverState,
+    rebuild: build,
+    destroy: () => {
+      canvas.removeEventListener('pointermove', onPointerMove);
+      canvas.removeEventListener('pointerleave', onPointerLeave);
+      canvas.removeEventListener('pointerdown', onPointerDown);
+      canvas.removeEventListener('pointerup', onPointerUp);
+      canvas.removeEventListener('pointercancel', onPointerUp);
+      if (rafId) cancelAnimationFrame(rafId);
+      if (readoutEl) readoutEl.remove();
+    },
+  };
+}
