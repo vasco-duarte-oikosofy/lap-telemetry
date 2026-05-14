@@ -1,0 +1,14 @@
+{
+  "schema_version": "2",
+  "recorder_version": "0.1.0a1",
+  "started_utc": "2026-05-14T18:21:39Z",
+  "ended_utc": null,
+  "sim": "lmu",
+  "track": "Circuit de Spa-Francorchamps Endurance",
+  "vehicle_name": "",
+  "setup_file_guess": null,
+  "sample_rate_hz": 50.0,
+  "row_count": 0,
+  "lap_count": 0,
+  "in_progress": true
+}
