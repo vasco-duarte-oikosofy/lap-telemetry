@@ -65,6 +65,9 @@ export const features = {
   mapTrackOutline: true,         // Phase 00.6 - ON for testing
   mapHeatmapSingleLap: false,    // Phase 01a - default OFF until accepted
   mapSAlignment: false,          // Phase 01b - s-based cross-lap alignment
+  mapDualRibbon: false,          // Phase 01c - side-by-side dual heatmap ribbons
+  mapZoomPan: false,             // Phase 02 - zoom and pan interaction
+  mapLegend: false,              // Phase 03 - lap legend and identification
 };
 
 // Dev-only flags (not exposed in production UI)

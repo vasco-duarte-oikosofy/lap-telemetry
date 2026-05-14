@@ -1,7 +1,6 @@
 // ── Track Heatmap Map — Walking Skeleton (Phase 00.5) ─────────────────────────
 // Draws both laps as 1px polylines on a Canvas 2D, fitted to view.
-// No heatmap, no ribbons, no interaction — just proof that we can render two
-// laps side by side on one map.
+// Phase 02: supports user zoom/pan composed with base fit-to-view transform.
 //
 // Feature flags:
 // - features.mapWalkingSkeleton (default: off)
@@ -9,8 +8,9 @@
 // - features.mapHeatmapSingleLap (default: off, Phase 01a)
 
 import { computeTrackBounds } from './pipeline.js';
-import { colorForNet } from './colorRamp.js';
 import { sLookup } from './sLookup.js';
+import { drawRibbon, drawHeatmapRibbon, drawDualRibbons } from './ribbon.js';
+import { updateMapLegend } from './mapLegend.js';
 
 // ── fitToView ─────────────────────────────────────────────────────────────────
 // Given track bounding boxes for both laps, compute a world→screen transform
@@ -49,8 +49,27 @@ export function fitToView(boundsA, boundsB, canvasWidth, canvasHeight, padding) 
   };
 }
 
+// ── applyUserTransform ──────────────────────────────────────────────────────
+// Compose a base fit-to-view transform with user zoom/pan.
+// Returns a new transform object whose toScreenX/Y include the user scale and pan.
 
-// ── Drawing helpers ───────────────────────────────────────────────────────────
+export function applyUserTransform(base, userScale, userPanX, userPanY) {
+  const mScale = userScale ?? 1;
+  const tx = userPanX ?? 0;
+  const ty = userPanY ?? 0;
+  return {
+    scale: base.scale * mScale,
+    offsetX: base.offsetX,
+    offsetY: base.offsetY,
+    toScreenX: (x) => base.offsetX + (x - base.bounds.minX) * base.scale * mScale + tx,
+    toScreenY: (z) => base.offsetY + (base.bounds.maxZ - z) * base.scale * mScale + ty,
+    bounds: base.bounds,
+    userScale: mScale,
+    userPanX: tx,
+    userPanY: ty,
+  };
+}
+
 
 function drawPolyline(ctx, trackX, trackZ, transform, color, lineWidth = 1) {
   ctx.strokeStyle = color;
@@ -205,77 +224,6 @@ function drawOffsetPolyline(ctx, trackX, trackZ, transform, offsetMeters, color)
   ctx.stroke();
 }
 
-function darkenHex(hex) {
-  const n = Number.parseInt(hex.slice(1), 16);
-  const r = ((n >> 16) & 255) * 0.55;
-  const g = ((n >> 8) & 255) * 0.55;
-  const b = (n & 255) * 0.55;
-  const toHex = (v) => Math.round(v).toString(16).padStart(2, '0');
-  return `#${toHex(r)}${toHex(g)}${toHex(b)}`;
-}
-
-export function drawRibbon(ctx, points, offsetPx, widthPx, colorAt) {
-  const halfWidth = widthPx / 2;
-  for (let i = 0; i < points.length - 1; i++) {
-    const a = points[i];
-    const b = points[i + 1];
-    if (!a || !b) continue;
-
-    const dx = b.x - a.x;
-    const dy = b.y - a.y;
-    const len = Math.hypot(dx, dy);
-    if (len < 0.001) continue;
-
-    const nx = -dy / len;
-    const ny = dx / len;
-    const inner = offsetPx - halfWidth;
-    const outer = offsetPx + halfWidth;
-    const color = colorAt(i);
-
-    const p1 = { x: a.x + nx * inner, y: a.y + ny * inner };
-    const p2 = { x: b.x + nx * inner, y: b.y + ny * inner };
-    const p3 = { x: b.x + nx * outer, y: b.y + ny * outer };
-    const p4 = { x: a.x + nx * outer, y: a.y + ny * outer };
-
-    ctx.fillStyle = color;
-    ctx.beginPath();
-    ctx.moveTo(p1.x, p1.y);
-    ctx.lineTo(p2.x, p2.y);
-    ctx.lineTo(p3.x, p3.y);
-    ctx.lineTo(p4.x, p4.y);
-    ctx.closePath();
-    ctx.fill();
-
-    ctx.strokeStyle = darkenHex(color);
-    ctx.lineWidth = 1;
-    ctx.beginPath();
-    ctx.moveTo(p1.x, p1.y);
-    ctx.lineTo(p2.x, p2.y);
-    ctx.moveTo(p4.x, p4.y);
-    ctx.lineTo(p3.x, p3.y);
-    ctx.stroke();
-  }
-}
-
-function buildScreenPoints(trackX, trackZ, transform) {
-  return Array.from(trackX, (x, i) => {
-    const z = trackZ[i];
-    if (!isFinite(x) || !isFinite(z)) return null;
-    return { x: transform.toScreenX(x), y: transform.toScreenY(z) };
-  });
-}
-
-function netAt(lap, index) {
-  const throttle = lap.throttle?.[index] ?? 0;
-  const brake = lap.brake?.[index] ?? 0;
-  return throttle - brake;
-}
-
-function drawHeatmapRibbon(ctx, lap, transform, widthPx) {
-  const points = buildScreenPoints(lap.x, lap.z, transform);
-  drawRibbon(ctx, points, 0, widthPx, (i) => colorForNet((netAt(lap, i) + netAt(lap, i + 1)) / 2));
-}
-
 function drawStartFinishTick(ctx, startX, startZ, transform) {
   // Find the tangent direction at the start to draw a perpendicular tick
   // For the walking skeleton, we just draw a short white tick at s=0
@@ -329,7 +277,7 @@ function drawDebugTicks(ctx, lap, transform, color, labelPrefix) {
 // Phase 00.6: adds track outline background underneath.
 
 export function renderWalkingSkeleton(canvas, lapA, lapB, options = {}) {
-  const { showOutline = false, showHeatmapSingleLap = false, showSAlignmentDebug = false, ribbonWidthPx = 8 } = options;
+  const { showOutline = false, showHeatmapSingleLap = false, showSAlignmentDebug = false, showDualRibbon = false, showLegend = false, ribbonWidthPx = 8, ribbonGapPx = 2, userScale = 1, userPanX = 0, userPanY = 0 } = options;
   
   const ctx = canvas.getContext('2d');
   const rect = canvas.getBoundingClientRect();
@@ -350,7 +298,8 @@ export function renderWalkingSkeleton(canvas, lapA, lapB, options = {}) {
   const boundsB = computeTrackBounds(Array.from(lapB.x), Array.from(lapB.z));
 
   const padding = 15;
-  const transform = fitToView(boundsA, boundsB, rect.width, rect.height, padding);
+  const baseTransform = fitToView(boundsA, boundsB, rect.width, rect.height, padding);
+  const transform = applyUserTransform(baseTransform, userScale, userPanX, userPanY);
 
   // Draw background
   ctx.fillStyle = 'rgba(0, 0, 0, 0.2)';
@@ -365,14 +314,19 @@ export function renderWalkingSkeleton(canvas, lapA, lapB, options = {}) {
     console.log('[trackHeatmapMap] showOutline is false, skipping outline');
   }
 
-  // Draw Lap B first (reference — underneath Lap A)
-  drawPolyline(ctx, lapB.x, lapB.z, transform, lapB.color);
-
-  // Draw Lap A on top (session — over reference)
-  if (showHeatmapSingleLap) {
-    drawHeatmapRibbon(ctx, lapA, transform, ribbonWidthPx);
+  // Draw order: background → outline → Lap A ribbon → Lap B ribbon → start/finish marker
+  if (showDualRibbon) {
+    drawDualRibbons(ctx, lapA, lapB, transform, ribbonWidthPx, ribbonGapPx);
   } else {
-    drawPolyline(ctx, lapA.x, lapA.z, transform, lapA.color);
+    // Draw Lap B first (reference — underneath Lap A)
+    drawPolyline(ctx, lapB.x, lapB.z, transform, lapB.color);
+
+    // Draw Lap A on top (session — over reference)
+    if (showHeatmapSingleLap) {
+      drawHeatmapRibbon(ctx, lapA, transform, ribbonWidthPx);
+    } else {
+      drawPolyline(ctx, lapA.x, lapA.z, transform, lapA.color);
+    }
   }
 
   // Phase 01b: s-alignment debug overlay (dev-only)
@@ -386,6 +340,10 @@ export function renderWalkingSkeleton(canvas, lapA, lapB, options = {}) {
   if (lapA.x.length > 0 && lapA.z.length > 0) {
     drawStartFinishTick(ctx, lapA.x[0], lapA.z[0], transform);
   }
+
+  // Phase 03: update legend overlays
+  const panel = canvas.parentElement;
+  updateMapLegend(panel, lapA, lapB, showLegend);
 }
 
 // ── ResizeObserver setup ──────────────────────────────────────────────────────

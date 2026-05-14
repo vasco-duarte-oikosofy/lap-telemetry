@@ -11,7 +11,7 @@ const { startServer } = require('./lib/test-server');
 const path = require('path');
 
 const WEB_DIR = path.join(__dirname, '..', 'web');
-const KNOWN_FLAGS = ['mapWalkingSkeleton', 'mapTrackOutline', 'mapHeatmapSingleLap'];
+const KNOWN_FLAGS = ['mapWalkingSkeleton', 'mapTrackOutline', 'mapHeatmapSingleLap', 'mapSAlignment', 'mapDualRibbon', 'mapZoomPan', 'mapLegend'];
 let passCount = 0;
 let failCount = 0;
 
