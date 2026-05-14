@@ -12,16 +12,14 @@ to be reminded of these rules in each prompt.
    one passing the existing test suite. No "WIP" commits.
 4. **Refactor commits are separate from behavior commits.** Refactor commits
    start with `refactor:` and must not change rendered output.
-5. **YAGNI is an active veto.** No abstractions or "while I'm here" cleanups
-   beyond what this subphase needs.
+5. **YAGNI is an active veto.** Develop only what is needed to complete the sub-phase you are on, nothing else. Keep it focused and simple. 
 6. **The simplest thing that could possibly work.** Optimize only when a
    later subphase reveals a real problem.
 7. **Spike, then stabilize.** For unknowns, write a throwaway spike, learn,
    throw it away, then implement properly with tests. Do not ship the spike.
 8. **Stop at green.** When this subphase's acceptance passes, commit, write
    your handoff, exit. Do not start the next subphase.
-9. **When in doubt, ask.** If anything is ambiguous, STOP and write the
-   question to `phases/<this-phase>/QUESTION.md` instead of guessing.
+9. **When in doubt, ask.** If anything is ambiguous, STOP and ask.
 10. **Narrate decisions in commit messages.** Explain *why*, not just *what*.
 
 ## File architecture
@@ -57,10 +55,15 @@ This creates `dist/compare.html` — a standalone single file that works via `fi
 The build script (`scripts/bundle.js`) inlines CSS from `web/css/styles.css` and
 bundles `web/js/main.js` (with its module dependencies) via esbuild.
 
-## What you should NOT do
+## Testing
 
-- Do not start a subphase other than the one named in your current prompt.
-- Do not modify `AGENTS.md` or `track-heatmap-spec.md` without being asked.
-- Do not run `pi update`, `pi install`, or any pi self-modification commands.
-- Do not exceed 437 lines in any file. Not even temporarily.
-- Do not write a generic abstraction when a specific implementation suffices.
+Before writing a new test or fixing a failing test, **read
+[TESTING_LESSONS.md](TESTING_LESSONS.md)**. It documents hard-won rules
+about Playwright and headless Chromium that prevent silent, layout-dependent
+failures.
+
+## Standing orders
+
+- Start only the subphase named in your current prompt.
+- Ask before modifying `AGENTS.md` or `track-heatmap-spec.md`.
+- Start with a specific and focused implementation, refactor only as needed to respect SOLID rules and YAGNI.

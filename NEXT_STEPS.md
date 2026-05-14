@@ -248,69 +248,10 @@ Add regression test confirming channel colour/dash for Speed, Throttle, Brake, S
 
 ---
 
-## Test Writing Lessons (from Phase 00 debugging)
+## Test Writing Lessons
 
-### L1. Use Playwright's `.hover()` with relative positions, not `mouse.move()` with absolute coordinates
-
-**Problem.** `mouse.move(svgBox.x + svgBox.width / 2, svgBox.y + svgBox.height / 2)` calculates absolute screen coordinates. When layout changes (e.g., Phase 00 centered the map), these coordinates point to the wrong element.
-
-**Solution.** Use `element.hover({ position: { x: relativeX, y: relativeY } })` which positions relative to the element's bounding box, not the screen.
-
-**Example.**
-```javascript
-// Fragile: breaks when layout changes
-const svgBox = await page.$('.panel-svg');
-await page.mouse.move(svgBox.x + svgBox.width / 2, svgBox.y + svgBox.height / 2);
-
-// Robust: survives layout changes
-const plotArea = await page.$('#plot-area');
-await plotArea.hover({ position: { x: 450, y: 200 } });
-```
-
----
-
-### L2. Wait for data state, not just DOM elements
-
-**Problem.** Waiting for `polyline` to appear doesn't guarantee `currentSessionBins` is populated. The tooltip div exists and is visible, but has no content because the render data isn't ready.
-
-**Solution.** Wait for the actual data state you need:
-```javascript
-await page.waitForFunction(() => {
-  const tooltip = document.getElementById('tooltip');
-  return tooltip && window.__getSessionKeys && window.__getSessionKeys().length > 0;
-}, { timeout: 5000 });
-```
-
----
-
-### L3. Module-scoped variables aren't accessible in `page.evaluate()`
-
-**Problem.** `currentSessionBins` is a `let` at module scope in `main.js`. Trying to access it via `page.evaluate(() => currentSessionBins)` throws `ReferenceError`.
-
-**Solution.** Expose debug helpers on `window` for test access:
-```javascript
-// main.js
-window.__debugGetBins = () => ({ currentSessionBins, currentRefBins });
-
-// test
-const state = await page.evaluate(() => window.__debugGetBins());
-```
-
----
-
-### L4. Add debug logging before asserting
-
-**Problem.** When tooltip tests failed, we couldn't tell if the tooltip was invisible, empty, or had wrong content.
-
-**Solution.** Log state before asserting:
-```javascript
-const tooltipText = await page.$eval('#tooltip', el => el.textContent);
-console.log(`  Tooltip visible: ${tooltipVisible}`);
-console.log(`  Tooltip text: ${tooltipText.slice(0, 200)}`);
-assert(tooltipText.includes('dist:'), ...);
-```
-
-This turns "test failed" into "tooltip is visible but textContent is empty string", which points directly at the root cause (data not populated).
+Moved to **[TESTING_LESSONS.md](TESTING_LESSONS.md)** — the canonical reference for all
+Playwright test guidelines. Read that file before writing or fixing any test.
 
 ---
 
