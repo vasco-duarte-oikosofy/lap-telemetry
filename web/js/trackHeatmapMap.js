@@ -10,6 +10,7 @@
 
 import { computeTrackBounds } from './pipeline.js';
 import { colorForNet } from './colorRamp.js';
+import { sLookup } from './sLookup.js';
 
 // ── fitToView ─────────────────────────────────────────────────────────────────
 // Given track bounding boxes for both laps, compute a world→screen transform
@@ -293,12 +294,42 @@ function drawStartFinishTick(ctx, startX, startZ, transform) {
   ctx.stroke();
 }
 
+// Phase 01b: draw debug tick marks every 100m using sLookup
+function drawDebugTicks(ctx, lap, transform, color, labelPrefix) {
+  if (!lap || !lap.raw || !lap.raw.s || lap.raw.s.length < 2) return;
+
+  const maxS = lap.raw.s[lap.raw.s.length - 1];
+  for (let tickS = 100; tickS < maxS; tickS += 100) {
+    const pt = sLookup(lap.raw, tickS);
+    if (!pt || !isFinite(pt.x) || !isFinite(pt.z)) continue;
+
+    const sx = transform.toScreenX(pt.x);
+    const sy = transform.toScreenY(pt.z);
+
+    // Small cross tick mark
+    const tickLen = 4;
+    ctx.strokeStyle = color;
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.moveTo(sx - tickLen, sy - tickLen);
+    ctx.lineTo(sx + tickLen, sy + tickLen);
+    ctx.moveTo(sx - tickLen, sy + tickLen);
+    ctx.lineTo(sx + tickLen, sy - tickLen);
+    ctx.stroke();
+
+    // s label
+    ctx.fillStyle = color;
+    ctx.font = '9px sans-serif';
+    ctx.fillText(`${labelPrefix}${Math.round(tickS)}`, sx + 6, sy - 4);
+  }
+}
+
 // ── Main render function ──────────────────────────────────────────────────────
 // Renders both laps as polylines on the given canvas.
 // Phase 00.6: adds track outline background underneath.
 
 export function renderWalkingSkeleton(canvas, lapA, lapB, options = {}) {
-  const { showOutline = false, showHeatmapSingleLap = false, ribbonWidthPx = 8 } = options;
+  const { showOutline = false, showHeatmapSingleLap = false, showSAlignmentDebug = false, ribbonWidthPx = 8 } = options;
   
   const ctx = canvas.getContext('2d');
   const rect = canvas.getBoundingClientRect();
@@ -342,6 +373,12 @@ export function renderWalkingSkeleton(canvas, lapA, lapB, options = {}) {
     drawHeatmapRibbon(ctx, lapA, transform, ribbonWidthPx);
   } else {
     drawPolyline(ctx, lapA.x, lapA.z, transform, lapA.color);
+  }
+
+  // Phase 01b: s-alignment debug overlay (dev-only)
+  if (showSAlignmentDebug) {
+    drawDebugTicks(ctx, lapA, transform, '#ffffff', 'A ');
+    drawDebugTicks(ctx, lapB, transform, '#ff9800', 'B ');
   }
 
   // Start/finish marker on Lap A

@@ -12,11 +12,12 @@ function syncFeatureFlagMenuLabels(features) {
 
 export function installDebugHooks(deps) {
   const {
-    store, features, resample, smoothLapTime, smoothDt, computeDeltaT,
-    computeKeepIndices, fitToView, setFeatureFlag, renderTrackHeatmapMap,
+    store, features, devFeatures, resample, smoothLapTime, smoothDt, computeDeltaT,
+    computeKeepIndices, fitToView, setFeatureFlag, setDevFeatureFlag, renderTrackHeatmapMap,
   } = deps;
 
   window.__features = features;
+  window.__devFeatures = devFeatures;
   window.__getSessionKeys = () => [...store.keys()];
 
   window.__resamplerDebug = function(storeKeyStr, segIdx) {
@@ -73,6 +74,13 @@ export function installDebugHooks(deps) {
     setFeatureFlag(name, value);
     syncFeatureFlagMenuLabels(features);
     if (name === 'mapWalkingSkeleton' || name === 'mapTrackOutline' || name === 'mapHeatmapSingleLap') {
+      renderTrackHeatmapMap();
+    }
+  };
+
+  window.__setDevFeatureFlag = (name, value) => {
+    setDevFeatureFlag(name, value);
+    if (name === 'devMapSAlignmentDebug') {
       renderTrackHeatmapMap();
     }
   };

@@ -64,10 +64,22 @@ export const features = {
   mapWalkingSkeleton: true,      // Phase 00.5 - ON for development
   mapTrackOutline: true,         // Phase 00.6 - ON for testing
   mapHeatmapSingleLap: false,    // Phase 01a - default OFF until accepted
+  mapSAlignment: false,          // Phase 01b - s-based cross-lap alignment
+};
+
+// Dev-only flags (not exposed in production UI)
+export const devFeatures = {
+  devMapSAlignmentDebug: false,  // Phase 01b - debug tick overlay
 };
 
 export function setFeatureFlag(name, value) {
   if (name in features) {
     features[name] = value;
+  }
+}
+
+export function setDevFeatureFlag(name, value) {
+  if (name in devFeatures) {
+    devFeatures[name] = value;
   }
 }

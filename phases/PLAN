@@ -7,7 +7,7 @@
 | 00.5-walking-skeleton | Two laps, one map, any rendering (polylines) | ✅ DONE |
 | 00.6-track-outline | Track outline background for spatial context | ✅ DONE |
 | 01a-heatmap-single-lap | Heatmap ribbon, single lap | ✅ DONE |
-| 01b-s-alignment | s-based cross-lap alignment, debug overlay | ⬜ TODO |
+| 01b-s-alignment | s-based cross-lap alignment, debug overlay | ✅ DONE |
 | 01c-dual-ribbon | Lap B as second ribbon (side-by-side) | ⬜ TODO |
 | 02-zoom-pan | Zoom and pan | ⬜ TODO |
 | 03-legend | Lap legend and identification | ⬜ TODO |

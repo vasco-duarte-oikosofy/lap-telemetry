@@ -18,7 +18,7 @@ import {
 
 // ── Application state ─────────────────────────────────────────────────────────
 import { store, pendingSidecars, panelOrder, DEFAULT_PANEL_ORDER, PANEL_ORDER_LS_KEY,
-         persistPanelOrder, state, getCurrentMapMode, setCurrentMapMode, features, setFeatureFlag } from './appState.js';
+         persistPanelOrder, state, getCurrentMapMode, setCurrentMapMode, features, devFeatures, setFeatureFlag, setDevFeatureFlag } from './appState.js';
 
 // ── Circuit map rendering ───────────────────────────────────────────────────────
 import { renderCircuitMap, renderHeatmapSegments, renderMapLegend, updateZoomArc,
@@ -26,6 +26,7 @@ import { renderCircuitMap, renderHeatmapSegments, renderMapLegend, updateZoomArc
 
 // ── Track heatmap map (Phase 00.5 walking skeleton) ────────────────────────────
 import { renderWalkingSkeleton, initTrackHeatmapResize, fitToView } from './trackHeatmapMap.js';
+import { assertStrictlyMonotonic } from './sLookup.js';
 
 // ── Panel rendering ─────────────────────────────────────────────────────────────
 import { renderPanel, renderDtPanel } from './panels.js';
@@ -63,7 +64,8 @@ let trackHeatmapObserver = null; // ResizeObserver for heatmap canvas
 let currentZoomRange   = null; // { start, end }
 let currentOverlapRange = null; // { start, end } — distance window covered by BOTH laps
 let trackTransform     = null; // Updated by renderCircuitMap
-
+let currentLapARaw     = null;   // Phase 01b: raw arrays for s alignment
+let currentLapBRaw     = null;   // Phase 01b: raw arrays for s alignment
 function renderAll(sessionEntry, sessionSegIdx, refEntry, refSegIdx) {
   const sSeg = sessionEntry.segments[sessionSegIdx];
   const rSeg = refEntry.segments[refSegIdx];
@@ -81,6 +83,12 @@ function renderAll(sessionEntry, sessionSegIdx, refEntry, refSegIdx) {
 
   const sDistRaw  = sKeep.map(i => sessionEntry.data.lap_distance_m[i]);
   const rDistRaw  = rKeep.map(i => refEntry.data.lap_distance_m[i]);
+
+  // Phase 01b: strictly-monotonic guard (dev-only)
+  if (devFeatures.devMapSAlignmentDebug) {
+    assertStrictlyMonotonic(sDistRaw);
+    assertStrictlyMonotonic(rDistRaw);
+  }
   const sMaxDist  = Math.ceil(Math.max(...sDistRaw));
   const rMaxDist  = Math.ceil(Math.max(...rDistRaw));
   const sMinDist  = Math.min(...sDistRaw);
@@ -165,6 +173,23 @@ function renderAll(sessionEntry, sessionSegIdx, refEntry, refSegIdx) {
   } else {
     currentRefTrackX = null;
     currentRefTrackZ = null;
+    currentLapBRaw = null;
+  }
+
+  // Phase 01b: stash raw arrays for sLookup alignment debug
+  currentLapARaw = {
+    s: new Float64Array(sDistRaw),
+    x: new Float64Array(sKeep.map(i => sessionEntry.data.pos_x_m?.[i] ?? NaN)),
+    z: new Float64Array(sKeep.map(i => sessionEntry.data.pos_z_m?.[i] ?? NaN)),
+    throttle: new Float64Array(sKeep.map(i => sessionEntry.data.throttle_norm?.[i] ?? 0)),
+    brake: new Float64Array(sKeep.map(i => sessionEntry.data.brake_norm?.[i] ?? 0)),
+  };
+  if (currentRefTrackX) {
+    currentLapBRaw = {
+      s: new Float64Array(rDistRaw),
+      x: new Float64Array(rKeep.map(i => refEntry.data.pos_x_m?.[i] ?? NaN)),
+      z: new Float64Array(rKeep.map(i => refEntry.data.pos_z_m?.[i] ?? NaN)),
+    };
   }
 
   // Resample lap_time_s (drives the Δt computation; not a rendered panel).
@@ -332,13 +357,15 @@ function renderTrackHeatmapMap() {
     throttle: currentSessionBins?.throttle_norm,
     brake: currentSessionBins?.brake_norm,
     color: sessionColor,
+    raw: currentLapARaw,
   };
-  const lapB = { x: currentRefTrackX, z: currentRefTrackZ, color: refColor };
+  const lapB = { x: currentRefTrackX, z: currentRefTrackZ, color: refColor, raw: currentLapBRaw };
 
-  // Phase 00.6/01a: pass feature-flagged renderer options.
+  // Phase 00.6/01a/01b: pass feature-flagged renderer options.
   const showOutline = !!features.mapTrackOutline;
   const showHeatmapSingleLap = !!features.mapHeatmapSingleLap;
-  renderWalkingSkeleton(canvas, lapA, lapB, { showOutline, showHeatmapSingleLap });
+  const showSAlignmentDebug = !!devFeatures.devMapSAlignmentDebug;
+  renderWalkingSkeleton(canvas, lapA, lapB, { showOutline, showHeatmapSingleLap, showSAlignmentDebug });
 
   // Set up ResizeObserver on first render
   if (!trackHeatmapObserver) {
@@ -353,12 +380,14 @@ function renderTrackHeatmapMap() {
           throttle: currentSessionBins?.throttle_norm,
           brake: currentSessionBins?.brake_norm,
           color: sColor,
+          raw: currentLapARaw,
         },
-        lapB: { x: currentRefTrackX, z: currentRefTrackZ, color: rColor },
+        lapB: { x: currentRefTrackX, z: currentRefTrackZ, color: rColor, raw: currentLapBRaw },
       };
     }, () => ({
       showOutline: !!features.mapTrackOutline,
       showHeatmapSingleLap: !!features.mapHeatmapSingleLap,
+      showSAlignmentDebug: !!devFeatures.devMapSAlignmentDebug,
     }));
   }
 }
@@ -392,6 +421,7 @@ initCursorAndZoom(renderAll, getRenderState);
 installDebugHooks({
   store,
   features,
+  devFeatures,
   resample,
   smoothLapTime,
   smoothDt,
@@ -399,5 +429,6 @@ installDebugHooks({
   computeKeepIndices,
   fitToView,
   setFeatureFlag,
+  setDevFeatureFlag,
   renderTrackHeatmapMap,
 });
