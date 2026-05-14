@@ -464,6 +464,8 @@ Each item below is **its own subphase**, with its own feature flag, its own merg
 
 **6.8 Sector jump** *(depends on: Phase 5a + sector data)* — `[` and `]` move the highlight to the prev/next sector if sector data is available. Skip this item if your data source doesn't expose sectors.
 
+**6.9 Track limits research** *(depends on: Phase 00.6)* — research official track width data and existing solutions for rendering track boundaries. Goal: render track limits with official width so we can check apex adherence in turns. Investigate: sim racing telemetry standards (iRacing, ACC, rFactor 2), track database APIs, and whether track width is available in our current data pipeline. Acceptance: document findings with recommended approach for Phase 1c dual-ribbon implementation.
+
 **Acceptance per item:** the specific item works as described, plus no regression in any earlier subphase. After every 2–3 items, run a smoke test: pan + zoom + hover + chart-brush for 30 seconds, no dropped frames on a mid laptop.
 
 ---

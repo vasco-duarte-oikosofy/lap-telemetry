@@ -5,7 +5,8 @@
 | 00-layout | Promote map to top, 50% width, centered | ✅ DONE |
 | 00.1-renderer-responsive | Renderer responds to container size (pure refactor) | ✅ DONE |
 | 00.5-walking-skeleton | Two laps, one map, any rendering (polylines) | ✅ DONE |
-| 00.6-track-outline | Track outline background for spatial context | 🔄 NEXT |
+| 00.6-track-outline | Track outline background for spatial context | ✅ DONE |
+| 01a-heatmap-single-lap | Heatmap ribbon, single lap | 🔄 NEXT |
 | 01a-heatmap-single-lap | Heatmap ribbon, single lap | ⬜ TODO |
 | 01b-s-alignment | s-based cross-lap alignment, debug overlay | ⬜ TODO |
 | 01c-dual-ribbon | Lap B as second ribbon (side-by-side) | ⬜ TODO |

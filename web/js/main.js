@@ -405,7 +405,9 @@ function renderTrackHeatmapMap() {
   const lapA = { x: currentTrackX, z: currentTrackZ, color: sessionColor };
   const lapB = { x: currentRefTrackX, z: currentRefTrackZ, color: refColor };
 
-  renderWalkingSkeleton(canvas, lapA, lapB);
+  // Phase 00.6: pass showOutline option based on feature flag
+  const showOutline = !!features.mapTrackOutline;
+  renderWalkingSkeleton(canvas, lapA, lapB, { showOutline });
 
   // Set up ResizeObserver on first render
   if (!trackHeatmapObserver) {
@@ -417,7 +419,7 @@ function renderTrackHeatmapMap() {
         lapA: { x: currentTrackX, z: currentTrackZ, color: sColor },
         lapB: { x: currentRefTrackX, z: currentRefTrackZ, color: rColor },
       };
-    });
+    }, () => ({ showOutline: !!features.mapTrackOutline }));
   }
 }
 
