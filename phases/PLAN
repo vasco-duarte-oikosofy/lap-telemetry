@@ -10,7 +10,7 @@
 | 01b-s-alignment | s-based cross-lap alignment, debug overlay | ✅ DONE |
 | 01c-dual-ribbon | Lap B as second ribbon (side-by-side) | ✅ DONE |
 | 02-zoom-pan | Zoom and pan | ✅ DONE |
-| 03-legend | Lap legend and identification | ⬜ TODO |
+| 03-legend | Lap legend and identification | ✅ DONE |
 | 04-hover | Hover crosshair and per-lap readout | ⬜ TODO |
 | 05a-linked-highlight | Linked highlight band from trace charts | ⬜ TODO |
 | 05b-click-to-scrub | Click-to-scrub (reverse binding) | ⬜ TODO |
