@@ -1,81 +1,44 @@
 # lap-telemetry — Next Steps & Future Improvements
 
-**Date:** 2026-05-13  
-**Status:** Web refactor complete (Steps 9–12 shipped) · `main.js` reduced from 1869 → 437 lines (-77%)
+**Date:** 2026-05-14  
+**Status:** `refactor-main-js` complete · `main.js` reduced from 543 → 389 lines; all JS modules are under the 437-line ceiling
 
 ---
 
-## Module Structure (Complete)
+## Module Structure (Current)
 
 | File | Lines | Role |
-|------|-------|------|
-| `appState.js` | 59 | Global state (store, panelOrder, zoom, map mode) |
+|------|------:|------|
+| `appState.js` | 90 | Global state (store, panelOrder, zoom, feature flags) |
+| `circuitMap.js` | 168 | SVG circuit map rendering |
+| `colorRamp.js` | 84 | Heatmap colour ramp helpers |
 | `constants.js` | 6 | Shared SVG layout constants |
-| `cursor.js` | 232 | Cursor/tooltip/zoom interaction (Step 12) |
-| `dataTransforms.js` | 88 | Pure data parsing (Step 11) |
-| `pickers.js` | 111 | Picker/session-list DOM projection (Step 10) |
-| `circuitMap.js` | 168 | Circuit map rendering |
-| `panels.js` | 283 | Telemetry panel rendering |
+| `cursor.js` | 232 | Cursor/tooltip/zoom interaction |
+| `dataTransforms.js` | 88 | Pure data parsing |
+| `debugHooks.js` | 97 | Browser/test debug hooks |
+| `main.js` | 389 | App entry point and `renderAll` orchestration |
+| `mapHover.js` | 257 | Canvas map hover readout and hit-testing |
+| `mapInteraction.js` | 128 | Canvas map zoom/pan interaction |
+| `mapLegend.js` | 71 | Canvas map legend overlays |
+| `panelConfig.js` | 82 | Panel definitions and column metadata |
+| `panels.js` | 297 | Telemetry panel rendering |
+| `pickers.js` | 111 | Picker/session-list DOM projection |
 | `pipeline.js` | 432 | Data loading/processing |
-| `ui.js` | 327 | UI interaction (file loading, event handlers) |
+| `ribbon.js` | 124 | Heatmap ribbon rendering |
+| `sLookup.js` | 81 | s-distance lookup and monotonic checks |
+| `trackHeatmapController.js` | 137 | Canvas map orchestration, resize, hover, interaction wiring |
+| `trackHeatmapDrawing.js` | 256 | Canvas map drawing primitives |
+| `trackHeatmapMap.js` | 180 | Canvas map transforms and render entry point |
+| `ui.js` | 352 | UI interaction (file loading, event handlers) |
 | `utils.js` | 129 | Helpers, formatting, persistence |
-| `main.js` | 543 | App entry point, `renderAll` orchestration, debug hooks |
 
-**⚠️ `main.js` exceeds the 437-line hard ceiling.** See "Urgent: Refactor `main.js`" below.
-
-**Total:** 2272 lines · **All 81 tests passing**
-
----
-
-## 🚨 Urgent: Refactor `main.js` to Hard Ceiling (437 lines)
-
-**Status:** `main.js` is currently **543 lines** — 106 lines over the hard ceiling of 437 (see `AGENTS.md`).
-
-**Why.** Since the web refactor landed at exactly 437 lines, subsequent phase work (04-hover, 05a-linked-highlight, and other map feature wiring) has grown `main.js` past the limit. This is a **blocking violation** of the standing architecture rules.
-
-**What to move out:**
-1. **`renderTrackHeatmapMap()` (~100 lines)** — the entire canvas map rendering orchestration function, including `trackHeatmapObserver`, `mapInteraction`, `mapHover` init, and `currentZoomRange` plumbing. Move to a new `trackHeatmapController.js` module that exports `initTrackHeatmap(canvas, getState, onRender)` and `renderTrackHeatmap()`.
-2. **`renderAll()` resampling loop (~40 lines)** — the channel resampling for `currentSessionBins`/`currentRefBins` is a self-contained data pipeline step. Extract to `resampleChannels(sDistRaw, rDistRaw, maxDist, sessionEntry, refEntry, sKeep, rKeep)` in `pipeline.js` or a new `resampleAll.js`.
-3. **Debug hook wiring (~20 lines)** — the `installDebugHooks` call and its import list are already flagged as optional in the "Extract Debug Hooks" section below. Do this first for easy wins.
-
-**Target.** After extraction, `main.js` should contain only:
-- Imports
-- Top-level mutable refs (`currentSessionBins`, `currentZoomRange`, etc.)
-- `renderAll()` call sequence (the orchestration, not the implementation details)
-- `getRenderState()`
-- `initUI` / `initCursorAndZoom` / `installDebugHooks` calls
-- Module-level exports
-
-**Effort:** ~2–3 commits (refactor only, no behavior change).
+**Total:** 3503 JS lines · **All modules ≤ 437 lines**
 
 ---
 
 ## Potential Further Refactoring (Optional)
 
-### 1. Extract `PANEL_DEFS` to `panelConfig.js` (~50 lines)
-
-**What.** Move the panel definition array from `main.js` to a dedicated config module, potentially alongside `panels.js`.
-
-**Why.** `PANEL_DEFS` is pure configuration data — no logic, no state. Extracting it would:
-- Reduce `main.js` to ~390 lines
-- Co-locate panel schema with panel rendering logic
-- Make it easier to add/remove/reorder panels without touching `renderAll`
-
-**Pattern.**
-```javascript
-// panelConfig.js
-export const PANEL_DEFS = [ ... ];
-export const DEFAULT_PANEL_ORDER = [ ... ]; // could also move from appState.js
-
-// panels.js or main.js
-import { PANEL_DEFS } from './panelConfig.js';
-```
-
-**Effort:** ~15 lines (export + re-import)
-
----
-
-### 2. Extract Debug Hooks to `debug.js` (~100 lines)
+### 1. Extract Debug Hooks to `debug.js` (~100 lines)
 
 **What.** Move test-only exports (`__getSessionKeys`, `__resamplerDebug`, `__dtDebug`, `__dtDebugOverlap`) to a dedicated debug module.
 
@@ -107,7 +70,7 @@ window.__dtDebugOverlap = dtDebugOverlap;
 
 ---
 
-### 3. Split `renderAll()` (Not Recommended)
+### 2. Split `renderAll()` (Not Recommended)
 
 **What.** Break the 200-line `renderAll()` function into smaller sub-functions.
 
@@ -149,7 +112,7 @@ Splitting it would create artificial boundaries and hurt clarity more than help.
 
 Remove any channel-specific green/red colour overrides from earlier designs.
 
-**Scope.** `PANEL_DEFS` in `web/js/main.js`. No schema or recorder changes.
+**Scope.** `PANEL_DEFS` in `web/js/panelConfig.js`. No schema or recorder changes.
 
 **Priority:** High — visual regression affecting core comparison feature.
 
@@ -189,7 +152,7 @@ ABS and TC panels are session-only by design (single solid trace in channel colo
 
 Add regression test confirming channel colour/dash for Speed, Throttle, Brake, Slip, and Δt.
 
-**Scope.** `PANEL_DEFS` in `web/js/main.js`; optionally extend `test_f8f9f10f11.js`.
+**Scope.** `PANEL_DEFS` in `web/js/panelConfig.js`; optionally extend `test_f8f9f10f11.js`.
 
 **Priority:** Medium — visual consistency across panels.
 
@@ -293,7 +256,7 @@ Playwright test guidelines. Read that file before writing or fixing any test.
 
 ## Summary
 
-**Refactoring complete.** `main.js` reduced from 1869 → 437 lines (-77%), all 81 tests passing, clear module boundaries established.
+**Refactoring current.** `main.js` is 389 lines and every `web/js` module is under the 437-line ceiling; full test/build passed during `refactor-main-js`.
 
 **Next priorities:**
 1. **U3** — Fix Throttle/Brake panel colours (visual regression)
@@ -302,5 +265,4 @@ Playwright test guidelines. Read that file before writing or fixing any test.
 4. **U2** — Enlarge circuit map for overlay readability
 
 **Optional further refactoring:**
-- Extract `PANEL_DEFS` to `panelConfig.js` (~50 lines → `main.js` ~390)
-- Extract debug hooks to `debug.js` (~100 lines → `main.js` ~340)
+- Extract debug hooks to `debug.js` if test-only globals need stronger isolation.
