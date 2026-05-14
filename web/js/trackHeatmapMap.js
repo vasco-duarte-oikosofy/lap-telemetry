@@ -9,8 +9,8 @@
 // - features.mapHeatmapSingleLap (default: off, Phase 01a)
 
 import { computeTrackBounds } from './pipeline.js';
-import { colorForNet } from './colorRamp.js';
 import { sLookup } from './sLookup.js';
+import { drawRibbon, drawHeatmapRibbon } from './ribbon.js';
 
 // ── fitToView ─────────────────────────────────────────────────────────────────
 // Given track bounding boxes for both laps, compute a world→screen transform
@@ -49,8 +49,6 @@ export function fitToView(boundsA, boundsB, canvasWidth, canvasHeight, padding) 
   };
 }
 
-
-// ── Drawing helpers ───────────────────────────────────────────────────────────
 
 function drawPolyline(ctx, trackX, trackZ, transform, color, lineWidth = 1) {
   ctx.strokeStyle = color;
@@ -203,77 +201,6 @@ function drawOffsetPolyline(ctx, trackX, trackZ, transform, offsetMeters, color)
     }
   }
   ctx.stroke();
-}
-
-function darkenHex(hex) {
-  const n = Number.parseInt(hex.slice(1), 16);
-  const r = ((n >> 16) & 255) * 0.55;
-  const g = ((n >> 8) & 255) * 0.55;
-  const b = (n & 255) * 0.55;
-  const toHex = (v) => Math.round(v).toString(16).padStart(2, '0');
-  return `#${toHex(r)}${toHex(g)}${toHex(b)}`;
-}
-
-export function drawRibbon(ctx, points, offsetPx, widthPx, colorAt) {
-  const halfWidth = widthPx / 2;
-  for (let i = 0; i < points.length - 1; i++) {
-    const a = points[i];
-    const b = points[i + 1];
-    if (!a || !b) continue;
-
-    const dx = b.x - a.x;
-    const dy = b.y - a.y;
-    const len = Math.hypot(dx, dy);
-    if (len < 0.001) continue;
-
-    const nx = -dy / len;
-    const ny = dx / len;
-    const inner = offsetPx - halfWidth;
-    const outer = offsetPx + halfWidth;
-    const color = colorAt(i);
-
-    const p1 = { x: a.x + nx * inner, y: a.y + ny * inner };
-    const p2 = { x: b.x + nx * inner, y: b.y + ny * inner };
-    const p3 = { x: b.x + nx * outer, y: b.y + ny * outer };
-    const p4 = { x: a.x + nx * outer, y: a.y + ny * outer };
-
-    ctx.fillStyle = color;
-    ctx.beginPath();
-    ctx.moveTo(p1.x, p1.y);
-    ctx.lineTo(p2.x, p2.y);
-    ctx.lineTo(p3.x, p3.y);
-    ctx.lineTo(p4.x, p4.y);
-    ctx.closePath();
-    ctx.fill();
-
-    ctx.strokeStyle = darkenHex(color);
-    ctx.lineWidth = 1;
-    ctx.beginPath();
-    ctx.moveTo(p1.x, p1.y);
-    ctx.lineTo(p2.x, p2.y);
-    ctx.moveTo(p4.x, p4.y);
-    ctx.lineTo(p3.x, p3.y);
-    ctx.stroke();
-  }
-}
-
-function buildScreenPoints(trackX, trackZ, transform) {
-  return Array.from(trackX, (x, i) => {
-    const z = trackZ[i];
-    if (!isFinite(x) || !isFinite(z)) return null;
-    return { x: transform.toScreenX(x), y: transform.toScreenY(z) };
-  });
-}
-
-function netAt(lap, index) {
-  const throttle = lap.throttle?.[index] ?? 0;
-  const brake = lap.brake?.[index] ?? 0;
-  return throttle - brake;
-}
-
-function drawHeatmapRibbon(ctx, lap, transform, widthPx) {
-  const points = buildScreenPoints(lap.x, lap.z, transform);
-  drawRibbon(ctx, points, 0, widthPx, (i) => colorForNet((netAt(lap, i) + netAt(lap, i + 1)) / 2));
 }
 
 function drawStartFinishTick(ctx, startX, startZ, transform) {
