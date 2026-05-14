@@ -68,6 +68,7 @@ export const features = {
   mapDualRibbon: false,          // Phase 01c - side-by-side dual heatmap ribbons
   mapZoomPan: false,             // Phase 02 - zoom and pan interaction
   mapLegend: false,              // Phase 03 - lap legend and identification
+  mapHover: false,                // Phase 04 - hover crosshair and per-lap readout
 };
 
 // Dev-only flags (not exposed in production UI)
