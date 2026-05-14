@@ -223,6 +223,28 @@ This is the mechanism that makes "independently shippable" real instead of aspir
 
 ---
 
+## Phase 0.6 — Track outline background
+
+**Why this exists:** the walking skeleton's polylines are hard to interpret without context. A faint track outline provides spatial reference — users can see where the track boundaries are and understand the trajectory deviations. See reference: `screenshots/trajectory drawing for two laps on trackmap outline.png`.
+
+**Independence:** depends on Phase 0.5. Feature flag `features.mapTrackOutline`.
+
+**Goal:** render a faint track outline underneath the lap polylines, providing spatial context.
+
+**Tasks:**
+1. Draw the track outline as a thin, low-contrast line (e.g., `rgba(120, 120, 120, 0.4)`) underneath both lap polylines.
+2. The outline can be derived from either lap's `(x, y)` trace — they should be nearly identical for the same track.
+3. Draw order: outline first (bottom layer), then Lap B polyline, then Lap A polyline (top).
+
+**Acceptance (executable tests):**
+- Render test: track outline is visible underneath the lap polylines.
+- Render test: outline has lower visual weight than the lap polylines (thinner or lower contrast).
+- Pixel test: outline color matches the spec (low-contrast grey).
+
+**Out of scope:** ribbon rendering, heatmap colors, side-by-side offset.
+
+---
+
 ## Phase 1a — Heatmap ribbon, single lap
 
 **Why this exists:** the heatmap ribbon is the visual centerpiece of the whole feature. Get it right for **one** lap first, with no cross-lap complexity, so when something is wrong we know it's the ramp or the extrusion, not the alignment.
