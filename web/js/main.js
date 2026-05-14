@@ -339,7 +339,7 @@ function renderTrackHeatmapMap() {
   if (!canvas || !svg) return;
 
   // Feature flag: only show when enabled
-  const anyMapFeature = features.mapWalkingSkeleton || features.mapTrackOutline || features.mapHeatmapSingleLap || features.mapSAlignment || features.mapDualRibbon || features.mapZoomPan;
+  const anyMapFeature = features.mapWalkingSkeleton || features.mapTrackOutline || features.mapHeatmapSingleLap || features.mapSAlignment || features.mapDualRibbon || features.mapZoomPan || features.mapLegend;
   if (!anyMapFeature) {
     canvas.style.display = 'none';
     svg.style.display    = '';
@@ -402,8 +402,9 @@ function renderTrackHeatmapMap() {
   const showOutline = !!features.mapTrackOutline;
   const showHeatmapSingleLap = !!features.mapHeatmapSingleLap;
   const showSAlignmentDebug = !!features.mapSAlignment || !!devFeatures.devMapSAlignmentDebug;
+  const showLegend = !!features.mapLegend;
   const opts = {
-    showOutline, showHeatmapSingleLap, showSAlignmentDebug, showDualRibbon,
+    showOutline, showHeatmapSingleLap, showSAlignmentDebug, showDualRibbon, showLegend,
     ribbonWidthPx: 8, ribbonGapPx: 2,
     userScale, userPanX, userPanY,
   };
@@ -449,6 +450,7 @@ function renderTrackHeatmapMap() {
         showHeatmapSingleLap: !!features.mapHeatmapSingleLap,
         showSAlignmentDebug: !!devFeatures.devMapSAlignmentDebug,
         showDualRibbon: !!features.mapDualRibbon,
+        showLegend: !!features.mapLegend,
         ribbonWidthPx: 8,
         ribbonGapPx: 2,
         userScale: s.scale,

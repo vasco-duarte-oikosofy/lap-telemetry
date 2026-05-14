@@ -73,7 +73,7 @@ export function installDebugHooks(deps) {
   window.__setFeatureFlag = (name, value) => {
     setFeatureFlag(name, value);
     syncFeatureFlagMenuLabels(features);
-    if (name === 'mapWalkingSkeleton' || name === 'mapTrackOutline' || name === 'mapHeatmapSingleLap' || name === 'mapSAlignment' || name === 'mapDualRibbon' || name === 'mapZoomPan') {
+    if (name === 'mapWalkingSkeleton' || name === 'mapTrackOutline' || name === 'mapHeatmapSingleLap' || name === 'mapSAlignment' || name === 'mapDualRibbon' || name === 'mapZoomPan' || name === 'mapLegend') {
       renderTrackHeatmapMap();
     }
   };
