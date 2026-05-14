@@ -2,7 +2,7 @@
 
 | Phase | Description | Status |
 |-------|-------------|--------|
-| 00-schema-compatibility | Add safety tests so old sessions and future-shaped rows both load | ⬜ TODO |
+| 00-schema-compatibility | Add safety tests so old sessions and future-shaped rows both load | ✅ DONE |
 | 01-recorder-track-edge-channels | Recorder writes raw lap distance, lateral/edge, surface, and terrain channels | ⬜ TODO |
 | 02-loader-new-channels | Frontend/session loader exposes the new channels read-only | ⬜ TODO |
 | 03-apex-annotations | Add apex annotation files and validator | ⬜ TODO |
