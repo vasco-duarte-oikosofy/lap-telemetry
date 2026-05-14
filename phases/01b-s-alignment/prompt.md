@@ -33,7 +33,7 @@
 - `npm test` passes (all existing + new 01b tests)
 - `phases/01b-s-alignment/learnings.md` exists
 - `phases/01b-s-alignment/handoff.md` exists
-- Commit on branch `main`
+- Commit directly on `main`
 - Update `phases/CURRENT` if needed
 
 **Stop at green.** Do not start Phase 1c.

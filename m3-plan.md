@@ -212,7 +212,7 @@ output during long idle periods (the user explicitly declined this).
    - Add a private `_write_sidecar(in_progress: bool, recovered: bool = False)`
      helper that does the atomic temp-file swap.
    - Call it from `__init__`, `flush_shard`, and `close`.
-4. **Recovery.** Rewrite the sidecar-handling branch in
+4. **Recovery.** Rewrite the sidecar-handling path in
    `recover_orphaned_shards`:
    - If `<stem>.json` exists, load it, set `recovered: true`,
      `in_progress: false`, recompute `row_count` from `merged.num_rows`,
@@ -243,9 +243,9 @@ output during long idle periods (the user explicitly declined this).
    timestamp; if more than 5 s elapse without a recordable frame, close the
    writer.
 9. **Summary directory mode (piece D).** In `summary.py`, dispatch on
-   `path.is_dir()`. Directory branch globs `session_*.parquet`, reads each
+   `path.is_dir()`. Directory mode globs `session_*.parquet`, reads each
    sidecar, and prints the one-line-per-session table from §D.4. File
-   branch is unchanged.
+   path is unchanged.
 10. **Acceptance test** (below).
 
 ---

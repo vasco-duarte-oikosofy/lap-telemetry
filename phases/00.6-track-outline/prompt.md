@@ -21,7 +21,7 @@
 - `npm test` passes (all existing tests + new 00.6 tests)
 - `phases/00.6-track-outline/handoff.md` exists
 - `phases/00.6-track-outline/learnings.md` exists
-- Commit on branch `phase/00.6-track-outline`
+- Commit directly on `main`
 - Update `phases/PLAN` to mark 00.6 as DONE
 
 **Stop at green:** When acceptance passes, commit and stop. Don't start Phase 01a.

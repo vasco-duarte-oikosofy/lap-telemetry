@@ -4,7 +4,7 @@
 
 **Status:** ✅ COMPLETE  
 **Feature flag:** `features.mapRendererResponsive` (default: ON — this is a pure refactor with no visible change)  
-**Branch:** `phase/00.1-renderer-responsive`
+**Development base:** `main`
 
 ## What Changed
 

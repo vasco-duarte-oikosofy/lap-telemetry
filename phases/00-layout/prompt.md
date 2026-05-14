@@ -10,8 +10,8 @@ root. Pi has already loaded them. Follow them.
 
 ## Branch
 
-You are on branch `phase/00-layout` (the orchestrator created it).
-Make small commits on this branch. Do not push, do not merge.
+Work directly on `main`.
+Make small, green commits on `main`.
 
 ## When you are done
 

@@ -233,7 +233,7 @@ These are explicitly deferred from M4 and should shape M5 scope:
   in the picker (greyed out or ⚠ badge).
 - **Persistent state.** localStorage for last-used file paths (browser
   `FileSystemFileHandle` API, Chrome only but acceptable for v0.1 users).
-- **M4 limitation to document in M5 PR.** The two-upload flow requires the
+- **M4 limitation to document in M5 notes.** The two-upload flow requires the
   user to pre-extract a reference lap with `scripts/extract_reference_lap.py`.
   M5 eliminates this friction by allowing any lap from any loaded session to
   be the reference.

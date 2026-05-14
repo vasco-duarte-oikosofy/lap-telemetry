@@ -294,7 +294,7 @@ prev_dist = estimated_dist
 
 **Scope.** Recorder change only (`connect.py` + `writer.py`). Existing parquet files are unaffected — they remain valid with the coarser distance axis. The change is transparent to the app (same `lap_distance_m` column name, just higher resolution).
 
-**As shipped.** First implementation (`2e9a06e`) used `dt = mCurrentET - prev_mCurrentET` as the integration step — but `mCurrentET` updates at scoring rate (~5 Hz) just like `mLapDist`, so `dt == 0` between scoring ticks and the integration branch was never taken. F4 was a silent no-op for ~2 weeks; sessions recorded in that window have ~9 m median Δd identical to pre-F4 data.
+**As shipped.** First implementation (`2e9a06e`) used `dt = mCurrentET - prev_mCurrentET` as the integration step — but `mCurrentET` updates at scoring rate (~5 Hz) just like `mLapDist`, so `dt == 0` between scoring ticks and the integration path was never taken. F4 was a silent no-op for ~2 weeks; sessions recorded in that window have ~9 m median Δd identical to pre-F4 data.
 
 Fix (`375525e`): drive dt off `time.monotonic()` (50 Hz wall clock). To stay safe across pauses — when the SHM `mLocalVel` may report stale non-zero velocity — track the wall-clock moment `mCurrentET` last advanced; if that gap exceeds 0.3 s the sim is paused and we anchor to `raw_dist` instead of integrating. Worst-case drift across a pause boundary is ~9 m (300 ms grace × 30 m/s), then snaps back. Verified on a fresh 5-lap LMU recording: median Δd = 0.76 m, Δt accuracy 7–17 % on adjacent racing laps.
 
@@ -352,7 +352,7 @@ builds a synthetic store entry shaped exactly like a parquet entry
 tame quantisation noise, all unused channels left as zero-length
 arrays). The synthetic sidecar carries `vehicle_name = "TinyPedal
 deltabest"` so the picker label / legend / multi-load mixing all work
-without further branching.
+without further conditional paths.
 
 **Empty-channel suppression.** Because the deltabest entry leaves most
 channels empty, `renderPanel` now skips polylines whose resampled bins

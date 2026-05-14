@@ -2,7 +2,7 @@
 
 **Audience:** implementing agent (frontend, telemetry app for simracers).
 **Goal:** Render two laps side by side on the same track map, with a Brake↔Throttle color heatmap painted along each lap's racing line, supporting zoom, pan, and a highlight band that mirrors the visible window of the trace charts.
-**Method:** ship in small **subphases**. Each subphase is an **independent delivery** — one subphase, one merge, one acceptance run. We never deliver several subphases at the same time, even when they look small enough to combine. The discipline is the point: a single subphase that fails acceptance is trivially revertible; two bundled subphases require archaeology.
+**Method:** ship in small **subphases**. Each subphase is an **independent delivery** — one subphase, one acceptance run, committed directly on `main`. We never deliver several subphases at the same time, even when they look small enough to combine. The discipline is the point: a single subphase that fails acceptance is trivially revertible; two bundled subphases require archaeology.
 
 Subphases are independently shippable. Any subphase can be deployed on its own, and a stalled or skipped later subphase never breaks the work that came before it. Do not start a subphase until the previous subphase's acceptance criteria pass. You may stop the project at the end of any subphase and still have a usable improvement live.
 
@@ -16,7 +16,7 @@ These apply to **every** subphase. They are not negotiable, and they override co
 
 2. **Test-first.** Write the failing test before the code that makes it pass. Acceptance criteria are written as executable tests in this spec; if a criterion is prose-only, your job is to turn it into a test before you implement the feature. "I'll add tests after" means "I won't add tests."
 
-3. **Commit cadence: small and green.** Many commits per subphase, each one passing the existing test suite. If a commit can't be green, it's too big — split it. "WIP" commits do not exist on the main branch.
+3. **Commit cadence: small and green.** Many commits per subphase, each one passing the existing test suite. If a commit can't be green, it's too big — split it. "WIP" commits do not exist on `main`.
 
 4. **Refactor commits are separate from behavior commits. Always.** If a change both moves code around *and* changes what the user sees, it is two commits. Refactor first, verify green, then change behavior. This is the single most important rule for keeping the spec's subphases honest. Phrase from Kent Beck: *make the change easy, then make the easy change.*
 
@@ -26,11 +26,11 @@ These apply to **every** subphase. They are not negotiable, and they override co
 
 7. **Spike, then stabilize.** When you hit a genuine unknown (e.g. "does this browser support OKLCh interpolation," "does Lap A's `s` parameterization actually match Lap B's on real data"), write a throwaway spike in a scratch file. Learn the answer. **Throw the spike away.** Then implement properly with tests. Do not ship the spike — spikes lack the rigor of real code and are how production bugs get born.
 
-8. **Stop at green.** When the current subphase's acceptance passes, stop. Commit, open a PR, move on. Do not keep polishing into the next subphase's territory — that breaks the "one subphase at a time" rule and pollutes the delivery boundary.
+8. **Stop at green.** When the current subphase's acceptance passes, stop. Commit directly on `main`, write the handoff, move on. Do not keep polishing into the next subphase's territory — that breaks the "one subphase at a time" rule and pollutes the delivery boundary.
 
 9. **When in doubt, ask. Do not assume.** If the spec or the data is ambiguous, surface the question to the human before implementing. Filling gaps with plausible defaults is the most common way agents ship the wrong thing. Especially flag: real-data shape questions, browser compatibility surprises, and any acceptance criterion you can't turn into a test.
 
-10. **Narrate decisions like you're pairing.** Commit messages and PR descriptions should explain *why*, not just *what*. Write them as if a pair-programmer is reading over your shoulder and will catch any sloppy reasoning. This is how a solo agent gets the benefits of pair programming.
+10. **Narrate decisions like you're pairing.** Commit messages and handoff notes should explain *why*, not just *what*. Write them as if a pair-programmer is reading over your shoulder and will catch any sloppy reasoning. This is how a solo agent gets the benefits of pair programming.
 
 ---
 
@@ -39,8 +39,8 @@ These apply to **every** subphase. They are not negotiable, and they override co
 Follow the **existing** file architecture and separation already in place in the project. Do not invent new top-level directories or restructure the layout. Match the conventions you find when you read the codebase.
 
 **Hard rules:**
-- Files should be small and easy to read for an agent. Default ceiling: **200 lines per file**. Going over 200 lines requires a very good reason, named in the PR description.
-- **No file may exceed `main.js`, which stands at 437 lines. This is a hard ceiling.** Not a guideline, not a stretch goal. A hard no. If you are approaching 437 lines in any file, that file needs to be split — full stop, before the subphase merges.
+- Files should be small and easy to read for an agent. Default ceiling: **200 lines per file**. Going over 200 lines requires a very good reason, named in the handoff notes.
+- **No file may exceed 437 lines. This is a hard ceiling.** Not a guideline, not a stretch goal. A hard no. If you are approaching 437 lines in any file, that file needs to be split — full stop, before the subphase is committed.
 - Files should be **coherent**: one file, one job. A file mixing the color ramp, the renderer, and the hover logic is wrong even if it's 80 lines long.
 - Prefer many small modules with explicit exports over one large module with internal sections. Agents read small files faster and refactor them more safely.
 - If splitting a file produces two files that obviously want to be in the same folder, put them there. Mirror the existing folder structure.
@@ -126,7 +126,7 @@ All hit-testing, highlight bands, and trace-chart links operate in **track space
 
 ### 0.7 Feature flags
 
-Every subphase merges to main behind a feature flag, default-off. The flag flips on once acceptance is signed off. Flags are permanent until the subphase is the only path and there's no other path to fall back to.
+Every subphase commits directly to `main` behind a feature flag, default-off. The flag flips on once acceptance is signed off. Flags are permanent until the subphase is the only path and there's no other path to fall back to.
 
 ```
 features.mapLayoutPromoted       // Phase 0
@@ -142,7 +142,7 @@ features.mapLinkedHighlight      // Phase 5a
 features.mapClickToScrub         // Phase 5b
 ```
 
-This is the mechanism that makes "independently shippable" real instead of aspirational. Trunk-based development, no long-lived branches, rollback by flag-flip.
+This is the mechanism that makes "independently shippable" real instead of aspirational. Trunk-based development on `main`, rollback by flag-flip.
 
 ---
 
@@ -180,7 +180,7 @@ This is the mechanism that makes "independently shippable" real instead of aspir
 
 **Why this exists:** Phase 0's caveat ("fix only hardcoded sizes if you find them") is a renderer change masquerading as a layout change. We separate it cleanly so Phase 0 stays a pure CSS commit and Phase 0.1 is a pure no-visible-change refactor.
 
-**Independence:** stands alone, but only meaningful after Phase 0 has resized the container. If the existing renderer is already fully responsive, this subphase is empty and gets skipped explicitly with a one-line PR ("verified: no hardcoded dimensions, no work needed"). That's a valid delivery.
+**Independence:** stands alone, but only meaningful after Phase 0 has resized the container. If the existing renderer is already fully responsive, this subphase is empty and gets skipped explicitly with a one-line handoff note ("verified: no hardcoded dimensions, no work needed"). That's a valid delivery.
 
 **Goal:** the existing renderer, with **no behavior changes**, fills any container size between 320px and 2000px wide without distortion.
 
@@ -292,7 +292,7 @@ This is the mechanism that makes "independently shippable" real instead of aspir
 - Unit test: `sLookup` is monotonic — querying ascending `s` returns ascending sample indices.
 - Property test: for any random `s` in `[0, lap_length]`, `sLookup` returns a sample whose interpolated `s` is within float-epsilon of the query.
 - Dev-mode test: the monotonicity assertion fires on a deliberately-corrupted lap fixture.
-- Manual visual verification on real data: debug ticks line up across both laps at landmark corners. (This is a human-in-the-loop check; record a screenshot in the PR.)
+- Manual visual verification on real data: debug ticks line up across both laps at landmark corners. (This is a human-in-the-loop check; record a screenshot or note in the handoff.)
 
 **Out of scope:** rendering Lap B as a ribbon. We're proving the math first.
 
@@ -351,7 +351,7 @@ This is the mechanism that makes "independently shippable" real instead of aspir
 
 ## Phase 3 — Lap legend and identification
 
-**Independence:** purely additive over Phase 1c. Does not require Phase 2. Feature flag `features.mapLegend`. Can be implemented in parallel with Phase 2 if useful — but only one of them merges to main at a time.
+**Independence:** purely additive over Phase 1c. Does not require Phase 2. Feature flag `features.mapLegend`. Can be implemented in parallel with Phase 2 if useful — but only one of them is committed to `main` at a time.
 
 **Goal:** make it obvious which ribbon is which lap.
 
@@ -446,7 +446,7 @@ This is the mechanism that makes "independently shippable" real instead of aspir
 
 ## Phase 6 — Polish (a bag of independent deliveries)
 
-Each item below is **its own subphase**, with its own feature flag, its own merge, its own acceptance run. Pick and ship in any order, any subset. None block each other.
+Each item below is **its own subphase**, with its own feature flag and acceptance run. Pick and ship in any order, any subset. None block each other.
 
 **6.1 DPR-aware canvas** *(depends on: Phase 0.5)* — size the backing store to `devicePixelRatio` so ribbon edges and ticks are crisp on retina. Acceptance: at DPR=2, a 1px tick measures 1 CSS pixel and 2 device pixels.
 

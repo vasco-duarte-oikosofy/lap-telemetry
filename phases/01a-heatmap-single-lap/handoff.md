@@ -2,7 +2,7 @@
 
 ## Status
 
-✅ COMPLETE on branch `phase/01a-heatmap-single-lap`.
+✅ COMPLETE on `main`.
 
 ## What changed
 

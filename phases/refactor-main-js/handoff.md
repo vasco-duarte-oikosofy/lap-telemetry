@@ -2,7 +2,7 @@
 
 ## State on disk
 
-- Branch: `phase/refactor-main-js`
+- Development base: `main`
 - `web/js/main.js`: 389 lines; still owns data preparation and `renderAll()` orchestration.
 - New `web/js/trackHeatmapController.js`: 137 lines; owns canvas map render orchestration, resize observer, hover controller, and map interaction controller.
 - New `web/js/trackHeatmapDrawing.js`: 256 lines; owns canvas drawing primitives used by `trackHeatmapMap.js`.

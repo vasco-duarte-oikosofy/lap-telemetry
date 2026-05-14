@@ -1,6 +1,6 @@
 # Phase 03 — Lap Legend and Identification
 
-> **Branching convention:** WE DEVELOP ON `main`. Do not create a branch named `phase/03-legend`. Write commits directly to `main`. Phase branches are only for reference after the fact.
+> **Development convention:** WE DEVELOP ON `main`. Write commits directly to `main`.
 
 **Your task:** Implement Phase 3 from `track-heatmap-spec.md`
 

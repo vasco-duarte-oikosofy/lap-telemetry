@@ -45,7 +45,7 @@
 - `npm test` passes (all existing tests + new 01a tests)
 - `phases/01a-heatmap-single-lap/learnings.md` exists
 - `phases/01a-heatmap-single-lap/handoff.md` exists
-- Commit on branch `phase/01a-heatmap-single-lap`
+- Commit directly on `main`
 - Update `phases/PLAN` to mark 01a as DONE
 
 **Stop at green:** When acceptance passes, commit and stop. Don't start Phase 1b.

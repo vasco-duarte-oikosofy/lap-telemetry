@@ -255,7 +255,7 @@ extend later if multi-lap.)
 ### A. Format investigation
 
 The TinyPedal install path is not guaranteed to be on this machine. Plan
-covers both branches:
+covers both paths:
 
 1. **If a sample is reachable**: search common TinyPedal locations
    (`%APPDATA%/TinyPedal/deltabest/*.csv`,
@@ -292,7 +292,7 @@ Reject if either column has fewer than 100 rows.
 ### B. File picker
 
 - Extend `<input id="file-input" accept=".parquet,.json,.csv" multiple>`.
-- In `loadFile(file)`, branch on extension:
+- In `loadFile(file)`, choose behavior by extension:
   ```javascript
   const ext = file.name.toLowerCase().split('.').pop();
   if (ext === 'json')    return loadSidecar(file);
@@ -438,7 +438,7 @@ the test.
    append. `python -c` round-trip to confirm parquet writes + reads.
 4. **Feature 2 — app.** COLUMNS, panel defs, strip renderer, tooltip
    flags, pre-existing-parquet still loads.
-5. **Feature 3 — CSV ingest.** Loader branch, parser, synthetic entry,
+5. **Feature 3 — CSV ingest.** Loader path, parser, synthetic entry,
    picker check by hand.
 6. **`scripts/test_m6.js`** — extends, doesn't replace. Includes the
    pyarrow synthetic-fixture step that injects abs/tc columns into a

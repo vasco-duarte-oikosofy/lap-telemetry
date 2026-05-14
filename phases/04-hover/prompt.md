@@ -1,6 +1,6 @@
 # Phase 04 — Hover Crosshair and Per-Lap Readout
 
-> **Branching convention:** WE DEVELOP ON `main`. Do not create a branch named `phase/04-hover`. Write commits directly to `main`. Phase branches are only for reference after the fact.
+> **Development convention:** WE DEVELOP ON `main`. Write commits directly to `main`.
 
 **Your task:** Implement Phase 4 from `track-heatmap-spec.md`
 

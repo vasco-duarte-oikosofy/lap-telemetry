@@ -163,7 +163,7 @@ If you can't get a real file or can't read TinyPedal's source within
 
 **Implementation.**
 - Extend the file-input `accept` attribute to include `.csv`.
-- In `loadFile`, branch on extension: `.parquet` → existing path,
+- In `loadFile`, choose behavior by extension: `.parquet` → existing path,
   `.json` → existing sidecar path, `.csv` → new TinyPedal path.
 - New `loadDeltabestCsv(file)`:
   - Parse the CSV in-browser (`file.text()` then split lines).

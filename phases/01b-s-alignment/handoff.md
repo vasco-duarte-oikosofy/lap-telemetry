@@ -2,7 +2,7 @@
 
 ## Status
 
-✅ COMPLETE on branch `main`.
+✅ COMPLETE on `main`.
 
 ## What changed
 

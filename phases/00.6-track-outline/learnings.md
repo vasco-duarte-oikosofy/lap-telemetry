@@ -4,7 +4,7 @@
 
 **Status:** ✅ COMPLETE  
 **Feature flag:** `features.mapTrackOutline` (default: OFF)  
-**Branch:** `phase/00.6-track-outline`
+**Development base:** `main`
 
 ## What Surprised Us
 

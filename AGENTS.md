@@ -41,8 +41,7 @@ You are not done until all of these exist:
 4. `phases/<this-phase>/handoff.md` — concrete state: what is on disk now,
    what feature flags are live, new helpers worth knowing about, deferred
    TODOs.
-5. Commits on branch `phase/<this-phase>`, with `refactor:` prefixes where
-   appropriate.
+5. Commits directly on `main`, with `refactor:` prefixes where appropriate.
 
 ## Build instructions
 

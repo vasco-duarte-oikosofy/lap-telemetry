@@ -4,7 +4,7 @@
 
 **Status:** ✅ COMPLETE  
 **Feature flag:** `features.mapWalkingSkeleton` (default: OFF)  
-**Branch:** `phase/00.5-walking-skeleton`
+**Development base:** `main`
 
 ## What Changed
 

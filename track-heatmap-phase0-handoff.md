@@ -180,7 +180,7 @@ Check existing patterns in the codebase:
 - [ ] No `main.js` changes (or minimal wiring only)
 - [ ] No file exceeds 437 lines
 - [ ] Commit messages explain *why*, not just *what*
-- [ ] PR description documents the layout decision (50% width rationale)
+- [ ] Handoff notes document the layout decision (50% width rationale)
 
 ---
 
@@ -200,7 +200,7 @@ These are **not** part of Phase 0. Do not touch them:
 
 ## Next Steps After Phase 0
 
-Once Phase 0 is merged:
+Once Phase 0 is complete on `main`:
 
 1. **Decision gate:** Look at the result. If 50% width feels right, continue. If map still feels small, bump to 60% or 66% (one-line CSS change) before Phase 0.1.
 

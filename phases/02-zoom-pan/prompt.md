@@ -58,7 +58,7 @@ The `drawRibbon` function currently extrudes in **screen space** after calling `
 - `npm test` passes (all existing tests + new Phase 02 tests)
 - `phases/02-zoom-pan/learnings.md` exists
 - `phases/02-zoom-pan/handoff.md` exists
-- Commits on branch `phase/02-zoom-pan`, with `refactor:` prefix where appropriate
+- Commits directly on `main`, with `refactor:` prefix where appropriate
 - Update `phases/PLAN` to mark 02 as DONE
 - Update `phases/CURRENT` to the next phase
 

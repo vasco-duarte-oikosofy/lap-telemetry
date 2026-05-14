@@ -1,6 +1,6 @@
 # Phase 05a — Linked Highlight Band from Trace Charts
 
-> **Branching convention:** WE DEVELOP ON `main`. Do not create a branch named `phase/05a-linked-highlight`. Write commits directly to `main`. Phase branches are only for reference after the fact.
+> **Development convention:** WE DEVELOP ON `main`. Write commits directly to `main`.
 
 **Your task:** Implement Phase 5a from `track-heatmap-spec.md`
 

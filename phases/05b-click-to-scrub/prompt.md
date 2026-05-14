@@ -1,6 +1,6 @@
 # Phase 05b — Click-to-Scrub (reverse binding)
 
-> **Branching convention:** WE DEVELOP ON `main`. Do not create a branch named `phase/05b-click-to-scrub`. Write commits directly to `main`. Phase branches are only for reference after the fact.
+> **Development convention:** WE DEVELOP ON `main`. Write commits directly to `main`.
 
 **Your task:** Implement Phase 5b from `track-heatmap-spec.md`
 

@@ -5,8 +5,7 @@ multi-file ESM architecture. Zero behaviour change — every panel, tooltip,
 zoom interaction, colour picker, CSV ingest, and Playwright test must work
 identically after the split.
 
-**Incremental delivery:** Every step merges to `main`. No long-lived
-feature branch. At every step, two artifacts work:
+**Incremental delivery:** Every step commits directly to `main`. At every step, two artifacts work:
 1. `web/compare.html` — served via HTTP (development)
 2. `dist/compare.html` — standalone single file, `file://` (users)
 
@@ -400,8 +399,7 @@ same as every other module.
 
 ## Implementation Steps
 
-Each step produces a commit that merges directly to `main`. No
-long-lived feature branch. The merge gate for every step is:
+Each step produces a commit directly on `main`. The readiness gate for every step is:
 
 1. All Playwright tests pass against `web/` (via HTTP server)
 2. `npm run build` succeeds
@@ -518,7 +516,7 @@ the `test` script — do not carry an uncertain baseline.
 monolith served via HTTP. Run `npm run build` — `dist/compare.html`
 is produced. Open `dist/compare.html` via `file://` — works.
 
-Record pass count as baseline. **Merge to main.**
+Record pass count as baseline. **Commit to main.**
 
 ---
 
@@ -530,8 +528,8 @@ Record pass count as baseline. **Merge to main.**
   `<link rel="stylesheet" href="css/styles.css">`.
 - `npm run build` now inlines the CSS back into `dist/compare.html`.
 
-**Merge gate:** `npm test` passes, `npm run build` produces
-`dist/compare.html`, `file://` spot-check works. **Merge to main.**
+**Readiness gate:** `npm test` passes, `npm run build` produces
+`dist/compare.html`, `file://` spot-check works. **Commit to main.**
 
 ---
 
@@ -568,8 +566,8 @@ leftover `const SYM = ...` silently shadows the import. Use:
 any legitimate _uses_ of `SYM` in the remaining inline code. The
 _declaration_ must be gone.
 
-**Merge gate.** `npm test` + `npm run build` + `file://` check.
-**Merge to main.**
+**Readiness gate.** `npm test` + `npm run build` + `file://` check.
+**Commit to main.**
 
 ---
 
@@ -595,7 +593,7 @@ from outside).
 Note: `storeKey` and `fileStem` are pure string helpers — they go in
 `utils.js` (Step 5), not here.
 
-**Merge gate + merge to main.**
+**Readiness gate + commit to main.**
 
 ---
 
@@ -614,7 +612,7 @@ keeps `utils.js` independent of `appState.js`. Update the three call
 sites (lines 2025, 2035, 2052) to pass `state.maxDist` (or import
 `currentMaxDist` from appState at the call site).
 
-**Merge gate + merge to main.**
+**Readiness gate + commit to main.**
 
 ---
 
@@ -629,7 +627,7 @@ and `updateCompareBtn` into `js/pickers.js`. Imports `appState`,
 wrappers call `addSessionEntry`, `rebuildPickers`, and
 `refreshSessionListBadges`.
 
-**Merge gate + merge to main.**
+**Readiness gate + commit to main.**
 
 ---
 
@@ -667,7 +665,7 @@ returning the wrong shape, missing a field that a DOM wrapper expects)
 won't crash but will produce wrong UI. Test every file-load path:
 parquet, parquet+sidecar, CSV, multi-file, error cases.
 
-**Merge gate + merge to main.**
+**Readiness gate + commit to main.**
 
 ---
 
@@ -683,7 +681,7 @@ state from `appState.js` — the signatures stay parameter-free. The
 only change is replacing bare `currentTrackX` with
 `appState.currentTrackX` (or a destructured import).
 
-**Merge gate + merge to main.**
+**Readiness gate + commit to main.**
 
 ---
 
@@ -700,7 +698,7 @@ Move these inside `initEventHandlers()` as local `const` bindings
 (not at the top of the module file — ESM execution order could
 change with future import reordering).
 
-**Merge gate + merge to main.**
+**Readiness gate + commit to main.**
 
 ---
 
@@ -715,7 +713,7 @@ change with future import reordering).
   directory from an HTTP server: `python3 -m http.server -d web`"*.
 - The file keeps its `compare.html` name.
 
-**Merge gate + merge to main.**
+**Readiness gate + commit to main.**
 
 ---
 
@@ -731,7 +729,7 @@ change with future import reordering).
   - Development: *"`python3 -m http.server -d web 8000` serves the
     modular source. `npm run build` regenerates `dist/compare.html`."*
 
-**Merge to main.**
+**Commit to main.**
 
 ---
 
@@ -741,10 +739,10 @@ Each step in this plan satisfies the following invariants:
 
 | Property | How |
 |---|---|
-| **Merge to main** | Every step is a self-contained commit. No feature branch. Revert any step independently. |
+| **Commit to main** | Every step is a self-contained commit on `main`. Revert any step independently. |
 | **`web/` works via HTTP** | Playwright tests run against `web/` at every step. The inline `<script>` shrinks but always works. |
 | **`dist/` works via `file://`** | `npm run build` produces a standalone `dist/compare.html` at every step. The bundle script handles both hybrid (inline script + module imports) and final (main.js entry point) states. |
-| **Tests are the gate** | No step merges unless the full Playwright suite passes. Shadow bugs caught by grep checks. |
+| **Tests are the gate** | No step is committed unless the full Playwright suite passes. Shadow bugs caught by grep checks. |
 | **Riskiest step identified** | Step 7 (dataTransforms) is the only step that changes function boundaries. All other steps are mechanical cut-paste. Step 7 can be sub-divided if it proves difficult. |
 | **No broken user path** | Users who open `dist/compare.html` via `file://` are never broken. The build pipeline exists from Step 1. |
 
@@ -814,7 +812,7 @@ the new modules. A leftover `const COLUMNS = [...]` that shadows the
 import produces zero errors but silently uses stale data. Mitigation:
 after each extraction, delete the inline declaration, add the import,
 grep for the symbol name to confirm it appears only as an import.
-The merge gate (tests + build + file:// check) catches most regressions
+The readiness gate (tests + build + file:// check) catches most regressions
 but shadow bugs can be subtle — the grep check is essential.
 
 **Large `renderAll` function.** At ~190 lines it is the biggest single
