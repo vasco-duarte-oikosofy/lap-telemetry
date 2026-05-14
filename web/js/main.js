@@ -39,91 +39,15 @@ import { SVG_W, PAD, PLOT_W } from './constants.js';
 // ── UI interaction ─────────────────────────────────────────────────────────────
 import { initUI, rebuildPickers, parsePickerValue, addSessionEntry, refreshSessionListBadges } from './ui.js';
 
+// ── Debug hooks ──────────────────────────────────────────────────────────────
+import { installDebugHooks } from './debugHooks.js';
+
+// ── Panel configuration ─────────────────────────────────────────────────────
+import { COLUMNS, PANEL_DEFS } from './panelConfig.js';
+
 // ── CDN imports ────────────────────────────────────────────────────────────
 import { parquetRead, parquetMetadataAsync } from 'https://cdn.jsdelivr.net/npm/hyparquet@1/+esm';
 import { compressors } from 'https://cdn.jsdelivr.net/npm/hyparquet-compressors@1/+esm';
-
-// ── Constants ────────────────────────────────────────────────────────────────
-const COLUMNS = [
-  'lap_number', 'lap_time_s', 'lap_distance_m', 'speed_kph',
-  'throttle_norm', 'brake_norm', 'engine_rpm', 'gear',
-  'steering_norm', 'slip_angle_fl_deg', 'slip_angle_fr_deg',
-  'last_sector_1_s', 'last_sector_2_s',
-  'pos_x_m', 'pos_z_m',
-  'abs_active', 'tc_active',
-];
-
-// Panel definitions: { id, label, height, channels, yFixed, yStep, zeroline }
-const PANEL_DEFS = [
-  { id: 'speed',    label: 'Speed (km/h)',         height: 140,
-    channels: [
-      { col: 'speed_kph', trace: 'session', color: 'var(--session)', dash: false },
-      { col: 'speed_kph', trace: 'ref',     color: 'var(--ref)',     dash: true  },
-    ],
-    yFixed: null, yStep: 50, zeroline: false },
-
-  { id: 'throttle', label: 'Throttle',               height: 60,
-    channels: [
-      { col: 'throttle_norm', trace: 'session', color: 'var(--session)', dash: false },
-      { col: 'throttle_norm', trace: 'ref',     color: 'var(--ref)',     dash: true  },
-    ],
-    yFixed: [0, 1], yStep: 0.5, zeroline: false,
-    activityStrip: { col: 'tc_active',  color: 'var(--throttle)' } },
-
-  { id: 'tc',  label: 'TC active',                   height: 50,
-    channels: [
-      { col: 'tc_active', trace: 'session', color: 'var(--throttle)', dash: false, step: true },
-    ],
-    yFixed: [0, 1], yStep: 1, midline: 0.5, zeroline: false },
-
-  { id: 'brake', label: 'Brake',                     height: 60,
-    channels: [
-      { col: 'brake_norm', trace: 'session', color: 'var(--session)', dash: false },
-      { col: 'brake_norm', trace: 'ref',     color: 'var(--ref)',     dash: true  },
-    ],
-    yFixed: [0, 1], yStep: 0.5, zeroline: false,
-    activityStrip: { col: 'abs_active', color: 'var(--brake)' } },
-
-  { id: 'abs', label: 'ABS active',                  height: 50,
-    channels: [
-      { col: 'abs_active', trace: 'session', color: 'var(--brake)', dash: false, step: true },
-    ],
-    yFixed: [0, 1], yStep: 1, midline: 0.5, zeroline: false },
-
-  { id: 'rpm', label: 'RPM',                         height: 80,
-    channels: [
-      { col: 'engine_rpm', trace: 'session', color: 'var(--session)', dash: false },
-      { col: 'engine_rpm', trace: 'ref',     color: 'var(--ref)',     dash: true  },
-    ],
-    yFixed: null, yStep: 2000, zeroline: false },
-
-  { id: 'gear', label: 'Gear',                        height: 60, heightMultiplier: 1.3,
-    channels: [
-      { col: 'gear', trace: 'session', color: 'var(--session)', dash: false, step: true },
-      { col: 'gear', trace: 'ref',     color: 'var(--ref)',     dash: true,  step: true },
-    ],
-    yFixed: null, yStep: 1, zeroline: false },
-
-  { id: 'steering', label: 'Steering',               height: 80,
-    channels: [
-      { col: 'steering_norm', trace: 'session', color: 'var(--session)', dash: false },
-      { col: 'steering_norm', trace: 'ref',     color: 'var(--ref)',     dash: true  },
-    ],
-    yFixed: [-1, 1], yStep: 0.5, zeroline: true },
-
-  { id: 'slip', label: 'Slip angle FL / FR (deg)',   height: 80,
-    channels: [
-      { col: 'slip_angle_fl_deg', trace: 'session', color: 'var(--slip-fl)', dash: false },
-      { col: 'slip_angle_fl_deg', trace: 'ref',     color: 'var(--slip-fl)', dash: true  },
-      { col: 'slip_angle_fr_deg', trace: 'session', color: 'var(--slip-fr)', dash: false },
-      { col: 'slip_angle_fr_deg', trace: 'ref',     color: 'var(--slip-fr)', dash: true  },
-    ],
-    yFixed: null, yStep: 2, zeroline: false, niceSteps: [0.5, 1, 2, 5] },
-
-  { id: 'dt', label: 'Δt (ms, +session slower)',    height: 100,
-    channels: null,  // special: computed from speed traces
-    yFixed: null, yStep: 100, zeroline: true, niceSteps: [1, 2, 5, 10, 25, 50, 100, 250, 500, 1000] },
-];
 
 // ── Main render ───────────────────────────────────────────────────────────────
 
@@ -402,12 +326,19 @@ function renderTrackHeatmapMap() {
   const sessionColor = getComputedStyle(document.documentElement).getPropertyValue('--session').trim() || '#4fc3f7';
   const refColor     = getComputedStyle(document.documentElement).getPropertyValue('--ref').trim() || '#ff9800';
 
-  const lapA = { x: currentTrackX, z: currentTrackZ, color: sessionColor };
+  const lapA = {
+    x: currentTrackX,
+    z: currentTrackZ,
+    throttle: currentSessionBins?.throttle_norm,
+    brake: currentSessionBins?.brake_norm,
+    color: sessionColor,
+  };
   const lapB = { x: currentRefTrackX, z: currentRefTrackZ, color: refColor };
 
-  // Phase 00.6: pass showOutline option based on feature flag
+  // Phase 00.6/01a: pass feature-flagged renderer options.
   const showOutline = !!features.mapTrackOutline;
-  renderWalkingSkeleton(canvas, lapA, lapB, { showOutline });
+  const showHeatmapSingleLap = !!features.mapHeatmapSingleLap;
+  renderWalkingSkeleton(canvas, lapA, lapB, { showOutline, showHeatmapSingleLap });
 
   // Set up ResizeObserver on first render
   if (!trackHeatmapObserver) {
@@ -416,68 +347,21 @@ function renderTrackHeatmapMap() {
       const sColor = getComputedStyle(document.documentElement).getPropertyValue('--session').trim() || '#4fc3f7';
       const rColor = getComputedStyle(document.documentElement).getPropertyValue('--ref').trim() || '#ff9800';
       return {
-        lapA: { x: currentTrackX, z: currentTrackZ, color: sColor },
+        lapA: {
+          x: currentTrackX,
+          z: currentTrackZ,
+          throttle: currentSessionBins?.throttle_norm,
+          brake: currentSessionBins?.brake_norm,
+          color: sColor,
+        },
         lapB: { x: currentRefTrackX, z: currentRefTrackZ, color: rColor },
       };
-    }, () => ({ showOutline: !!features.mapTrackOutline }));
+    }, () => ({
+      showOutline: !!features.mapTrackOutline,
+      showHeatmapSingleLap: !!features.mapHeatmapSingleLap,
+    }));
   }
 }
-
-// ── Debug hooks for Playwright ────────────────────────────────────────────────
-
-window.__getSessionKeys = () => [...store.keys()];
-
-window.__resamplerDebug = function(storeKeyStr, segIdx) {
-  const entry = store.get(storeKeyStr);
-  if (!entry) throw new Error(`store key not found: ${storeKeyStr}`);
-  const seg    = entry.segments[segIdx];
-  const dists  = Array.from(entry.data.lap_distance_m.slice(seg.start, seg.end));
-  const speeds = Array.from(entry.data.speed_kph.slice(seg.start, seg.end));
-  const maxD   = Math.ceil(Math.max(...dists));
-  return Array.from(resample(dists, speeds, maxD));
-};
-
-window.__refResamplerDebug = function(storeKeyStr, segIdx) {
-  return window.__resamplerDebug(storeKeyStr, segIdx);
-};
-
-window.__dtDebug = function(sessionKey, sessionSeg, refKey, refSeg) {
-  const se   = store.get(sessionKey);
-  const re   = store.get(refKey);
-  if (!se || !re) throw new Error('store keys not found');
-  const sSeg = se.segments[sessionSeg];
-  const rSeg = re.segments[refSeg];
-  const sTrackLen = se.segments.reduce((m, s) => Math.max(m, s.maxDist || 0), 0);
-  const rTrackLen = re.segments.reduce((m, s) => Math.max(m, s.maxDist || 0), 0);
-  const sKeep = computeKeepIndices(se.data.lap_time_s, se.data.lap_distance_m, sSeg.start, sSeg.end, sTrackLen);
-  const rKeep = computeKeepIndices(re.data.lap_time_s, re.data.lap_distance_m, rSeg.start, rSeg.end, rTrackLen);
-  const sDist = sKeep.map(i => se.data.lap_distance_m[i]);
-  const rDist = rKeep.map(i => re.data.lap_distance_m[i]);
-  const maxD  = Math.max(Math.ceil(Math.max(...sDist)), Math.ceil(Math.max(...rDist)));
-  const sBins = resample(sDist, smoothLapTime(se.data.lap_time_s, sKeep), maxD);
-  const rBins = resample(rDist, smoothLapTime(re.data.lap_time_s, rKeep), maxD);
-  return Array.from(smoothDt(computeDeltaT(sBins, rBins)));
-};
-
-// Overlap window for the in-page Δt cross-check (lets tests trim to the
-// rendered range rather than the full bin grid).
-window.__dtDebugOverlap = function(sessionKey, sessionSeg, refKey, refSeg) {
-  const se   = store.get(sessionKey);
-  const re   = store.get(refKey);
-  if (!se || !re) throw new Error('store keys not found');
-  const sSeg = se.segments[sessionSeg];
-  const rSeg = re.segments[refSeg];
-  const sTrackLen = se.segments.reduce((m, s) => Math.max(m, s.maxDist || 0), 0);
-  const rTrackLen = re.segments.reduce((m, s) => Math.max(m, s.maxDist || 0), 0);
-  const sKeep = computeKeepIndices(se.data.lap_time_s, se.data.lap_distance_m, sSeg.start, sSeg.end, sTrackLen);
-  const rKeep = computeKeepIndices(re.data.lap_time_s, re.data.lap_distance_m, rSeg.start, rSeg.end, rTrackLen);
-  const sDist = sKeep.map(i => se.data.lap_distance_m[i]);
-  const rDist = rKeep.map(i => re.data.lap_distance_m[i]);
-  return {
-    start: Math.max(Math.min(...sDist), Math.min(...rDist)),
-    end:   Math.min(Math.ceil(Math.max(...sDist)), Math.ceil(Math.max(...rDist))),
-  };
-};
 
 // ── App initialization ────────────────────────────────────────────────────────
 
@@ -505,13 +389,14 @@ initUI(renderAll);
 // Initialize cursor, tooltip, and zoom handlers
 initCursorAndZoom(renderAll, getRenderState);
 
-// ── Debug hooks for testing ───────────────────────────────────────────────────
-window.__setFeatureFlag = (name, value) => {
-  setFeatureFlag(name, value);
-  if (name === 'mapWalkingSkeleton') renderTrackHeatmapMap();
-};
-
-window.__fitToView = function(bounds, w, h, padding) {
-  const r = fitToView(bounds, bounds, w, h, padding);
-  return { scale: r.scale, offsetX: r.offsetX, offsetY: r.offsetY };
-};
+installDebugHooks({
+  store,
+  resample,
+  smoothLapTime,
+  smoothDt,
+  computeDeltaT,
+  computeKeepIndices,
+  fitToView,
+  setFeatureFlag,
+  renderTrackHeatmapMap,
+});
