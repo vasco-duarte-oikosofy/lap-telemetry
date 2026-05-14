@@ -18,11 +18,14 @@ import {
 
 // ── Application state ─────────────────────────────────────────────────────────
 import { store, pendingSidecars, panelOrder, DEFAULT_PANEL_ORDER, PANEL_ORDER_LS_KEY,
-         persistPanelOrder, state, getCurrentMapMode, setCurrentMapMode } from './appState.js';
+         persistPanelOrder, state, getCurrentMapMode, setCurrentMapMode, features, setFeatureFlag } from './appState.js';
 
 // ── Circuit map rendering ───────────────────────────────────────────────────────
 import { renderCircuitMap, renderHeatmapSegments, renderMapLegend, updateZoomArc,
          HEATMAP_RAMPS, HEATMAP_CHANNELS } from './circuitMap.js';
+
+// ── Track heatmap map (Phase 00.5 walking skeleton) ────────────────────────────
+import { renderWalkingSkeleton, initTrackHeatmapResize, fitToView } from './trackHeatmapMap.js';
 
 // ── Panel rendering ─────────────────────────────────────────────────────────────
 import { renderPanel, renderDtPanel } from './panels.js';
@@ -128,8 +131,11 @@ let currentSessionBins = null; // { col: Float64Array }
 let currentRefBins     = null;
 let currentMaxDist     = 0;
 let currentDtBins      = null;
-let currentTrackX      = null; // Resampled track coordinates
+let currentTrackX      = null; // Resampled track coordinates (session)
 let currentTrackZ      = null;
+let currentRefTrackX   = null; // Resampled track coordinates (reference)
+let currentRefTrackZ   = null;
+let trackHeatmapObserver = null; // ResizeObserver for heatmap canvas
 let currentZoomRange   = null; // { start, end }
 let currentOverlapRange = null; // { start, end } — distance window covered by BOTH laps
 let trackTransform     = null; // Updated by renderCircuitMap
@@ -224,6 +230,17 @@ function renderAll(sessionEntry, sessionSegIdx, refEntry, refSegIdx) {
     const sTrackZ = resample(sDistRaw, sKeep.map(i => sessionEntry.data.pos_z_m[i]), maxDist);
     currentTrackX = sTrackX;
     currentTrackZ = sTrackZ;
+  }
+
+  // Resample reference lap track coordinates (Phase 00.5 walking skeleton)
+  if (refEntry.data.pos_x_m && refEntry.data.pos_z_m) {
+    const rTrackX = resample(rDistRaw, rKeep.map(i => refEntry.data.pos_x_m[i]), maxDist);
+    const rTrackZ = resample(rDistRaw, rKeep.map(i => refEntry.data.pos_z_m[i]), maxDist);
+    currentRefTrackX = rTrackX;
+    currentRefTrackZ = rTrackZ;
+  } else {
+    currentRefTrackX = null;
+    currentRefTrackZ = null;
   }
 
   // Resample lap_time_s (drives the Δt computation; not a rendered panel).
@@ -347,6 +364,9 @@ function renderAll(sessionEntry, sessionSegIdx, refEntry, refSegIdx) {
   // Render circuit map (F1)
   trackTransform = renderCircuitMap(currentTrackX, currentTrackZ, trackTransform, currentZoomRange, currentMaxDist, currentSessionBins);
 
+  // Render track heatmap (Phase 00.5 walking skeleton)
+  renderTrackHeatmapMap();
+
   // Reset cursor and zoom state
   state.maxDist = maxDist;
 }
@@ -358,6 +378,50 @@ function renderAll(sessionEntry, sessionSegIdx, refEntry, refSegIdx) {
 
 // Heatmap mode change re-renders the circuit map only (no panel re-render needed).
 // Extracted to cursor.js
+
+// ── Track heatmap rendering (Phase 00.5) ───────────────────────────────────
+function renderTrackHeatmapMap() {
+  const canvas = document.getElementById('track-heatmap-canvas');
+  const svg    = document.getElementById('circuit-map-svg');
+  if (!canvas || !svg) return;
+
+  // Feature flag: only show when enabled
+  if (!features.mapWalkingSkeleton) {
+    canvas.style.display = 'none';
+    svg.style.display    = '';
+    return;
+  }
+
+  // Hide old SVG, show canvas
+  canvas.style.display = '';
+  svg.style.display    = 'none';
+
+  // Need both laps' track data
+  if (!currentTrackX || !currentTrackZ || !currentRefTrackX || !currentRefTrackZ) return;
+
+  const sessionColor = getComputedStyle(document.documentElement).getPropertyValue('--session').trim() || '#4fc3f7';
+  const refColor     = getComputedStyle(document.documentElement).getPropertyValue('--ref').trim() || '#ff9800';
+
+  const lapA = { x: currentTrackX, z: currentTrackZ, color: sessionColor };
+  const lapB = { x: currentRefTrackX, z: currentRefTrackZ, color: refColor };
+
+  // Phase 00.6: pass showOutline option based on feature flag
+  const showOutline = !!features.mapTrackOutline;
+  renderWalkingSkeleton(canvas, lapA, lapB, { showOutline });
+
+  // Set up ResizeObserver on first render
+  if (!trackHeatmapObserver) {
+    trackHeatmapObserver = initTrackHeatmapResize(canvas, () => {
+      if (!currentTrackX || !currentRefTrackX) return null;
+      const sColor = getComputedStyle(document.documentElement).getPropertyValue('--session').trim() || '#4fc3f7';
+      const rColor = getComputedStyle(document.documentElement).getPropertyValue('--ref').trim() || '#ff9800';
+      return {
+        lapA: { x: currentTrackX, z: currentTrackZ, color: sColor },
+        lapB: { x: currentRefTrackX, z: currentRefTrackZ, color: rColor },
+      };
+    }, () => ({ showOutline: !!features.mapTrackOutline }));
+  }
+}
 
 // ── Debug hooks for Playwright ────────────────────────────────────────────────
 
@@ -426,6 +490,8 @@ function getRenderState() {
     currentOverlapRange,
     currentTrackX,
     currentTrackZ,
+    currentRefTrackX,
+    currentRefTrackZ,
     trackTransform,
     currentDtBins,
     maxDist: state.maxDist,
@@ -438,3 +504,14 @@ initUI(renderAll);
 
 // Initialize cursor, tooltip, and zoom handlers
 initCursorAndZoom(renderAll, getRenderState);
+
+// ── Debug hooks for testing ───────────────────────────────────────────────────
+window.__setFeatureFlag = (name, value) => {
+  setFeatureFlag(name, value);
+  if (name === 'mapWalkingSkeleton') renderTrackHeatmapMap();
+};
+
+window.__fitToView = function(bounds, w, h, padding) {
+  const r = fitToView(bounds, bounds, w, h, padding);
+  return { scale: r.scale, offsetX: r.offsetX, offsetY: r.offsetY };
+};

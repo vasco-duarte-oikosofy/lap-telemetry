@@ -114,3 +114,62 @@ assert(tooltipText.includes('dist:'), ...);
 
 This turns "test failed" into "tooltip is visible but textContent is empty
 string", which points directly at the root cause.
+
+---
+
+## L7. Screenshots are artifacts unless compared or asserted
+
+**Problem.** Saving a screenshot can look like coverage, but it does not fail
+the test unless the file is compared or at least checked. A scenario named
+"pixel diff" that only writes a PNG gives false confidence.
+
+**Solution.** Either use a real visual assertion/diff, or clearly label the
+PNG as a manual artifact and assert the layout invariants in code. If writing
+artifacts, verify the file was created and is non-empty.
+
+```javascript
+await page.screenshot({ path: shotPath });
+const size = fs.statSync(shotPath).size;
+assert(size > 0, 'screenshot artifact written', `${size} bytes`);
+```
+
+---
+
+## L8. Be explicit about viewport width vs content/container width
+
+**Problem.** A responsive test may say it is testing a 320px container while
+actually setting a 420px viewport and relying on body padding/margins. That can
+hide or invent overflow failures.
+
+**Solution.** Define which width is under test. If testing content width, set
+the viewport from the desired content width plus measured horizontal padding,
+then assert the measured content width before checking layout.
+
+```javascript
+const paddingX = await page.evaluate(() => {
+  const cs = getComputedStyle(document.body);
+  return parseFloat(cs.paddingLeft) + parseFloat(cs.paddingRight);
+});
+await page.setViewportSize({ width: targetContentWidth + paddingX, height: 1200 });
+```
+
+---
+
+## L9. Assert the visible renderer, not a hard-coded implementation element
+
+**Problem.** A feature can switch between SVG and canvas rendering. Asserting
+that `#circuit-map-svg` has a non-zero box fails when the canvas renderer is
+visible, even though the map is correctly rendered.
+
+**Solution.** Assert the visible rendering surface or accept all supported
+surfaces, then keep implementation-specific checks limited to what they really
+prove.
+
+```javascript
+const size = await page.evaluate(() => {
+  const svg = document.getElementById('circuit-map-svg').getBoundingClientRect();
+  const canvas = document.getElementById('track-heatmap-canvas').getBoundingClientRect();
+  return Math.max(svg.width, canvas.width);
+});
+assert(size > 0, 'map renderer has visible width');
+```

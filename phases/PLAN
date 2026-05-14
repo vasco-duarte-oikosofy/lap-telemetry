@@ -1,19 +1,25 @@
-00-layout
-00.1-renderer-responsive
-00.5-walking-skeleton
-01a-heatmap-single-lap
-01b-s-alignment
-01c-dual-ribbon
-02-zoom-pan
-03-legend
-04-hover
-05a-linked-highlight
-05b-click-to-scrub
-06.1-dpr-aware
-06.2-perf-pass
-06.3-cbsafe-ramp
-06.4-keyboard
-06.5-zoom-buttons
-06.6-minimap
-06.7-auto-pan
-06.8-sector-jump
+# Phase Plan
+
+| Phase | Description | Status |
+|-------|-------------|--------|
+| 00-layout | Promote map to top, 50% width, centered | ✅ DONE |
+| 00.1-renderer-responsive | Renderer responds to container size (pure refactor) | ✅ DONE |
+| 00.5-walking-skeleton | Two laps, one map, any rendering (polylines) | ✅ DONE |
+| 00.6-track-outline | Track outline background for spatial context | ✅ DONE |
+| 01a-heatmap-single-lap | Heatmap ribbon, single lap | 🔄 NEXT |
+| 01a-heatmap-single-lap | Heatmap ribbon, single lap | ⬜ TODO |
+| 01b-s-alignment | s-based cross-lap alignment, debug overlay | ⬜ TODO |
+| 01c-dual-ribbon | Lap B as second ribbon (side-by-side) | ⬜ TODO |
+| 02-zoom-pan | Zoom and pan | ⬜ TODO |
+| 03-legend | Lap legend and identification | ⬜ TODO |
+| 04-hover | Hover crosshair and per-lap readout | ⬜ TODO |
+| 05a-linked-highlight | Linked highlight band from trace charts | ⬜ TODO |
+| 05b-click-to-scrub | Click-to-scrub (reverse binding) | ⬜ TODO |
+| 06.1-dpr-aware | DPR-aware canvas | ⬜ TODO |
+| 06.2-perf-pass | Performance pass (RDP downsampling) | ⬜ TODO |
+| 06.3-cbsafe-ramp | Color-blind safe alt ramp | ⬜ TODO |
+| 06.4-keyboard | Keyboard controls | ⬜ TODO |
+| 06.5-zoom-buttons | Zoom button stack | ⬜ TODO |
+| 06.6-minimap | Minimap inset | ⬜ TODO |
+| 06.7-auto-pan | Auto-pan when highlight is small | ⬜ TODO |
+| 06.8-sector-jump | Sector jump | ⬜ TODO |

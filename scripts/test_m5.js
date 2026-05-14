@@ -237,7 +237,11 @@ async function main() {
     await page1.selectOption('#session-picker', val3);
     await page1.selectOption('#ref-picker', val5);
     await page1.click('#compare-btn');
-    await page1.waitForSelector('polyline', { timeout: 10000 });
+    await page1.waitForFunction(() => {
+      return window.__getSessionKeys?.().length > 0 &&
+        document.querySelectorAll('#panels .panel-svg').length >= 7 &&
+        document.querySelectorAll('svg[data-panel-id="dt"] polyline').length >= 1;
+    }, { timeout: 10000 });
     await screenshot(page1, 's1_02_compared');
 
     // Count panels (10 with ABS/TC from M6)
@@ -380,7 +384,11 @@ async function main() {
       await page2.selectOption('#session-picker', `${cleanKey2}::2`);    // lap 1 of clean
       await page2.selectOption('#ref-picker',     `${restartKey2}::2`);  // lap 1 of restart
       await page2.click('#compare-btn');
-      await page2.waitForSelector('polyline', { timeout: 10000 });
+      await page2.waitForFunction(() => {
+        return window.__getSessionKeys?.().length >= 2 &&
+          document.querySelectorAll('#panels .panel-svg').length >= 7 &&
+          document.querySelectorAll('svg[data-panel-id="dt"] polyline').length >= 1;
+      }, { timeout: 10000 });
       await screenshot(page2, 's2_02_cross_file_compared');
       const panelCount2 = await page2.$$eval('.panel-wrap', els => els.length);
       assert(panelCount2 === 10, 'S2: cross-file comparison renders 10 panels', `got ${panelCount2}`);

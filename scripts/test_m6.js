@@ -408,20 +408,18 @@ async function main() {
     const storeKeys = await pageD.evaluate(() => window.__getSessionKeys());
     assert(storeKeys.length === 2, 'T11: mixed load → 2 store entries (parquet + csv)', `got ${storeKeys.length}`);
 
-    const parquetEntryHasSidecar = await pageD.evaluate(name => {
-      const keys = window.__getSessionKeys();
-      const k = keys.find(x => x.startsWith(name + '::'));
-      // sidecar is on the store entry; reach in via a debug helper
-      return !!window.__getStoreSidecar?.(k) || true; // sidecar absence won't fail this check directly; verify via picker label
-    }, pName);
-    assert(parquetEntryHasSidecar, 'T11: parquet has sidecar attached (loosely verified)');
-
     // Wait for the picker to show both files' optgroups (parquet sidecar may
     // attach asynchronously after the parquet finishes loading).
     await pageD.waitForFunction(() =>
       document.querySelectorAll('#session-picker optgroup').length >= 2,
       { timeout: 30000 }
     );
+    const parquetOptgroupLabel = await pageD.evaluate(() => {
+      const groups = [...document.querySelectorAll('#session-picker optgroup')];
+      return groups.find(g => !/TinyPedal/.test(g.label))?.label || '';
+    });
+    assert(/WTM|LMP3|Duqueine|HDF/.test(parquetOptgroupLabel),
+           'T11: parquet sidecar metadata appears in picker optgroup', parquetOptgroupLabel);
     // T10: compare a parquet lap vs deltabest as reference
     await pageD.evaluate(() => {
       const opts = [...document.getElementById('session-picker').querySelectorAll('option')].filter(o => o.value);

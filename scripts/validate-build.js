@@ -119,11 +119,11 @@ async function validateBuild() {
   console.log('\n── Interaction tests ───────────────────────');
   
   // Try to trigger a tooltip by moving cursor over plot area
-  const plotArea = await page.$('#plot-area');
-  if (plotArea) {
+  const plotArea = page.locator('#plot-area');
+  if (await plotArea.count()) {
     const box = await plotArea.boundingBox();
     if (box) {
-      await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
+      await plotArea.hover({ position: { x: box.width / 2, y: box.height / 2 } });
       await page.waitForTimeout(100);
       
       // Tooltip may not show without data loaded, so just check it exists in DOM

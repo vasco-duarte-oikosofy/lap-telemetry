@@ -57,3 +57,16 @@ export const state = {
 let _currentMapMode = 'outline';
 export function getCurrentMapMode() { return _currentMapMode; }
 export function setCurrentMapMode(mode) { _currentMapMode = mode; }
+
+// ── Feature flags ───────────────────────────────────────────────────────────────
+// Each subphase has its own flag. Default off until acceptance is signed off.
+export const features = {
+  mapWalkingSkeleton: true,  // Phase 00.5 - ON for development
+  mapTrackOutline: true,     // Phase 00.6 - ON for testing
+};
+
+export function setFeatureFlag(name, value) {
+  if (name in features) {
+    features[name] = value;
+  }
+}
