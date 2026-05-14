@@ -23,6 +23,7 @@ const { startServer } = require('./lib/test-server');
 
 const ROOT = path.resolve(__dirname, '..');
 const WEB_DIR = path.join(ROOT, 'web');
+const SESSIONS_DIR = path.join(ROOT, 'sessions');
 const REPORT_DIR = path.join(ROOT, 'file-picker-bug-test-report');
 const SHOTS_DIR = path.join(REPORT_DIR, 'screenshots');
 
@@ -151,7 +152,7 @@ async function runTests() {
 
     // Test actual file loading via the button
     log('\n  Testing actual file load via button click:');
-    const SESSION_FILE = path.join(SESSIONS_DIR || path.join(ROOT, 'sessions'), 'session_20260510T074144Z_circuit-de-barcelona_lmu.parquet');
+    const SESSION_FILE = path.join(SESSIONS_DIR, 'session_20260510T074144Z_circuit-de-barcelona_lmu.parquet');
     
     if (fs.existsSync(SESSION_FILE)) {
       // Click the load button to trigger file picker

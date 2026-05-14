@@ -105,18 +105,16 @@ async function runTests() {
 
     // Perform drag-to-zoom
     log('\n  Performing drag-to-zoom interaction:');
-    const panelSvg = await page.$('.panel-svg');
+    const panelSvg = page.locator('.panel-svg').first();
     const panelBox = await panelSvg.boundingBox();
+    const dragStart = { x: panelBox.width * 0.2, y: panelBox.height / 2 };
+    const dragEnd = { x: panelBox.width * 0.6, y: panelBox.height / 2 };
     
-    const dragStartX = panelBox.x + panelBox.width * 0.2;
-    const dragEndX = panelBox.x + panelBox.width * 0.6;
-    const dragY = panelBox.y + panelBox.height / 2;
+    log(`  Drag from relative X=${dragStart.x.toFixed(1)} to X=${dragEnd.x.toFixed(1)}`);
 
-    log(`  Drag from X=${dragStartX.toFixed(1)} to X=${dragEndX.toFixed(1)}`);
-
-    await page.mouse.move(dragStartX, dragY);
+    await panelSvg.hover({ position: dragStart });
     await page.mouse.down();
-    await page.mouse.move(dragEndX, dragY, { steps: 10 });
+    await panelSvg.hover({ position: dragEnd });
     await page.mouse.up();
     await page.waitForTimeout(500);
 

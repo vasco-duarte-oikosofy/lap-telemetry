@@ -208,13 +208,11 @@ async function getPanelOrder(page) {
       await compare(page, v0, v1);
 
       // Apply a zoom by dragging on the plot area
-      const plotArea = await page.$('#plot-area');
+      const plotArea = page.locator('#plot-area');
       const pb = await plotArea.boundingBox();
-      const x1 = pb.x + pb.width * 0.2;
-      const x2 = pb.x + pb.width * 0.4;
-      await page.mouse.move(x1, pb.y + 30);
+      await plotArea.hover({ position: { x: pb.width * 0.2, y: 30 } });
       await page.mouse.down();
-      await page.mouse.move(x2, pb.y + 30, { steps: 5 });
+      await plotArea.hover({ position: { x: pb.width * 0.4, y: 30 } });
       await page.mouse.up();
       await page.waitForTimeout(400);
 
@@ -418,13 +416,11 @@ async function getPanelOrder(page) {
       const v1 = await getPickerValue(page, 2);
       await compare(page, v0, v1);
 
-      const plotArea = await page.$('#plot-area');
+      const plotArea = page.locator('#plot-area');
       const pb = await plotArea.boundingBox();
-      const x1 = pb.x + pb.width * 0.3;
-      const x2 = pb.x + pb.width * 0.35;
-      await page.mouse.move(x1, pb.y + 50);
+      await plotArea.hover({ position: { x: pb.width * 0.3, y: 50 } });
       await page.mouse.down();
-      await page.mouse.move(x2, pb.y + 50, { steps: 5 });
+      await plotArea.hover({ position: { x: pb.width * 0.35, y: 50 } });
       await page.mouse.up();
       await page.waitForTimeout(400);
       await screenshot(page, 't10-zoomed-dt-yticks');
@@ -488,11 +484,11 @@ async function getPanelOrder(page) {
       const v1 = await getPickerValue(page, 2);
       await compare(page, v0, v1);
 
-      const plotArea = await page.$('#plot-area');
+      const plotArea = page.locator('#plot-area');
       const pb = await plotArea.boundingBox();
-      await page.mouse.move(pb.x + pb.width * 0.2, pb.y + 50);
+      await plotArea.hover({ position: { x: pb.width * 0.2, y: 50 } });
       await page.mouse.down();
-      await page.mouse.move(pb.x + pb.width * 0.3, pb.y + 50, { steps: 5 });
+      await plotArea.hover({ position: { x: pb.width * 0.3, y: 50 } });
       await page.mouse.up();
       await page.waitForTimeout(400);
 
@@ -503,17 +499,11 @@ async function getPanelOrder(page) {
       assert(gearClip && gearClip.includes('clip-gear'),
         'T13: gear polyline has clip-path after zoom', `got ${gearClip}`);
 
-      // Gear panel can be below the default 720px viewport — scroll it into
-      // view so mouse.move doesn't get clamped outside #plot-area's bounding
-      // box (whose mouseleave handler hides the tooltip).
-      await page.$eval('svg.panel-svg[data-panel-id="gear"]',
-        el => el.scrollIntoView({ block: 'center' }));
-      await page.waitForTimeout(50);
-      const svgRect = await page.$eval('svg.panel-svg[data-panel-id="gear"]', el => {
-        const r = el.getBoundingClientRect();
-        return { cx: r.left + r.width * 0.5, cy: r.top + r.height * 0.5 };
-      });
-      await page.mouse.move(svgRect.cx, svgRect.cy, { steps: 5 });
+      // Gear panel can be below the default viewport — use locator.hover()
+      // with element-relative coordinates so Playwright scrolls it into view.
+      const gearSvg = page.locator('svg.panel-svg[data-panel-id="gear"]');
+      const gearBox = await gearSvg.boundingBox();
+      await gearSvg.hover({ position: { x: gearBox.width * 0.5, y: gearBox.height * 0.5 } });
       await page.waitForTimeout(150);
       const tooltipVisible = await page.$eval('#tooltip', el => el.style.display !== 'none');
       assert(tooltipVisible, 'T13: tooltip visible on hover after zoom');
