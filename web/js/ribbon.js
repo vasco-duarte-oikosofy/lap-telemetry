@@ -101,5 +101,24 @@ export function drawDualRibbons(ctx, lapA, lapB, transform, widthPx, gapPx) {
 
     const colorB = colorForNet((netAt(lapB, i) + netAt(lapB, i + 1)) / 2);
     drawRibbonSegment(ctx, a, b, nx, ny, offsetB, halfWidth, colorB);
+
+    // Phase 03: outer-edge accent outline — draw after fill so it sits on top
+    // Lap A outer edge = offsetA - halfWidth (more negative, farther from center)
+    const outA = offsetA - halfWidth;
+    ctx.strokeStyle = lapA.color;
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(a.x + nx * outA, a.y + ny * outA);
+    ctx.lineTo(b.x + nx * outA, b.y + ny * outA);
+    ctx.stroke();
+
+    // Lap B outer edge = offsetB + halfWidth (more positive, farther from center)
+    const outB = offsetB + halfWidth;
+    ctx.strokeStyle = lapB.color;
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(a.x + nx * outB, a.y + ny * outB);
+    ctx.lineTo(b.x + nx * outB, b.y + ny * outB);
+    ctx.stroke();
   }
 }
