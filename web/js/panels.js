@@ -12,11 +12,18 @@ import { niceRange, buildPolylinePts, computeNiceYTicks } from './pipeline.js';
  * @param {number} maxDist - Maximum distance for the lap
  * @param {Object} sectorDists - { s1dist, s2dist } sector distances
  * @param {Object} zoomRange - { start, end } zoom range
+ * @param {number} containerWidth - Container width in pixels (optional, defaults to SVG_W)
  * @returns {string} - SVG content for the panel
  */
-export function renderPanel(def, bins, maxDist, sectorDists, zoomRange) {
+export function renderPanel(def, bins, maxDist, sectorDists, zoomRange, containerWidth = SVG_W) {
   const H = Math.round(def.height * (def.heightMultiplier ?? 1.0));
   const plotH = H - PAD.top - PAD.bottom;
+
+  // Scale factor for responsive width
+  const scaleX = containerWidth / SVG_W;
+  const scaledPlotW = PLOT_W * scaleX;
+  const scaledLeft = PAD.left * scaleX;
+  const scaledRight = PAD.right * scaleX;
 
   // Collect all values WITHIN ZOOM RANGE to determine y range
   const allVals = [];
@@ -33,15 +40,15 @@ export function renderPanel(def, bins, maxDist, sectorDists, zoomRange) {
 
   const toX = d => {
     const zRange = zoomRange.end - zoomRange.start;
-    if (zRange <= 0) return PAD.left;
+    if (zRange <= 0) return scaledLeft;
     const fracD = (d - zoomRange.start) / zRange;
-    return PAD.left + fracD * PLOT_W;
+    return scaledLeft + fracD * scaledPlotW;
   };
   const toY = (s, yMin, yMax) => PAD.top + plotH - ((s - yMin) / (yMax - yMin)) * plotH;
 
   const distBins = Array.from({ length: maxDist + 1 }, (_, i) => i);
 
-  let svgContent = `<defs><clipPath id="clip-${def.id}"><rect x="${PAD.left}" y="${PAD.top}" width="${PLOT_W}" height="${plotH}"/></clipPath></defs>`;
+  let svgContent = `<defs><clipPath id="clip-${def.id}"><rect x="${scaledLeft}" y="${PAD.top}" width="${scaledPlotW}" height="${plotH}"/></clipPath></defs>`;
 
   // Grid lines and ticks — adjusted for zoom
   const zRange = zoomRange.end - zoomRange.start;
@@ -54,17 +61,17 @@ export function renderPanel(def, bins, maxDist, sectorDists, zoomRange) {
   ).join('');
 
   // Axes
-  svgContent += `<line x1="${PAD.left}" y1="${PAD.top}" x2="${PAD.left}" y2="${PAD.top + plotH}" stroke="var(--border)" stroke-width="1"/>`;
-  svgContent += `<line x1="${PAD.left}" y1="${PAD.top + plotH}" x2="${PAD.left + PLOT_W}" y2="${PAD.top + plotH}" stroke="var(--border)" stroke-width="1"/>`;
+  svgContent += `<line x1="${scaledLeft}" y1="${PAD.top}" x2="${scaledLeft}" y2="${PAD.top + plotH}" stroke="var(--border)" stroke-width="1"/>`;
+  svgContent += `<line x1="${scaledLeft}" y1="${PAD.top + plotH}" x2="${scaledLeft + scaledPlotW}" y2="${PAD.top + plotH}" stroke="var(--border)" stroke-width="1"/>`;
 
   // X tick labels (only on bottom panel — checked by caller adding class)
   if (def.showXLabels) {
     svgContent += xTicks.map(d => {
       const x = toX(d);
-      if (x < PAD.left || x > PAD.left + PLOT_W) return '';
+      if (x < scaledLeft || x > scaledLeft + scaledPlotW) return '';
       return `<text x="${x}" y="${PAD.top + plotH + 16}" text-anchor="middle" fill="var(--muted)" font-size="9" font-family="monospace">${d >= 1000 ? (d / 1000).toFixed(1) + 'k' : d}</text>`;
     }).join('');
-    svgContent += `<text x="${PAD.left + PLOT_W / 2}" y="${H - 2}" text-anchor="middle" fill="var(--muted)" font-size="9" font-family="monospace">Distance (m)</text>`;
+    svgContent += `<text x="${scaledLeft + scaledPlotW / 2}" y="${H - 2}" text-anchor="middle" fill="var(--muted)" font-size="9" font-family="monospace">Distance (m)</text>`;
   }
 
   // Render per-channel bins
@@ -97,16 +104,16 @@ export function renderPanel(def, bins, maxDist, sectorDists, zoomRange) {
             return t;
           })();
       svgContent += yTicks.map(y =>
-        `<text x="${PAD.left - 5}" y="${toYp(y) + 3}" text-anchor="end" fill="var(--muted)" font-size="9" font-family="monospace">${Number.isInteger(y) ? y : y.toFixed(1)}</text>`
+        `<text x="${scaledLeft - 5}" y="${toYp(y) + 3}" text-anchor="end" fill="var(--muted)" font-size="9" font-family="monospace">${Number.isInteger(y) ? y : y.toFixed(1)}</text>`
       ).join('');
       svgContent += yTicks.map(y =>
-        `<line x1="${PAD.left}" y1="${toYp(y)}" x2="${PAD.left + PLOT_W}" y2="${toYp(y)}" stroke="var(--border)" stroke-width="0.4" stroke-dasharray="3 3"/>`
+        `<line x1="${scaledLeft}" y1="${toYp(y)}" x2="${scaledLeft + scaledPlotW}" y2="${toYp(y)}" stroke="var(--border)" stroke-width="0.4" stroke-dasharray="3 3"/>`
       ).join('');
       if (def.zeroline) {
-        svgContent += `<line x1="${PAD.left}" y1="${toYp(0)}" x2="${PAD.left + PLOT_W}" y2="${toYp(0)}" stroke="rgba(255,255,255,0.2)" stroke-width="1"/>`;
+        svgContent += `<line x1="${scaledLeft}" y1="${toYp(0)}" x2="${scaledLeft + scaledPlotW}" y2="${toYp(0)}" stroke="rgba(255,255,255,0.2)" stroke-width="1"/>`;
       }
       if (def.midline != null) {
-        svgContent += `<line x1="${PAD.left}" y1="${toYp(def.midline)}" x2="${PAD.left + PLOT_W}" y2="${toYp(def.midline)}" stroke="rgba(255,255,255,0.15)" stroke-width="1" stroke-dasharray="4 4"/>`;
+        svgContent += `<line x1="${scaledLeft}" y1="${toYp(def.midline)}" x2="${scaledLeft + scaledPlotW}" y2="${toYp(def.midline)}" stroke="rgba(255,255,255,0.15)" stroke-width="1" stroke-dasharray="4 4"/>`;
       }
       // Store range for cursor tooltip
       def._yMin = yMin; def._yMax = yMax;
@@ -159,7 +166,7 @@ export function renderPanel(def, bins, maxDist, sectorDists, zoomRange) {
     }
   }
 
-  return `<svg class="panel-svg" viewBox="0 0 ${SVG_W} ${H}" data-panel-id="${def.id}">${svgContent}</svg>`;
+  return `<svg class="panel-svg" viewBox="0 0 ${containerWidth} ${H}" data-panel-id="${def.id}" preserveAspectRatio="none">${svgContent}</svg>`;
 }
 
 /**
@@ -170,11 +177,18 @@ export function renderPanel(def, bins, maxDist, sectorDists, zoomRange) {
  * @param {Object} sectorDists - { s1dist, s2dist } sector distances
  * @param {Object} zoomRange - { start, end } zoom range
  * @param {Object} overlapRange - { start, end } overlap window
+ * @param {number} containerWidth - Container width in pixels (optional, defaults to SVG_W)
  * @returns {string} - SVG content for the Δt panel
  */
-export function renderDtPanel(def, dtBins, maxDist, sectorDists, zoomRange, overlapRange) {
+export function renderDtPanel(def, dtBins, maxDist, sectorDists, zoomRange, overlapRange, containerWidth = SVG_W) {
   const H = def.height;
   const plotH = H - PAD.top - PAD.bottom;
+
+  // Scale factor for responsive width
+  const scaleX = containerWidth / SVG_W;
+  const scaledPlotW = PLOT_W * scaleX;
+  const scaledLeft = PAD.left * scaleX;
+
   // Render only the [overlapStart..overlapEnd] window — bins outside that range
   // carry the resampler's boundary-clamping of lap_time_s, not real data, and
   // would visually swamp the plot if drawn (see rca-deltat-phantom-error.md §7).
@@ -196,14 +210,14 @@ export function renderDtPanel(def, dtBins, maxDist, sectorDists, zoomRange, over
 
   const toX  = d => {
     const zRange = zoomRange.end - zoomRange.start;
-    if (zRange <= 0) return PAD.left;
+    if (zRange <= 0) return scaledLeft;
     const fracD = (d - zoomRange.start) / zRange;
-    return PAD.left + fracD * PLOT_W;
+    return scaledLeft + fracD * scaledPlotW;
   };
   const toY  = s => PAD.top + plotH - ((s - yMin) / (yMax - yMin)) * plotH;
   const distBins = Array.from({ length: maxDist + 1 }, (_, i) => i);
 
-  let svg = `<defs><clipPath id="clip-dt"><rect x="${PAD.left}" y="${PAD.top}" width="${PLOT_W}" height="${plotH}"/></clipPath></defs>`;
+  let svg = `<defs><clipPath id="clip-dt"><rect x="${scaledLeft}" y="${PAD.top}" width="${scaledPlotW}" height="${plotH}"/></clipPath></defs>`;
 
   const zRange = zoomRange.end - zoomRange.start;
   const distStep = Math.max(100, Math.ceil(zRange / 6 / 100) * 100);
@@ -213,16 +227,16 @@ export function renderDtPanel(def, dtBins, maxDist, sectorDists, zoomRange, over
   svg += xTicks.map(d =>
     `<line x1="${toX(d)}" y1="${PAD.top}" x2="${toX(d)}" y2="${PAD.top + plotH}" stroke="var(--border)" stroke-width="0.5" stroke-dasharray="3 3"/>`
   ).join('');
-  svg += `<line x1="${PAD.left}" y1="${PAD.top}" x2="${PAD.left}" y2="${PAD.top + plotH}" stroke="var(--border)" stroke-width="1"/>`;
-  svg += `<line x1="${PAD.left}" y1="${PAD.top + plotH}" x2="${PAD.left + PLOT_W}" y2="${PAD.top + plotH}" stroke="var(--border)" stroke-width="1"/>`;
+  svg += `<line x1="${scaledLeft}" y1="${PAD.top}" x2="${scaledLeft}" y2="${PAD.top + plotH}" stroke="var(--border)" stroke-width="1"/>`;
+  svg += `<line x1="${scaledLeft}" y1="${PAD.top + plotH}" x2="${scaledLeft + scaledPlotW}" y2="${PAD.top + plotH}" stroke="var(--border)" stroke-width="1"/>`;
 
   // X labels (this is the last panel)
   svg += xTicks.map(d => {
     const x = toX(d);
-    if (x < PAD.left || x > PAD.left + PLOT_W) return '';
+    if (x < scaledLeft || x > scaledLeft + scaledPlotW) return '';
     return `<text x="${x}" y="${PAD.top + plotH + 16}" text-anchor="middle" fill="var(--muted)" font-size="9" font-family="monospace">${d >= 1000 ? (d / 1000).toFixed(1) + 'k' : d}</text>`;
   }).join('');
-  svg += `<text x="${PAD.left + PLOT_W / 2}" y="${H - 2}" text-anchor="middle" fill="var(--muted)" font-size="9" font-family="monospace">Distance (m)</text>`;
+  svg += `<text x="${scaledLeft + scaledPlotW / 2}" y="${H - 2}" text-anchor="middle" fill="var(--muted)" font-size="9" font-family="monospace">Distance (m)</text>`;
 
   const yTicks = def.niceSteps
     ? computeNiceYTicks(yMin, yMax, plotH, def.niceSteps)
@@ -232,14 +246,14 @@ export function renderDtPanel(def, dtBins, maxDist, sectorDists, zoomRange, over
         return t;
       })();
   svg += yTicks.map(y =>
-    `<text x="${PAD.left - 5}" y="${toY(y) + 3}" text-anchor="end" fill="var(--muted)" font-size="9" font-family="monospace">${y > 0 ? '+' : ''}${y}</text>`
+    `<text x="${scaledLeft - 5}" y="${toY(y) + 3}" text-anchor="end" fill="var(--muted)" font-size="9" font-family="monospace">${y > 0 ? '+' : ''}${y}</text>`
   ).join('');
   svg += yTicks.map(y =>
-    `<line x1="${PAD.left}" y1="${toY(y)}" x2="${PAD.left + PLOT_W}" y2="${toY(y)}" stroke="var(--border)" stroke-width="0.4" stroke-dasharray="3 3"/>`
+    `<line x1="${scaledLeft}" y1="${toY(y)}" x2="${scaledLeft + scaledPlotW}" y2="${toY(y)}" stroke="var(--border)" stroke-width="0.4" stroke-dasharray="3 3"/>`
   ).join('');
   // Reference lap baseline at y=0 (orange dashed, same style as other panels)
   const zeroY = toY(Math.max(yMin, Math.min(yMax, 0)));
-  svg += `<polyline points="${PAD.left},${zeroY} ${PAD.left + PLOT_W},${zeroY}" fill="none" stroke="var(--ref)" stroke-width="0.9" stroke-dasharray="6 3" clip-path="url(#clip-dt)"/>`;
+  svg += `<polyline points="${scaledLeft},${zeroY} ${scaledLeft + scaledPlotW},${zeroY}" fill="none" stroke="var(--ref)" stroke-width="0.9" stroke-dasharray="6 3" clip-path="url(#clip-dt)"/>`;
 
   // Δt polyline — session delta vs reference (blue solid). Clipped to overlap.
   const ptsArr = [];
@@ -276,8 +290,8 @@ export function renderDtPanel(def, dtBins, maxDist, sectorDists, zoomRange, over
   // lap was shorter and produce the (now-fixed) phantom-error symptom.
   const lastDt = dtBins[overlapEnd];
   if (isFinite(lastDt)) {
-    svg += `<text x="${PAD.left + PLOT_W - 4}" y="${PAD.top + 11}" text-anchor="end" fill="${dtColor(lastDt)}" font-size="10" font-family="monospace" font-weight="600">end ${fmtMs(lastDt)}</text>`;
+    svg += `<text x="${scaledLeft + scaledPlotW - 4}" y="${PAD.top + 11}" text-anchor="end" fill="${dtColor(lastDt)}" font-size="10" font-family="monospace" font-weight="600">end ${fmtMs(lastDt)}</text>`;
   }
 
-  return `<svg class="panel-svg" viewBox="0 0 ${SVG_W} ${H}" data-panel-id="dt">${svg}</svg>`;
+  return `<svg class="panel-svg" viewBox="0 0 ${containerWidth} ${H}" data-panel-id="dt" preserveAspectRatio="none">${svg}</svg>`;
 }

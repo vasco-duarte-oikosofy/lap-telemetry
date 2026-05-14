@@ -311,10 +311,13 @@ function renderAll(sessionEntry, sessionSegIdx, refEntry, refSegIdx) {
       continue;
     }
 
+    // Measure container width for responsive rendering
+    const containerWidth = panelsDiv.clientWidth || SVG_W;
+
     let svgHtml;
     if (def.id === 'dt') {
       def.showXLabels = true;
-      svgHtml = renderDtPanel(def, currentDtBins, maxDist, sectorDists, currentZoomRange, currentOverlapRange);
+      svgHtml = renderDtPanel(def, currentDtBins, maxDist, sectorDists, currentZoomRange, currentOverlapRange, containerWidth);
     } else {
       def.showXLabels = (def.id === lastNonDtId);
       const binsMap = {};
@@ -325,7 +328,7 @@ function renderAll(sessionEntry, sessionSegIdx, refEntry, refSegIdx) {
       if (def.activityStrip && currentSessionBins[def.activityStrip.col]) {
         binsMap[`session_${def.activityStrip.col}`] = currentSessionBins[def.activityStrip.col];
       }
-      svgHtml = renderPanel(def, binsMap, maxDist, sectorDists, currentZoomRange);
+      svgHtml = renderPanel(def, binsMap, maxDist, sectorDists, currentZoomRange, containerWidth);
     }
 
     wrap.insertAdjacentHTML('beforeend', svgHtml);
