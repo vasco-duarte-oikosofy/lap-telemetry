@@ -1890,6 +1890,9 @@ function initTrackHeatmapResize(canvas, getLaps, getOptions) {
   return observer;
 }
 
+// web/js/trackHeatmapController.js
+init_appState();
+
 // web/js/mapHover.js
 var CELL_SIZE = 20;
 function buildGrid(lapARaw) {
@@ -2206,6 +2209,129 @@ function updateZoomIndicator(canvas, scale) {
   const indicator = document.getElementById("map-zoom-indicator");
   if (!indicator) return;
   indicator.textContent = `${scale.toFixed(1)}\xD7`;
+}
+
+// web/js/trackHeatmapController.js
+function createTrackHeatmapController(getMapState2) {
+  let trackHeatmapObserver = null;
+  let mapInteraction = null;
+  let mapHover = null;
+  function getCssColor(name, fallback) {
+    return getComputedStyle(document.documentElement).getPropertyValue(name).trim() || fallback;
+  }
+  function buildLaps(sessionColor, refColor) {
+    const {
+      currentTrackX: currentTrackX2,
+      currentTrackZ: currentTrackZ2,
+      currentRefTrackX: currentRefTrackX2,
+      currentRefTrackZ: currentRefTrackZ2,
+      currentSessionBins: currentSessionBins2,
+      currentRefBins: currentRefBins2,
+      currentLapARaw: currentLapARaw2,
+      currentLapBRaw: currentLapBRaw2
+    } = getMapState2();
+    return {
+      lapA: {
+        x: currentTrackX2,
+        z: currentTrackZ2,
+        throttle: currentSessionBins2?.throttle_norm,
+        brake: currentSessionBins2?.brake_norm,
+        color: sessionColor,
+        raw: currentLapARaw2
+      },
+      lapB: {
+        x: currentRefTrackX2,
+        z: currentRefTrackZ2,
+        throttle: currentRefBins2?.throttle_norm,
+        brake: currentRefBins2?.brake_norm,
+        color: refColor,
+        raw: currentLapBRaw2
+      }
+    };
+  }
+  function buildOpts({ respectZoomFlag = true, includeMapSAlignment = true } = {}) {
+    const { currentZoomRange: currentZoomRange2 } = getMapState2();
+    const s = (!respectZoomFlag || features.mapZoomPan) && mapInteraction ? mapInteraction.getState() : { scale: 1, tx: 0, ty: 0 };
+    return {
+      showOutline: !!features.mapTrackOutline,
+      showHeatmapSingleLap: !!features.mapHeatmapSingleLap,
+      showSAlignmentDebug: includeMapSAlignment && !!features.mapSAlignment || !!devFeatures.devMapSAlignmentDebug,
+      showDualRibbon: !!features.mapDualRibbon,
+      showLegend: !!features.mapLegend,
+      showHover: !!features.mapHover,
+      hoverState: mapHover ? mapHover.getState() : null,
+      showLinkedHighlight: !!features.mapLinkedHighlight,
+      visibleRange: currentZoomRange2,
+      ribbonWidthPx: 8,
+      ribbonGapPx: 2,
+      userScale: s.scale,
+      userPanX: s.tx,
+      userPanY: s.ty
+    };
+  }
+  function render() {
+    const canvas = document.getElementById("track-heatmap-canvas");
+    const svg = document.getElementById("circuit-map-svg");
+    if (!canvas || !svg) return;
+    const anyMapFeature = features.mapWalkingSkeleton || features.mapTrackOutline || features.mapHeatmapSingleLap || features.mapSAlignment || features.mapDualRibbon || features.mapZoomPan || features.mapLegend || features.mapHover || features.mapLinkedHighlight;
+    if (!anyMapFeature) {
+      canvas.style.display = "none";
+      svg.style.display = "";
+      return;
+    }
+    canvas.style.display = "";
+    svg.style.display = "none";
+    if (features.mapZoomPan && !mapInteraction) {
+      let indicator = document.getElementById("map-zoom-indicator");
+      if (!indicator) {
+        indicator = document.createElement("span");
+        indicator.id = "map-zoom-indicator";
+        indicator.className = "map-zoom-indicator";
+        indicator.textContent = "1.0\xD7";
+        const panel = document.getElementById("circuit-map-panel");
+        if (panel) panel.appendChild(indicator);
+      }
+      mapInteraction = createMapInteraction(canvas, () => render());
+    }
+    if (features.mapHover && !mapHover) {
+      mapHover = createMapHover(canvas, () => {
+        const sessionColor2 = getCssColor("--session", "#4fc3f7");
+        const refColor2 = getCssColor("--ref", "#ff9800");
+        return {
+          ...buildLaps(sessionColor2, refColor2),
+          transform: getLastTransform()
+        };
+      }, () => render());
+    }
+    const { currentTrackX: currentTrackX2, currentTrackZ: currentTrackZ2, currentRefTrackX: currentRefTrackX2, currentRefTrackZ: currentRefTrackZ2 } = getMapState2();
+    if (!currentTrackX2 || !currentTrackZ2 || !currentRefTrackX2 || !currentRefTrackZ2) return;
+    const sessionColor = getCssColor("--session", "#4fc3f7");
+    const refColor = getCssColor("--ref", "#ff9800");
+    const { lapA, lapB } = buildLaps(sessionColor, refColor);
+    renderWalkingSkeleton(canvas, lapA, lapB, buildOpts());
+    if (mapHover) mapHover.rebuild();
+    if (features.mapZoomPan) {
+      const boundsA = computeTrackBounds(Array.from(lapA.x), Array.from(lapA.z));
+      const boundsB = computeTrackBounds(Array.from(lapB.x), Array.from(lapB.z));
+      const rect = canvas.getBoundingClientRect();
+      const tf = fitToView(boundsA, boundsB, rect.width, rect.height, 15);
+      setBaseTransform(tf);
+    }
+    if (!trackHeatmapObserver) {
+      trackHeatmapObserver = initTrackHeatmapResize(canvas, () => {
+        const { currentTrackX: currentTrackX3, currentRefTrackX: currentRefTrackX3 } = getMapState2();
+        if (!currentTrackX3 || !currentRefTrackX3) return null;
+        const sColor = getCssColor("--session", "#4fc3f7");
+        const rColor = getCssColor("--ref", "#ff9800");
+        return buildLaps(sColor, rColor);
+      }, () => buildOpts({ respectZoomFlag: false, includeMapSAlignment: false }));
+    }
+  }
+  return {
+    render,
+    getMapInteractionState: () => mapInteraction?.getState() ?? null,
+    getMapHoverState: () => mapHover?.getState() ?? null
+  };
 }
 
 // web/js/panels.js
@@ -3279,14 +3405,15 @@ var currentTrackX = null;
 var currentTrackZ = null;
 var currentRefTrackX = null;
 var currentRefTrackZ = null;
-var trackHeatmapObserver = null;
 var currentZoomRange = null;
 var currentOverlapRange = null;
 var trackTransform = null;
 var currentLapARaw = null;
 var currentLapBRaw = null;
-var mapInteraction = null;
-var mapHover = null;
+var trackHeatmapController = createTrackHeatmapController(getMapState);
+function renderTrackHeatmapMap() {
+  trackHeatmapController.render();
+}
 function renderAll(sessionEntry, sessionSegIdx, refEntry, refSegIdx) {
   const sSeg = sessionEntry.segments[sessionSegIdx];
   const rSeg = refEntry.segments[refSegIdx];
@@ -3462,111 +3589,18 @@ function renderAll(sessionEntry, sessionSegIdx, refEntry, refSegIdx) {
   renderTrackHeatmapMap();
   state.maxDist = maxDist;
 }
-function renderTrackHeatmapMap() {
-  const canvas = document.getElementById("track-heatmap-canvas");
-  const svg = document.getElementById("circuit-map-svg");
-  if (!canvas || !svg) return;
-  const anyMapFeature = features.mapWalkingSkeleton || features.mapTrackOutline || features.mapHeatmapSingleLap || features.mapSAlignment || features.mapDualRibbon || features.mapZoomPan || features.mapLegend || features.mapHover || features.mapLinkedHighlight;
-  if (!anyMapFeature) {
-    canvas.style.display = "none";
-    svg.style.display = "";
-    return;
-  }
-  canvas.style.display = "";
-  svg.style.display = "none";
-  if (features.mapZoomPan && !mapInteraction) {
-    let indicator = document.getElementById("map-zoom-indicator");
-    if (!indicator) {
-      indicator = document.createElement("span");
-      indicator.id = "map-zoom-indicator";
-      indicator.className = "map-zoom-indicator";
-      indicator.textContent = "1.0\xD7";
-      const panel = document.getElementById("circuit-map-panel");
-      if (panel) panel.appendChild(indicator);
-    }
-    mapInteraction = createMapInteraction(canvas, () => renderTrackHeatmapMap());
-  }
-  if (features.mapHover && !mapHover) {
-    mapHover = createMapHover(canvas, () => ({
-      lapA: {
-        x: currentTrackX,
-        z: currentTrackZ,
-        throttle: currentSessionBins?.throttle_norm,
-        brake: currentSessionBins?.brake_norm,
-        color: getComputedStyle(document.documentElement).getPropertyValue("--session").trim() || "#4fc3f7",
-        raw: currentLapARaw
-      },
-      lapB: {
-        x: currentRefTrackX,
-        z: currentRefTrackZ,
-        throttle: currentRefBins?.throttle_norm,
-        brake: currentRefBins?.brake_norm,
-        color: getComputedStyle(document.documentElement).getPropertyValue("--ref").trim() || "#ff9800",
-        raw: currentLapBRaw
-      },
-      transform: getLastTransform()
-    }), () => renderTrackHeatmapMap());
-  }
-  if (!currentTrackX || !currentTrackZ || !currentRefTrackX || !currentRefTrackZ) return;
-  function buildLaps(sessionColor2, refColor2) {
-    return {
-      lapA: {
-        x: currentTrackX,
-        z: currentTrackZ,
-        throttle: currentSessionBins?.throttle_norm,
-        brake: currentSessionBins?.brake_norm,
-        color: sessionColor2,
-        raw: currentLapARaw
-      },
-      lapB: {
-        x: currentRefTrackX,
-        z: currentRefTrackZ,
-        throttle: currentRefBins?.throttle_norm,
-        brake: currentRefBins?.brake_norm,
-        color: refColor2,
-        raw: currentLapBRaw
-      }
-    };
-  }
-  function buildOpts({ respectZoomFlag = true, includeMapSAlignment = true } = {}) {
-    const s = (!respectZoomFlag || features.mapZoomPan) && mapInteraction ? mapInteraction.getState() : { scale: 1, tx: 0, ty: 0 };
-    return {
-      showOutline: !!features.mapTrackOutline,
-      showHeatmapSingleLap: !!features.mapHeatmapSingleLap,
-      showSAlignmentDebug: includeMapSAlignment && !!features.mapSAlignment || !!devFeatures.devMapSAlignmentDebug,
-      showDualRibbon: !!features.mapDualRibbon,
-      showLegend: !!features.mapLegend,
-      showHover: !!features.mapHover,
-      hoverState: mapHover ? mapHover.getState() : null,
-      showLinkedHighlight: !!features.mapLinkedHighlight,
-      visibleRange: currentZoomRange,
-      ribbonWidthPx: 8,
-      ribbonGapPx: 2,
-      userScale: s.scale,
-      userPanX: s.tx,
-      userPanY: s.ty
-    };
-  }
-  const sessionColor = getComputedStyle(document.documentElement).getPropertyValue("--session").trim() || "#4fc3f7";
-  const refColor = getComputedStyle(document.documentElement).getPropertyValue("--ref").trim() || "#ff9800";
-  const { lapA, lapB } = buildLaps(sessionColor, refColor);
-  renderWalkingSkeleton(canvas, lapA, lapB, buildOpts());
-  if (mapHover) mapHover.rebuild();
-  if (features.mapZoomPan) {
-    const boundsA = computeTrackBounds(Array.from(lapA.x), Array.from(lapA.z));
-    const boundsB = computeTrackBounds(Array.from(lapB.x), Array.from(lapB.z));
-    const rect = canvas.getBoundingClientRect();
-    const tf = fitToView(boundsA, boundsB, rect.width, rect.height, 15);
-    setBaseTransform(tf);
-  }
-  if (!trackHeatmapObserver) {
-    trackHeatmapObserver = initTrackHeatmapResize(canvas, () => {
-      if (!currentTrackX || !currentRefTrackX) return null;
-      const sColor = getComputedStyle(document.documentElement).getPropertyValue("--session").trim() || "#4fc3f7";
-      const rColor = getComputedStyle(document.documentElement).getPropertyValue("--ref").trim() || "#ff9800";
-      return buildLaps(sColor, rColor);
-    }, () => buildOpts({ respectZoomFlag: false, includeMapSAlignment: false }));
-  }
+function getMapState() {
+  return {
+    currentTrackX,
+    currentTrackZ,
+    currentRefTrackX,
+    currentRefTrackZ,
+    currentSessionBins,
+    currentRefBins,
+    currentLapARaw,
+    currentLapBRaw,
+    currentZoomRange
+  };
 }
 function getRenderState() {
   return {

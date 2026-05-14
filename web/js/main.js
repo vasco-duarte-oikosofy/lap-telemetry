@@ -11,7 +11,7 @@ import {
   fileToAsyncBuffer, readColumns, buildSegments, annotateSegments,
   interpAt, resample, computeDeltaT, computeKeepIndices, smoothLapTime,
   smoothDt, smoothGear, deriveSectorDistances, niceRange, buildPolylinePts,
-  computeTrackBounds, buildTrackTransform, buildTrackPolylinePts,
+  buildTrackTransform, buildTrackPolylinePts,
   computeMedianFrameDistanceDelta, computeNiceYTicks,
   PARTIAL_DIST_FRAC, PARTIAL_DUR_FRAC, ROLLING_DIST_M
 } from './pipeline.js';
@@ -25,14 +25,9 @@ import { renderCircuitMap, renderHeatmapSegments, renderMapLegend, updateZoomArc
          HEATMAP_RAMPS, HEATMAP_CHANNELS } from './circuitMap.js';
 
 // ── Track heatmap map (Phase 00.5 walking skeleton) ────────────────────────────
-import { renderWalkingSkeleton, initTrackHeatmapResize, fitToView, getLastTransform } from './trackHeatmapMap.js';
+import { fitToView } from './trackHeatmapMap.js';
+import { createTrackHeatmapController } from './trackHeatmapController.js';
 import { assertStrictlyMonotonic } from './sLookup.js';
-
-// ── Map hover (Phase 04) ──────────────────────────────────────────────────────
-import { createMapHover } from './mapHover.js';
-
-// ── Map interaction (Phase 02 zoom/pan) ──────────────────────────────────────
-import { createMapInteraction, setBaseTransform } from './mapInteraction.js';
 
 // ── Panel rendering ─────────────────────────────────────────────────────────────
 import { renderPanel, renderDtPanel } from './panels.js';
@@ -66,14 +61,13 @@ let currentTrackX      = null; // Resampled track coordinates (session)
 let currentTrackZ      = null;
 let currentRefTrackX   = null; // Resampled track coordinates (reference)
 let currentRefTrackZ   = null;
-let trackHeatmapObserver = null; // ResizeObserver for heatmap canvas
 let currentZoomRange   = null; // { start, end }
 let currentOverlapRange = null; // { start, end } — distance window covered by BOTH laps
 let trackTransform     = null; // Updated by renderCircuitMap
 let currentLapARaw     = null;   // Phase 01b: raw arrays for s alignment
 let currentLapBRaw     = null;   // Phase 01b: raw arrays for s alignment
-let mapInteraction     = null;   // Phase 02: zoom/pan interaction controller
-let mapHover           = null;   // Phase 04: hover readout controller
+const trackHeatmapController = createTrackHeatmapController(getMapState);
+function renderTrackHeatmapMap() { trackHeatmapController.render(); }
 function renderAll(sessionEntry, sessionSegIdx, refEntry, refSegIdx) {
   const sSeg = sessionEntry.segments[sessionSegIdx];
   const rSeg = refEntry.segments[refSegIdx];
@@ -338,136 +332,22 @@ function renderAll(sessionEntry, sessionSegIdx, refEntry, refSegIdx) {
 // Heatmap mode change re-renders the circuit map only (no panel re-render needed).
 // Extracted to cursor.js
 
-// ── Track heatmap rendering (Phase 00.5+) ───────────────────────────────────
-function renderTrackHeatmapMap() {
-  const canvas = document.getElementById('track-heatmap-canvas');
-  const svg    = document.getElementById('circuit-map-svg');
-  if (!canvas || !svg) return;
-
-  // Feature flag: only show when enabled
-  const anyMapFeature = features.mapWalkingSkeleton || features.mapTrackOutline || features.mapHeatmapSingleLap || features.mapSAlignment || features.mapDualRibbon || features.mapZoomPan || features.mapLegend || features.mapHover || features.mapLinkedHighlight;
-  if (!anyMapFeature) {
-    canvas.style.display = 'none';
-    svg.style.display    = '';
-    return;
-  }
-
-  // Hide old SVG, show canvas
-  canvas.style.display = '';
-  svg.style.display    = 'none';
-
-  // Phase 02: init interaction once, even before data loads
-  if (features.mapZoomPan && !mapInteraction) {
-    let indicator = document.getElementById('map-zoom-indicator');
-    if (!indicator) {
-      indicator = document.createElement('span');
-      indicator.id = 'map-zoom-indicator';
-      indicator.className = 'map-zoom-indicator';
-      indicator.textContent = '1.0×';
-      const panel = document.getElementById('circuit-map-panel');
-      if (panel) panel.appendChild(indicator);
-    }
-    mapInteraction = createMapInteraction(canvas, () => renderTrackHeatmapMap());
-  }
-
-  // Phase 04: init hover helper once
-  if (features.mapHover && !mapHover) {
-    mapHover = createMapHover(canvas, () => ({
-      lapA: {
-        x: currentTrackX,
-        z: currentTrackZ,
-        throttle: currentSessionBins?.throttle_norm,
-        brake: currentSessionBins?.brake_norm,
-        color: getComputedStyle(document.documentElement).getPropertyValue('--session').trim() || '#4fc3f7',
-        raw: currentLapARaw,
-      },
-      lapB: {
-        x: currentRefTrackX,
-        z: currentRefTrackZ,
-        throttle: currentRefBins?.throttle_norm,
-        brake: currentRefBins?.brake_norm,
-        color: getComputedStyle(document.documentElement).getPropertyValue('--ref').trim() || '#ff9800',
-        raw: currentLapBRaw,
-      },
-      transform: getLastTransform(),
-    }), () => renderTrackHeatmapMap());
-  }
-
-  // Need both laps' track data
-  if (!currentTrackX || !currentTrackZ || !currentRefTrackX || !currentRefTrackZ) return;
-
-  function buildLaps(sessionColor, refColor) {
-    return {
-      lapA: {
-        x: currentTrackX,
-        z: currentTrackZ,
-        throttle: currentSessionBins?.throttle_norm,
-        brake: currentSessionBins?.brake_norm,
-        color: sessionColor,
-        raw: currentLapARaw,
-      },
-      lapB: {
-        x: currentRefTrackX,
-        z: currentRefTrackZ,
-        throttle: currentRefBins?.throttle_norm,
-        brake: currentRefBins?.brake_norm,
-        color: refColor,
-        raw: currentLapBRaw,
-      },
-    };
-  }
-
-  function buildOpts({ respectZoomFlag = true, includeMapSAlignment = true } = {}) {
-    const s = (!respectZoomFlag || features.mapZoomPan) && mapInteraction
-      ? mapInteraction.getState()
-      : { scale: 1, tx: 0, ty: 0 };
-    return {
-      showOutline: !!features.mapTrackOutline,
-      showHeatmapSingleLap: !!features.mapHeatmapSingleLap,
-      showSAlignmentDebug: (includeMapSAlignment && !!features.mapSAlignment) || !!devFeatures.devMapSAlignmentDebug,
-      showDualRibbon: !!features.mapDualRibbon,
-      showLegend: !!features.mapLegend,
-      showHover: !!features.mapHover,
-      hoverState: mapHover ? mapHover.getState() : null,
-      showLinkedHighlight: !!features.mapLinkedHighlight,
-      visibleRange: currentZoomRange,
-      ribbonWidthPx: 8,
-      ribbonGapPx: 2,
-      userScale: s.scale,
-      userPanX: s.tx,
-      userPanY: s.ty,
-    };
-  }
-
-  const sessionColor = getComputedStyle(document.documentElement).getPropertyValue('--session').trim() || '#4fc3f7';
-  const refColor     = getComputedStyle(document.documentElement).getPropertyValue('--ref').trim() || '#ff9800';
-  const { lapA, lapB } = buildLaps(sessionColor, refColor);
-  renderWalkingSkeleton(canvas, lapA, lapB, buildOpts());
-
-  // Phase 04: rebuild spatial index after render so grid matches current data
-  if (mapHover) mapHover.rebuild();
-
-  // Phase 02: notify interaction layer of base transform for cursor-centered zoom
-  if (features.mapZoomPan) {
-    const boundsA = computeTrackBounds(Array.from(lapA.x), Array.from(lapA.z));
-    const boundsB = computeTrackBounds(Array.from(lapB.x), Array.from(lapB.z));
-    const rect = canvas.getBoundingClientRect();
-    const tf = fitToView(boundsA, boundsB, rect.width, rect.height, 15);
-    setBaseTransform(tf);
-  }
-
-  // Set up ResizeObserver on first render
-  if (!trackHeatmapObserver) {
-    trackHeatmapObserver = initTrackHeatmapResize(canvas, () => {
-      if (!currentTrackX || !currentRefTrackX) return null;
-      const sColor = getComputedStyle(document.documentElement).getPropertyValue('--session').trim() || '#4fc3f7';
-      const rColor = getComputedStyle(document.documentElement).getPropertyValue('--ref').trim() || '#ff9800';
-      return buildLaps(sColor, rColor);
-    }, () => buildOpts({ respectZoomFlag: false, includeMapSAlignment: false }));
-  }
-}
-
 // ── App initialization ────────────────────────────────────────────────────────
+
+
+function getMapState() {
+  return {
+    currentTrackX,
+    currentTrackZ,
+    currentRefTrackX,
+    currentRefTrackZ,
+    currentSessionBins,
+    currentRefBins,
+    currentLapARaw,
+    currentLapBRaw,
+    currentZoomRange,
+  };
+}
 
 // Helper to expose current render state to cursor.js
 function getRenderState() {
