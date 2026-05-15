@@ -96,7 +96,7 @@ def print_lap_summary(parquet_path, laps):
     print(f"{'='*80}\n")
 
 
-def export_lap(df, lap_number, output_dir):
+def export_lap(df, lap_number, output_dir, track_name=None):
     """Export a single lap as JSON for use with manual_outline_align.html."""
     lap_df = df[df['lap_number'] == lap_number].sort_values('lap_distance_m')
     
@@ -118,27 +118,15 @@ def export_lap(df, lap_number, output_dir):
     
     # Build output
     output = {
-        'track_name': 'Circuit de Barcelona',  # Will be overridden by actual track if available
+        'track_name': track_name or 'Unknown',
         'trajectories': [
             {
-                'name': f"{Path(df.attrs.get('source', 'session.parquet')).name} lap {lap_number}",
+                'name': f"session.parquet lap {lap_number}",
                 'points': points,
                 'lap_time_s': lap_time
             }
         ]
     }
-    
-    # Try to get track name from session metadata
-    try:
-        # Check if there's a sidecar JSON with metadata
-        sidecar_path = Path(str(df.attrs.get('source', '')).replace('.parquet', '.json'))
-        if sidecar_path.exists():
-            with open(sidecar_path) as f:
-                meta = json.load(f)
-                if 'track' in meta:
-                    output['track_name'] = meta['track']
-    except:
-        pass
     
     # Write output
     output_path = output_dir / f"lap{lap_number}.json"
@@ -149,7 +137,7 @@ def export_lap(df, lap_number, output_dir):
     return output_path
 
 
-def export_fastest_laps(df, laps, n, output_dir):
+def export_fastest_laps(df, laps, n, output_dir, track_name=None):
     """Export the N fastest complete laps."""
     complete_laps = [l for l in laps if l['is_complete']]
     
@@ -167,7 +155,7 @@ def export_fastest_laps(df, laps, n, output_dir):
     
     exported = []
     for lap in fastest:
-        path = export_lap(df, lap['lap_number'], output_dir)
+        path = export_lap(df, lap['lap_number'], output_dir, track_name)
         if path:
             exported.append((path, lap['lap_time_s']))
     
@@ -216,6 +204,18 @@ Examples:
     print(f"Loading {args.parquet_file.name}...")
     df = load_session(args.parquet_file)
     
+    # Try to get track name from sidecar JSON
+    track_name = None
+    sidecar_path = args.parquet_file.with_suffix('.json')
+    if sidecar_path.exists():
+        try:
+            with open(sidecar_path) as f:
+                meta = json.load(f)
+                track_name = meta.get('track', args.parquet_file.stem)
+                print(f"Track: {track_name}")
+        except Exception as e:
+            print(f"Warning: Could not read sidecar: {e}")
+    
     # Get lap summary
     laps = get_lap_summary(df)
     
@@ -239,13 +239,13 @@ Examples:
                 print(f"  ⚠️  Lap {lap_num} not found in session")
                 continue
             
-            export_lap(df, lap_num, args.output_dir)
+            export_lap(df, lap_num, args.output_dir, track_name)
     
     elif args.fastest:
         # Create output directory
         args.output_dir.mkdir(parents=True, exist_ok=True)
         
-        export_fastest_laps(df, laps, args.fastest, args.output_dir)
+        export_fastest_laps(df, laps, args.fastest, args.output_dir, track_name)
     
     elif args.export_all:
         # Create output directory
@@ -255,7 +255,7 @@ Examples:
         print(f"\nExporting all {len(complete_laps)} complete laps:\n")
         
         for lap in complete_laps:
-            export_lap(df, lap['lap_number'], args.output_dir)
+            export_lap(df, lap['lap_number'], args.output_dir, track_name)
     
     else:
         # Just show summary
