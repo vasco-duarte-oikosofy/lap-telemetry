@@ -56,6 +56,18 @@ import { compressors } from 'https://cdn.jsdelivr.net/npm/hyparquet-compressors@
 
 // ── Main render ───────────────────────────────────────────────────────────────
 
+/** Infer a track name from a session file name when sidecar is unavailable.
+ *  e.g. "session_20260512T140000Z_spa-francorchamps_lmu.parquet"
+ *       → "Spa Francorchamps" (capitalized dash-separated parts after timestamp, before _lmu)
+ */
+function inferTrackNameFromFileName(fileName) {
+  if (!fileName) return null;
+  const match = fileName.match(/_\d{8}T\d{6}Z_(.+)_lmu\./i);
+  if (!match) return null;
+  const slug = match[1]; // e.g. "spa-francorchamps" or "circuit-de-barcelona"
+  return slug.split('-').map(p => p.charAt(0).toUpperCase() + p.slice(1)).join(' ');
+}
+
 let currentSessionBins = null; // { col: Float64Array }
 let currentRefBins     = null;
 let currentMaxDist     = 0;
@@ -69,9 +81,11 @@ let currentOverlapRange = null; // { start, end } — distance window covered by
 let trackTransform     = null; // Updated by renderCircuitMap
 let currentLapARaw     = null;   // Phase 01b: raw arrays for s alignment
 let currentLapBRaw     = null;   // Phase 01b: raw arrays for s alignment
+let currentTrackName   = null;  // Session sidecar track name for outline lookup
 const trackHeatmapController = createTrackHeatmapController(getMapState);
 function renderTrackHeatmapMap() { trackHeatmapController.render(); }
 function renderAll(sessionEntry, sessionSegIdx, refEntry, refSegIdx) {
+  currentTrackName = sessionEntry?.sidecar?.track || inferTrackNameFromFileName(sessionEntry?.fileName) || null;
   const sSeg = sessionEntry.segments[sessionSegIdx];
   const rSeg = refEntry.segments[refSegIdx];
 
@@ -320,7 +334,7 @@ function renderAll(sessionEntry, sessionSegIdx, refEntry, refSegIdx) {
   renderApexMetricsPanel(sessionEntry, sessionSegIdx);
 
   // Render circuit map (F1)
-  trackTransform = renderCircuitMap(currentTrackX, currentTrackZ, trackTransform, currentZoomRange, currentMaxDist, currentSessionBins);
+  trackTransform = renderCircuitMap(currentTrackX, currentTrackZ, trackTransform, currentZoomRange, currentMaxDist, currentSessionBins, currentTrackName);
 
   // Render track heatmap (Phase 00.5 walking skeleton)
   renderTrackHeatmapMap();
@@ -351,6 +365,7 @@ function getMapState() {
     currentLapARaw,
     currentLapBRaw,
     currentZoomRange,
+    currentTrackName,
   };
 }
 

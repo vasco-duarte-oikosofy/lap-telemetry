@@ -1,11 +1,4 @@
-import { SPA_STATIC_OUTLINE } from './staticSpaOutlineData.js';
-
 const REQUIRED_ARRAYS = ['left_boundary', 'right_boundary', 'centerline'];
-
-export function getSpaStaticOutline() {
-  validateStaticOutline(SPA_STATIC_OUTLINE);
-  return SPA_STATIC_OUTLINE;
-}
 
 export function validateStaticOutline(outline) {
   if (!outline || outline.schema_version !== 1) {
@@ -30,7 +23,7 @@ export function renderStaticTrackOutlineSvg(outline, trackTransform) {
   const left = renderBoundary(outline.left_boundary, trackTransform, 'left_boundary', 'static-track-boundary');
   const right = renderBoundary(outline.right_boundary, trackTransform, 'right_boundary', 'static-track-boundary');
   const center = renderBoundary(outline.centerline, trackTransform, 'centerline', 'static-track-centerline');
-  return `<g data-static-track-outline="spa-francorchamps" class="static-track-outline">${left}${right}${center}</g>`;
+  return `<g data-static-track-outline="${outline.sim_track_name || 'unknown'}" class="static-track-outline">${left}${right}${center}</g>`;
 }
 
 function renderBoundary(points, trackTransform, part, className) {
@@ -40,10 +33,10 @@ function renderBoundary(points, trackTransform, part, className) {
 }
 
 /**
- * Draw the static Spa outline on a canvas 2D context.
+ * Draw a static track outline on a canvas 2D context.
  * Draws boundaries and dashed centerline as faint visual context.
  * @param {CanvasRenderingContext2D} ctx
- * @param {Object} outline - Schema v1 static outline from getSpaStaticOutline()
+ * @param {Object} outline - Schema v1 static outline from findOutlineByTrackName()
  * @param {Object} transform - World-to-screen transform with toScreenX/toScreenY
  */
 export function drawStaticTrackOutline(ctx, outline, transform) {

@@ -40,7 +40,7 @@ export function createTrackHeatmapController(getMapState) {
   }
 
   function buildOpts({ respectZoomFlag = true, includeMapSAlignment = true } = {}) {
-    const { currentZoomRange } = getMapState();
+    const { currentZoomRange, currentTrackName } = getMapState();
     const s = (!respectZoomFlag || features.mapZoomPan) && mapInteraction
       ? mapInteraction.getState()
       : { scale: 1, tx: 0, ty: 0 };
@@ -60,6 +60,7 @@ export function createTrackHeatmapController(getMapState) {
       userPanX: s.tx,
       userPanY: s.ty,
       showStaticOutline: true,
+      trackName: currentTrackName,
       cursorBinIdx: _currentCursorBinIdx,
     };
   }

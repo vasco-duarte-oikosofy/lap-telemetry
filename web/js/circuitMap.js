@@ -5,7 +5,7 @@
 import { getCurrentMapMode } from './appState.js';
 import { computeTrackBounds, buildTrackTransform, buildTrackPolylinePts } from './pipeline.js';
 import { SVG_W, PAD } from './constants.js';
-import { getSpaStaticOutline, renderStaticTrackOutlineSvg } from './staticTrackOutline.js';
+import { findOutlineByTrackName, renderStaticTrackOutlineSvg } from './trackOutlineManifest.js';
 
 // SVG layout constants
 const MAP_SIZE = 250;
@@ -32,7 +32,7 @@ export const HEATMAP_CHANNELS = { speed: 'speed_kph', brake: 'brake_norm', throt
  * @param {Object} currentSessionBins - Binned session data for heatmap
  * @returns {Object|null} - Updated trackTransform or null if no data
  */
-export function renderCircuitMap(currentTrackX, currentTrackZ, trackTransform, currentZoomRange, currentMaxDist, currentSessionBins) {
+export function renderCircuitMap(currentTrackX, currentTrackZ, trackTransform, currentZoomRange, currentMaxDist, currentSessionBins, trackName) {
   if (!currentTrackX || !currentTrackZ) return null;
 
   const trackOutline = document.getElementById('track-outline');
@@ -45,7 +45,8 @@ export function renderCircuitMap(currentTrackX, currentTrackZ, trackTransform, c
   trackTransform = buildTrackTransform(bounds);
   const pts = buildTrackPolylinePts(Array.from(currentTrackX), Array.from(currentTrackZ), trackTransform.toMapX, trackTransform.toMapZ);
   if (staticOutlineGroup) {
-    staticOutlineGroup.innerHTML = renderStaticTrackOutlineSvg(getSpaStaticOutline(), trackTransform);
+    const outline = findOutlineByTrackName(trackName);
+    if (outline) staticOutlineGroup.innerHTML = renderStaticTrackOutlineSvg(outline, trackTransform);
   }
 
   if (getCurrentMapMode() === 'outline') {
