@@ -1,0 +1,14 @@
+{
+  "schema_version": "2",
+  "recorder_version": "0.1.0a1",
+  "started_utc": "2026-05-15T16:03:02Z",
+  "ended_utc": null,
+  "sim": "lmu",
+  "track": "Bahrain International Circuit",
+  "vehicle_name": "DKR Engineering #4:ELMS25",
+  "setup_file_guess": null,
+  "sample_rate_hz": 50.0,
+  "row_count": 88401,
+  "lap_count": 15,
+  "in_progress": true
+}
