@@ -105,11 +105,27 @@ def compute_boundaries(centerline, width_per_side=5.0):
 
 
 def extract_laps_from_parquet(parquet_path, min_lap=1):
-    """Extract laps from a parquet file, skipping early laps."""
+    """Extract laps from a parquet file, skipping early laps and incomplete laps."""
     df = pd.read_parquet(parquet_path)
     
     if 'lap_number' not in df.columns:
         return []
+    
+    # First pass: find median lap length to detect incomplete laps
+    lap_lengths = {}
+    for lap_num in df['lap_number'].unique():
+        if lap_num < min_lap:
+            continue
+        lap_df = df[df['lap_number'] == lap_num]
+        if len(lap_df) > 10:
+            lap_lengths[lap_num] = len(lap_df)
+    
+    if not lap_lengths:
+        return []
+    
+    # Median lap length (robust to outliers)
+    median_len = sorted(lap_lengths.values())[len(lap_lengths) // 2]
+    min_valid_len = median_len * 0.7  # Laps must be at least 70% of median
     
     laps = []
     for lap_num in sorted(df['lap_number'].unique()):
@@ -117,6 +133,11 @@ def extract_laps_from_parquet(parquet_path, min_lap=1):
             continue
         
         lap_df = df[df['lap_number'] == lap_num].sort_values('lap_distance_m')
+        
+        # Skip incomplete laps
+        if len(lap_df) < min_valid_len:
+            print(f"    Skipping lap {lap_num}: only {len(lap_df)} points (median: {median_len:.0f})")
+            continue
         
         # Extract x, y positions (use pos_x_m and pos_z_m for LMU)
         points = []
