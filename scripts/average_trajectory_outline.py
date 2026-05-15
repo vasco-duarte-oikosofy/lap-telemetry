@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Generate a track outline using MEDIAN of fastest complete laps.
+Generate a track outline using MEDIAN of provided laps.
 
 Why MEDIAN instead of MEAN?
 - Different drivers take different racing lines through corners
@@ -8,16 +8,23 @@ Why MEDIAN instead of MEAN?
 - Median picks the middle line, preserving actual track geometry
 
 Strategy:
-1. Load multiple session parquets
-2. Extract complete laps (lap_time_s > 60s)
-3. Sort by lap time, pick fastest 5
-4. Resample each lap to 500 points
-5. Compute point-wise MEDIAN across all laps
-6. Compute left/right boundaries at ±5m
-7. Output schema v1 outline JSON
+1. Load provided lap JSON files OR session parquet files
+2. Resample each lap to 500 points
+3. Compute point-wise MEDIAN across all laps
+4. Compute left/right boundaries at ±5m
+5. Output schema v1 outline JSON
 
 Usage:
-    python3 scripts/average_trajectory_outline.py <output.json>
+    # From exported lap JSONs (recommended)
+    python3 scripts/average_trajectory_outline.py data/track-outlines/bahrain_outline.json \
+      --laps data/track-outlines/alignment-artifacts/exported-laps/lap*.json
+
+    # From session parquets (auto-selects fastest 5)
+    python3 scripts/average_trajectory_outline.py data/track-outlines/circuit-de-barcelona.json \
+      --sessions sessions/session_*.parquet
+
+    # Default (Barcelona sessions for backwards compatibility)
+    python3 scripts/average_trajectory_outline.py data/track-outlines/circuit-de-barcelona.json
 """
 
 import json
@@ -82,7 +89,33 @@ def compute_boundaries(centerline, width_per_side=5.0):
     return left, right
 
 
+def load_lap_from_json(json_path):
+    """Load a single lap from an exported JSON file."""
+    with open(json_path) as f:
+        data = json.load(f)
+    
+    if 'trajectories' not in data or len(data['trajectories']) == 0:
+        print(f"  ⚠️  {json_path.name}: No trajectories found")
+        return None
+    
+    traj = data['trajectories'][0]
+    points = traj.get('points', [])
+    
+    if len(points) < 100:
+        print(f"  ⚠️  {json_path.name}: Only {len(points)} points")
+        return None
+    
+    return {
+        'source': str(json_path),
+        'lap_name': traj.get('name', json_path.stem),
+        'lap_time_s': traj.get('lap_time_s'),
+        'points': points,
+        'track_name': data.get('track_name', 'Unknown')
+    }
+
+
 def extract_complete_laps_from_parquet(parquet_path, min_lap=1, min_lap_time_s=60.0):
+    """Extract complete laps from a parquet session file."""
     df = pd.read_parquet(parquet_path)
     
     if 'lap_number' not in df.columns or 'lap_time_s' not in df.columns:
@@ -115,7 +148,7 @@ def extract_complete_laps_from_parquet(parquet_path, min_lap=1, min_lap_time_s=6
             continue
         
         laps.append({
-            'session': str(parquet_path),
+            'source': str(parquet_path),
             'lap_number': int(lap_num),
             'lap_time_s': lap_time,
             'points': points
@@ -126,52 +159,113 @@ def extract_complete_laps_from_parquet(parquet_path, min_lap=1, min_lap_time_s=6
 
 def main():
     if len(sys.argv) < 2:
-        print("Usage: python3 scripts/average_trajectory_outline.py <output.json>")
+        print("Usage: python3 scripts/average_trajectory_outline.py <output.json> [--laps lap*.json ...] [--sessions session*.parquet ...]")
+        print()
+        print("Options:")
+        print("  --laps <files>     Load pre-exported lap JSON files (recommended)")
+        print("  --sessions <files> Load session parquet files (auto-selects fastest 5)")
+        print()
+        print("Examples:")
+        print("  # From exported laps")
+        print("  python3 scripts/average_trajectory_outline.py data/track-outlines/bahrain.json \\")
+        print("    --laps data/track-outlines/alignment-artifacts/exported-laps/lap*.json")
+        print()
+        print("  # From sessions (auto-select fastest 5)")
+        print("  python3 scripts/average_trajectory_outline.py data/track-outlines/circuit-de-barcelona.json \\")
+        print("    --sessions sessions/session_*.parquet")
         sys.exit(1)
     
     output_path = Path(sys.argv[1])
     
-    default_sessions = [
-        'sessions/session_20260510T124244Z_circuit-de-barcelona_lmu.parquet',
-        'sessions/session_20260511T151203Z_circuit-de-barcelona_lmu.parquet',
-        'sessions/session_20260514T141305Z_circuit-de-barcelona_lmu.parquet',
-    ]
+    # Parse arguments
+    lap_json_files = []
+    session_parquet_files = []
     
-    sessions_to_use = default_sessions
-    if '--sessions' in sys.argv:
-        idx = sys.argv.index('--sessions')
-        sessions_to_use = sys.argv[idx+1:]
+    i = 2
+    while i < len(sys.argv):
+        arg = sys.argv[i]
+        if arg == '--laps':
+            i += 1
+            while i < len(sys.argv) and not sys.argv[i].startswith('--'):
+                lap_json_files.extend(Path(p) for p in sys.argv[i].split())
+                i += 1
+        elif arg == '--sessions':
+            i += 1
+            while i < len(sys.argv) and not sys.argv[i].startswith('--'):
+                session_parquet_files.extend(Path(p) for p in sys.argv[i].split())
+                i += 1
+        else:
+            i += 1
     
-    print(f"Loading {len(sessions_to_use)} sessions...")
-    
+    # Load laps
     all_laps = []
-    for session_path in sessions_to_use:
-        path = Path(session_path)
-        if not path.exists():
-            print(f"  Warning: {path} not found, skipping")
-            continue
-        
-        laps = extract_complete_laps_from_parquet(path, min_lap=1, min_lap_time_s=60.0)
-        print(f"  {path.name}: {len(laps)} complete laps")
-        for lap in laps:
-            print(f"    Lap {lap['lap_number']}: {lap['lap_time_s']:.2f}s")
-        all_laps.extend(laps)
     
-    print(f"\nTotal: {len(all_laps)} complete laps")
+    # Load from JSON files first (explicit selection)
+    if lap_json_files:
+        print(f"Loading {len(lap_json_files)} lap JSON files...")
+        for json_path in lap_json_files:
+            if not json_path.exists():
+                print(f"  ⚠️  {json_path} not found, skipping")
+                continue
+            
+            lap = load_lap_from_json(json_path)
+            if lap:
+                all_laps.append(lap)
+                print(f"  ✅ {json_path.name}: {len(lap['points'])} points" + 
+                      (f" ({lap['lap_time_s']:.2f}s)" if lap['lap_time_s'] else ""))
+    
+    # Load from parquet sessions (auto-select fastest 5)
+    if session_parquet_files:
+        print(f"\nLoading {len(session_parquet_files)} session parquet files...")
+        for session_path in session_parquet_files:
+            if not session_path.exists():
+                print(f"  ⚠️  {session_path} not found, skipping")
+                continue
+            
+            laps = extract_complete_laps_from_parquet(session_path)
+            print(f"  {session_path.name}: {len(laps)} complete laps")
+            all_laps.extend(laps)
+    
+    # Fallback to default Barcelona sessions (backwards compatibility)
+    if not all_laps and not lap_json_files and not session_parquet_files:
+        print("No --laps or --sessions specified, using default Barcelona sessions...")
+        session_parquet_files = [
+            Path('sessions/session_20260510T124244Z_circuit-de-barcelona_lmu.parquet'),
+            Path('sessions/session_20260511T151203Z_circuit-de-barcelona_lmu.parquet'),
+            Path('sessions/session_20260514T141305Z_circuit-de-barcelona_lmu.parquet'),
+        ]
+        
+        for session_path in session_parquet_files:
+            if session_path.exists():
+                laps = extract_complete_laps_from_parquet(session_path)
+                print(f"  {session_path.name}: {len(laps)} complete laps")
+                all_laps.extend(laps)
     
     if len(all_laps) == 0:
-        print("Error: No complete laps found")
+        print("\n❌ Error: No laps loaded")
+        print("Use --laps <json files> or --sessions <parquet files>")
         sys.exit(1)
     
-    # Sort by lap time and pick fastest 5
-    all_laps_sorted = sorted(all_laps, key=lambda x: x['lap_time_s'])
-    fastest_laps = all_laps_sorted[:5]
+    print(f"\nTotal: {len(all_laps)} laps")
     
-    print(f"\nSelecting fastest {len(fastest_laps)} laps:")
-    for i, lap in enumerate(fastest_laps):
-        print(f"  {i+1}. {Path(lap['session']).name} lap {lap['lap_number']}: {lap['lap_time_s']:.2f}s")
+    # If loading from parquets, select fastest 5
+    if session_parquet_files and not lap_json_files:
+        all_laps_sorted = sorted(all_laps, key=lambda x: x.get('lap_time_s', 999))
+        fastest_laps = all_laps_sorted[:5]
+        
+        print(f"\nSelecting fastest {len(fastest_laps)} laps:")
+        for i, lap in enumerate(fastest_laps, 1):
+            source = Path(lap['source']).name
+            if 'lap_number' in lap:
+                print(f"  {i}. {source} lap {lap['lap_number']}: {lap['lap_time_s']:.2f}s")
+            else:
+                print(f"  {i}. {lap.get('lap_name', source)}: {lap.get('lap_time_s', 'N/A')}")
+    else:
+        # Use all provided laps (from JSON files)
+        fastest_laps = all_laps
+        print(f"\nUsing all {len(fastest_laps)} provided laps")
     
-    # Resample all selected laps
+    # Resample all laps to 500 points
     TARGET_POINTS = 500
     resampled_laps = []
     for lap in fastest_laps:
@@ -180,10 +274,10 @@ def main():
             resampled_laps.append(resampled)
     
     if len(resampled_laps) < 2:
-        print("Error: Need at least 2 valid laps")
+        print("❌ Error: Need at least 2 valid laps to average")
         sys.exit(1)
     
-    # Compute MEDIAN (not mean!) - robust to different racing lines
+    # Compute MEDIAN centerline
     print(f"\nComputing MEDIAN centerline from {len(resampled_laps)} laps...")
     centerline = []
     for i in range(TARGET_POINTS):
@@ -196,41 +290,36 @@ def main():
     # Compute boundaries
     left, right = compute_boundaries(centerline, width_per_side=5.0)
     
+    # Determine track name (use most common from laps)
+    track_names = [lap.get('track_name', 'Unknown') for lap in fastest_laps]
+    track_name = max(set(track_names), key=track_names.count) if track_names else 'Unknown'
+    
     # Build outline
     outline = {
         "schema_version": 1,
-        "source": f"Median trajectory from {len(fastest_laps)} fastest complete laps",
-        "track_name": "Circuit de Barcelona-Catalunya",
-        "sim_track_name": "Circuit de Barcelona",
+        "source": f"Median trajectory from {len(fastest_laps)} laps",
+        "track_name": track_name,
+        "sim_track_name": track_name,
         "layout_name": "default",
         "coordinate_system": "sim_xy",
         "units": "sim_units",
         "track_name_mapping": {
-            "canonical_sim_track_name": "circuit-de-barcelona",
-            "canonical_lmu_track_name": "Circuit de Barcelona-Catalunya",
-            "accepted_sim_track_names": ["circuit-de-barcelona"],
-            "accepted_lmu_track_names": ["Circuit de Barcelona-Catalunya"],
-            "notes": "Generated using MEDIAN of fastest laps (robust to different racing lines)."
+            "canonical_sim_track_name": track_name.lower().replace(" ", "-"),
+            "canonical_lmu_track_name": track_name,
+            "accepted_sim_track_names": [track_name.lower().replace(" ", "-")],
+            "accepted_lmu_track_names": [track_name],
+            "notes": "Generated from user-provided laps."
         },
         "alignment": {
             "method": "median_trajectory_average",
             "width_per_side": 5.0,
             "lap_count": len(fastest_laps),
-            "session_count": len(sessions_to_use),
-            "sessions": [str(Path(s).name) for s in sessions_to_use],
-            "fastest_laps": [
-                {
-                    "session": str(Path(lap['session']).name),
-                    "lap_number": int(lap['lap_number']),
-                    "lap_time_s": round(float(lap['lap_time_s']), 2)
-                }
-                for lap in fastest_laps
-            ],
-            "notes": "Uses point-wise MEDIAN instead of mean - robust to different racing lines through corners."
+            "sources": [str(Path(lap.get('source', 'unknown')).name) for lap in fastest_laps],
+            "notes": "Uses point-wise MEDIAN instead of mean - robust to different racing lines."
         },
         "visual_qa": {
             "status": "pending",
-            "notes": "Median-based outline preserves corner geometry better than mean."
+            "notes": "Generated from provided laps - verify in manual_outline_align.html"
         },
         "caveats": [
             "Width is constant ±5m estimate.",
@@ -248,7 +337,8 @@ def main():
     
     xs = [p['x'] for p in centerline]
     ys = [p['y'] for p in centerline]
-    print(f"\nWrote {output_path}")
+    print(f"\n✅ Wrote {output_path}")
+    print(f"  Track: {track_name}")
     print(f"  Centerline: {len(centerline)} points")
     print(f"  Bounds: X {min(xs):.0f}..{max(xs):.0f} (span: {max(xs)-min(xs):.0f}), Y {min(ys):.0f}..{max(ys):.0f} (span: {max(ys)-min(ys):.0f})")
 
