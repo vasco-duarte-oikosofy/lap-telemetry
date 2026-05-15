@@ -5,6 +5,7 @@
 import { getCurrentMapMode } from './appState.js';
 import { computeTrackBounds, buildTrackTransform, buildTrackPolylinePts } from './pipeline.js';
 import { SVG_W, PAD } from './constants.js';
+import { getSpaStaticOutline, renderStaticTrackOutlineSvg } from './staticTrackOutline.js';
 
 // SVG layout constants
 const MAP_SIZE = 250;
@@ -35,6 +36,7 @@ export function renderCircuitMap(currentTrackX, currentTrackZ, trackTransform, c
   if (!currentTrackX || !currentTrackZ) return null;
 
   const trackOutline = document.getElementById('track-outline');
+  const staticOutlineGroup = document.getElementById('static-track-outline');
   const segGroup = document.getElementById('track-segments');
   const mapPanel = document.getElementById('circuit-map-panel');
   if (!trackOutline) return null;
@@ -42,6 +44,9 @@ export function renderCircuitMap(currentTrackX, currentTrackZ, trackTransform, c
   const bounds = computeTrackBounds(Array.from(currentTrackX), Array.from(currentTrackZ));
   trackTransform = buildTrackTransform(bounds);
   const pts = buildTrackPolylinePts(Array.from(currentTrackX), Array.from(currentTrackZ), trackTransform.toMapX, trackTransform.toMapZ);
+  if (staticOutlineGroup) {
+    staticOutlineGroup.innerHTML = renderStaticTrackOutlineSvg(getSpaStaticOutline(), trackTransform);
+  }
 
   if (getCurrentMapMode() === 'outline') {
     trackOutline.setAttribute('points', pts);

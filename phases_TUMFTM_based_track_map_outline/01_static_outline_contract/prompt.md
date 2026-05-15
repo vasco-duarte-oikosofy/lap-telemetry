@@ -2,37 +2,6 @@
 
 > **Development convention:** work on `main`. This phase is a production/static-data contract phase, not runtime rendering.
 
-## Mandatory pre-implementation user review gate
-
-Before making any code or data changes, STOP and ask the user to review the intended Phase 01 artifact plan.
-
-Present the user with:
-
-1. Proposed production JSON path:
-   - `data/track-outlines/spa-francorchamps.json`
-2. Proposed schema version:
-   - `schema_version: 1`
-3. Proposed source input:
-   - accepted Phase 00 aligned export, or a user-provided equivalent accepted JSON
-4. Proposed top-level metadata fields:
-   - `schema_version`
-   - `source`
-   - `track_name`
-   - `sim_track_name`
-   - `layout_name`
-   - `coordinate_system`
-   - `units`
-   - `alignment`
-   - `visual_qa`
-   - `centerline`
-   - `left_boundary`
-   - `right_boundary`
-5. Explicit caveat to include in metadata/docs:
-   - TUMFTM widths are satellite/image-derived approximations, not official FIA geometry and not authoritative simulator track limits.
-6. Confirm no runtime compare-UI integration will be implemented in this phase.
-
-Wait for explicit user approval before implementation. If the user changes the desired schema/path/metadata, update the Phase 01 plan accordingly before coding.
-
 ## Goal
 
 Promote the accepted Spa/TUMFTM manual-alignment spike output into a reviewed production static outline JSON contract.
@@ -101,7 +70,7 @@ Suggested shape:
   },
   "visual_qa": {
     "status": "accepted",
-    "notes": "Phase 00 user review: alignment looked good and proved the approach."
+    "notes": "Phase 00 visual validation: alignment looked good and proved the approach."
   },
   "caveats": [
     "TUMFTM widths are satellite/image-derived approximations, not official FIA geometry.",
@@ -113,7 +82,7 @@ Suggested shape:
 }
 ```
 
-The actual coordinate arrays should come from the user-reviewed accepted Phase 00 export.
+The actual coordinate arrays should come from the accepted Phase 00 export.
 
 ## Testing expectation
 
@@ -131,8 +100,7 @@ Minimum checks:
 
 ## Acceptance criteria
 
-- User approved the intended schema/path/metadata before implementation.
-- `data/track-outlines/spa-francorchamps.json` exists and is reviewed static data, not a spike schema dump.
+- `data/track-outlines/spa-francorchamps.json` exists and is production static data, not a spike schema dump.
 - The artifact uses `schema_version: 1`.
 - The artifact preserves transformed simulator-coordinate centerline/left/right arrays.
 - Metadata includes source, alignment parameters, coordinate-system notes, and visual QA notes.

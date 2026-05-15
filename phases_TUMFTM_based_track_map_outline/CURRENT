@@ -1,22 +1,17 @@
 # CURRENT — TUMFTM-Based Track Map Outline
 
-Current phase: `00_quick_and_dirty_alignment_try`
+Current phase: none — `02_runtime_static_outline_rendering` is complete.
 
-Objective:
+Next planned phase: `03_offline_conversion_workflow`
 
-Build the smallest local/offline proof that TUMFTM track geometry can be manually aligned to our simulator trajectory coordinates and produce a visibly better Spa outline than the learned-boundary pipeline.
+Phase 02 completed state:
 
-Rules for the current phase:
+- The compare UI renders the explicit Spa static outline from the schema v1 artifact behind existing trajectory/heatmap map layers.
+- Runtime data is bundled via `web/js/staticSpaOutlineData.js`, generated from and tested against `data/track-outlines/spa-francorchamps.json`.
+- No manifest, alias lookup, fuzzy matching, automatic track selection, editor, runtime TUMFTM parsing, runtime alignment, or runtime width scaling was added.
 
-- This is a spike/proof, not production app integration.
-- Prefer a standalone HTML/canvas tool with local file inputs.
-- Do not add automatic track discovery, manifests, aliases, or compare-page integration.
-- Do not claim official track-limit accuracy.
-- Stop after visual evaluation and documentation.
+Before starting Phase 03:
 
-Expected output:
-
-- A quick alignment tool.
-- Minimal data conversion/export helpers if needed.
-- One exported Spa aligned-outline JSON artifact if the manual alignment is successful.
-- Phase 00 learnings and handoff documenting whether this approach is worth continuing.
+- Create/read the Phase 03 prompt for offline conversion workflow hardening.
+- Keep Phase 03 outside normal app runtime.
+- Do not start manifest or alias work until Phase 04.
