@@ -17,6 +17,7 @@ const fs = require('fs/promises');
 const path = require('path');
 
 const REQUIRED_COLUMNS = ['raw_lap_distance_m', 'path_lateral_m', 'track_edge_m'];
+const MIN_SAMPLES = 3;
 const COLUMN_LIST = ['lap_number', ...REQUIRED_COLUMNS];
 
 function schemaNames(metadata) {
@@ -35,6 +36,19 @@ function isValidRow(row) {
   );
 }
 
+function classifyBin(bin) {
+  if (bin.left_sample_count === 0 && bin.right_sample_count === 0) {
+    return { status: 'missing', confidence: 0 };
+  }
+  if (bin.left_sample_count === 0 || bin.right_sample_count === 0) {
+    return { status: 'one-sided', confidence: 0.5 };
+  }
+  if (bin.left_sample_count < MIN_SAMPLES || bin.right_sample_count < MIN_SAMPLES) {
+    return { status: 'low-sample', confidence: 0.75 };
+  }
+  return { status: 'complete', confidence: 1 };
+}
+
 function buildProfileFromRows(rows, binSizeM) {
   const bins = new Map();
   let skipped = 0;
@@ -50,16 +64,37 @@ function buildProfileFromRows(rows, binSizeM) {
     }
     const bin = bins.get(key);
     if (row.path_lateral_m < 0) {
-      bin.left_width_m = Math.max(bin.left_width_m, row.track_edge_m);
+      bin.left_width_m = Math.max(bin.left_width_m, Math.abs(row.track_edge_m));
       bin.left_sample_count++;
     } else {
-      bin.right_width_m = Math.max(bin.right_width_m, row.track_edge_m);
+      bin.right_width_m = Math.max(bin.right_width_m, Math.abs(row.track_edge_m));
       bin.right_sample_count++;
     }
   }
 
+  // Fill gap bins between min and max s_m so missing bins are explicit
+  if (bins.size > 0) {
+    const keys = [...bins.keys()].sort((a, b) => a - b);
+    const minKey = keys[0];
+    const maxKey = keys[keys.length - 1];
+    for (let s = minKey; s <= maxKey; s += binSizeM) {
+      if (!bins.has(s)) {
+        bins.set(s, { s_m: s, left_width_m: 0, right_width_m: 0, left_sample_count: 0, right_sample_count: 0 });
+      }
+    }
+  }
+
+  // Add confidence and status to each bin
+  const counts = { missing_bins: 0, one_sided_bins: 0, low_sample_bins: 0, complete_bins: 0 };
   const samples = [...bins.values()].sort((a, b) => a.s_m - b.s_m);
-  return { samples, skipped };
+  for (const bin of samples) {
+    const { status, confidence } = classifyBin(bin);
+    bin.status = status;
+    bin.confidence = confidence;
+    counts[status.replace('-', '_') + '_bins']++;
+  }
+
+  return { samples, skipped, ...counts };
 }
 
 async function readSessionRows(sessionPath) {
@@ -106,7 +141,7 @@ async function exportWidthProfile({ sessionPaths, trackId, layoutId, outPath, bi
     allRows = allRows.concat(rows);
   }
 
-  const { samples, skipped } = buildProfileFromRows(allRows, binSizeM);
+  const { samples, skipped, missing_bins, one_sided_bins, low_sample_bins, complete_bins } = buildProfileFromRows(allRows, binSizeM);
 
   const profile = {
     track_id: trackId,
@@ -116,6 +151,10 @@ async function exportWidthProfile({ sessionPaths, trackId, layoutId, outPath, bi
     summary: {
       input_rows: allRows.length,
       skipped_rows: skipped,
+      missing_bins,
+      one_sided_bins,
+      low_sample_bins,
+      complete_bins,
     },
   };
 
@@ -161,7 +200,9 @@ function parseArgs(argv) {
 async function main(argv) {
   const opts = parseArgs(argv);
   const profile = await exportWidthProfile(opts);
-  console.log(`wrote ${opts.outPath} (${profile.samples.length} bins, ${profile.summary.skipped_rows} skipped)`);
+  const s = profile.summary;
+  console.log(`wrote ${opts.outPath} (${profile.samples.length} bins, ${s.skipped_rows} skipped)`);
+  console.log(`  complete=${s.complete_bins} one-sided=${s.one_sided_bins} low-sample=${s.low_sample_bins} missing=${s.missing_bins}`);
 }
 
 module.exports = { exportWidthProfile, buildProfileFromRows, readSessionRows };

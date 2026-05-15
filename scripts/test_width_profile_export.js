@@ -188,8 +188,12 @@ async function runTests() {
     const bin3 = profile.samples.find(s => s.s_m === 3);
     assert(bin0 && bin0.left_width_m === 6.0 && bin0.left_sample_count === 1, 'valid row at s=0 bins correctly');
     assert(bin3 && bin3.left_width_m === 0.0 && bin3.left_sample_count === 1, 'valid row at s=3 bins correctly (edge=0)');
-    assert(!profile.samples.find(s => s.s_m === 1), 'skipped row at s=1 produces no bin');
-    assert(!profile.samples.find(s => s.s_m === 2), 'skipped row at s=2 produces no bin');
+    assert(profile.samples.find(s => s.s_m === 1), 'gap at s=1 filled as missing bin');
+    assert(profile.samples.find(s => s.s_m === 2), 'gap at s=2 filled as missing bin');
+    const gap1 = profile.samples.find(s => s.s_m === 1);
+    const gap2 = profile.samples.find(s => s.s_m === 2);
+    assert(gap1.status === 'missing', 'gap bin at s=1 has status=missing');
+    assert(gap2.status === 'missing', 'gap bin at s=2 has status=missing');
   }
 
   // ── Test 4: Overwrite refusal ──
