@@ -105,10 +105,50 @@ Smoothing the boundary polyline positions (x_m, z_m) with a moving average or Ch
 - Fixing one-sided/zero-width overlap (that's a data coverage issue, not a smoothing issue).
 - Smoothing the center path itself (though that could be a future sub-phase).
 
+**Visual check (required before committing):**
+
+After all tests pass, you **must** do a side-by-side visual check using the profile viewer:
+
+1. Regenerate boundaries **without** boundary smoothing (current baseline):
+   ```bash
+   node scripts/compute_boundaries.js \
+     --path data/circuit-de-spa-francorchamps-endurance/default/path.json \
+     --profile data/circuit-de-spa-francorchamps-endurance/default/width-profile.json \
+     --out data/circuit-de-spa-francorchamps-endurance/default/boundaries-raw.html.json \
+     --smooth --overwrite
+   node scripts/profile_viewer.js \
+     data/circuit-de-spa-francorchamps-endurance/default/width-profile.json \
+     --path data/circuit-de-spa-francorchamps-endurance/default/path.json \
+     --boundaries data/circuit-de-spa-francorchamps-endurance/default/boundaries-raw.html.json \
+     data/circuit-de-spa-francorchamps-endurance/default/spa-view-raw.html
+   ```
+
+2. Regenerate boundaries **with** boundary smoothing:
+   ```bash
+   node scripts/compute_boundaries.js \
+     --path data/circuit-de-spa-francorchamps-endurance/default/path.json \
+     --profile data/circuit-de-spa-francorchamps-endurance/default/width-profile.json \
+     --out data/circuit-de-spa-francorchamps-endurance/default/boundaries.json \
+     --smooth --smooth-boundary 5 --overwrite
+   node scripts/profile_viewer.js \
+     data/circuit-de-spa-francorchamps-endurance/default/width-profile.json \
+     --path data/circuit-de-spa-francorchamps-endurance/default/path.json \
+     --boundaries data/circuit-de-spa-francorchamps-endurance/default/boundaries.json \
+     data/circuit-de-spa-francorchamps-endurance/default/spa-view.html
+   ```
+
+3. Open both HTML files in a browser. **Ask the user to visually confirm** that:
+   - The smoothed boundaries (spa-view.html) are visibly smoother with less oscillation than the raw boundaries (spa-view-raw.html).
+   - The smoothed boundaries still follow the track shape correctly (no shrinking on curves, no drift on straights).
+   - Zero-width segments (where one boundary collapses onto the center line) are not displaced by smoothing.
+
+4. Only proceed to commit after the user confirms the visual check passes.
+
 **When done:**
 
 - `npm test` passes.
 - `npm run build` succeeds and `dist/compare.html` is current.
+- Visual check has been confirmed by the user.
 - `phases_track_outline/09.2-boundary-smoothing/learnings.md` exists.
 - `phases_track_outline/09.2-boundary-smoothing/handoff.md` exists.
 - Update `phases_track_outline/PLAN` to mark this phase DONE.
