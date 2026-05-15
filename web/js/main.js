@@ -18,7 +18,8 @@ import {
 
 // ── Application state ─────────────────────────────────────────────────────────
 import { store, pendingSidecars, panelOrder, DEFAULT_PANEL_ORDER, PANEL_ORDER_LS_KEY,
-         persistPanelOrder, state, getCurrentMapMode, setCurrentMapMode, features, devFeatures, setFeatureFlag, setDevFeatureFlag } from './appState.js';
+         persistPanelOrder, state, getCurrentMapMode, setCurrentMapMode, features, devFeatures, setFeatureFlag, setDevFeatureFlag,
+         learnedBoundariesByLayout } from './appState.js';
 
 // ── Circuit map rendering ───────────────────────────────────────────────────────
 import { renderCircuitMap, renderHeatmapSegments, renderMapLegend, updateZoomArc,
@@ -351,6 +352,7 @@ function getMapState() {
     currentLapARaw,
     currentLapBRaw,
     currentZoomRange,
+    learnedBoundariesByLayout,
   };
 }
 
@@ -391,4 +393,5 @@ installDebugHooks({
   setFeatureFlag,
   setDevFeatureFlag,
   renderTrackHeatmapMap,
+  learnedBoundariesByLayout,
 });

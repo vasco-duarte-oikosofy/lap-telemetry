@@ -15,6 +15,10 @@ export const pendingSidecars = new Map();
 // Validated apex annotation JSONs keyed by track/layout.
 export const apexAnnotationsByLayout = new Map();
 
+// Learned boundary data keyed by "track_slug::layout_slug".
+// Populated when a boundary JSON file is loaded.
+export const learnedBoundariesByLayout = new Map();
+
 // ── Panel order (F9) ──────────────────────────────────────────────────────────
 export const PANEL_ORDER_LS_KEY = 'lap-telemetry.panel-order.v1';
 export const DEFAULT_PANEL_ORDER = [
@@ -76,6 +80,7 @@ export const features = {
   apexAnnotations: false,          // Track outline Phase 03 - apex annotation loading
   apexMetrics: false,              // Track outline Phase 04 - in-memory apex metrics
   apexMetricsUi: false,            // Track outline Phase 05 - text-only apex metrics UI
+  learnedTrackOutline: false,       // Track outline Phase 10 - render learned boundaries
 };
 
 // Dev-only flags (not exposed in production UI)

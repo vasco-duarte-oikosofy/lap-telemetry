@@ -516,6 +516,7 @@ __export(appState_exports, {
   devFeatures: () => devFeatures,
   features: () => features,
   getCurrentMapMode: () => getCurrentMapMode,
+  learnedBoundariesByLayout: () => learnedBoundariesByLayout,
   panelOrder: () => panelOrder,
   pendingSidecars: () => pendingSidecars,
   persistPanelOrder: () => persistPanelOrder,
@@ -566,12 +567,13 @@ function setDevFeatureFlag(name, value) {
     devFeatures[name] = value;
   }
 }
-var store, pendingSidecars, apexAnnotationsByLayout, PANEL_ORDER_LS_KEY, DEFAULT_PANEL_ORDER, panelOrder, state, _currentMapMode, features, devFeatures;
+var store, pendingSidecars, apexAnnotationsByLayout, learnedBoundariesByLayout, PANEL_ORDER_LS_KEY, DEFAULT_PANEL_ORDER, panelOrder, state, _currentMapMode, features, devFeatures;
 var init_appState = __esm({
   "web/js/appState.js"() {
     store = /* @__PURE__ */ new Map();
     pendingSidecars = /* @__PURE__ */ new Map();
     apexAnnotationsByLayout = /* @__PURE__ */ new Map();
+    learnedBoundariesByLayout = /* @__PURE__ */ new Map();
     PANEL_ORDER_LS_KEY = "lap-telemetry.panel-order.v1";
     DEFAULT_PANEL_ORDER = [
       "speed",
@@ -619,8 +621,10 @@ var init_appState = __esm({
       // Track outline Phase 03 - apex annotation loading
       apexMetrics: false,
       // Track outline Phase 04 - in-memory apex metrics
-      apexMetricsUi: false
+      apexMetricsUi: false,
       // Track outline Phase 05 - text-only apex metrics UI
+      learnedTrackOutline: false
+      // Track outline Phase 10 - render learned boundaries
     };
     devFeatures = {
       devMapSAlignmentDebug: false
@@ -1732,6 +1736,54 @@ function drawDebugTicks(ctx, lap, transform, color, labelPrefix) {
   }
 }
 
+// web/js/learnedOutline.js
+function boundaryKey(trackId, layoutId) {
+  const slug2 = (s) => String(s || "").trim().toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "");
+  return `${slug2(trackId)}::${slug2(layoutId || "default")}`;
+}
+function drawLearnedBoundaries(ctx, boundaries, transform, style = {}) {
+  if (!boundaries || !transform) return;
+  const leftColor = style.leftColor || "rgba(0, 255, 255, 0.35)";
+  const rightColor = style.rightColor || "rgba(0, 255, 255, 0.35)";
+  const lineWidth = style.lineWidth ?? 1;
+  drawBoundaryPolyline(ctx, boundaries.left, transform, leftColor, lineWidth);
+  drawBoundaryPolyline(ctx, boundaries.right, transform, rightColor, lineWidth);
+}
+function drawBoundaryPolyline(ctx, points, transform, color, lineWidth) {
+  if (!points || points.length < 2) return;
+  ctx.strokeStyle = color;
+  ctx.lineWidth = lineWidth;
+  ctx.lineJoin = "round";
+  ctx.lineCap = "round";
+  ctx.beginPath();
+  let started = false;
+  for (let i = 0; i < points.length; i++) {
+    const p = points[i];
+    if (p.width_m === 0) {
+      started = false;
+      continue;
+    }
+    if (!isFinite(p.x_m) || !isFinite(p.z_m)) {
+      started = false;
+      continue;
+    }
+    const sx = transform.toScreenX(p.x_m);
+    const sy = transform.toScreenY(p.z_m);
+    if (!started) {
+      ctx.moveTo(sx, sy);
+      started = true;
+    } else {
+      ctx.lineTo(sx, sy);
+    }
+  }
+  ctx.stroke();
+}
+function findBoundaryData(boundariesMap, track, layout) {
+  if (!boundariesMap || !track) return null;
+  const key = boundaryKey(track, layout);
+  return boundariesMap.get(key) || null;
+}
+
 // web/js/trackHeatmapMap.js
 var _lastTransform = null;
 function getLastTransform() {
@@ -1781,7 +1833,7 @@ function applyUserTransform(base, userScale, userPanX, userPanY) {
   };
 }
 function renderWalkingSkeleton(canvas, lapA, lapB, options = {}) {
-  const { showOutline = false, showHeatmapSingleLap = false, showSAlignmentDebug = false, showDualRibbon = false, showLegend = false, ribbonWidthPx = 8, ribbonGapPx = 2, userScale = 1, userPanX = 0, userPanY = 0 } = options;
+  const { showOutline = false, showHeatmapSingleLap = false, showSAlignmentDebug = false, showDualRibbon = false, showLegend = false, ribbonWidthPx = 8, ribbonGapPx = 2, userScale = 1, userPanX = 0, userPanY = 0, learnedBoundaries = null, showLearnedOutline = false } = options;
   const ctx = canvas.getContext("2d");
   const rect = canvas.getBoundingClientRect();
   const dpr = window.devicePixelRatio || 1;
@@ -1797,6 +1849,9 @@ function renderWalkingSkeleton(canvas, lapA, lapB, options = {}) {
   const transform = applyUserTransform(baseTransform, userScale, userPanX, userPanY);
   ctx.fillStyle = "rgba(0, 0, 0, 0.2)";
   ctx.fillRect(0, 0, rect.width, rect.height);
+  if (showLearnedOutline && learnedBoundaries) {
+    drawLearnedBoundaries(ctx, learnedBoundaries, transform);
+  }
   if (showOutline) {
     console.log("[trackHeatmapMap] Drawing outline with", lapA.x.length, "points");
     drawTrackOutline(ctx, lapA.x, lapA.z, transform);
@@ -2202,8 +2257,20 @@ function createTrackHeatmapController(getMapState2) {
     };
   }
   function buildOpts({ respectZoomFlag = true, includeMapSAlignment = true } = {}) {
-    const { currentZoomRange: currentZoomRange2 } = getMapState2();
+    const { currentZoomRange: currentZoomRange2, learnedBoundariesByLayout: bMap } = getMapState2();
     const s = (!respectZoomFlag || features.mapZoomPan) && mapInteraction ? mapInteraction.getState() : { scale: 1, tx: 0, ty: 0 };
+    let learnedBoundaries = null;
+    if (features.learnedTrackOutline) {
+      const sessionEntry = getMapState2().currentLapARaw;
+      for (const [, entry] of store) {
+        const track = entry.sidecar?.track_id || entry.sidecar?.track || entry.sidecar?.track_name;
+        const layout = entry.sidecar?.layout_id || entry.sidecar?.layoutId || entry.sidecar?.layout || "default";
+        if (track) {
+          learnedBoundaries = findBoundaryData(bMap || learnedBoundariesByLayout, track, layout);
+          if (learnedBoundaries) break;
+        }
+      }
+    }
     return {
       showOutline: !!features.mapTrackOutline,
       showHeatmapSingleLap: !!features.mapHeatmapSingleLap,
@@ -2218,14 +2285,16 @@ function createTrackHeatmapController(getMapState2) {
       ribbonGapPx: 2,
       userScale: s.scale,
       userPanX: s.tx,
-      userPanY: s.ty
+      userPanY: s.ty,
+      showLearnedOutline: !!features.learnedTrackOutline,
+      learnedBoundaries
     };
   }
   function render() {
     const canvas = document.getElementById("track-heatmap-canvas");
     const svg = document.getElementById("circuit-map-svg");
     if (!canvas || !svg) return;
-    const anyMapFeature = features.mapWalkingSkeleton || features.mapTrackOutline || features.mapHeatmapSingleLap || features.mapSAlignment || features.mapDualRibbon || features.mapZoomPan || features.mapLegend || features.mapHover || features.mapLinkedHighlight;
+    const anyMapFeature = features.mapWalkingSkeleton || features.mapTrackOutline || features.mapHeatmapSingleLap || features.mapSAlignment || features.mapDualRibbon || features.mapZoomPan || features.mapLegend || features.mapHover || features.mapLinkedHighlight || features.learnedTrackOutline;
     if (!anyMapFeature) {
       canvas.style.display = "none";
       svg.style.display = "";
@@ -2968,10 +3037,20 @@ function apexAnnotationKey(annotations) {
 function isApexAnnotationJson(value) {
   return !!(value && typeof value === "object" && !Array.isArray(value) && "track_id" in value && "layout_id" in value && "corners" in value);
 }
+function isBoundaryJson(value) {
+  return !!(value && typeof value === "object" && !Array.isArray(value) && "track_id" in value && "layout_id" in value && Array.isArray(value.left) && Array.isArray(value.right));
+}
 async function loadSidecar(file) {
   try {
     const text = await file.text();
     const sidecar = JSON.parse(text);
+    if (isBoundaryJson(sidecar)) {
+      const key = boundaryKey(sidecar.track_id, sidecar.layout_id);
+      learnedBoundariesByLayout.set(key, sidecar);
+      console.log(`loaded boundary data for ${sidecar.track_id}/${sidecar.layout_id} (${sidecar.left?.length ?? 0} left, ${sidecar.right?.length ?? 0} right points)`);
+      rebuildPickers();
+      return;
+    }
     if (isApexAnnotationJson(sidecar)) {
       const validation = validateApexAnnotations(sidecar);
       if (validation.ok) {
@@ -3264,6 +3343,7 @@ function installDebugHooks(deps) {
   window.__devFeatures = devFeatures2;
   window.__getSessionKeys = () => [...store2.keys()];
   window.__getSessionData = (key) => store2.get(key)?.data || null;
+  window.__learnedBoundariesByLayout = deps.learnedBoundariesByLayout;
   window.__resamplerDebug = function(storeKeyStr, segIdx) {
     const entry = store2.get(storeKeyStr);
     if (!entry) throw new Error(`store key not found: ${storeKeyStr}`);
@@ -3313,7 +3393,7 @@ function installDebugHooks(deps) {
   window.__setFeatureFlag = (name, value) => {
     setFeatureFlag2(name, value);
     syncFeatureFlagMenuLabels(features2);
-    if (name === "mapWalkingSkeleton" || name === "mapTrackOutline" || name === "mapHeatmapSingleLap" || name === "mapSAlignment" || name === "mapDualRibbon" || name === "mapZoomPan" || name === "mapLegend" || name === "mapHover" || name === "mapLinkedHighlight") {
+    if (name === "mapWalkingSkeleton" || name === "mapTrackOutline" || name === "mapHeatmapSingleLap" || name === "mapSAlignment" || name === "mapDualRibbon" || name === "mapZoomPan" || name === "mapLegend" || name === "mapHover" || name === "mapLinkedHighlight" || name === "learnedTrackOutline") {
       renderTrackHeatmapMap2();
     }
   };
@@ -3331,6 +3411,7 @@ function installDebugHooks(deps) {
     const menu = document.getElementById("feature-flag-menu");
     if (menu) menu.style.display = enabled ? "" : "none";
   };
+  window.__renderTrackHeatmapMap = renderTrackHeatmapMap2;
 }
 
 // web/js/apexMetricsUi.js
@@ -3933,7 +4014,8 @@ function getMapState() {
     currentRefBins,
     currentLapARaw,
     currentLapBRaw,
-    currentZoomRange
+    currentZoomRange,
+    learnedBoundariesByLayout
   };
 }
 function getRenderState() {
@@ -3966,7 +4048,8 @@ installDebugHooks({
   fitToView,
   setFeatureFlag,
   setDevFeatureFlag,
-  renderTrackHeatmapMap
+  renderTrackHeatmapMap,
+  learnedBoundariesByLayout
 });
 
 </script></script>

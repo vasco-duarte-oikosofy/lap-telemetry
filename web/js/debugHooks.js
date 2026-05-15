@@ -20,6 +20,7 @@ export function installDebugHooks(deps) {
   window.__devFeatures = devFeatures;
   window.__getSessionKeys = () => [...store.keys()];
   window.__getSessionData = key => store.get(key)?.data || null;
+  window.__learnedBoundariesByLayout = deps.learnedBoundariesByLayout;
 
   window.__resamplerDebug = function(storeKeyStr, segIdx) {
     const entry = store.get(storeKeyStr);
@@ -74,7 +75,7 @@ export function installDebugHooks(deps) {
   window.__setFeatureFlag = (name, value) => {
     setFeatureFlag(name, value);
     syncFeatureFlagMenuLabels(features);
-    if (name === 'mapWalkingSkeleton' || name === 'mapTrackOutline' || name === 'mapHeatmapSingleLap' || name === 'mapSAlignment' || name === 'mapDualRibbon' || name === 'mapZoomPan' || name === 'mapLegend' || name === 'mapHover' || name === 'mapLinkedHighlight') {
+    if (name === 'mapWalkingSkeleton' || name === 'mapTrackOutline' || name === 'mapHeatmapSingleLap' || name === 'mapSAlignment' || name === 'mapDualRibbon' || name === 'mapZoomPan' || name === 'mapLegend' || name === 'mapHover' || name === 'mapLinkedHighlight' || name === 'learnedTrackOutline') {
       renderTrackHeatmapMap();
     }
   };
@@ -95,4 +96,6 @@ export function installDebugHooks(deps) {
     const menu = document.getElementById('feature-flag-menu');
     if (menu) menu.style.display = enabled ? '' : 'none';
   };
+
+  window.__renderTrackHeatmapMap = renderTrackHeatmapMap;
 }
