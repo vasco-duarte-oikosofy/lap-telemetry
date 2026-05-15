@@ -21,44 +21,15 @@
     "method": "median_trajectory_average",
     "width_per_side": 5.0,
     "lap_count": 5,
-    "session_count": 3,
     "sessions": [
-      "session_20260510T124244Z_circuit-de-barcelona_lmu.parquet",
-      "session_20260511T151203Z_circuit-de-barcelona_lmu.parquet",
-      "session_20260514T141305Z_circuit-de-barcelona_lmu.parquet"
+      "sessions/session_20260510T124244Z_circuit-de-barcelona_lmu.parquet",
+      "sessions/session_20260514T141305Z_circuit-de-barcelona_lmu.parquet"
     ],
-    "fastest_laps": [
-      {
-        "session": "session_20260514T141305Z_circuit-de-barcelona_lmu.parquet",
-        "lap_number": 5,
-        "lap_time_s": 97.24
-      },
-      {
-        "session": "session_20260510T124244Z_circuit-de-barcelona_lmu.parquet",
-        "lap_number": 5,
-        "lap_time_s": 97.74
-      },
-      {
-        "session": "session_20260514T141305Z_circuit-de-barcelona_lmu.parquet",
-        "lap_number": 3,
-        "lap_time_s": 97.99
-      },
-      {
-        "session": "session_20260510T124244Z_circuit-de-barcelona_lmu.parquet",
-        "lap_number": 4,
-        "lap_time_s": 98.14
-      },
-      {
-        "session": "session_20260514T141305Z_circuit-de-barcelona_lmu.parquet",
-        "lap_number": 2,
-        "lap_time_s": 98.69
-      }
-    ],
-    "notes": "Uses point-wise MEDIAN instead of mean - robust to different racing lines through corners."
+    "notes": "Uses point-wise median instead of mean - robust to different racing lines through corners."
   },
   "visual_qa": {
     "status": "pending",
-    "notes": "Median-based outline preserves corner geometry better than mean."
+    "notes": "Median-based outline should better preserve corner apexes."
   },
   "caveats": [
     "Width is constant \u00b15m estimate.",
