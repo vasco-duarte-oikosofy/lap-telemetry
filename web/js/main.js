@@ -391,10 +391,7 @@ function getRenderState() {
 initUI(renderAll);
 
 // Initialize cursor, tooltip, and zoom handlers
-initCursorAndZoom(renderAll, getRenderState, {
-  drawCursorDot: trackHeatmapController.drawCursorDot,
-  setCursorBinIdx: trackHeatmapController.setCursorBinIdx,
-});
+initCursorAndZoom(renderAll, getRenderState);
 
 installDebugHooks({
   store,

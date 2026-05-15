@@ -2,7 +2,7 @@ import { features, devFeatures } from './appState.js';
 import { computeTrackBounds } from './pipeline.js';
 import { createMapHover } from './mapHover.js';
 import { createMapInteraction, setBaseTransform } from './mapInteraction.js';
-import { renderWalkingSkeleton, initTrackHeatmapResize, fitToView, getLastTransform, drawCanvasCursorDot } from './trackHeatmapMap.js';
+import { renderWalkingSkeleton, initTrackHeatmapResize, fitToView, getLastTransform } from './trackHeatmapMap.js';
 
 
 export function createTrackHeatmapController(getMapState) {
@@ -61,7 +61,6 @@ export function createTrackHeatmapController(getMapState) {
       userPanY: s.ty,
       showStaticOutline: true,
       trackName: currentTrackName,
-      cursorBinIdx: _currentCursorBinIdx,
     };
   }
 
@@ -133,27 +132,9 @@ export function createTrackHeatmapController(getMapState) {
     }
   }
 
-  let _currentCursorBinIdx = null;
-
-  function setCursorBinIdx(idx) {
-    _currentCursorBinIdx = idx;
-  }
-
-  function drawCursorDot(binIdx) {
-    const canvas = document.getElementById('track-heatmap-canvas');
-    if (!canvas) return;
-    const { currentTrackX, currentTrackZ } = getMapState();
-    const transform = getLastTransform();
-    if (!currentTrackX || !currentTrackZ || !transform) return;
-    const lapA = { x: currentTrackX, z: currentTrackZ };
-    drawCanvasCursorDot(canvas, lapA, transform, binIdx);
-  }
-
   return {
     render,
     getMapInteractionState: () => mapInteraction?.getState() ?? null,
     getMapHoverState: () => mapHover?.getState() ?? null,
-    setCursorBinIdx,
-    drawCursorDot,
   };
 }
