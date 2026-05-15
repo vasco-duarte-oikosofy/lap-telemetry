@@ -12,7 +12,7 @@
 | 05-apex-metrics-ui | Render text-only apex metrics UI | ✅ DONE |
 | 06-apex-sidecar-export | Optional CLI/helper to export apex metrics JSON sidecar | ✅ DONE |
 | 07-width-profile-cli | Generate raw left/right width bins from recorded sessions | ✅ DONE |
-| 08-width-profile-confidence | Add confidence and explicit gap/one-sided flags | ⬜ TODO |
+| 08-width-profile-confidence | Add confidence and explicit gap/one-sided flags | ✅ DONE |
 | 08.1-width-profile-smoothing | Interpolate short gaps and smooth render-ready widths | ⬜ TODO |
 | 09-center-path-cli | Generate binned center/path polyline from world positions | ⬜ TODO |
 | 09.1-boundary-polylines | Derive left/right boundary polylines from path + widths | ⬜ TODO |
