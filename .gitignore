@@ -16,3 +16,5 @@ f1f2-test-report/
 f8f9f10f11-test-report/
 node_modules/
 package-lock.json
+
+.DS_Store

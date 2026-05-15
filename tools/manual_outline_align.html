@@ -1,0 +1,292 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Manual TUMFTM Outline Alignment Spike</title>
+<style>
+  body { margin: 0; font: 14px system-ui, sans-serif; background: #101217; color: #e8ecf2; }
+  #app { display: grid; grid-template-columns: 340px 1fr; height: 100vh; }
+  aside { padding: 14px; overflow: auto; border-right: 1px solid #2d3340; }
+  canvas { width: 100%; height: 100%; display: block; background: #080a0d; }
+  label { display: block; margin: 10px 0 4px; color: #b8c1cc; }
+  input[type="number"], input[type="range"] { width: 100%; box-sizing: border-box; }
+  input[type="file"] { width: 100%; color: #dfe7f2; }
+  button { margin: 8px 6px 0 0; padding: 7px 10px; background: #263448; color: #fff; border: 1px solid #4a5b72; border-radius: 4px; cursor: pointer; }
+  button:hover { background: #314159; }
+  .row { display: grid; grid-template-columns: 1fr 80px; gap: 8px; align-items: center; }
+  .checks label { display: inline-block; margin-right: 12px; }
+  textarea { width: 100%; height: 150px; margin-top: 8px; background: #080a0d; color: #d6f8ff; border: 1px solid #344051; }
+  .hint { color: #97a6b8; font-size: 12px; line-height: 1.35; }
+  .status { white-space: pre-wrap; color: #d5e7a6; font-size: 12px; }
+</style>
+</head>
+<body>
+<div id="app">
+  <aside>
+    <h2>TUMFTM alignment spike</h2>
+    <p class="hint">Load a simulator trajectory JSON, a TUMFTM JSON/CSV, then adjust one global transform. Trajectories are drawn as bright 1px lines over the outline. Keys: arrows translate, Shift+arrows bigger, q/e rotate, +/- scale, f cycle flips, r reverse.</p>
+
+    <label>1. Simulator reference trajectory JSON</label>
+    <input id="reference-file" type="file" accept=".json,application/json">
+    <label>2. TUMFTM track JSON or CSV</label>
+    <input id="track-file" type="file" accept=".json,.csv,text/csv">
+    <label>3. Optional extra trajectories JSON</label>
+    <input id="extra-file" type="file" accept=".json,application/json">
+
+    <label>Scale</label><div class="row"><input id="scale" type="range" min="0.01" max="5" step="0.001" value="1"><input id="scale-num" type="number" step="0.001" value="1"></div>
+    <label>Rotation rad</label><div class="row"><input id="rotation" type="range" min="-3.1416" max="3.1416" step="0.001" value="0"><input id="rotation-num" type="number" step="0.001" value="0"></div>
+    <label>Translate x</label><div class="row"><input id="tx" type="range" min="-3000" max="3000" step="1" value="0"><input id="tx-num" type="number" step="1" value="0"></div>
+    <label>Translate y</label><div class="row"><input id="ty" type="range" min="-3000" max="3000" step="1" value="0"><input id="ty-num" type="number" step="1" value="0"></div>
+    <div class="checks">
+      <label><input id="flip-x" type="checkbox"> flip x</label>
+      <label><input id="flip-y" type="checkbox"> flip y</label>
+      <label><input id="reverse" type="checkbox"> reverse point order</label>
+    </div>
+    <label>View zoom (visual only)</label><div class="row"><input id="view-zoom" type="range" min="0.25" max="20" step="0.05" value="1"><input id="view-zoom-num" type="number" step="0.05" value="1"></div>
+    <p class="hint">Drag canvas to pan; mouse wheel zooms around the cursor. View zoom does not affect exported coordinates.</p>
+    <button id="reset-view-button">Reset view</button>
+    <button id="reset-button">Reset transform</button>
+    <button id="export-button">Export aligned outline JSON</button>
+    <button id="copy-button">Copy export</button>
+    <a id="download-link" download="aligned-outline-spike.json"></a>
+    <pre id="status" class="status">No files loaded.</pre>
+    <textarea id="export-text" placeholder="Export JSON appears here"></textarea>
+  </aside>
+  <main><canvas id="canvas"></canvas></main>
+</div>
+<script>
+(() => {
+  const state = { ref: [], extra: [], track: null, exportObject: null, viewScale: 1, viewX: 0, viewY: 0, dragging: null };
+  const $ = id => document.getElementById(id);
+  const controls = ['scale','rotation','tx','ty'];
+
+  function param() {
+    return {
+      scale: +$('scale').value, rotation_rad: +$('rotation').value,
+      translate_x: +$('tx').value, translate_y: +$('ty').value,
+      flip_x: $('flip-x').checked, flip_y: $('flip-y').checked,
+      reverse_point_order: $('reverse').checked
+    };
+  }
+
+  function setControl(id, value) {
+    $(id).value = String(value); $(`${id}-num`).value = String(value);
+  }
+
+  for (const id of controls) {
+    $(id).addEventListener('input', () => { $(`${id}-num`).value = $(id).value; draw(); });
+    $(`${id}-num`).addEventListener('input', () => { $(id).value = $(`${id}-num`).value; draw(); });
+  }
+  $('view-zoom').addEventListener('input', () => { state.viewScale = +$('view-zoom').value; $('view-zoom-num').value = $('view-zoom').value; draw(); });
+  $('view-zoom-num').addEventListener('input', () => { state.viewScale = +$('view-zoom-num').value; $('view-zoom').value = $('view-zoom-num').value; draw(); });
+  for (const id of ['flip-x','flip-y','reverse']) $(id).addEventListener('input', draw);
+
+  $('reset-view-button').onclick = () => {
+    state.viewScale = 1; state.viewX = 0; state.viewY = 0;
+    $('view-zoom').value = '1'; $('view-zoom-num').value = '1';
+    draw();
+  };
+
+  $('reset-button').onclick = () => {
+    setControl('scale', 1); setControl('rotation', 0); setControl('tx', 0); setControl('ty', 0);
+    $('flip-x').checked = $('flip-y').checked = $('reverse').checked = false; draw();
+  };
+
+  function asPoint(p) {
+    const x = num(p.x ?? p.x_m ?? p.pos_x_m ?? p.sim_x);
+    const y = num(p.y ?? p.z ?? p.y_m ?? p.z_m ?? p.pos_z_m ?? p.sim_y);
+    return Number.isFinite(x) && Number.isFinite(y) ? { x, y } : null;
+  }
+  const num = v => typeof v === 'number' ? v : Number.parseFloat(v);
+
+  function parseTrajectoryJson(json) {
+    if (Array.isArray(json.trajectories)) {
+      return json.trajectories.map((t, i) => ({ name: t.name || `trajectory ${i+1}`, points: (t.points || []).map(asPoint).filter(Boolean) }));
+    }
+    if (Array.isArray(json.points)) return [{ name: json.name || json.track_name || 'trajectory', points: json.points.map(asPoint).filter(Boolean) }];
+    throw new Error('trajectory JSON needs trajectories[].points or points[]');
+  }
+
+  function parseTrackJson(json) {
+    if (Array.isArray(json.centerline) && Array.isArray(json.left_boundary) && Array.isArray(json.right_boundary)) {
+      return {
+        name: json.track_name || 'exported outline', fixedBoundaries: true,
+        points: json.centerline.map(asPoint).filter(Boolean),
+        left: json.left_boundary.map(asPoint).filter(Boolean),
+        right: json.right_boundary.map(asPoint).filter(Boolean)
+      };
+    }
+    if (!Array.isArray(json.points)) throw new Error('track JSON needs points[] or centerline/left_boundary/right_boundary');
+    return { name: json.track_name || 'TUMFTM track', points: json.points.map(p => ({ x: num(p.x ?? p.x_m), y: num(p.y ?? p.y_m), w_left: num(p.w_left ?? p.w_tr_left_m), w_right: num(p.w_right ?? p.w_tr_right_m) })).filter(p => Number.isFinite(p.x) && Number.isFinite(p.y)) };
+  }
+
+  function parseTrackCsv(text) {
+    const rows = text.split(/\r?\n/).map(l => l.trim()).filter(Boolean);
+    const firstData = rows.find(l => !l.startsWith('#')) || '';
+    const delim = firstData.includes(';') ? ';' : ',';
+    const headerLine = rows.find(l => l.startsWith('#')) || rows[0];
+    const header = headerLine.replace(/^#\s*/, '').split(delim).map(s => s.trim());
+    const dataRows = rows.filter(l => !l.startsWith('#'));
+    const points = dataRows.map(line => {
+      const values = line.split(delim).map(Number);
+      const obj = Object.fromEntries(header.map((h, i) => [h, values[i]]));
+      return { x: obj.x_m ?? values[0], y: obj.y_m ?? values[1], w_right: obj.w_tr_right_m ?? values[2], w_left: obj.w_tr_left_m ?? values[3] };
+    }).filter(p => Number.isFinite(p.x) && Number.isFinite(p.y));
+    return { name: 'TUMFTM CSV', points };
+  }
+
+  async function readFile(file, parser) {
+    if (!file) return;
+    const text = await file.text();
+    return parser(file.name.toLowerCase().endsWith('.csv') ? text : JSON.parse(text), text);
+  }
+
+  $('reference-file').onchange = async e => { state.ref = await readFile(e.target.files[0], x => parseTrajectoryJson(x)); draw(); };
+  $('extra-file').onchange = async e => { state.extra = await readFile(e.target.files[0], x => parseTrajectoryJson(x)); draw(); };
+  $('track-file').onchange = async e => {
+    const file = e.target.files[0]; if (!file) return;
+    const text = await file.text();
+    state.track = file.name.toLowerCase().endsWith('.csv') ? parseTrackCsv(text) : parseTrackJson(JSON.parse(text));
+    draw();
+  };
+
+  function ordered(points) { return $('reverse').checked ? [...points].reverse() : points; }
+
+  function sourceGeometry() {
+    if (!state.track) return null;
+    if (state.track.fixedBoundaries) return { center: ordered(state.track.points), left: ordered(state.track.left), right: ordered(state.track.right) };
+    const center = ordered(state.track.points);
+    const left = [], right = [];
+    for (let i = 0; i < center.length; i++) {
+      const prev = center[(i - 1 + center.length) % center.length], next = center[(i + 1) % center.length];
+      const dx = next.x - prev.x, dy = next.y - prev.y, len = Math.hypot(dx, dy) || 1;
+      const nx = dy / len, ny = -dx / len; // right normal, matching TUMFTM convention
+      const wr = Number.isFinite(center[i].w_right) ? center[i].w_right : 0;
+      const wl = Number.isFinite(center[i].w_left) ? center[i].w_left : 0;
+      right.push({ x: center[i].x + nx * wr, y: center[i].y + ny * wr });
+      left.push({ x: center[i].x - nx * wl, y: center[i].y - ny * wl });
+    }
+    return { center, left, right };
+  }
+
+  function transformPoint(p, a = param()) {
+    let x = p.x * (a.flip_x ? -1 : 1), y = p.y * (a.flip_y ? -1 : 1);
+    const c = Math.cos(a.rotation_rad), s = Math.sin(a.rotation_rad);
+    return { x: a.scale * (x * c - y * s) + a.translate_x, y: a.scale * (x * s + y * c) + a.translate_y };
+  }
+
+  function transformedGeometry() {
+    const src = sourceGeometry(); if (!src) return null;
+    return { center: src.center.map(p => transformPoint(p)), left: src.left.map(p => transformPoint(p)), right: src.right.map(p => transformPoint(p)) };
+  }
+
+  function allPoints(geom) {
+    const pts = [];
+    for (const t of state.ref.concat(state.extra)) pts.push(...t.points);
+    if (geom) pts.push(...geom.center, ...geom.left, ...geom.right);
+    return pts;
+  }
+
+  function drawPolyline(ctx, pts, map, color, width, dash = []) {
+    if (pts.length < 2) return;
+    ctx.save(); ctx.strokeStyle = color; ctx.lineWidth = width; ctx.setLineDash(dash); ctx.beginPath();
+    pts.forEach((p, i) => { const q = map(p); i ? ctx.lineTo(q.x, q.y) : ctx.moveTo(q.x, q.y); });
+    ctx.stroke(); ctx.restore();
+  }
+
+  function draw() {
+    const canvas = $('canvas'), rect = canvas.getBoundingClientRect(), dpr = window.devicePixelRatio || 1;
+    canvas.width = Math.max(1, Math.floor(rect.width * dpr)); canvas.height = Math.max(1, Math.floor(rect.height * dpr));
+    const ctx = canvas.getContext('2d'); ctx.setTransform(dpr, 0, 0, dpr, 0, 0); ctx.clearRect(0, 0, rect.width, rect.height);
+    const geom = transformedGeometry();
+    const pts = allPoints(geom); let status = `Reference trajectories: ${state.ref.length}\nExtra trajectories: ${state.extra.length}\n`;
+    status += state.track ? `Track: ${state.track.name}, points: ${state.track.points.length}` : 'Track: not loaded';
+    $('status').textContent = status;
+    if (!pts.length) return;
+    const xs = pts.map(p => p.x), ys = pts.map(p => p.y), minX = Math.min(...xs), maxX = Math.max(...xs), minY = Math.min(...ys), maxY = Math.max(...ys);
+    const pad = 30, sx = (rect.width - pad * 2) / Math.max(1, maxX - minX), sy = (rect.height - pad * 2) / Math.max(1, maxY - minY), scale = Math.min(sx, sy);
+    const baseMap = p => ({ x: pad + (p.x - minX) * scale, y: rect.height - pad - (p.y - minY) * scale });
+    const cx = rect.width / 2, cy = rect.height / 2;
+    const map = p => {
+      const q = baseMap(p);
+      return { x: cx + (q.x - cx) * state.viewScale + state.viewX, y: cy + (q.y - cy) * state.viewScale + state.viewY };
+    };
+    ctx.strokeStyle = '#1d2633'; ctx.lineWidth = 1; for (let x = 0; x < rect.width; x += 50) { ctx.beginPath(); ctx.moveTo(x,0); ctx.lineTo(x,rect.height); ctx.stroke(); } for (let y = 0; y < rect.height; y += 50) { ctx.beginPath(); ctx.moveTo(0,y); ctx.lineTo(rect.width,y); ctx.stroke(); }
+    if (geom) { drawPolyline(ctx, geom.left, map, '#ffd166', 2); drawPolyline(ctx, geom.right, map, '#ef476f', 2); drawPolyline(ctx, geom.center, map, '#8cff66', 1.4, [6,4]); }
+    for (const t of state.extra) drawPolyline(ctx, t.points, map, 'rgba(115,190,255,.95)', 1);
+    for (const t of state.ref) drawPolyline(ctx, t.points, map, '#00f0ff', 1);
+  }
+
+  function exportObject() {
+    const geom = transformedGeometry(); if (!geom) throw new Error('load track geometry first');
+    return { schema_version: 0, source: 'TUMFTM manual alignment spike', track_name: 'Spa-Francorchamps', alignment: param(), centerline: geom.center, left_boundary: geom.left, right_boundary: geom.right };
+  }
+  $('export-button').onclick = () => {
+    const obj = exportObject(); const text = JSON.stringify(obj, null, 2); state.exportObject = obj; $('export-text').value = text;
+    const url = URL.createObjectURL(new Blob([text + '\n'], { type: 'application/json' }));
+    const a = $('download-link'); a.href = url; a.textContent = 'Download latest export';
+  };
+  $('copy-button').onclick = async () => { if (!$('export-text').value) $('export-button').click(); await navigator.clipboard.writeText($('export-text').value); };
+
+  const canvas = $('canvas');
+  canvas.addEventListener('pointerdown', e => {
+    canvas.setPointerCapture(e.pointerId);
+    state.dragging = { id: e.pointerId, x: e.clientX, y: e.clientY, startX: state.viewX, startY: state.viewY };
+  });
+  canvas.addEventListener('pointermove', e => {
+    if (!state.dragging || state.dragging.id !== e.pointerId) return;
+    state.viewX = state.dragging.startX + e.clientX - state.dragging.x;
+    state.viewY = state.dragging.startY + e.clientY - state.dragging.y;
+    draw();
+  });
+  canvas.addEventListener('pointerup', e => { if (state.dragging && state.dragging.id === e.pointerId) state.dragging = null; });
+  canvas.addEventListener('wheel', e => {
+    e.preventDefault();
+    const rect = canvas.getBoundingClientRect();
+    const mx = e.clientX - rect.left, my = e.clientY - rect.top;
+    const old = state.viewScale;
+    const next = Math.max(0.25, Math.min(20, old * Math.exp(-e.deltaY * 0.001)));
+    const cx = rect.width / 2, cy = rect.height / 2;
+    state.viewX = mx - cx - ((mx - cx - state.viewX) * next / old);
+    state.viewY = my - cy - ((my - cy - state.viewY) * next / old);
+    state.viewScale = next;
+    $('view-zoom').value = String(next); $('view-zoom-num').value = next.toFixed(2);
+    draw();
+  }, { passive: false });
+
+  window.addEventListener('resize', draw);
+  window.addEventListener('keydown', e => {
+    if (['INPUT','TEXTAREA'].includes(document.activeElement.tagName)) return;
+    const big = e.shiftKey ? 25 : 5;
+    if (e.key === 'ArrowLeft') setControl('tx', +$('tx').value - big);
+    else if (e.key === 'ArrowRight') setControl('tx', +$('tx').value + big);
+    else if (e.key === 'ArrowUp') setControl('ty', +$('ty').value + big);
+    else if (e.key === 'ArrowDown') setControl('ty', +$('ty').value - big);
+    else if (e.key === 'q') setControl('rotation', (+$('rotation').value - 0.01).toFixed(3));
+    else if (e.key === 'e') setControl('rotation', (+$('rotation').value + 0.01).toFixed(3));
+    else if (e.key === '+' || e.key === '=') setControl('scale', (+$('scale').value * 1.01).toFixed(4));
+    else if (e.key === '-' || e.key === '_') setControl('scale', (+$('scale').value / 1.01).toFixed(4));
+    else if (e.key === 'r') $('reverse').checked = !$('reverse').checked;
+    else if (e.key === 'f') { if (!$('flip-x').checked && !$('flip-y').checked) $('flip-x').checked = true; else if ($('flip-x').checked && !$('flip-y').checked) { $('flip-x').checked = false; $('flip-y').checked = true; } else if (!$('flip-x').checked && $('flip-y').checked) $('flip-x').checked = true; else $('flip-x').checked = $('flip-y').checked = false; }
+    else return;
+    e.preventDefault(); draw();
+  });
+  window.__manualAlignSmoke = () => {
+    const geom = transformedGeometry();
+    const pts = allPoints(geom);
+    return {
+      trackPoints: state.track ? state.track.points.length : 0,
+      refTrajectories: state.ref.length,
+      refPoints: state.ref.reduce((n, t) => n + t.points.length, 0),
+      plottedPoints: pts.length,
+      finitePoints: pts.filter(p => Number.isFinite(p.x) && Number.isFinite(p.y)).length,
+      viewScale: state.viewScale,
+      viewX: state.viewX,
+      viewY: state.viewY
+    };
+  };
+  draw();
+})();
+</script>
+</body>
+</html>
