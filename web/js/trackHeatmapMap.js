@@ -84,7 +84,7 @@ export function applyUserTransform(base, userScale, userPanX, userPanY) {
 // Phase 00.6: adds track outline background underneath.
 
 export function renderWalkingSkeleton(canvas, lapA, lapB, options = {}) {
-  const { showHeatmapSingleLap = false, showSAlignmentDebug = false, showDualRibbon = false, showLegend = false, ribbonWidthPx = 8, ribbonGapPx = 2, userScale = 1, userPanX = 0, userPanY = 0, showStaticOutline = false, cursorBinIdx = null, trackName = null } = options;
+  const { showHeatmapSingleLap = false, showSAlignmentDebug = false, showDualRibbon = false, showLegend = false, ribbonWidthPx = 8, ribbonGapPx = 2, userScale = 1, userPanX = 0, userPanY = 0, showStaticOutline = false, trackName = null } = options;
   
   const ctx = canvas.getContext('2d');
   const rect = canvas.getBoundingClientRect();
@@ -97,7 +97,6 @@ export function renderWalkingSkeleton(canvas, lapA, lapB, options = {}) {
 
   // Clear
   ctx.clearRect(0, 0, rect.width, rect.height);
-  resetCanvasCursorDotPatch();
 
   if (!lapA || !lapA.x || !lapA.z || !lapB || !lapB.x || !lapB.z) return;
 
@@ -163,73 +162,6 @@ export function renderWalkingSkeleton(canvas, lapA, lapB, options = {}) {
 
   // Store transform for hover hit-testing
   setLastTransform(transform);
-
-  // Cursor dot — drawn after full render so it appears on top
-  if (cursorBinIdx != null && isFinite(cursorBinIdx)) {
-    drawCanvasCursorDot(canvas, lapA, transform, cursorBinIdx);
-  }
-}
-
-// ── Canvas cursor dot ─────────────────────────────────────────────────────────
-// Draws a small filled circle on the canvas at the position corresponding to
-// the given bin index. This is an incremental overlay — it saves and restores
-// a small patch of the canvas to avoid ghost dots. The next full render
-// (renderWalkingSkeleton) will also paint over it cleanly.
-
-let _savedDotPatch = null; // { canvasWidth, data, x, y, w, h } in device pixels
-
-export function drawCanvasCursorDot(canvas, lapA, transform, binIdx) {
-  if (!canvas || !lapA || !transform || binIdx == null || !isFinite(binIdx)) return;
-  const x = lapA.x[binIdx];
-  const z = lapA.z[binIdx];
-  if (!isFinite(x) || !isFinite(z)) return;
-
-  const ctx = canvas.getContext('2d');
-  const dpr = window.devicePixelRatio || 1;
-
-  // Restore the previous dot patch if it exists and the canvas size hasn't changed
-  if (_savedDotPatch && _savedDotPatch.canvasWidth === canvas.width) {
-    ctx.putImageData(_savedDotPatch.data, _savedDotPatch.x, _savedDotPatch.y);
-  }
-  _savedDotPatch = null;
-
-  ctx.save();
-  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-  const sx = transform.toScreenX(x);
-  const sy = transform.toScreenY(z);
-  if (!isFinite(sx) || !isFinite(sy)) { ctx.restore(); return; }
-
-  // Save a small patch around the dot position (in device pixels)
-  const radius = 5; // slightly larger than the dot to cover anti-aliasing
-  const dpx = Math.round(sx * dpr);
-  const dpy = Math.round(sy * dpr);
-  const patchX = Math.max(0, dpx - radius);
-  const patchY = Math.max(0, dpy - radius);
-  const patchW = Math.min(canvas.width - patchX, radius * 2 + 1);
-  const patchH = Math.min(canvas.height - patchY, radius * 2 + 1);
-  if (patchW > 0 && patchH > 0) {
-    ctx.setTransform(1, 0, 0, 1, 0, 0); // identity for putImageData
-    _savedDotPatch = {
-      canvasWidth: canvas.width,
-      data: ctx.getImageData(patchX, patchY, patchW, patchH),
-      x: patchX,
-      y: patchY,
-      w: patchW,
-      h: patchH,
-    };
-    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-  }
-
-  ctx.fillStyle = '#58a6ff'; // var(--accent)
-  ctx.beginPath();
-  ctx.arc(sx, sy, 4, 0, Math.PI * 2);
-  ctx.fill();
-  ctx.restore();
-}
-
-/** Clear the saved cursor dot patch (call after a full canvas re-render). */
-export function resetCanvasCursorDotPatch() {
-  _savedDotPatch = null;
 }
 
 
