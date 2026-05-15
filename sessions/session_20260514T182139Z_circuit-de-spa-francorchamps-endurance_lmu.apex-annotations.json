@@ -1,0 +1,134 @@
+{
+  "track_id": "circuit-de-spa-francorchamps-endurance",
+  "layout_id": "default",
+  "corners": [
+    {
+      "id": "la-source",
+      "name": "La Source",
+      "s_start_m": 220,
+      "apex_s_m": 265,
+      "s_end_m": 310,
+      "apex_side": "right"
+    },
+    {
+      "id": "eau-rouge",
+      "name": "Eau Rouge",
+      "s_start_m": 820,
+      "apex_s_m": 875,
+      "s_end_m": 930,
+      "apex_side": "left"
+    },
+    {
+      "id": "raidillon",
+      "name": "Raidillon",
+      "s_start_m": 960,
+      "apex_s_m": 1025,
+      "s_end_m": 1100,
+      "apex_side": "right"
+    },
+    {
+      "id": "les-combes-right",
+      "name": "Les Combes right",
+      "s_start_m": 2240,
+      "apex_s_m": 2285,
+      "s_end_m": 2335,
+      "apex_side": "right"
+    },
+    {
+      "id": "les-combes-left",
+      "name": "Les Combes left",
+      "s_start_m": 2345,
+      "apex_s_m": 2395,
+      "s_end_m": 2445,
+      "apex_side": "left"
+    },
+    {
+      "id": "malmedy",
+      "name": "Malmedy",
+      "s_start_m": 2475,
+      "apex_s_m": 2525,
+      "s_end_m": 2580,
+      "apex_side": "right"
+    },
+    {
+      "id": "bruxelles",
+      "name": "Bruxelles",
+      "s_start_m": 2840,
+      "apex_s_m": 2915,
+      "s_end_m": 2990,
+      "apex_side": "right"
+    },
+    {
+      "id": "no-name",
+      "name": "No Name",
+      "s_start_m": 3075,
+      "apex_s_m": 3145,
+      "s_end_m": 3225,
+      "apex_side": "left"
+    },
+    {
+      "id": "pouhon",
+      "name": "Pouhon",
+      "s_start_m": 3650,
+      "apex_s_m": 3735,
+      "s_end_m": 3810,
+      "apex_side": "left"
+    },
+    {
+      "id": "fagnes-right",
+      "name": "Fagnes right",
+      "s_start_m": 4330,
+      "apex_s_m": 4415,
+      "s_end_m": 4470,
+      "apex_side": "right"
+    },
+    {
+      "id": "fagnes-left",
+      "name": "Fagnes left",
+      "s_start_m": 4480,
+      "apex_s_m": 4535,
+      "s_end_m": 4605,
+      "apex_side": "left"
+    },
+    {
+      "id": "stavelot",
+      "name": "Stavelot",
+      "s_start_m": 4740,
+      "apex_s_m": 4805,
+      "s_end_m": 4870,
+      "apex_side": "right"
+    },
+    {
+      "id": "courbe-paul-frere",
+      "name": "Courbe Paul Frere",
+      "s_start_m": 4960,
+      "apex_s_m": 5015,
+      "s_end_m": 5070,
+      "apex_side": "right"
+    },
+    {
+      "id": "blanchimont",
+      "name": "Blanchimont",
+      "s_start_m": 5970,
+      "apex_s_m": 6045,
+      "s_end_m": 6110,
+      "apex_side": "left"
+    },
+    {
+      "id": "bus-stop-entry",
+      "name": "Bus Stop entry",
+      "s_start_m": 6560,
+      "apex_s_m": 6625,
+      "s_end_m": 6650,
+      "apex_side": "right"
+    },
+    {
+      "id": "bus-stop-exit",
+      "name": "Bus Stop exit",
+      "s_start_m": 6650,
+      "apex_s_m": 6675,
+      "s_end_m": 6725,
+      "apex_side": "left"
+    }
+  ]
+}

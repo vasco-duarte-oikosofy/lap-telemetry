@@ -581,13 +581,14 @@ CLI-only phases may use hidden commands instead of UI flags, but they still need
 
 Do not start these until the core phase they depend on is green. Each item needs its own tests, flag/switch, handoff, and commit.
 
-1. **Apex markers on map** *(depends on Phase 5 + current map)* — draw apex points and small labels on the track map.
-2. **Annotation editor UI** *(depends on Phase 3 + map interaction)* — drag apex markers and save JSON. Manual file editing remains enough until this is explicitly prioritized.
-3. **Surface-type overlay** *(depends on Phase 4.2 + Phase 10)* — show kerb/grass/dirt near apex or along the outline.
-4. **Filled track polygon** *(depends on Phase 10)* — fill between boundaries with subtle opacity. Keep boundaries visible.
-5. **Profile auto-discovery** *(depends on Phase 10)* — find `tracks/<track>/<layout>/...` automatically instead of explicit profile input.
-6. **Cross-session profile merge command** *(depends on Phase 8.1)* — merge existing profile JSON files without rereading raw Parquet.
-7. **Official track data research/import** *(depends on diagnostics proving sim-derived limits are insufficient)* — investigate whether official or community boundary geometry is available and legally usable.
+1. **Apex metrics closeable drawer** *(depends on Phase 5)* — present the apex metrics UI as a drawer the user can open and close without disabling the feature flag.
+2. **Apex markers on map** *(depends on Phase 5 + current map)* — draw apex points and small labels on the track map.
+3. **Annotation editor UI** *(depends on Phase 3 + map interaction)* — drag apex markers and save JSON. Manual file editing remains enough until this is explicitly prioritized.
+4. **Surface-type overlay** *(depends on Phase 4.2 + Phase 10)* — show kerb/grass/dirt near apex or along the outline.
+5. **Filled track polygon** *(depends on Phase 10)* — fill between boundaries with subtle opacity. Keep boundaries visible.
+6. **Profile auto-discovery** *(depends on Phase 10)* — find `tracks/<track>/<layout>/...` automatically instead of explicit profile input.
+7. **Cross-session profile merge command** *(depends on Phase 8.1)* — merge existing profile JSON files without rereading raw Parquet.
+8. **Official track data research/import** *(depends on diagnostics proving sim-derived limits are insufficient)* — investigate whether official or community boundary geometry is available and legally usable.
 
 ---
 
