@@ -1,8 +1,9 @@
 # Barcelona Outline Pipeline
 
-**Status:** ✅ COMPLETE (except Visual QA — requires human)
+**Status:** ✅ COMPLETE (ready for Visual QA)
 **Completed:** 2026-05-15
 **Branch:** `barcelona-outline-pipeline`
+**Approach:** Trajectory trace (±5m width) — bacinger approach discarded
 
 **Audience:** implementing agent starting from empty context.
 **Goal:** Produce a `data/track-outlines/circuit-de-barcelona.json` schema v1 outline for the LMU Barcelona-Catalunya circuit, aligned to simulator coordinates, and wire it into the frontend manifest.
@@ -13,79 +14,70 @@
 
 - LMU uses a **different Barcelona layout** than the TUMFTM `Catalunya.csv`. The TUMFTM data aligns poorly (verified visually by the user — "wrong version of the layout").
 - TUMFTM has only one `Catalunya.csv`, no layout variants.
-- **bacinger/f1-circuits** provides GeoJSON centerlines (lon/lat, no widths, no boundaries) for Barcelona: `circuits/es-1991.geojson`.
+- ~~**bacinger/f1-circuits** provides GeoJSON centerlines~~ — **DISCARDED**: bacinger data did not match LMU's Barcelona layout at all.
+- **New approach:** Generate outline directly from simulator trajectory data by tracing the recorded positions with ±5m boundaries.
 - Our sessions have 26+ Barcelona parquets with `pos_x_m`/`pos_z_m` simulator trajectories.
 - The existing `data/track-outlines/circuit-de-barcelona.json` was auto-aligned from TUMFTM Catalunya — it is the **wrong layout** and must be replaced.
 - The frontend manifest (`web/js/trackOutlineManifest.js`) already has Barcelona wired up via `CIRCUIT_BARCELONA_STATIC_OUTLINE`; regenerating the module from the new outline is straightforward.
 
 ## 2. Data sources
 
-### bacinger/f1-circuits — centerline (no widths)
+### Simulator trajectory data (PRIMARY SOURCE)
 
-- **Repo:** https://github.com/bacinger/f1-circuits (312★, MIT license)
-- **File:** `circuits/es-1991.geojson`
-- **Format:** GeoJSON `LineString`, lon/lat (WGS84), 150 points
-- **No width data.** Widths must be estimated.
-- **Interactive map:** https://svemir.co/f1/
-
-### Our session trajectories
-
-- 26+ parquet files matching `*circuit-de-barcelona*.parquet`
-- Columns: `lap_number`, `pos_x_m`, `pos_z_m`, `lap_distance_m`, etc.
-- Pick a clean complete lap (not out-lap) from a multi-lap session.
+- Existing `data/track-outlines/alignment-artifacts/circuit-de-barcelona/trajectory-circuit-de-barcelona.json`
+- 1377 points from a multi-lap Barcelona session
+- Columns: `pos_x_m`, `pos_z_m` in simulator coordinates
+- **Advantage:** Guaranteed to match LMU's coordinate system and layout
 
 ### TUMFTM Catalunya.csv — DO NOT USE for Barcelona
 
 - Wrong layout. Already proven to not match LMU's Barcelona.
 - Keep `Catalunya.csv` around in case a future LMU layout matches the TUMFTM variant.
 
+### ~~bacinger/f1-circuits~~ — DISCARDED
+
+- ~~Repo: https://github.com/bacinger/f1-circuits~~
+- ~~File: `circuits/es-1991.geojson`~~
+- **Did not work:** The GPS-derived centerline did not match LMU's Barcelona layout at all.
+- **Lesson:** External GeoJSON sources may not match simulator-specific track layouts.
+
 ## 3. Subphases
 
-### 3.1 Download bacinger centerline and convert to local metric coordinates ✅
+### 3.1 Generate outline from trajectory trace ✅
 
-1. Download `es-1991.geojson` from bacinger/f1-circuits.
-2. Parse the GeoJSON `LineString` coordinates (lon, lat).
-3. Convert WGS84 lon/lat → local metric coordinates using a UTM projection (zone 31T for Barcelona, EPSG:32631).
-4. Save as JSON in `data/track-outlines/alignment-artifacts/circuit-de-barcelona/bacinger-barcelona.json` using the same format our alignment tool consumes: `{ track_name, points: [{ x, y, w_right, w_left }] }`.
-5. Assign estimated widths. Strategy: use a constant width (e.g. `w_right = 6, w_left = 6` for ~12m total). Barcelona-Catalunya is a wide F1 track; 6m per side is reasonable. If initial alignment looks too narrow or wide, adjust by ±1m.
-6. Optionally measure actual widths from Google Maps satellite imagery at 3-5 reference points (start/finish, Turn 1, Camp hairpin, back straight, last corner) and interpolate. Only do this if constant width looks clearly wrong after visual QA.
+1. Use existing `trajectory-circuit-de-barcelona.json` (1377 points from multi-lap session).
+2. Resample to ~500 evenly-spaced points for smooth outline.
+3. Compute left/right boundaries at ±5m perpendicular to track direction.
+4. Save as `data/track-outlines/circuit-de-barcelona.json` in schema v1 format.
 
-**Done:** Created `scripts/convert_bacinger_to_metric.py` — simplified Transverse Mercator projection (UTM zone 31). Output: `bacinger-barcelona.json` with 150 points, 6m per side widths.
+**Done:** Created `scripts/trajectory_to_outline.py` — traces trajectory with ±5m boundaries. Output: 500-point centerline with matching boundaries.
 
 ### 3.2 Extract a clean reference lap from session data ✅
 
-1. Use `scripts/prepare_manual_outline_inputs.js` to export a trajectory from a Barcelona session parquet. Pick a session with 5+ laps. Pick a middle lap (not the first or last in the session, to avoid out-lap anomalies).
-2. Save as `data/track-outlines/alignment-artifacts/circuit-de-barcelona/trajectory-circuit-de-barcelona.json`.
-3. If we already have one from a prior `prepare_all_outlines.js` run, we can reuse it — but note the previous one used TUMFTM Catalunya; the **trajectory itself is fine**, only the TUMFTM track data was wrong.
+Already done — `trajectory-circuit-de-barcelona.json` exists from prior `prepare_all_outlines.js` run.
 
-**Done:** Reused existing `trajectory-circuit-de-barcelona.json` (1377 points from multi-lap session).
+### 3.3 Run automated ICP alignment — SKIPPED
 
-### 3.3 Run automated ICP alignment ✅
-
-1. Use `scripts/auto_align_outline.js` with `--try-all-flips` against the bacinger centerline (from 3.1) and the sim trajectory (from 3.2).
-2. Verify the ICP converges to a low error (< 10 sim-units mean distance).
-3. The ICP pipeline resamples both curves internally so stride doesn't matter.
-4. Save intermediate alignment to `data/track-outlines/circuit-de-barcelona.json`.
-
-**Done:** ICP converged with mean error **18.44 sim-units** (flip=none). Scale: 0.825, rotation: -8.39°, translation: [-206, 38].
+Not needed — the trajectory is already in simulator coordinates. The outline is generated directly from the trajectory trace.
 
 ### 3.4 Visual QA with manual_outline_align.html ⏳ PENDING
 
 **This step requires a human.**
 
 1. Open `tools/manual_outline_align.html` in a browser.
-2. Load the bacinger JSON (from 3.1) as "TUMFTM track".
-3. Load the trajectory JSON (from 3.2) as "Simulator reference trajectory".
-4. Verify the auto-aligned centerline follows the sim trajectory. Major landmarks to check:
-   - **Start/finish straight** alignment.
+2. Load the trajectory-generated outline (`data/track-outlines/circuit-de-barcelona.json`) as "TUMFTM track".
+3. The simulator reference trajectory should already be loaded (or load `trajectory-circuit-de-barcelona.json`).
+4. **Expected:** The outline should already align perfectly since it was traced from the trajectory!
+5. Verify major landmarks look correct:
+   - **Start/finish straight** — should be straight and properly oriented.
    - **Turn 1** (tight right-hander after long straight).
    - **Camp corner** (tight left hairpin at the far end).
    - **Back straight** length and orientation.
-   - **Turn 10 / chicane area** — should line up without a visible kink or offset.
-5. If alignment is off, manually adjust scale/rotation/translation/flip in the tool.
-6. Export the aligned outline JSON.
-7. **Replace** `data/track-outlines/circuit-de-barcelona.json` with the visually-verified export.
-8. Set `visual_qa.status` to `"accepted"` and add notes about what was checked.
+   - **Turn 10 / chicane area** — should flow naturally.
+6. If the outline needs refinement (e.g., width adjustments, smoothing), use the manual alignment tool to adjust.
+7. Export the refined outline JSON.
+8. **Replace** `data/track-outlines/circuit-de-barcelona.json` with the verified export.
+9. Set `visual_qa.status` to `"accepted"` and add notes about what was checked.
 
 ### 3.5 Regenerate the static ES module ✅
 
@@ -94,7 +86,7 @@
 3. Verify `CIRCUIT_BARCELONA_STATIC_OUTLINE` export exists.
 4. The manifest (`web/js/trackOutlineManifest.js`) already imports this module — no changes needed unless the export name changed.
 
-**Done:** `web/js/staticCircuitBarcelonaOutlineData.js` regenerated (23 KB).
+**Done:** `web/js/staticCircuitBarcelonaOutlineData.js` regenerated (72 KB).
 
 ### 3.6 Verify ✅
 
@@ -109,30 +101,22 @@ All 732+ assertions must pass. The build must succeed.
 
 ### 3.7 Commit ✅
 
-Commit with message like:
-```
-feat: barcelona outline from bacinger/f1-circuits centerline + width estimation + ICP alignment
-
-Replaces the incorrect TUMFTM Catalunya-based alignment with bacinger/f1-circuits
-es-1991.geojson centerline (correct LMU Barcelona layout). Widths estimated
-at ~12m constant. Visual QA pending.
-```
+**Done:** Committed to `barcelona-outline-pipeline` branch.
 
 ## 4. Known caveats for Barcelona
 
-- **Widths are estimated**, not measured from satellite. bacinger provides no width data.
-  The TUMFTM Catalunya.csv width data CANNOT be transferred because it belongs to a different layout.
-  If visual QA reveals width issues, measure from satellite at key points.
-- **bacinger centerline is GPS-derived**, not smoothed like TUMFTM. It may have minor noise.
-  The ICP alignment is robust to this, but the outline may show small jitter in tight corners.
-  Smoothing can be applied offline if needed.
-- **Layout variant**: bacinger `es-1991` presumably represents the post-1991 GP layout.
-  LMU's Barcelona layout should match this (modern F1 layout). If LMU uses a vintage or
-  MotoGP variant, the centerline will not match and we need a different source.
+- **Width is constant ±5m** — not measured from real track data. Barcelona-Catalunya is a wide F1 track; actual width varies from ~10-15m. Adjust in manual QA if needed.
+- **Centerline follows trajectory** — may not match ideal racing line or track center. The trajectory is from an actual lap, so it should be close to the racing line.
+- **No smoothing applied** — the 500-point resampled outline should be smooth enough for visual context.
+- **Layout variant:** This outline matches the LMU Barcelona layout from the session data — guaranteed to be correct for this simulator.
 
 ## 5. Rollback plan
 
-If bacinger centerline proves wrong for LMU's Barcelona layout:
-1. Revert `data/track-outlines/circuit-de-barcelona.json` to the previous TUMFTM-based version.
-2. Try OSM Overpass extraction for the exact layout LMU uses.
-3. If no data source matches, remove the Barcelona outline and let the app render trajectory-only (graceful fallback).
+If trajectory-based outline proves unsatisfactory:
+
+1. Revert to previous TUMFTM-based version from git history (though we know it was wrong layout).
+2. Try extracting centerline from multiple sessions and averaging.
+3. Try OSM Overpass extraction for real-world geometry (but may not match LMU layout).
+4. Remove the Barcelona outline and let the app render trajectory-only (graceful fallback — the app already handles missing outlines).
+
+**Note:** The trajectory-based approach is much more likely to work than external data sources since it uses the simulator's own coordinate system.
