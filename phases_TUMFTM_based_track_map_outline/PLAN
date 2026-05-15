@@ -1,0 +1,22 @@
+# TUMFTM-Based Track Map Outline Phase Plan
+
+This plan is intentionally gated by a quick visual spike. Do not build runtime app integration, aliases, or production schema work until Phase 00 proves that a manually aligned TUMFTM outline is visibly better than the current learned-boundary output.
+
+| Phase | Description | Status |
+|-------|-------------|--------|
+| 00_quick_and_dirty_alignment_try | Build a standalone local HTML alignment tool to manually overlay TUMFTM outline geometry on one Spa simulator trajectory, export aligned outline JSON, and visually compare against current learned-boundary output | ⬜ TODO |
+| 01_static_outline_contract | If Phase 00 succeeds, formalize the static simulator-coordinate outline JSON contract and add one reviewed Spa artifact | ⬜ BLOCKED |
+| 02_runtime_static_outline_rendering | Load one explicit static outline and render it behind existing trajectories in the compare UI | ⬜ BLOCKED |
+| 03_offline_conversion_workflow | Harden the offline TUMFTM CSV conversion/export scripts and document manual alignment workflow | ⬜ BLOCKED |
+| 04_manifest_and_aliases | Add explicit track/layout manifest and conservative alias matching for static outlines | ⬜ BLOCKED |
+
+## Gate after Phase 00
+
+Continue only if the manually aligned Spa/TUMFTM outline is obviously better than the current learned-boundary output:
+
+- Bus Stop reads as a continuous believable track corridor.
+- La Source is smooth and plausible, not jagged/noisy.
+- Real lap trajectories sit inside or near the outline for most of the lap.
+- The alignment can be achieved with a simple global transform in a reasonable amount of manual time.
+
+If Phase 00 fails, stop this track-outline approach or redesign around a different external/static geometry source. Do not proceed to UI integration just to render another poor outline.
