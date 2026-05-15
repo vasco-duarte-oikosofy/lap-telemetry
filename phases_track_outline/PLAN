@@ -15,7 +15,7 @@
 | 08-width-profile-confidence | Add confidence and explicit gap/one-sided flags | ✅ DONE |
 | 08.1-width-profile-smoothing | Interpolate short gaps and smooth render-ready widths | ✅ DONE |
 | 09-center-path-cli | Generate binned center/path polyline from world positions | ✅ DONE |
-| 09.1-boundary-polylines | Derive left/right boundary polylines from path + widths | ⬜ TODO |
+| 09.1-boundary-polylines | Derive left/right boundary polylines from path + widths | ✅ DONE |
 | 10-learned-outline-rendering | Render learned boundaries behind existing map | ⬜ TODO |
 | 11-low-confidence-outline-styling | Visually distinguish low-confidence outline sections | ⬜ TODO |
 | 12-profile-diagnostics | Generate profile diagnostics report | ⬜ TODO |
