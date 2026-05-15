@@ -13,9 +13,9 @@ State on disk:
   - Refuses to overwrite existing output unless `overwrite: true` / `--overwrite` is passed.
 
 - `scripts/test_width_profile_export.js`
-  - 52 assertions covering all acceptance criteria.
+  - 61 assertions covering all acceptance criteria.
   - Builds synthetic Parquet fixtures with Python/pyarrow.
-  - Covers: single-fixture left/right binning, multi-session accumulation, skip counting, overwrite refusal/override, CLI invocation, floor rule, same-bin max, zero-lateral → right.
+  - Covers: single-fixture left/right binning, multi-session accumulation, skip counting, overwrite refusal/override, CLI invocation, floor rule, same-bin max, zero-lateral → right, real-session integration (Spa endurance).
 
 - `package.json`
   - Adds `node scripts/test_width_profile_export.js` to `npm test`.
