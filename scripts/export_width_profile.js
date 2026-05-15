@@ -15,6 +15,7 @@
 
 const fs = require('fs/promises');
 const path = require('path');
+const { interpolateAndSmooth } = require('./width_profile_smoothing');
 
 const REQUIRED_COLUMNS = ['raw_lap_distance_m', 'path_lateral_m', 'track_edge_m'];
 const MIN_SAMPLES = 3;
@@ -129,7 +130,7 @@ async function readSessionRows(sessionPath) {
   return rows;
 }
 
-async function exportWidthProfile({ sessionPaths, trackId, layoutId, outPath, binSizeM = 1, overwrite = false } = {}) {
+async function exportWidthProfile({ sessionPaths, trackId, layoutId, outPath, binSizeM = 1, overwrite = false, smooth = false } = {}) {
   if (!sessionPaths || sessionPaths.length === 0) throw new Error('no session paths provided');
   if (!trackId) throw new Error('missing --track-id');
   if (!layoutId) throw new Error('missing --layout-id');
@@ -142,6 +143,14 @@ async function exportWidthProfile({ sessionPaths, trackId, layoutId, outPath, bi
   }
 
   const { samples, skipped, missing_bins, one_sided_bins, low_sample_bins, complete_bins } = buildProfileFromRows(allRows, binSizeM);
+
+  if (smooth) {
+    const smoothed = interpolateAndSmooth(samples);
+    for (let si = 0; si < samples.length; si++) {
+      samples[si].left_width_smooth_m = smoothed[si].left_width_smooth_m;
+      samples[si].right_width_smooth_m = smoothed[si].right_width_smooth_m;
+    }
+  }
 
   const profile = {
     track_id: trackId,
@@ -172,11 +181,13 @@ async function exportWidthProfile({ sessionPaths, trackId, layoutId, outPath, bi
 }
 
 function parseArgs(argv) {
-  const opts = { overwrite: false, sessionPaths: [] };
+  const opts = { overwrite: false, smooth: false, sessionPaths: [] };
   for (let i = 0; i < argv.length; i++) {
     const arg = argv[i];
     if (arg === '--overwrite') {
       opts.overwrite = true;
+    } else if (arg === '--smooth') {
+      opts.smooth = true;
     } else if (arg === '--out' || arg === '--track-id' || arg === '--layout-id') {
       const value = argv[++i];
       if (!value) throw new Error(`missing value for ${arg}`);
@@ -194,6 +205,7 @@ function parseArgs(argv) {
     layoutId: opts.layoutId,
     outPath: opts.out,
     overwrite: opts.overwrite,
+    smooth: opts.smooth,
   };
 }
 
@@ -205,7 +217,7 @@ async function main(argv) {
   console.log(`  complete=${s.complete_bins} one-sided=${s.one_sided_bins} low-sample=${s.low_sample_bins} missing=${s.missing_bins}`);
 }
 
-module.exports = { exportWidthProfile, buildProfileFromRows, readSessionRows };
+module.exports = { exportWidthProfile, buildProfileFromRows, readSessionRows, interpolateAndSmooth };
 
 if (require.main === module) {
   main(process.argv.slice(2)).catch(err => {
