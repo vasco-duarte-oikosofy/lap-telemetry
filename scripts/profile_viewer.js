@@ -4,9 +4,11 @@
  * Usage:
  *   node scripts/profile_viewer.js <profile.json> [output.html]
  *   node scripts/profile_viewer.js <profile.json> --path <path.json> [output.html]
+ *   node scripts/profile_viewer.js <profile.json> --path <path.json> --boundaries <boundaries.json> [output.html]
  *
  * Produces a self-contained HTML file with:
  *   - 2D track map (x vs z) from path data (if provided)
+ *   - Left/right boundary polylines on the track map (if boundaries provided)
  *   - Width chart comparing raw vs smoothed widths, color-coded by bin status
  * Both panels support scroll zoom and drag pan.
  * Hovering a bin on the width chart highlights it on the track map.
@@ -20,11 +22,14 @@ const path = require('path');
 // Parse args
 let profilePath = null;
 let pathPath = null;
+let boundariesPath = null;
 let outPath = null;
 const args = process.argv.slice(2);
 for (let i = 0; i < args.length; i++) {
   if (args[i] === '--path') {
     pathPath = args[++i];
+  } else if (args[i] === '--boundaries') {
+    boundariesPath = args[++i];
   } else if (!profilePath) {
     profilePath = args[i];
   } else {
@@ -32,7 +37,7 @@ for (let i = 0; i < args.length; i++) {
   }
 }
 if (!profilePath) {
-  console.error('Usage: node scripts/profile_viewer.js <profile.json> [--path <path.json>] [output.html]');
+  console.error('Usage: node scripts/profile_viewer.js <profile.json> [--path <path.json>] [--boundaries <boundaries.json>] [output.html]');
   process.exit(1);
 }
 if (!outPath) outPath = profilePath.replace(/\.json$/, '-view.html');
@@ -51,6 +56,11 @@ let pathPoints = null;
 if (pathPath && fs.existsSync(pathPath)) {
   const pathData = JSON.parse(fs.readFileSync(pathPath, 'utf8'));
   pathPoints = pathData.points;
+}
+
+let boundariesData = null;
+if (boundariesPath && fs.existsSync(boundariesPath)) {
+  boundariesData = JSON.parse(fs.readFileSync(boundariesPath, 'utf8'));
 }
 
 // Build map canvas HTML and JS only if path data is present
@@ -98,6 +108,34 @@ function drawMap(){
   }
   mapCtx.stroke();
 
+  // Left boundary polyline
+  if(BOUNDARIES&&BOUNDARIES.left){
+    mapCtx.strokeStyle='#e63946';
+    mapCtx.lineWidth=1;
+    mapCtx.beginPath();
+    for(var i=0;i<BOUNDARIES.left.length;i++){
+      var bp=BOUNDARIES.left[i];
+      var bpx=cx+((bp.x_m-(xMin+xMax)/2)*scale)-mapOffX*scale;
+      var bpy=cy+((bp.z_m-(zMin+zMax)/2)*scale)-mapOffY*scale;
+      if(i===0)mapCtx.moveTo(bpx,bpy);else mapCtx.lineTo(bpx,bpy);
+    }
+    mapCtx.stroke();
+  }
+
+  // Right boundary polyline
+  if(BOUNDARIES&&BOUNDARIES.right){
+    mapCtx.strokeStyle='#2a9d8f';
+    mapCtx.lineWidth=1;
+    mapCtx.beginPath();
+    for(var i=0;i<BOUNDARIES.right.length;i++){
+      var bp=BOUNDARIES.right[i];
+      var bpx=cx+((bp.x_m-(xMin+xMax)/2)*scale)-mapOffX*scale;
+      var bpy=cy+((bp.z_m-(zMin+zMax)/2)*scale)-mapOffY*scale;
+      if(i===0)mapCtx.moveTo(bpx,bpy);else mapCtx.lineTo(bpx,bpy);
+    }
+    mapCtx.stroke();
+  }
+
   // Highlight dot for current bin
   if(highlightS!==null){
     var pt=null, bestDist=Infinity;
@@ -144,7 +182,7 @@ mapCanvas.addEventListener('mouseleave',function(){mapDrag=null;});
 ` : '';
 
 const legendExtra = pathPoints
-  ? '<span><i style="background:#4cc9f0"></i>center path</span>'
+  ? '<span><i style="background:#4cc9f0"></i>center path</span>' + (boundariesData ? '<span><i style="background:#e63946"></i>left boundary</span><span><i style="background:#2a9d8f"></i>right boundary</span>' : '')
   : '';
 
 const html = [
@@ -166,7 +204,7 @@ const html = [
   ...(hasSmooth ? ['<span><i style="background:#4cc9f0"></i>smooth</span><span><i style="background:#888"></i>raw</span>'] : []),
   legendExtra,
   ' </div>',
-  ` <div class="info" id="info">scroll to zoom, drag to pan | ${samples.length} bins | ${profile.bin_size_m}m bins${pathPoints ? ' | ' + pathPoints.length + ' path points' : ''}</div>`,
+  ` <div class="info" id="info">scroll to zoom, drag to pan | ${samples.length} bins | ${profile.bin_size_m}m bins${pathPoints ? ' | ' + pathPoints.length + ' path points' : ''}${boundariesData ? ' | ' + boundariesData.left.length + ' left + ' + boundariesData.right.length + ' right boundary pts' : ''}</div>`,
   '</div>',
   mapCanvasHtml,
   '<h2>Width Profile</h2>',
@@ -174,6 +212,7 @@ const html = [
   '<script>',
   'const SAMPLES=' + JSON.stringify(samples) + ';',
   'const POINTS=' + JSON.stringify(pathPoints) + ';',
+  'const BOUNDARIES=' + JSON.stringify(boundariesData) + ';',
   'const MAX_W=' + maxW + ';',
   'const HAS_SMOOTH=' + hasSmooth + ';',
   'const STATUS_COLORS=' + JSON.stringify(statusColors) + ';',
@@ -315,4 +354,4 @@ const html = [
 
 fs.writeFileSync(outPath, html);
 console.log(`wrote ${outPath} — open in browser to inspect`);
-console.log(`  ${samples.length} width bins, ${hasSmooth ? 'smooth+raw' : 'raw only'}, max width ${maxW.toFixed(1)}m${pathPoints ? `, ${pathPoints.length} path points` : ''}`);
+console.log(`  ${samples.length} width bins, ${hasSmooth ? 'smooth+raw' : 'raw only'}, max width ${maxW.toFixed(1)}m${pathPoints ? `, ${pathPoints.length} path points` : ''}${boundariesData ? `, ${boundariesData.left.length} left + ${boundariesData.right.length} right boundary pts` : ''}`);
