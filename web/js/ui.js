@@ -4,7 +4,7 @@
 export { rebuildPickers, updateCompareBtn, parsePickerValue,
          addSessionEntry, refreshSessionListBadges } from './pickers.js';
 
-import { store, pendingSidecars, apexAnnotationsByLayout, learnedBoundariesByLayout, state, persistPanelOrder, DEFAULT_PANEL_ORDER,
+import { store, pendingSidecars, apexAnnotationsByLayout, state, persistPanelOrder, DEFAULT_PANEL_ORDER,
          features, setFeatureFlag } from './appState.js';
 import { storeKey, fileStem, formatDuration, lapStatusBadges, formatPickLabel,
          shortVehicle, shortSetup, showError, clearError, setBadge,
@@ -18,7 +18,7 @@ import { rebuildPickers, updateCompareBtn, parsePickerValue,
 import { parseDeltabestCsv, buildDeltabestSidecar } from './dataTransforms.js';
 import { TRACK_OUTLINE_CHANNELS, warnInvalidTrackOutlineSamples } from './trackOutlineChannels.js';
 import { validateApexAnnotations } from './apexAnnotations.js';
-import { isBoundaryData, boundaryKey } from './learnedOutline.js';
+
 
 // ── File loading ──────────────────────────────────────────────────────────────
 
@@ -69,26 +69,12 @@ function isApexAnnotationJson(value) {
     'track_id' in value && 'layout_id' in value && 'corners' in value);
 }
 
-function isBoundaryJson(value) {
-  return !!(value && typeof value === 'object' && !Array.isArray(value) &&
-    'track_id' in value && 'layout_id' in value &&
-    Array.isArray(value.left) && Array.isArray(value.right));
-}
+
 
 async function loadSidecar(file) {
   try {
     const text = await file.text();
     const sidecar = JSON.parse(text);
-
-    // Check if this is a learned boundary outline file
-    if (isBoundaryJson(sidecar)) {
-      const key = boundaryKey(sidecar.track_id, sidecar.layout_id);
-      learnedBoundariesByLayout.set(key, sidecar);
-      console.log(`loaded boundary data for ${sidecar.track_id}/${sidecar.layout_id} (${sidecar.left?.length ?? 0} left, ${sidecar.right?.length ?? 0} right points)`);
-      // Trigger a re-render if sessions are loaded
-      rebuildPickers();
-      return;
-    }
 
     if (isApexAnnotationJson(sidecar)) {
       const validation = validateApexAnnotations(sidecar);

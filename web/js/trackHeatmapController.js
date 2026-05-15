@@ -1,9 +1,9 @@
-import { features, devFeatures, learnedBoundariesByLayout, store } from './appState.js';
+import { features, devFeatures } from './appState.js';
 import { computeTrackBounds } from './pipeline.js';
 import { createMapHover } from './mapHover.js';
 import { createMapInteraction, setBaseTransform } from './mapInteraction.js';
-import { renderWalkingSkeleton, initTrackHeatmapResize, fitToView, getLastTransform } from './trackHeatmapMap.js';
-import { findBoundaryData } from './learnedOutline.js';
+import { renderWalkingSkeleton, initTrackHeatmapResize, fitToView, getLastTransform, drawCanvasCursorDot } from './trackHeatmapMap.js';
+
 
 export function createTrackHeatmapController(getMapState) {
   let trackHeatmapObserver = null;
@@ -40,28 +40,12 @@ export function createTrackHeatmapController(getMapState) {
   }
 
   function buildOpts({ respectZoomFlag = true, includeMapSAlignment = true } = {}) {
-    const { currentZoomRange, learnedBoundariesByLayout: bMap } = getMapState();
+    const { currentZoomRange } = getMapState();
     const s = (!respectZoomFlag || features.mapZoomPan) && mapInteraction
       ? mapInteraction.getState()
       : { scale: 1, tx: 0, ty: 0 };
 
-    // Resolve learned boundary data for the current session's track/layout
-    let learnedBoundaries = null;
-    if (features.learnedTrackOutline) {
-      const sessionEntry = getMapState().currentLapARaw;
-      // Try to get track/layout from store entries
-      for (const [, entry] of store) {
-        const track = entry.sidecar?.track_id || entry.sidecar?.track || entry.sidecar?.track_name;
-        const layout = entry.sidecar?.layout_id || entry.sidecar?.layoutId || entry.sidecar?.layout || 'default';
-        if (track) {
-          learnedBoundaries = findBoundaryData(bMap || learnedBoundariesByLayout, track, layout);
-          if (learnedBoundaries) break;
-        }
-      }
-    }
-
     return {
-      showOutline: !!features.mapTrackOutline,
       showHeatmapSingleLap: !!features.mapHeatmapSingleLap,
       showSAlignmentDebug: (includeMapSAlignment && !!features.mapSAlignment) || !!devFeatures.devMapSAlignmentDebug,
       showDualRibbon: !!features.mapDualRibbon,
@@ -75,9 +59,8 @@ export function createTrackHeatmapController(getMapState) {
       userScale: s.scale,
       userPanX: s.tx,
       userPanY: s.ty,
-      showLearnedOutline: !!features.learnedTrackOutline,
       showStaticOutline: true,
-      learnedBoundaries,
+      cursorBinIdx: _currentCursorBinIdx,
     };
   }
 
@@ -86,7 +69,7 @@ export function createTrackHeatmapController(getMapState) {
     const svg = document.getElementById('circuit-map-svg');
     if (!canvas || !svg) return;
 
-    const anyMapFeature = features.mapWalkingSkeleton || features.mapTrackOutline || features.mapHeatmapSingleLap || features.mapSAlignment || features.mapDualRibbon || features.mapZoomPan || features.mapLegend || features.mapHover || features.mapLinkedHighlight || features.learnedTrackOutline || true;
+    const anyMapFeature = features.mapWalkingSkeleton || features.mapHeatmapSingleLap || features.mapSAlignment || features.mapDualRibbon || features.mapZoomPan || features.mapLegend || features.mapHover || features.mapLinkedHighlight || true; // static outline always prefers canvas
     if (!anyMapFeature) {
       canvas.style.display = 'none';
       svg.style.display = '';
@@ -149,9 +132,27 @@ export function createTrackHeatmapController(getMapState) {
     }
   }
 
+  let _currentCursorBinIdx = null;
+
+  function setCursorBinIdx(idx) {
+    _currentCursorBinIdx = idx;
+  }
+
+  function drawCursorDot(binIdx) {
+    const canvas = document.getElementById('track-heatmap-canvas');
+    if (!canvas) return;
+    const { currentTrackX, currentTrackZ } = getMapState();
+    const transform = getLastTransform();
+    if (!currentTrackX || !currentTrackZ || !transform) return;
+    const lapA = { x: currentTrackX, z: currentTrackZ };
+    drawCanvasCursorDot(canvas, lapA, transform, binIdx);
+  }
+
   return {
     render,
     getMapInteractionState: () => mapInteraction?.getState() ?? null,
     getMapHoverState: () => mapHover?.getState() ?? null,
+    setCursorBinIdx,
+    drawCursorDot,
   };
 }

@@ -3,18 +3,17 @@
 // Phase 02: supports user zoom/pan composed with base fit-to-view transform.
 //
 // Feature flags:
-// - features.mapWalkingSkeleton (default: off)
-// - features.mapTrackOutline (default: off, Phase 00.6)
+// - features.mapWalkingSkeleton (default: on)
 // - features.mapHeatmapSingleLap (default: off, Phase 01a)
 
 import { computeTrackBounds } from './pipeline.js';
 import { drawRibbon, drawHeatmapRibbon, drawDualRibbons } from './ribbon.js';
 import { updateMapLegend } from './mapLegend.js';
 import {
-  drawPolyline, drawTrackOutline, drawHoverTick, drawLinkedHighlight,
+  drawPolyline, drawHoverTick, drawLinkedHighlight,
   drawStartFinishTick, drawDebugTicks,
 } from './trackHeatmapDrawing.js';
-import { drawLearnedBoundaries } from './learnedOutline.js';
+
 import { getSpaStaticOutline, drawStaticTrackOutline } from './staticTrackOutline.js';
 
 let _lastTransform = null;
@@ -85,7 +84,7 @@ export function applyUserTransform(base, userScale, userPanX, userPanY) {
 // Phase 00.6: adds track outline background underneath.
 
 export function renderWalkingSkeleton(canvas, lapA, lapB, options = {}) {
-  const { showOutline = false, showHeatmapSingleLap = false, showSAlignmentDebug = false, showDualRibbon = false, showLegend = false, ribbonWidthPx = 8, ribbonGapPx = 2, userScale = 1, userPanX = 0, userPanY = 0, learnedBoundaries = null, showLearnedOutline = false, showStaticOutline = false } = options;
+  const { showHeatmapSingleLap = false, showSAlignmentDebug = false, showDualRibbon = false, showLegend = false, ribbonWidthPx = 8, ribbonGapPx = 2, userScale = 1, userPanX = 0, userPanY = 0, showStaticOutline = false, cursorBinIdx = null } = options;
   
   const ctx = canvas.getContext('2d');
   const rect = canvas.getBoundingClientRect();
@@ -98,6 +97,7 @@ export function renderWalkingSkeleton(canvas, lapA, lapB, options = {}) {
 
   // Clear
   ctx.clearRect(0, 0, rect.width, rect.height);
+  resetCanvasCursorDotPatch();
 
   if (!lapA || !lapA.x || !lapA.z || !lapB || !lapB.x || !lapB.z) return;
 
@@ -113,24 +113,11 @@ export function renderWalkingSkeleton(canvas, lapA, lapB, options = {}) {
   ctx.fillStyle = 'rgba(0, 0, 0, 0.2)';
   ctx.fillRect(0, 0, rect.width, rect.height);
 
-  // Phase 10: Draw learned boundaries FIRST (bottom layer)
-  if (showLearnedOutline && learnedBoundaries) {
-    drawLearnedBoundaries(ctx, learnedBoundaries, transform);
-  }
-
   // TUMFTM Phase 02: Draw static Spa outline (bottom layer, under trajectories)
   if (showStaticOutline) {
     drawStaticTrackOutline(ctx, getSpaStaticOutline(), transform);
   }
 
-  // Phase 00.6: Draw track outline FIRST (bottom layer)
-  if (showOutline) {
-    console.log('[trackHeatmapMap] Drawing outline with', lapA.x.length, 'points');
-    // Use Lap A's track as the reference outline (spec: derived from either lap)
-    drawTrackOutline(ctx, lapA.x, lapA.z, transform);
-  } else {
-    console.log('[trackHeatmapMap] showOutline is false, skipping outline');
-  }
 
   // Draw order: background → outline → Lap A ribbon → Lap B ribbon → start/finish marker
   if (showDualRibbon) {
@@ -175,7 +162,75 @@ export function renderWalkingSkeleton(canvas, lapA, lapB, options = {}) {
 
   // Store transform for hover hit-testing
   setLastTransform(transform);
+
+  // Cursor dot — drawn after full render so it appears on top
+  if (cursorBinIdx != null && isFinite(cursorBinIdx)) {
+    drawCanvasCursorDot(canvas, lapA, transform, cursorBinIdx);
+  }
 }
+
+// ── Canvas cursor dot ─────────────────────────────────────────────────────────
+// Draws a small filled circle on the canvas at the position corresponding to
+// the given bin index. This is an incremental overlay — it saves and restores
+// a small patch of the canvas to avoid ghost dots. The next full render
+// (renderWalkingSkeleton) will also paint over it cleanly.
+
+let _savedDotPatch = null; // { canvasWidth, data, x, y, w, h } in device pixels
+
+export function drawCanvasCursorDot(canvas, lapA, transform, binIdx) {
+  if (!canvas || !lapA || !transform || binIdx == null || !isFinite(binIdx)) return;
+  const x = lapA.x[binIdx];
+  const z = lapA.z[binIdx];
+  if (!isFinite(x) || !isFinite(z)) return;
+
+  const ctx = canvas.getContext('2d');
+  const dpr = window.devicePixelRatio || 1;
+
+  // Restore the previous dot patch if it exists and the canvas size hasn't changed
+  if (_savedDotPatch && _savedDotPatch.canvasWidth === canvas.width) {
+    ctx.putImageData(_savedDotPatch.data, _savedDotPatch.x, _savedDotPatch.y);
+  }
+  _savedDotPatch = null;
+
+  ctx.save();
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  const sx = transform.toScreenX(x);
+  const sy = transform.toScreenY(z);
+  if (!isFinite(sx) || !isFinite(sy)) { ctx.restore(); return; }
+
+  // Save a small patch around the dot position (in device pixels)
+  const radius = 5; // slightly larger than the dot to cover anti-aliasing
+  const dpx = Math.round(sx * dpr);
+  const dpy = Math.round(sy * dpr);
+  const patchX = Math.max(0, dpx - radius);
+  const patchY = Math.max(0, dpy - radius);
+  const patchW = Math.min(canvas.width - patchX, radius * 2 + 1);
+  const patchH = Math.min(canvas.height - patchY, radius * 2 + 1);
+  if (patchW > 0 && patchH > 0) {
+    ctx.setTransform(1, 0, 0, 1, 0, 0); // identity for putImageData
+    _savedDotPatch = {
+      canvasWidth: canvas.width,
+      data: ctx.getImageData(patchX, patchY, patchW, patchH),
+      x: patchX,
+      y: patchY,
+      w: patchW,
+      h: patchH,
+    };
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  }
+
+  ctx.fillStyle = '#58a6ff'; // var(--accent)
+  ctx.beginPath();
+  ctx.arc(sx, sy, 4, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.restore();
+}
+
+/** Clear the saved cursor dot patch (call after a full canvas re-render). */
+export function resetCanvasCursorDotPatch() {
+  _savedDotPatch = null;
+}
+
 
 // ── ResizeObserver setup ──────────────────────────────────────────────────────
 // Sets up a ResizeObserver on the canvas container that re-renders on resize.
