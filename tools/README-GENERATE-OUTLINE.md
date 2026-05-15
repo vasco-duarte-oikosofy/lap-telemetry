@@ -296,3 +296,164 @@ npm run build
 - `tools/validate_barcelona_outline.html` — Barcelona-specific validation
 - `scripts/generate_outline_module.js` — Converts outline JSON to ES module
 - `web/js/trackOutlineManifest.js` — Manifest mapping track names to outlines
+
+---
+
+## Best Practice: Use Single Fastest Lap (Not Averaged)
+
+**TL;DR:** For smooth outlines, use the **single fastest lap** instead of averaging multiple laps.
+
+### Why Single Lap > Averaged?
+
+When you average multiple laps (even with MEDIAN), you get **jitter in corners** because different drivers take different racing lines:
+
+- Driver A apexes Turn 3 at point 150
+- Driver B apexes Turn 3 at point 155
+- **Point-by-point averaging** creates intermediate positions that match neither driver
+
+This creates visible zigzag/jitter in the outline, especially in tight corners.
+
+### Recommended Workflow:
+
+```bash
+# 1. Explore laps and find fastest
+python3 scripts/explore_and_export_laps.py sessions/session_*.parquet --fastest 1
+
+# 2. Export fastest lap
+python3 scripts/explore_and_export_laps.py sessions/session_*.parquet --export 8
+
+# 3. Generate outline from single lap
+python3 scripts/average_trajectory_outline.py data/track-outlines/track_outline.json \
+  --laps data/track-outlines/alignment-artifacts/exported-laps/lap8.json
+```
+
+### Result:
+
+- ✅ **Smooth centerline** — no averaging artifacts
+- ✅ **Perfect alignment** — matches trajectory exactly
+- ✅ **Real racing line** — from fastest (cleanest) lap
+
+### When to Average:
+
+Averaging multiple laps is only useful when:
+- You want to find the "typical" racing line across multiple drivers
+- All drivers take nearly identical lines (e.g., simple ovals)
+- You're doing analysis, not generating visual outlines
+
+For **track outline generation**, always prefer **single fastest lap**.
+
+---
+
+## Manual Alignment with `tools/manual_outline_align.html`
+
+The `manual_outline_align.html` tool lets you visually verify and refine track outlines.
+
+### Opening the Tool
+
+```bash
+# Serve files locally
+python3 -m http.server 8000
+
+# Open in browser
+open http://localhost:8000/tools/manual_outline_align.html
+```
+
+### Loading Files
+
+1. **Slot 1: Simulator reference trajectory**
+   - Load an exported lap JSON (e.g., `data/track-outlines/alignment-artifacts/exported-laps/lap8.json`)
+   - This shows the actual driven trajectory
+
+2. **Slot 2: TUMFTM track JSON (outline)**
+   - Load your generated outline (e.g., `data/track-outlines/bahrain_outline.json`)
+   - This shows the outline boundaries
+
+3. **Slot 3 (Optional): Extra trajectories**
+   - Load additional laps to compare multiple driving lines
+
+### Controls
+
+| Control | Action |
+|---------|--------|
+| **Mouse drag** | Pan the view |
+| **Mouse wheel** | Zoom in/out |
+| **Arrow keys** | Translate outline (fine adjustment) |
+| **Shift + Arrows** | Translate outline (coarse) |
+| **Q / E** | Rotate outline |
+| **+ / -** | Scale outline |
+| **F** | Cycle flip options |
+| **R** | Reverse point order |
+
+### Visual QA Checklist
+
+Verify these landmarks align between trajectory and outline:
+
+- [ ] **Start/finish straight** — should be straight and properly oriented
+- [ ] **Turn 1** — tight right-hander after long straight
+- [ ] **Key corner apexes** — outline should follow trajectory through corners
+- [ ] **Back straight** — length and orientation match
+- [ ] **Final corner** — flows naturally into start/finish
+
+### Exporting Refined Outline
+
+If the outline needs adjustment:
+
+1. Use controls to align outline with trajectory
+2. Click **"Export aligned outline JSON"**
+3. Save the exported JSON
+4. Replace your outline file with the exported version
+5. Regenerate ES module: `node scripts/generate_outline_module.js <outline.json>`
+
+### Expected Result
+
+For a **single-lap outline**, the trajectory and outline should overlay **perfectly at scale 1.0** with no adjustment needed. If they don't match, check:
+
+- Both files are from the **same track layout**
+- Both use the **same coordinate system** (simulator coordinates)
+- The lap wasn't an out-lap/in-lap (check lap_time > 60s)
+
+---
+
+## Troubleshooting: Outline Not Showing in `dist/compare.html`
+
+If your outline doesn't appear in the comparison viewer:
+
+### 1. Check the Track Name Mapping
+
+The outline's `track_name_mapping` must match the session's track name:
+
+```json
+{
+  "track_name_mapping": {
+    "canonical_sim_track_name": "bahrain-international-circuit",
+    "accepted_sim_track_names": ["bahrain-international-circuit", "Bahrain International Circuit"]
+  }
+}
+```
+
+### 2. Add to Manifest
+
+The outline must be registered in `web/js/trackOutlineManifest.js`:
+
+```javascript
+import { BAHRAIN_OUTLINE_STATIC_OUTLINE } from './staticBahrain_outlineOutlineData.js';
+
+const OUTLINES = new Map([
+  // ... existing tracks
+  ['bahrain-international-circuit', BAHRAIN_OUTLINE_STATIC_OUTLINE],
+]);
+```
+
+### 3. Regenerate Bundle
+
+```bash
+node scripts/generate_outline_module.js data/track-outlines/bahrain_outline.json
+npm run build
+```
+
+### 4. Verify in Browser Console
+
+Open `dist/compare.html` and check console for:
+- `Loaded outline for track: Bahrain International Circuit` (success)
+- `No outline found for track: ...` (name mismatch)
+

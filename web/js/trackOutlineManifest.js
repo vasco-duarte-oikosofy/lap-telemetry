@@ -11,6 +11,7 @@
 
 import { SPA_STATIC_OUTLINE } from './staticSpaOutlineData.js';
 import { CIRCUIT_BARCELONA_STATIC_OUTLINE } from './staticCircuitBarcelonaOutlineData.js';
+import { BAHRAIN_OUTLINE_STATIC_OUTLINE } from './staticBahrain_outlineOutlineData.js';
 
 // slug normalization: lowercase, collapse whitespace to single dash, strip non-alnum/dash
 function slugify(name) {
@@ -26,6 +27,9 @@ const OUTLINES = new Map([
   ['circuit-de-barcelona', CIRCUIT_BARCELONA_STATIC_OUTLINE],
   ['barcelona-catalunya', CIRCUIT_BARCELONA_STATIC_OUTLINE],
   ['catalunya', CIRCUIT_BARCELONA_STATIC_OUTLINE],
+  // Bahrain International Circuit
+  ['bahrain-international-circuit', BAHRAIN_OUTLINE_STATIC_OUTLINE],
+  ['bahrain', BAHRAIN_OUTLINE_STATIC_OUTLINE],
 ]);
 
 /**
