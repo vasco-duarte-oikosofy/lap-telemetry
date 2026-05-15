@@ -44,6 +44,9 @@ import { initUI, rebuildPickers, parsePickerValue, addSessionEntry, refreshSessi
 // ── Debug hooks ──────────────────────────────────────────────────────────────
 import { installDebugHooks } from './debugHooks.js';
 
+// ── Apex metrics UI ──────────────────────────────────────────────────────────
+import { renderApexMetricsPanel } from './apexMetricsUi.js';
+
 // ── Panel configuration ─────────────────────────────────────────────────────
 import { COLUMNS, PANEL_DEFS } from './panelConfig.js';
 
@@ -313,6 +316,8 @@ function renderAll(sessionEntry, sessionSegIdx, refEntry, refSegIdx) {
   document.getElementById('legend-session').textContent = sl;
   document.getElementById('legend-ref').textContent     = rl;
   document.getElementById('legend').classList.add('visible');
+
+  renderApexMetricsPanel(sessionEntry, sessionSegIdx);
 
   // Render circuit map (F1)
   trackTransform = renderCircuitMap(currentTrackX, currentTrackZ, trackTransform, currentZoomRange, currentMaxDist, currentSessionBins);

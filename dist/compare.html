@@ -496,6 +496,8 @@ optgroup { color: var(--muted); font-style: normal; }
   </div>
 </div>
 
+<div id="apex-metrics-panel" style="display: none; background: var(--surface); border: 1px solid var(--border); border-radius: 6px; padding: 12px 16px; margin-bottom: 16px;"></div>
+
 <!-- Circuit map panel (Phase 00-layout: promoted to top, 50% width) -->
 <div id="circuit-map-panel" style="display: none;">
   <div class="map-header">
@@ -554,6 +556,7 @@ var appState_exports = {};
 __export(appState_exports, {
   DEFAULT_PANEL_ORDER: () => DEFAULT_PANEL_ORDER,
   PANEL_ORDER_LS_KEY: () => PANEL_ORDER_LS_KEY,
+  apexAnnotationsByLayout: () => apexAnnotationsByLayout,
   devFeatures: () => devFeatures,
   features: () => features,
   getCurrentMapMode: () => getCurrentMapMode,
@@ -607,11 +610,12 @@ function setDevFeatureFlag(name, value) {
     devFeatures[name] = value;
   }
 }
-var store, pendingSidecars, PANEL_ORDER_LS_KEY, DEFAULT_PANEL_ORDER, panelOrder, state, _currentMapMode, features, devFeatures;
+var store, pendingSidecars, apexAnnotationsByLayout, PANEL_ORDER_LS_KEY, DEFAULT_PANEL_ORDER, panelOrder, state, _currentMapMode, features, devFeatures;
 var init_appState = __esm({
   "web/js/appState.js"() {
     store = /* @__PURE__ */ new Map();
     pendingSidecars = /* @__PURE__ */ new Map();
+    apexAnnotationsByLayout = /* @__PURE__ */ new Map();
     PANEL_ORDER_LS_KEY = "lap-telemetry.panel-order.v1";
     DEFAULT_PANEL_ORDER = [
       "speed",
@@ -657,8 +661,10 @@ var init_appState = __esm({
       // Phase 05a - linked highlight band from trace charts
       apexAnnotations: false,
       // Track outline Phase 03 - apex annotation loading
-      apexMetrics: false
+      apexMetrics: false,
       // Track outline Phase 04 - in-memory apex metrics
+      apexMetricsUi: false
+      // Track outline Phase 05 - text-only apex metrics UI
     };
     devFeatures = {
       devMapSAlignmentDebug: false
@@ -2911,6 +2917,65 @@ function warnInvalidTrackOutlineSamples(data, label = "session") {
   }
 }
 
+// web/js/apexAnnotations.js
+var VALID_APEX_SIDES = /* @__PURE__ */ new Set(["left", "right"]);
+function isNonEmptyString(value) {
+  return typeof value === "string" && value.trim().length > 0;
+}
+function isFiniteNumber(value) {
+  return typeof value === "number" && Number.isFinite(value);
+}
+function requireString(obj, field, errors, prefix) {
+  if (!isNonEmptyString(obj?.[field])) {
+    errors.push(`${prefix}${field} is required and must be a non-empty string`);
+  }
+}
+function requireNumber(obj, field, errors, prefix) {
+  if (!isFiniteNumber(obj?.[field])) {
+    errors.push(`${prefix}${field} is required and must be a finite number`);
+  }
+}
+function validateApexAnnotations(input) {
+  const errors = [];
+  if (!input || typeof input !== "object" || Array.isArray(input)) {
+    return { ok: false, errors: ["annotation root must be an object"] };
+  }
+  requireString(input, "track_id", errors, "");
+  requireString(input, "layout_id", errors, "");
+  if (!Array.isArray(input.corners)) {
+    errors.push("corners is required and must be an array");
+  }
+  const seenIds = /* @__PURE__ */ new Set();
+  const corners = Array.isArray(input.corners) ? input.corners : [];
+  corners.forEach((corner, index) => {
+    const prefix = `corners[${index}].`;
+    if (!corner || typeof corner !== "object" || Array.isArray(corner)) {
+      errors.push(`corners[${index}] must be an object`);
+      return;
+    }
+    requireString(corner, "id", errors, prefix);
+    requireString(corner, "name", errors, prefix);
+    requireNumber(corner, "s_start_m", errors, prefix);
+    requireNumber(corner, "apex_s_m", errors, prefix);
+    requireNumber(corner, "s_end_m", errors, prefix);
+    if (isNonEmptyString(corner.id)) {
+      if (seenIds.has(corner.id)) errors.push(`duplicate corner id: ${corner.id}`);
+      seenIds.add(corner.id);
+    }
+    if (!VALID_APEX_SIDES.has(corner.apex_side)) {
+      errors.push(`${prefix}apex_side must be "left" or "right"`);
+    }
+    if (isFiniteNumber(corner.s_start_m) && isFiniteNumber(corner.apex_s_m) && corner.s_start_m >= corner.apex_s_m) {
+      errors.push(`${prefix}s_start_m must be less than apex_s_m`);
+    }
+    if (isFiniteNumber(corner.apex_s_m) && isFiniteNumber(corner.s_end_m) && corner.apex_s_m >= corner.s_end_m) {
+      errors.push(`${prefix}apex_s_m must be less than s_end_m`);
+    }
+  });
+  if (errors.length) return { ok: false, errors };
+  return { ok: true, annotations: structuredClone(input), errors: [] };
+}
+
 // web/js/ui.js
 async function loadDeltabestCsv(file) {
   const key = storeKey(file);
@@ -2941,10 +3006,25 @@ async function loadDeltabestCsv(file) {
     showError(`Failed to parse ${file.name}: ${e.message}`);
   }
 }
+function apexAnnotationKey(annotations) {
+  return `${annotations.track_id}::${annotations.layout_id}`;
+}
+function isApexAnnotationJson(value) {
+  return !!(value && typeof value === "object" && !Array.isArray(value) && "track_id" in value && "layout_id" in value && "corners" in value);
+}
 async function loadSidecar(file) {
   try {
     const text = await file.text();
     const sidecar = JSON.parse(text);
+    if (isApexAnnotationJson(sidecar)) {
+      const validation = validateApexAnnotations(sidecar);
+      if (validation.ok) {
+        apexAnnotationsByLayout.set(apexAnnotationKey(validation.annotations), validation.annotations);
+      } else {
+        console.warn(`apex annotation invalid for ${file.name}: ${validation.errors.join("; ")}`);
+      }
+      return;
+    }
     const stem = fileStem(file.name);
     let attached = false;
     for (const [key, entry] of store) {
@@ -3297,6 +3377,264 @@ function installDebugHooks(deps) {
   };
 }
 
+// web/js/apexMetricsUi.js
+init_appState();
+
+// web/js/apexMetrics.js
+function nullMetric(corner, lap) {
+  return {
+    corner_id: corner?.id ?? null,
+    corner_name: corner?.name ?? null,
+    lap,
+    apex_distance_m: null,
+    apex_timing_error_m: null,
+    surface_type: null,
+    terrain_name: null,
+    sample_s_m: null
+  };
+}
+function isFiniteNumber2(value) {
+  return typeof value === "number" && Number.isFinite(value);
+}
+function valueAt(values, index) {
+  if (!values || !isFiniteNumber2(values[index])) return null;
+  return values[index];
+}
+function optionalValueAt(values, index) {
+  if (!values) return null;
+  const value = values[index];
+  if (value == null) return null;
+  if (typeof value === "number" && !Number.isFinite(value)) return null;
+  if (typeof value === "string" && value.length === 0) return null;
+  return value;
+}
+function inferLap(data, explicitLap) {
+  if (explicitLap !== void 0) return explicitLap;
+  const laps = data?.lap_number;
+  if (laps && laps.length > 0 && laps[0] != null) return laps[0];
+  return null;
+}
+function selectedInsideEdgeDistance(data, index) {
+  const recordedDistance = valueAt(data?.distance_to_track_edge_m, index);
+  if (recordedDistance !== null) return recordedDistance;
+  const lateral = valueAt(data?.path_lateral_m, index);
+  const edge = valueAt(data?.track_edge_m, index);
+  if (lateral === null || edge === null) return null;
+  return edge - Math.abs(lateral);
+}
+function apexSideFields(corner, prefix) {
+  if (corner?.apex_side === "left") return [`${prefix}_fl`, `${prefix}_rl`];
+  if (corner?.apex_side === "right") return [`${prefix}_fr`, `${prefix}_rr`];
+  return [];
+}
+function apexSideValue(data, corner, index, prefix) {
+  for (const field of apexSideFields(corner, prefix)) {
+    const value = optionalValueAt(data?.[field], index);
+    if (value !== null) return value;
+  }
+  return null;
+}
+function apexSurfaceTerrain(data, corner, index) {
+  return {
+    surface_type: apexSideValue(data, corner, index, "surface_type"),
+    terrain_name: apexSideValue(data, corner, index, "terrain_name")
+  };
+}
+function closestSampleIndex(data, corner) {
+  const rawDistances = data?.raw_lap_distance_m;
+  if (!rawDistances || rawDistances.length === 0) return null;
+  let bestIndex = null;
+  let bestDelta = Infinity;
+  for (let i = 0; i < rawDistances.length; i++) {
+    const s = rawDistances[i];
+    if (!isFiniteNumber2(s)) continue;
+    if (s < corner.s_start_m || s > corner.s_end_m) continue;
+    const delta = Math.abs(s - corner.apex_s_m);
+    if (delta < bestDelta) {
+      bestDelta = delta;
+      bestIndex = i;
+    }
+  }
+  return bestIndex;
+}
+function computeApexMetricForLap(data, corner, opts = {}) {
+  const lap = inferLap(data, opts.lap);
+  const empty = () => nullMetric(corner, lap);
+  if (!data || !corner) return empty();
+  const index = closestSampleIndex(data, corner);
+  if (index === null) return empty();
+  const sampleS = valueAt(data.raw_lap_distance_m, index);
+  const apexDistance = selectedInsideEdgeDistance(data, index);
+  if (sampleS === null || apexDistance === null) return empty();
+  const surfaceTerrain = apexSurfaceTerrain(data, corner, index);
+  return {
+    corner_id: corner.id,
+    corner_name: corner.name,
+    lap,
+    apex_distance_m: apexDistance,
+    apex_timing_error_m: sampleS - corner.apex_s_m,
+    surface_type: surfaceTerrain.surface_type,
+    terrain_name: surfaceTerrain.terrain_name,
+    sample_s_m: sampleS
+  };
+}
+function okResult(metrics) {
+  return { status: "ok", metrics, reason: null };
+}
+function emptyResult(status, reason = null) {
+  return { status, metrics: [], reason };
+}
+function normalizeAnnotations(annotationInput) {
+  if (!annotationInput) return { status: "not_configured", annotations: null };
+  if (annotationInput.status && annotationInput.status !== "ok") return annotationInput;
+  if (annotationInput.status === "ok") return annotationInput;
+  return { status: "ok", annotations: annotationInput };
+}
+function hasValues(values) {
+  return !!values && values.length > 0;
+}
+function telemetryUnavailableReason(data) {
+  if (!hasValues(data?.raw_lap_distance_m)) return "missing raw_lap_distance_m";
+  if (hasValues(data.distance_to_track_edge_m)) return null;
+  if (hasValues(data.path_lateral_m) && hasValues(data.track_edge_m)) return null;
+  return "missing edge distance inputs";
+}
+function sliceData(data, start, end) {
+  const lapData = {};
+  for (const [key, values] of Object.entries(data || {})) {
+    if (values && typeof values.slice === "function") {
+      lapData[key] = values.slice(start, end);
+    } else {
+      lapData[key] = values;
+    }
+  }
+  return lapData;
+}
+function computeApexMetricsForSession(entry, annotationInput) {
+  const normalized = normalizeAnnotations(annotationInput);
+  if (normalized.status !== "ok") return emptyResult(normalized.status, null);
+  const data = entry?.data;
+  const reason = telemetryUnavailableReason(data);
+  if (reason) return emptyResult("unavailable", reason);
+  const corners = normalized.annotations?.corners || [];
+  const segments = entry?.segments || [];
+  const metrics = [];
+  for (const seg of segments) {
+    const lapData = sliceData(data, seg.start, seg.end);
+    for (const corner of corners) {
+      metrics.push(computeApexMetricForLap(lapData, corner, { lap: seg.lapNum }));
+    }
+  }
+  return okResult(metrics);
+}
+
+// web/js/apexMetricsUi.js
+function slug(value) {
+  return String(value || "").trim().toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "");
+}
+function layoutValue(sidecar) {
+  return sidecar?.layout_id || sidecar?.layoutId || sidecar?.layout || "default";
+}
+function trackValue(entry) {
+  const sidecar = entry?.sidecar || {};
+  return sidecar.track_id || sidecar.trackId || sidecar.track || sidecar.track_name || null;
+}
+function findMatchingAnnotations(entry) {
+  const track = trackValue(entry);
+  if (!track) return null;
+  const layout = layoutValue(entry.sidecar || {});
+  const trackSlug = slug(track);
+  const layoutSlug = slug(layout);
+  for (const annotations of apexAnnotationsByLayout.values()) {
+    if (slug(annotations.track_id) === trackSlug && slug(annotations.layout_id) === layoutSlug) {
+      return annotations;
+    }
+  }
+  return null;
+}
+function formatMeters(value) {
+  return typeof value === "number" && Number.isFinite(value) ? `${value.toFixed(2)} m` : "\u2014";
+}
+function formatTiming(value) {
+  if (typeof value !== "number" || !Number.isFinite(value)) return "\u2014";
+  if (value > 0) return `late ${value.toFixed(2)} m`;
+  if (value < 0) return `early ${Math.abs(value).toFixed(2)} m`;
+  return "exact 0.00 m";
+}
+function valueText(value) {
+  if (value == null || value === "") return "\u2014";
+  return String(value);
+}
+function clearPanel(panel) {
+  panel.replaceChildren();
+}
+function renderEmpty(panel, message) {
+  clearPanel(panel);
+  const label = document.createElement("div");
+  label.className = "panel-label";
+  label.textContent = "Apex metrics";
+  const empty = document.createElement("div");
+  empty.className = "apex-metrics-empty";
+  empty.textContent = message;
+  panel.append(label, empty);
+}
+function renderTable(panel, metrics) {
+  clearPanel(panel);
+  const label = document.createElement("div");
+  label.className = "panel-label";
+  label.textContent = "Apex metrics";
+  const table = document.createElement("table");
+  table.className = "apex-metrics-table";
+  const thead = document.createElement("thead");
+  thead.innerHTML = "<tr><th>Corner</th><th>Lap</th><th>Apex distance</th><th>Timing</th><th>Surface</th><th>Terrain</th></tr>";
+  const tbody = document.createElement("tbody");
+  for (const metric of metrics) {
+    const tr = document.createElement("tr");
+    const cells = [
+      metric.corner_name || metric.corner_id || "\u2014",
+      metric.lap == null ? "Lap \u2014" : `Lap ${metric.lap}`,
+      formatMeters(metric.apex_distance_m),
+      formatTiming(metric.apex_timing_error_m),
+      valueText(metric.surface_type),
+      valueText(metric.terrain_name)
+    ];
+    for (const text of cells) {
+      const td = document.createElement("td");
+      td.textContent = text;
+      tr.appendChild(td);
+    }
+    tbody.appendChild(tr);
+  }
+  table.append(thead, tbody);
+  panel.append(label, table);
+}
+function renderApexMetricsPanel(sessionEntry, sessionSegIdx) {
+  const panel = document.getElementById("apex-metrics-panel");
+  if (!panel) return;
+  if (!features.apexMetricsUi) {
+    panel.style.display = "none";
+    clearPanel(panel);
+    return;
+  }
+  panel.style.display = "block";
+  const annotations = findMatchingAnnotations(sessionEntry);
+  if (!annotations) {
+    renderEmpty(panel, "No apex annotations for this track/layout");
+    return;
+  }
+  const seg = sessionEntry?.segments?.[sessionSegIdx];
+  const result = computeApexMetricsForSession({ data: sessionEntry?.data, segments: seg ? [seg] : [] }, annotations);
+  if (result.status === "unavailable") {
+    renderEmpty(panel, "Record a new session to capture track-edge channels");
+    return;
+  }
+  if (result.status !== "ok" || result.metrics.length === 0) {
+    renderEmpty(panel, "No apex metrics for this lap");
+    return;
+  }
+  renderTable(panel, result.metrics);
+}
+
 // web/js/panelConfig.js
 var PANEL_DEFS = [
   {
@@ -3616,6 +3954,7 @@ function renderAll(sessionEntry, sessionSegIdx, refEntry, refSegIdx) {
   document.getElementById("legend-session").textContent = sl;
   document.getElementById("legend-ref").textContent = rl;
   document.getElementById("legend").classList.add("visible");
+  renderApexMetricsPanel(sessionEntry, sessionSegIdx);
   trackTransform = renderCircuitMap(currentTrackX, currentTrackZ, trackTransform, currentZoomRange, currentMaxDist, currentSessionBins);
   renderTrackHeatmapMap();
   state.maxDist = maxDist;

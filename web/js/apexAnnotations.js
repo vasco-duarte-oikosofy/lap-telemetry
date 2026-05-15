@@ -73,7 +73,8 @@ export function validateApexAnnotations(input) {
 }
 
 export async function loadApexAnnotationsFile(filePath) {
-  const fs = await import('node:fs/promises');
+  const fsModule = 'node:fs/promises';
+  const fs = await import(fsModule);
   let text;
   try {
     text = await fs.readFile(filePath, 'utf8');

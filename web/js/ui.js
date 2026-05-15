@@ -4,7 +4,7 @@
 export { rebuildPickers, updateCompareBtn, parsePickerValue,
          addSessionEntry, refreshSessionListBadges } from './pickers.js';
 
-import { store, pendingSidecars, state, persistPanelOrder, DEFAULT_PANEL_ORDER,
+import { store, pendingSidecars, apexAnnotationsByLayout, state, persistPanelOrder, DEFAULT_PANEL_ORDER,
          features, setFeatureFlag } from './appState.js';
 import { storeKey, fileStem, formatDuration, lapStatusBadges, formatPickLabel,
          shortVehicle, shortSetup, showError, clearError, setBadge,
@@ -17,6 +17,7 @@ import { rebuildPickers, updateCompareBtn, parsePickerValue,
          addSessionEntry, refreshSessionListBadges } from './pickers.js';
 import { parseDeltabestCsv, buildDeltabestSidecar } from './dataTransforms.js';
 import { TRACK_OUTLINE_CHANNELS, warnInvalidTrackOutlineSamples } from './trackOutlineChannels.js';
+import { validateApexAnnotations } from './apexAnnotations.js';
 
 // ── File loading ──────────────────────────────────────────────────────────────
 
@@ -58,10 +59,29 @@ async function loadDeltabestCsv(file) {
   }
 }
 
+function apexAnnotationKey(annotations) {
+  return `${annotations.track_id}::${annotations.layout_id}`;
+}
+
+function isApexAnnotationJson(value) {
+  return !!(value && typeof value === 'object' && !Array.isArray(value) &&
+    'track_id' in value && 'layout_id' in value && 'corners' in value);
+}
+
 async function loadSidecar(file) {
   try {
     const text = await file.text();
     const sidecar = JSON.parse(text);
+    if (isApexAnnotationJson(sidecar)) {
+      const validation = validateApexAnnotations(sidecar);
+      if (validation.ok) {
+        apexAnnotationsByLayout.set(apexAnnotationKey(validation.annotations), validation.annotations);
+      } else {
+        console.warn(`apex annotation invalid for ${file.name}: ${validation.errors.join('; ')}`);
+      }
+      return;
+    }
+
     const stem = fileStem(file.name);
     // If parquet already loaded for this stem, attach now.
     let attached = false;

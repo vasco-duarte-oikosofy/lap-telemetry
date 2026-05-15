@@ -12,6 +12,9 @@ export const store = new Map();
 // When the parquet for the same stem arrives, we attach the metadata.
 export const pendingSidecars = new Map();
 
+// Validated apex annotation JSONs keyed by track/layout.
+export const apexAnnotationsByLayout = new Map();
+
 // ── Panel order (F9) ──────────────────────────────────────────────────────────
 export const PANEL_ORDER_LS_KEY = 'lap-telemetry.panel-order.v1';
 export const DEFAULT_PANEL_ORDER = [
@@ -72,6 +75,7 @@ export const features = {
   mapLinkedHighlight: false,       // Phase 05a - linked highlight band from trace charts
   apexAnnotations: false,          // Track outline Phase 03 - apex annotation loading
   apexMetrics: false,              // Track outline Phase 04 - in-memory apex metrics
+  apexMetricsUi: false,            // Track outline Phase 05 - text-only apex metrics UI
 };
 
 // Dev-only flags (not exposed in production UI)
