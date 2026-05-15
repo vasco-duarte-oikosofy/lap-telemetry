@@ -263,7 +263,16 @@ The simulator uses `pos_x_m` as X and `pos_z_m` as Y (the track map's vertical a
 
 ---
 
-## 9. Known gaps
+## 9. Alternative data sources explored
+
+### Lovely-Sim-Racing/lovely-track-data — ❌ metadata only
+Has Imola, Fuji, Barcelona for LMU. But the data is **turn/sector metadata only** (turn names, percentage positions, direction, scale). No centerline coordinates, no widths, no boundary geometry. Cannot generate outlines from this.
+
+### LMU session trajectories — ❌ tested and useless
+Tried deriving boundaries from the spread of driving lines across multiple laps. The racing line variation is far too narrow (a few meters at most) compared to full track width (~12m). This only gives you the racing corridor, not the track outline. Useless for this purpose.
+
+### OpenStreetMap — next to try
+OSM has `highway=raceway` ways for Imola and Fuji. TUMFTM's own centerlines were extracted from OSM. Would give centerline GPS coordinates but no widths — widths must be estimated separately.
 
 - **Imola (autodromo-enzo-e-dino-ferrari):** No TUMFTM CSV. TUMFTM database has no Imola data. Would need alternative data source or hand-drawn outline.
 - **Fuji Speedway:** No TUMFTM CSV. Same issue.
