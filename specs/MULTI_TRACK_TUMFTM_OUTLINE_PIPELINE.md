@@ -263,15 +263,51 @@ The simulator uses `pos_x_m` as X and `pos_z_m` as Y (the track map's vertical a
 
 ---
 
-## 9. Alternative data sources explored
+## 9. Data source coverage for LMU tracks
 
-### Lovely-Sim-Racing/lovely-track-data — ❌ metadata only
+### Our session tracks and best available data sources
+
+| Session slug | TUMFTM (best: centerline + widths) | bacinger/f1-circuits (centerline only, lon/lat) | Outline status |
+|---|---|---|---|
+| `circuit-de-spa-francorchamps` | Spa.csv ✅ | be-1925.geojson | ✅ Done |
+| `circuit-de-spa-francorchamps-endurance` | Same as Spa | be-1925.geojson | ✅ Covered |
+| `circuit-de-barcelona` | Catalunya.csv ⚠️ **wrong layout** | es-1991.geojson | ❌ Needs bacinger + width estimation |
+| `autodromo-enzo-e-dino-ferrari` | ❌ not available | it-1953.geojson | ❌ Needs bacinger + width estimation |
+| `fuji-speedway` | ❌ not available | ❌ not available | ❌ Needs OSM extraction |
+| `spa-francorchamps` | Same as Spa | be-1925.geojson | ✅ Covered |
+
+### Extended LMU coverage (all LMU tracks, for future sessions)
+
+| LMU track | TUMFTM | bacinger | Needs |
+|---|---|---|---|
+| Autódromo Internacional do Algarve | ❌ | pt-2008 | bacinger + width estimation |
+| Autodromo Enzo e Dino Ferrari (Imola) | ❌ | it-1953 | bacinger + width estimation |
+| Autódromo José Carlos Pace (Interlagos) | SaoPaulo ✅ | br-1940 | TUMFTM ★ |
+| Autodromo Nazionale Monza | Monza ✅ | it-1922 | TUMFTM ★ |
+| Bahrain (all layouts) | Sakhir ✅ | bh-2002 | TUMFTM ★ |
+| Circuit de la Sarthe (Le Mans) | ❌ | ❌ | OSM extraction |
+| Circuit de Spa-Francorchamps | Spa ✅ | be-1925 | ✅ Done |
+| Circuit of the Americas | Austin ✅ | us-2012 | TUMFTM ★ |
+| Fuji International Speedway | ❌ | ❌ | OSM extraction |
+| Lusail International Circuit | ❌ | qa-2004 | bacinger + width estimation |
+| Sebring International Raceway | ❌ | ❌ | OSM extraction |
+
+**Summary:** 11 tracks have TUMFTM (best quality), 4 more have bacinger centerlines, 6 need OSM extraction.
+
+### Alternative data sources explored
+
+#### Lovely-Sim-Racing/lovely-track-data — ❌ metadata only
 Has Imola, Fuji, Barcelona for LMU. But the data is **turn/sector metadata only** (turn names, percentage positions, direction, scale). No centerline coordinates, no widths, no boundary geometry. Cannot generate outlines from this.
 
-### LMU session trajectories — ❌ tested and useless
+#### LMU session trajectories — ❌ tested and useless
 Tried deriving boundaries from the spread of driving lines across multiple laps. The racing line variation is far too narrow (a few meters at most) compared to full track width (~12m). This only gives you the racing corridor, not the track outline. Useless for this purpose.
 
-### OpenStreetMap — next to try
+#### bacinger/f1-circuits — 🟡 useful for centerlines
+312 stars, MIT licensed. GeoJSON centerlines for ~40 F1 circuits in lat/lon (WGS84). No widths, no boundary data.
+Repo: https://github.com/bacinger/f1-circuits
+Interactive map: https://svemir.co/f1/
+
+#### OpenStreetMap — next option for missing tracks
 OSM has `highway=raceway` ways for Imola and Fuji. TUMFTM's own centerlines were extracted from OSM. Would give centerline GPS coordinates but no widths — widths must be estimated separately.
 
 - **Imola (autodromo-enzo-e-dino-ferrari):** No TUMFTM CSV. TUMFTM database has no Imola data. Would need alternative data source or hand-drawn outline.
