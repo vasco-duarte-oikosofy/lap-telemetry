@@ -172,8 +172,27 @@ async function runBrowserTests() {
       await compareFirstTwoLaps(ctx.page);
       const text = await ctx.page.$eval('#apex-metrics-panel', el => el.textContent.replace(/\s+/g, ' ').trim());
       console.log(`  Apex panel text: ${text}`);
-      assert(text.includes('La Source') && text.includes('Lap 1') && text.includes('4.25 m'), 'configured UI shows La Source lap and apex distance');
+      assert(text.includes('Showing selected session lap only: Lap 1 (lap# 1); reference lap is not included.'),
+        'configured UI explains metrics are for the selected session lap only', text);
+      assert(text.includes('La Source') && text.includes('Lap 1 (lap# 1)') && text.includes('4.25 m'), 'configured UI shows La Source lap and apex distance');
       assert(text.includes('Eau Rouge') && text.includes('3.50 m'), 'configured UI shows second corner row');
+      const tableState = await ctx.page.$eval('#apex-metrics-panel', panel => {
+        const table = panel.querySelector('table.apex-metrics-table');
+        const firstHeader = table?.querySelector('thead th');
+        const firstCell = table?.querySelector('tbody td');
+        const headerBox = firstHeader?.getBoundingClientRect();
+        const cellBox = firstCell?.getBoundingClientRect();
+        return {
+          hasTable: !!table,
+          columnCount: table?.querySelectorAll('thead th').length || 0,
+          firstColumnAlignedPx: headerBox && cellBox ? Math.abs(headerBox.left - cellBox.left) : null,
+          widthFillsContent: table ? Math.abs(table.getBoundingClientRect().width - (panel.clientWidth - parseFloat(getComputedStyle(panel).paddingLeft) - parseFloat(getComputedStyle(panel).paddingRight))) <= 1 : false,
+        };
+      });
+      assert(tableState.hasTable && tableState.columnCount === 6, 'configured UI renders apex metrics as a six-column HTML table', JSON.stringify(tableState));
+      assert(tableState.firstColumnAlignedPx !== null && tableState.firstColumnAlignedPx <= 1,
+        'configured UI table cells align under column headers', JSON.stringify(tableState));
+      assert(tableState.widthFillsContent, 'configured UI table spans the panel content width for readable columns', JSON.stringify(tableState));
       assert(text.includes('late 1.00 m'), 'configured UI labels positive timing as late');
       assert(text.includes('early 2.00 m'), 'configured UI labels negative timing as early');
       assert(text.includes('21') && text.includes('kerb'), 'configured UI shows right-side surface and terrain');

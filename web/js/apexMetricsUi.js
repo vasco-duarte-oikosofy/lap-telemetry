@@ -66,11 +66,21 @@ function renderEmpty(panel, message) {
   panel.append(label, empty);
 }
 
-function renderTable(panel, metrics) {
+function lapLabel(sessionEntry, sessionSegIdx) {
+  const seg = sessionEntry?.segments?.[sessionSegIdx];
+  if (!seg) return 'Lap —';
+  return `Lap ${sessionSegIdx + 1} (lap# ${seg.lapNum})`;
+}
+
+function renderTable(panel, metrics, selectedLapLabel) {
   clearPanel(panel);
   const label = document.createElement('div');
   label.className = 'panel-label';
   label.textContent = 'Apex metrics';
+
+  const note = document.createElement('div');
+  note.className = 'apex-metrics-note';
+  note.textContent = `Showing selected session lap only: ${selectedLapLabel}; reference lap is not included.`;
 
   const table = document.createElement('table');
   table.className = 'apex-metrics-table';
@@ -82,7 +92,7 @@ function renderTable(panel, metrics) {
     const tr = document.createElement('tr');
     const cells = [
       metric.corner_name || metric.corner_id || '—',
-      metric.lap == null ? 'Lap —' : `Lap ${metric.lap}`,
+      selectedLapLabel,
       formatMeters(metric.apex_distance_m),
       formatTiming(metric.apex_timing_error_m),
       valueText(metric.surface_type),
@@ -97,7 +107,7 @@ function renderTable(panel, metrics) {
   }
 
   table.append(thead, tbody);
-  panel.append(label, table);
+  panel.append(label, note, table);
 }
 
 export function renderApexMetricsPanel(sessionEntry, sessionSegIdx) {
@@ -126,5 +136,5 @@ export function renderApexMetricsPanel(sessionEntry, sessionSegIdx) {
     renderEmpty(panel, 'No apex metrics for this lap');
     return;
   }
-  renderTable(panel, result.metrics);
+  renderTable(panel, result.metrics, lapLabel(sessionEntry, sessionSegIdx));
 }

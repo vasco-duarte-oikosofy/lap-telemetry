@@ -363,71 +363,27 @@ optgroup { color: var(--muted); font-style: normal; }
 }
 .panel-svg { display: block; width: 100%; overflow: visible; }
 
+/* ── Apex metrics table ── */
+.apex-metrics-note { color: var(--muted); font-size: 11px; margin-bottom: 8px; }
+.apex-metrics-table { width: 100%; border-collapse: collapse; table-layout: fixed; font-size: 12px; }
+.apex-metrics-table th, .apex-metrics-table td { border-top: 1px solid var(--border); padding: 6px 8px; text-align: left; vertical-align: top; font-variant-numeric: tabular-nums; }
+.apex-metrics-table th { color: var(--muted); font-size: 10px; font-weight: 600; letter-spacing: 0.5px; text-transform: uppercase; }
+.apex-metrics-empty { color: var(--muted); font-size: 12px; }
+
 /* SVG text styles (applied via inline attributes) */
 
 /* ── Cursor overlay ── */
-#cursor-overlay {
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  z-index: 10;
-}
-.cursor-line {
-  position: absolute;
-  top: 0;
-  bottom: 0;
-  width: 1px;
-  background: rgba(255,255,255,0.3);
-  transform: translateX(-9999px);
-  pointer-events: none;
-}
+#cursor-overlay { position: absolute; inset: 0; pointer-events: none; z-index: 10; }
+.cursor-line { position: absolute; top: 0; bottom: 0; width: 1px; background: rgba(255,255,255,0.3); transform: translateX(-9999px); pointer-events: none; }
 
 /* ── Tooltip ── */
-#tooltip {
-  position: absolute;
-  background: rgba(13,17,23,0.92);
-  border: 1px solid var(--border);
-  border-radius: 4px;
-  padding: 8px 10px;
-  font-size: 11px;
-  color: var(--text);
-  pointer-events: none;
-  z-index: 20;
-  display: none;
-  max-width: 240px;
-  white-space: pre;
-  line-height: 1.6;
-}
+#tooltip { position: absolute; background: rgba(13,17,23,0.92); border: 1px solid var(--border); border-radius: 4px; padding: 8px 10px; font-size: 11px; color: var(--text); pointer-events: none; z-index: 20; display: none; max-width: 240px; white-space: pre; line-height: 1.6; }
 
 /* Phase 04 — Hover readout */
-.map-hover-readout {
-  position: absolute;
-  background: rgba(13,17,23,0.92);
-  border: 1px solid var(--border);
-  border-radius: 4px;
-  padding: 6px 8px;
-  font-size: 11px;
-  color: var(--text);
-  pointer-events: none;
-  user-select: none;
-  z-index: 15;
-  display: none;
-  font-family: ui-monospace, 'Cascadia Code', 'Fira Code', monospace;
-  line-height: 1.5;
-}
-.readout-dist {
-  font-size: 10px;
-  color: var(--muted);
-  margin-bottom: 4px;
-  font-variant-numeric: tabular-nums;
-}
-.readout-row {
-  font-size: 11px;
-  white-space: nowrap;
-}
-.readout-row span {
-  font-weight: 600;
-}
+.map-hover-readout { position: absolute; background: rgba(13,17,23,0.92); border: 1px solid var(--border); border-radius: 4px; padding: 6px 8px; font-size: 11px; color: var(--text); pointer-events: none; user-select: none; z-index: 15; display: none; font-family: ui-monospace, 'Cascadia Code', 'Fira Code', monospace; line-height: 1.5; }
+.readout-dist { font-size: 10px; color: var(--muted); margin-bottom: 4px; font-variant-numeric: tabular-nums; }
+.readout-row { font-size: 11px; white-space: nowrap; }
+.readout-row span { font-weight: 600; }
 
 /* ── Error ── */
 .error-msg { color: var(--error); font-size: 12px; margin-top: 10px; display: none; }
