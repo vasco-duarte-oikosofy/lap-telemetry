@@ -125,3 +125,32 @@ After each removal:
 ## Stop condition
 
 Stop after all removed code is gone, remaining tests are green, the build succeeds, and learnings/handoff are committed. Do not start redeveloping apex features in this phase.
+
+## Missing feature: cursor dot on canvas map
+
+The cursor dot (`#cursor-dot` in `circuit-map-svg`) shows the current hover position on the track map when the user hovers over the telemetry charts. It is driven by `cursor.js → updateCursorDot()`. Currently it only works when the SVG is visible (i.e. when all map feature flags are off). When the canvas renderer is active, the SVG is hidden and the dot disappears.
+
+**What needs to happen:**
+
+The canvas renderer must draw an equivalent cursor dot. This is not a simple CSS toggle — it requires propagating the chart-hover bin index to the canvas rendering pipeline.
+
+Suggested approach:
+
+1. Expose the current cursor bin index from `cursor.js` (e.g. via a getter on `window` or a callback that the canvas renderer subscribes to — follow the existing `window.__debug*` pattern for testability).
+2. In `trackHeatmapMap.js → renderWalkingSkeleton()`, accept an optional `cursorBinIdx` option.
+3. When `cursorBinIdx` is non-null and finite, project `lapA.x[cursorBinIdx]` / `lapA.z[cursorBinIdx]` through the transform and draw a small accent-colored filled circle (radius ~4px, matching the SVG `r=4`).
+4. The controller's `buildOpts()` should read the cursor bin index from wherever `cursor.js` exposes it.
+5. The canvas must re-render on every chart hover to move the dot. Consider whether `cursor.js` should call `trackHeatmapController.render()` or whether the canvas can be patched incrementally.
+
+For incremental patching (preferred for performance): instead of re-rendering the entire canvas on every chart hover, draw just the dot by getting the canvas context and drawing a small circle at the projected position. This avoids the cost of re-running `renderWalkingSkeleton` on every mousemove.
+
+Key files:
+
+| File | Role |
+|------|------|
+| `web/js/cursor.js` | `updateCursorDot()` — sets SVG attributes; needs to also update the canvas dot |
+| `web/js/trackHeatmapController.js` | Owns the canvas render cycle; may need a `drawCursorDot()` method |
+| `web/js/trackHeatmapMap.js` | `renderWalkingSkeleton()` — where the transform and canvas context live |
+| `web/js/main.js` | Wires `getRenderState` to `cursor.js`; may need to also pass canvas controller reference |
+
+This feature is part of the cleanup phase because the cursor dot was working before the canvas renderer was introduced; restoring it is necessary to avoid a regression.
