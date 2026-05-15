@@ -34,7 +34,7 @@ to be reminded of these rules in each prompt.
 
 You are not done until all of these exist:
 
-1. `npm test` (or whatever `TEST_CMD` is configured) exits 0.
+1. `bash scripts/test-summary.sh` exits 0 (runs full suite, all pass).
 2. `npm run build` succeeds and `dist/compare.html` is current (no stale bundle).
 3. `phases/<this-phase>/learnings.md` — what surprised you, anything the
    next agent needs to know that is not in the spec.
@@ -61,6 +61,20 @@ Before writing a new test or fixing a failing test, **read
 [TESTING_LESSONS.md](TESTING_LESSONS.md)**. It documents hard-won rules
 about Playwright and headless Chromium that prevent silent, layout-dependent
 failures.
+
+### Running tests
+
+Always use `bash scripts/test-summary.sh` to run the test suite. It runs every
+script individually, reports only failures with the exact script path to
+re-run, and prints a concise one-line summary on success:
+
+```bash
+bash scripts/test-summary.sh                        # full suite
+bash scripts/test-summary.sh scripts/test_f1f2.js   # single failing script
+```
+
+Do **not** use raw `npm test` — its voluminous output pollutes context and
+makes it hard to spot failures.
 
 ## Standing orders
 
