@@ -11,7 +11,7 @@
 | 04.2-apex-surface-terrain | Include apex-side surface and terrain in metrics | ✅ DONE |
 | 05-apex-metrics-ui | Render text-only apex metrics UI | ✅ DONE |
 | 06-apex-sidecar-export | Optional CLI/helper to export apex metrics JSON sidecar | ✅ DONE |
-| 07-width-profile-cli | Generate raw left/right width bins from recorded sessions | ⬜ TODO |
+| 07-width-profile-cli | Generate raw left/right width bins from recorded sessions | ✅ DONE |
 | 08-width-profile-confidence | Add confidence and explicit gap/one-sided flags | ⬜ TODO |
 | 08.1-width-profile-smoothing | Interpolate short gaps and smooth render-ready widths | ⬜ TODO |
 | 09-center-path-cli | Generate binned center/path polyline from world positions | ⬜ TODO |
