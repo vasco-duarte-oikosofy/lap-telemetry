@@ -4,11 +4,15 @@ This plan is intentionally gated by a quick visual spike. Do not build runtime a
 
 | Phase | Description | Status |
 |-------|-------------|--------|
-| 00_quick_and_dirty_alignment_try | Build a standalone local HTML alignment tool to manually overlay TUMFTM outline geometry on one Spa simulator trajectory, export aligned outline JSON, and visually compare against current learned-boundary output | ⬜ TODO |
-| 01_static_outline_contract | If Phase 00 succeeds, formalize the static simulator-coordinate outline JSON contract and add one reviewed Spa artifact | ⬜ BLOCKED |
-| 02_runtime_static_outline_rendering | Load one explicit static outline and render it behind existing trajectories in the compare UI | ⬜ BLOCKED |
-| 03_offline_conversion_workflow | Harden the offline TUMFTM CSV conversion/export scripts and document manual alignment workflow | ⬜ BLOCKED |
-| 04_manifest_and_aliases | Add explicit track/layout manifest and conservative alias matching for static outlines | ⬜ BLOCKED |
+| 00_quick_and_dirty_alignment_try | Build a standalone local HTML alignment tool to manually overlay TUMFTM outline geometry on one Spa simulator trajectory, export aligned outline JSON, and visually compare against current learned-boundary output | ✅ DONE — visual gate passed |
+| 01_static_outline_contract | Promote the accepted Spa alignment to a production schema v1 static artifact at `data/track-outlines/spa-francorchamps.json`; include source/alignment metadata, simulator coordinate-system notes, explicit track-name mapping metadata, and caveats that TUMFTM widths are approximate/non-official | ✅ DONE |
+| 02_runtime_static_outline_rendering | USER REVIEW REQUIRED before implementation: load one explicit static outline artifact and render it behind existing trajectories in the compare UI; no manifest, aliases, editor, or runtime TUMFTM math yet | ⬜ BLOCKED |
+| 03_offline_conversion_workflow | USER REVIEW REQUIRED before implementation: harden the offline CSV/trajectory preparation workflow so future accepted alignments can be reproduced; keep it outside normal app runtime | ⬜ BLOCKED |
+| 04_manifest_and_aliases | USER REVIEW REQUIRED before implementation: add explicit track/layout manifest and conservative aliases only after the static Spa artifact and one-outline rendering are accepted | ⬜ BLOCKED |
+
+## Review gate before every future phase
+
+Each implementation phase after Phase 00 requires explicit user review/approval before code changes begin. The next agent should present the intended artifact/schema/rendering behavior first, wait for user confirmation, and only then implement that single phase.
 
 ## Gate after Phase 00
 
@@ -20,3 +24,31 @@ Continue only if the manually aligned Spa/TUMFTM outline is obviously better tha
 - The alignment can be achieved with a simple global transform in a reasonable amount of manual time.
 
 If Phase 00 fails, stop this track-outline approach or redesign around a different external/static geometry source. Do not proceed to UI integration just to render another poor outline.
+
+## Accepted post-spike direction, pending user review per phase
+
+1. **Static Spa artifact contract**
+   - Convert the accepted spike export from `schema_version: 0` to a production `schema_version: 1` JSON file.
+   - Suggested destination: `data/track-outlines/spa-francorchamps.json`.
+   - Preserve transformed `centerline`, `left_boundary`, and `right_boundary` in simulator coordinates.
+   - Add metadata: source, sim track name, layout name, coordinate system, units, manual transform parameters, and visual QA notes.
+   - Document that TUMFTM widths are satellite/image-derived approximations, not official FIA or simulator track limits.
+
+2. **One-outline runtime rendering**
+   - Load one explicit static outline artifact and render it behind existing lap trajectories.
+   - Do not add manifest/alias lookup yet.
+   - Do not perform TUMFTM alignment or width derivation at runtime.
+   - Do not add an editor.
+
+3. **Offline workflow hardening**
+   - Keep conversion/alignment tooling offline.
+   - Make accepted alignments reproducible from TUMFTM CSV + simulator reference lap + reviewed transform parameters.
+   - Avoid polishing the editor beyond what is needed for future reviewed artifacts.
+
+4. **Manifest and aliases**
+   - Add conservative track/layout mapping only after the static Spa artifact and explicit one-outline rendering have been accepted.
+   - Exact normalized names and reviewed aliases only; no fuzzy auto-selection in the first version.
+
+5. **Possible later width adjustment**
+   - If user review finds TUMFTM widths too narrow in some turns, prefer an explicit reviewed offline adjustment such as a documented visual width scale or regenerated boundary artifact.
+   - Do not silently mutate source widths in runtime code.
