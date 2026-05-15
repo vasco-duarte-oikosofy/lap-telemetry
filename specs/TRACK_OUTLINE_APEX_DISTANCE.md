@@ -462,6 +462,18 @@ CLI-only phases may use hidden commands instead of UI flags, but they still need
 
 **Out of scope:** normals, boundaries, UI rendering.
 
+**Dev tool:** `scripts/profile_viewer.js` generates a standalone HTML viewer for visual QA of width profiles and center paths. Usage:
+
+```bash
+# Width profile only
+node scripts/profile_viewer.js <profile.json>
+
+# Width profile + 2D track map from path JSON
+node scripts/profile_viewer.js <profile.json> --path <path.json> [output.html]
+```
+
+The viewer inlines all data and opens in any browser. The track map shows the center path as a cyan polyline; hovering a bin on the width chart highlights the corresponding point on the map with a yellow dot. Both panels support scroll-to-zoom and drag-to-pan.
+
 ---
 
 ## Phase 9.1 — Derive boundary polylines from path + widths
