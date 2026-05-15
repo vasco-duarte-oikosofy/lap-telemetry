@@ -14,29 +14,44 @@ import { persistZoom } from './utils.js';
  *   { currentSessionBins, currentRefBins, currentZoomRange, currentOverlapRange,
  *     currentTrackX, currentTrackZ, trackTransform, currentDtBins, maxDist }
  */
-export function initCursorAndZoom(renderAll, getRenderState) {
+export function initCursorAndZoom(renderAll, getRenderState, canvasCursor) {
   const plotArea = document.getElementById('plot-area');
   const cursorLine = document.getElementById('cursor-line');
   const tooltip = document.getElementById('tooltip');
 
+  let _currentBinIdx = null;
+  window.__debugGetCursorBinIdx = () => _currentBinIdx;
+
   function updateCursorDot(binIdx) {
+    _currentBinIdx = binIdx;
     const { currentTrackX, currentTrackZ, trackTransform } = getRenderState();
     const cursorDot = document.getElementById('cursor-dot');
-    if (!cursorDot || !currentTrackX || !currentTrackZ || !trackTransform) {
+    if (!currentTrackX || !currentTrackZ || !trackTransform) {
       if (cursorDot) cursorDot.style.display = 'none';
+      if (canvasCursor?.setCursorBinIdx) canvasCursor.setCursorBinIdx(null);
+      if (canvasCursor?.drawCursorDot) canvasCursor.drawCursorDot(null);
       return;
     }
 
     if (binIdx === null || !isFinite(currentTrackX[binIdx]) || !isFinite(currentTrackZ[binIdx])) {
-      cursorDot.style.display = 'none';
+      if (cursorDot) cursorDot.style.display = 'none';
+      if (canvasCursor?.setCursorBinIdx) canvasCursor.setCursorBinIdx(null);
+      if (canvasCursor?.drawCursorDot) canvasCursor.drawCursorDot(null);
       return;
     }
 
-    const mapX = trackTransform.toMapX(currentTrackX[binIdx]);
-    const mapZ = trackTransform.toMapZ(currentTrackZ[binIdx]);
-    cursorDot.setAttribute('cx', mapX.toFixed(1));
-    cursorDot.setAttribute('cy', mapZ.toFixed(1));
-    cursorDot.style.display = 'block';
+    // Update SVG cursor dot (visible when SVG map is shown)
+    if (cursorDot) {
+      const mapX = trackTransform.toMapX(currentTrackX[binIdx]);
+      const mapZ = trackTransform.toMapZ(currentTrackZ[binIdx]);
+      cursorDot.setAttribute('cx', mapX.toFixed(1));
+      cursorDot.setAttribute('cy', mapZ.toFixed(1));
+      cursorDot.style.display = 'block';
+    }
+
+    // Update canvas cursor dot (visible when canvas map is shown)
+    if (canvasCursor?.setCursorBinIdx) canvasCursor.setCursorBinIdx(binIdx);
+    if (canvasCursor?.drawCursorDot) canvasCursor.drawCursorDot(binIdx);
   }
 
   function updateCursorPosition(e) {

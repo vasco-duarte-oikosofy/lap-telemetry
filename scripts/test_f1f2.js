@@ -134,7 +134,7 @@ async function runTests() {
       await page.waitForTimeout(150); // Allow time for cursor update
     }
 
-    // Check that cursor-dot element exists and has position attributes set
+    // Check that cursor-dot SVG element exists and has position attributes set
     // (We check for attribute presence, not specific values, to avoid coordinate brittleness)
     const cursorDotState = await page.evaluate(() => {
       const dot = document.getElementById('cursor-dot');
@@ -149,8 +149,17 @@ async function runTests() {
     });
 
     const cursorDotHasPosition = cursorDotState.exists && cursorDotState.hasCx && cursorDotState.hasCy;
-    log(`  [${cursorDotHasPosition ? 'PASS' : 'FAIL'}] Cursor dot has position attributes on mousemove`);
-    assert(cursorDotHasPosition, 'Cursor dot has position attributes on mousemove');
+    log(`  [${cursorDotHasPosition ? 'PASS' : 'FAIL'}] Cursor dot SVG has position attributes on mousemove`);
+    assert(cursorDotHasPosition, 'Cursor dot SVG has position attributes on mousemove');
+
+    // Check canvas cursor dot — the cursor bin index should be non-null after hovering
+    const canvasCursorBinIdxState = await page.evaluate(() => {
+      const binIdx = window.__debugGetCursorBinIdx?.();
+      return { hasBinIdx: binIdx != null && isFinite(binIdx) };
+    });
+    log(`  [${canvasCursorBinIdxState.hasBinIdx ? 'PASS' : 'FAIL'}] Canvas cursor dot: bin index set on mousemove`);
+    assert(canvasCursorBinIdxState.hasBinIdx, 'Canvas cursor dot: bin index set on mousemove');
+
     await screenshot(page, 'f1f2_03_cursor_dot');
 
     // ── F2: Zoom interaction assertions ──────────────────────────────────────
@@ -328,7 +337,7 @@ The following M5 test assertions continue to pass:
 - \`f1f2_00_initial.png\` — Initial page load
 - \`f1f2_01_loaded.png\` — After loading session file
 - \`f1f2_02_compared.png\` — After selecting two laps and comparing
-- \`f1f2_03_cursor_dot.png\` — Circuit map with cursor dot visible
+- \`f1f2_03_cursor_dot.png\` — Circuit map with cursor dot visible (SVG + canvas)
 - \`f1f2_04_zoomed.png\` — After drag-zoom interaction
 - \`f1f2_05_reset.png\` — After double-click zoom reset
 

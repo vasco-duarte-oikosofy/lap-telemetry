@@ -530,7 +530,6 @@ __export(appState_exports, {
   devFeatures: () => devFeatures,
   features: () => features,
   getCurrentMapMode: () => getCurrentMapMode,
-  learnedBoundariesByLayout: () => learnedBoundariesByLayout,
   panelOrder: () => panelOrder,
   pendingSidecars: () => pendingSidecars,
   persistPanelOrder: () => persistPanelOrder,
@@ -581,13 +580,12 @@ function setDevFeatureFlag(name, value) {
     devFeatures[name] = value;
   }
 }
-var store, pendingSidecars, apexAnnotationsByLayout, learnedBoundariesByLayout, PANEL_ORDER_LS_KEY, DEFAULT_PANEL_ORDER, panelOrder, state, _currentMapMode, features, devFeatures;
+var store, pendingSidecars, apexAnnotationsByLayout, PANEL_ORDER_LS_KEY, DEFAULT_PANEL_ORDER, panelOrder, state, _currentMapMode, features, devFeatures;
 var init_appState = __esm({
   "web/js/appState.js"() {
     store = /* @__PURE__ */ new Map();
     pendingSidecars = /* @__PURE__ */ new Map();
     apexAnnotationsByLayout = /* @__PURE__ */ new Map();
-    learnedBoundariesByLayout = /* @__PURE__ */ new Map();
     PANEL_ORDER_LS_KEY = "lap-telemetry.panel-order.v1";
     DEFAULT_PANEL_ORDER = [
       "speed",
@@ -615,8 +613,6 @@ var init_appState = __esm({
     features = {
       mapWalkingSkeleton: true,
       // Phase 00.5 - ON for development
-      mapTrackOutline: true,
-      // Phase 00.6 - ON for testing
       mapHeatmapSingleLap: false,
       // Phase 01a - default OFF until accepted
       mapSAlignment: false,
@@ -635,10 +631,8 @@ var init_appState = __esm({
       // Track outline Phase 03 - apex annotation loading
       apexMetrics: false,
       // Track outline Phase 04 - in-memory apex metrics
-      apexMetricsUi: false,
+      apexMetricsUi: false
       // Track outline Phase 05 - text-only apex metrics UI
-      learnedTrackOutline: false
-      // Track outline Phase 10 - render learned boundaries
     };
     devFeatures = {
       devMapSAlignmentDebug: false
@@ -1132,6 +1126,42 @@ function renderBoundary(points, trackTransform2, part, className) {
   if (!pts) return "";
   return `<polyline data-static-outline-part="${part}" class="${className}" points="${pts}"/>`;
 }
+function drawStaticTrackOutline(ctx, outline, transform) {
+  if (!outline || !transform) return;
+  validateStaticOutline(outline);
+  const boundaryColor = "rgba(210, 210, 210, 0.28)";
+  const centerColor = "rgba(210, 210, 210, 0.18)";
+  drawPointsPolyline(ctx, outline.left_boundary, transform, boundaryColor, 1);
+  drawPointsPolyline(ctx, outline.right_boundary, transform, boundaryColor, 1);
+  drawPointsPolyline(ctx, outline.centerline, transform, centerColor, 0.8, [3, 4]);
+}
+function drawPointsPolyline(ctx, points, transform, color, lineWidth, dash) {
+  if (!points || points.length < 2) return;
+  ctx.strokeStyle = color;
+  ctx.lineWidth = lineWidth;
+  ctx.lineJoin = "round";
+  ctx.lineCap = "round";
+  if (dash) ctx.setLineDash(dash);
+  else ctx.setLineDash([]);
+  ctx.beginPath();
+  let started = false;
+  for (const point of points) {
+    const sx = transform.toScreenX(point.x);
+    const sy = transform.toScreenY(point.y);
+    if (!isFinite(sx) || !isFinite(sy)) {
+      started = false;
+      continue;
+    }
+    if (!started) {
+      ctx.moveTo(sx, sy);
+      started = true;
+    } else {
+      ctx.lineTo(sx, sy);
+    }
+  }
+  ctx.stroke();
+  ctx.setLineDash([]);
+}
 function pointsToSvg(points, trackTransform2) {
   const pts = [];
   for (const point of points) {
@@ -1591,87 +1621,6 @@ function drawPolyline(ctx, trackX, trackZ, transform, color, lineWidth = 1) {
   }
   ctx.stroke();
 }
-function drawTrackOutline(ctx, trackX, trackZ, transform) {
-  const innerColor = "rgba(255, 0, 255, 0.7)";
-  const outerColor = "rgba(0, 255, 255, 0.7)";
-  const trackHalfWidth = 15;
-  drawOffsetPolyline(ctx, trackX, trackZ, transform, -trackHalfWidth, innerColor);
-  drawOffsetPolyline(ctx, trackX, trackZ, transform, trackHalfWidth, outerColor);
-}
-function drawOffsetPolyline(ctx, trackX, trackZ, transform, offsetMeters, color) {
-  ctx.strokeStyle = color;
-  ctx.lineWidth = 1;
-  ctx.beginPath();
-  const offsetPoints = [];
-  const lookAhead = 5;
-  for (let i = 0; i < trackX.length; i++) {
-    const x = trackX[i];
-    const z = trackZ[i];
-    if (!isFinite(x) || !isFinite(z)) {
-      offsetPoints.push(null);
-      continue;
-    }
-    let aheadIdx = i + lookAhead;
-    while (aheadIdx < trackX.length && (!isFinite(trackX[aheadIdx]) || !isFinite(trackZ[aheadIdx]))) aheadIdx++;
-    let behindIdx = i - lookAhead;
-    while (behindIdx >= 0 && (!isFinite(trackX[behindIdx]) || !isFinite(trackZ[behindIdx]))) behindIdx--;
-    let dx, dz;
-    if (aheadIdx < trackX.length && behindIdx >= 0) {
-      dx = trackX[aheadIdx] - trackX[behindIdx];
-      dz = trackZ[aheadIdx] - trackZ[behindIdx];
-    } else if (aheadIdx < trackX.length) {
-      dx = trackX[aheadIdx] - x;
-      dz = trackZ[aheadIdx] - z;
-    } else if (behindIdx >= 0) {
-      dx = x - trackX[behindIdx];
-      dz = z - trackZ[behindIdx];
-    } else {
-      offsetPoints.push(null);
-      continue;
-    }
-    const len = Math.sqrt(dx * dx + dz * dz);
-    if (len < 1e-3) {
-      offsetPoints.push(null);
-      continue;
-    }
-    const tx = dx / len;
-    const tz = dz / len;
-    offsetPoints.push({ x: x + -tz * offsetMeters, z: z + tx * offsetMeters });
-  }
-  const smoothedPoints = [];
-  const smoothWindow = 3;
-  for (let i = 0; i < offsetPoints.length; i++) {
-    if (!offsetPoints[i]) {
-      smoothedPoints.push(null);
-      continue;
-    }
-    let sumX = 0, sumZ = 0, count = 0;
-    for (let j = Math.max(0, i - smoothWindow); j <= Math.min(offsetPoints.length - 1, i + smoothWindow); j++) {
-      if (offsetPoints[j]) {
-        sumX += offsetPoints[j].x;
-        sumZ += offsetPoints[j].z;
-        count++;
-      }
-    }
-    smoothedPoints.push(count > 0 ? { x: sumX / count, z: sumZ / count } : null);
-  }
-  let started = false;
-  for (const pt of smoothedPoints) {
-    if (!pt) {
-      started = false;
-      continue;
-    }
-    const sx = transform.toScreenX(pt.x);
-    const sy = transform.toScreenY(pt.z);
-    if (!started) {
-      ctx.moveTo(sx, sy);
-      started = true;
-    } else {
-      ctx.lineTo(sx, sy);
-    }
-  }
-  ctx.stroke();
-}
 function drawHoverTick(ctx, hoverState, transform, ribbonWidthPx, ribbonGapPx) {
   if (!hoverState || !hoverState.nearest) return;
   const { nearest } = hoverState;
@@ -1804,54 +1753,6 @@ function drawDebugTicks(ctx, lap, transform, color, labelPrefix) {
   }
 }
 
-// web/js/learnedOutline.js
-function boundaryKey(trackId, layoutId) {
-  const slug2 = (s) => String(s || "").trim().toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "");
-  return `${slug2(trackId)}::${slug2(layoutId || "default")}`;
-}
-function drawLearnedBoundaries(ctx, boundaries, transform, style = {}) {
-  if (!boundaries || !transform) return;
-  const leftColor = style.leftColor || "rgba(0, 255, 255, 0.35)";
-  const rightColor = style.rightColor || "rgba(0, 255, 255, 0.35)";
-  const lineWidth = style.lineWidth ?? 1;
-  drawBoundaryPolyline(ctx, boundaries.left, transform, leftColor, lineWidth);
-  drawBoundaryPolyline(ctx, boundaries.right, transform, rightColor, lineWidth);
-}
-function drawBoundaryPolyline(ctx, points, transform, color, lineWidth) {
-  if (!points || points.length < 2) return;
-  ctx.strokeStyle = color;
-  ctx.lineWidth = lineWidth;
-  ctx.lineJoin = "round";
-  ctx.lineCap = "round";
-  ctx.beginPath();
-  let started = false;
-  for (let i = 0; i < points.length; i++) {
-    const p = points[i];
-    if (p.width_m === 0) {
-      started = false;
-      continue;
-    }
-    if (!isFinite(p.x_m) || !isFinite(p.z_m)) {
-      started = false;
-      continue;
-    }
-    const sx = transform.toScreenX(p.x_m);
-    const sy = transform.toScreenY(p.z_m);
-    if (!started) {
-      ctx.moveTo(sx, sy);
-      started = true;
-    } else {
-      ctx.lineTo(sx, sy);
-    }
-  }
-  ctx.stroke();
-}
-function findBoundaryData(boundariesMap, track, layout) {
-  if (!boundariesMap || !track) return null;
-  const key = boundaryKey(track, layout);
-  return boundariesMap.get(key) || null;
-}
-
 // web/js/trackHeatmapMap.js
 var _lastTransform = null;
 function getLastTransform() {
@@ -1901,7 +1802,7 @@ function applyUserTransform(base, userScale, userPanX, userPanY) {
   };
 }
 function renderWalkingSkeleton(canvas, lapA, lapB, options = {}) {
-  const { showOutline = false, showHeatmapSingleLap = false, showSAlignmentDebug = false, showDualRibbon = false, showLegend = false, ribbonWidthPx = 8, ribbonGapPx = 2, userScale = 1, userPanX = 0, userPanY = 0, learnedBoundaries = null, showLearnedOutline = false } = options;
+  const { showHeatmapSingleLap = false, showSAlignmentDebug = false, showDualRibbon = false, showLegend = false, ribbonWidthPx = 8, ribbonGapPx = 2, userScale = 1, userPanX = 0, userPanY = 0, showStaticOutline = false, cursorBinIdx = null } = options;
   const ctx = canvas.getContext("2d");
   const rect = canvas.getBoundingClientRect();
   const dpr = window.devicePixelRatio || 1;
@@ -1909,6 +1810,7 @@ function renderWalkingSkeleton(canvas, lapA, lapB, options = {}) {
   canvas.height = rect.height * dpr;
   ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
   ctx.clearRect(0, 0, rect.width, rect.height);
+  resetCanvasCursorDotPatch();
   if (!lapA || !lapA.x || !lapA.z || !lapB || !lapB.x || !lapB.z) return;
   const boundsA = computeTrackBounds(Array.from(lapA.x), Array.from(lapA.z));
   const boundsB = computeTrackBounds(Array.from(lapB.x), Array.from(lapB.z));
@@ -1917,14 +1819,8 @@ function renderWalkingSkeleton(canvas, lapA, lapB, options = {}) {
   const transform = applyUserTransform(baseTransform, userScale, userPanX, userPanY);
   ctx.fillStyle = "rgba(0, 0, 0, 0.2)";
   ctx.fillRect(0, 0, rect.width, rect.height);
-  if (showLearnedOutline && learnedBoundaries) {
-    drawLearnedBoundaries(ctx, learnedBoundaries, transform);
-  }
-  if (showOutline) {
-    console.log("[trackHeatmapMap] Drawing outline with", lapA.x.length, "points");
-    drawTrackOutline(ctx, lapA.x, lapA.z, transform);
-  } else {
-    console.log("[trackHeatmapMap] showOutline is false, skipping outline");
+  if (showStaticOutline) {
+    drawStaticTrackOutline(ctx, getSpaStaticOutline(), transform);
   }
   if (showDualRibbon) {
     drawDualRibbons(ctx, lapA, lapB, transform, ribbonWidthPx, ribbonGapPx);
@@ -1952,6 +1848,57 @@ function renderWalkingSkeleton(canvas, lapA, lapB, options = {}) {
   const panel = canvas.parentElement;
   updateMapLegend(panel, lapA, lapB, showLegend);
   setLastTransform(transform);
+  if (cursorBinIdx != null && isFinite(cursorBinIdx)) {
+    drawCanvasCursorDot(canvas, lapA, transform, cursorBinIdx);
+  }
+}
+var _savedDotPatch = null;
+function drawCanvasCursorDot(canvas, lapA, transform, binIdx) {
+  if (!canvas || !lapA || !transform || binIdx == null || !isFinite(binIdx)) return;
+  const x = lapA.x[binIdx];
+  const z = lapA.z[binIdx];
+  if (!isFinite(x) || !isFinite(z)) return;
+  const ctx = canvas.getContext("2d");
+  const dpr = window.devicePixelRatio || 1;
+  if (_savedDotPatch && _savedDotPatch.canvasWidth === canvas.width) {
+    ctx.putImageData(_savedDotPatch.data, _savedDotPatch.x, _savedDotPatch.y);
+  }
+  _savedDotPatch = null;
+  ctx.save();
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  const sx = transform.toScreenX(x);
+  const sy = transform.toScreenY(z);
+  if (!isFinite(sx) || !isFinite(sy)) {
+    ctx.restore();
+    return;
+  }
+  const radius = 5;
+  const dpx = Math.round(sx * dpr);
+  const dpy = Math.round(sy * dpr);
+  const patchX = Math.max(0, dpx - radius);
+  const patchY = Math.max(0, dpy - radius);
+  const patchW = Math.min(canvas.width - patchX, radius * 2 + 1);
+  const patchH = Math.min(canvas.height - patchY, radius * 2 + 1);
+  if (patchW > 0 && patchH > 0) {
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
+    _savedDotPatch = {
+      canvasWidth: canvas.width,
+      data: ctx.getImageData(patchX, patchY, patchW, patchH),
+      x: patchX,
+      y: patchY,
+      w: patchW,
+      h: patchH
+    };
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  }
+  ctx.fillStyle = "#58a6ff";
+  ctx.beginPath();
+  ctx.arc(sx, sy, 4, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.restore();
+}
+function resetCanvasCursorDotPatch() {
+  _savedDotPatch = null;
 }
 function initTrackHeatmapResize(canvas, getLaps, getOptions) {
   const observer = new ResizeObserver(() => {
@@ -2325,22 +2272,9 @@ function createTrackHeatmapController(getMapState2) {
     };
   }
   function buildOpts({ respectZoomFlag = true, includeMapSAlignment = true } = {}) {
-    const { currentZoomRange: currentZoomRange2, learnedBoundariesByLayout: bMap } = getMapState2();
+    const { currentZoomRange: currentZoomRange2 } = getMapState2();
     const s = (!respectZoomFlag || features.mapZoomPan) && mapInteraction ? mapInteraction.getState() : { scale: 1, tx: 0, ty: 0 };
-    let learnedBoundaries = null;
-    if (features.learnedTrackOutline) {
-      const sessionEntry = getMapState2().currentLapARaw;
-      for (const [, entry] of store) {
-        const track = entry.sidecar?.track_id || entry.sidecar?.track || entry.sidecar?.track_name;
-        const layout = entry.sidecar?.layout_id || entry.sidecar?.layoutId || entry.sidecar?.layout || "default";
-        if (track) {
-          learnedBoundaries = findBoundaryData(bMap || learnedBoundariesByLayout, track, layout);
-          if (learnedBoundaries) break;
-        }
-      }
-    }
     return {
-      showOutline: !!features.mapTrackOutline,
       showHeatmapSingleLap: !!features.mapHeatmapSingleLap,
       showSAlignmentDebug: includeMapSAlignment && !!features.mapSAlignment || !!devFeatures.devMapSAlignmentDebug,
       showDualRibbon: !!features.mapDualRibbon,
@@ -2354,15 +2288,15 @@ function createTrackHeatmapController(getMapState2) {
       userScale: s.scale,
       userPanX: s.tx,
       userPanY: s.ty,
-      showLearnedOutline: !!features.learnedTrackOutline,
-      learnedBoundaries
+      showStaticOutline: true,
+      cursorBinIdx: _currentCursorBinIdx
     };
   }
   function render() {
     const canvas = document.getElementById("track-heatmap-canvas");
     const svg = document.getElementById("circuit-map-svg");
     if (!canvas || !svg) return;
-    const anyMapFeature = features.mapWalkingSkeleton || features.mapTrackOutline || features.mapHeatmapSingleLap || features.mapSAlignment || features.mapDualRibbon || features.mapZoomPan || features.mapLegend || features.mapHover || features.mapLinkedHighlight || features.learnedTrackOutline;
+    const anyMapFeature = features.mapWalkingSkeleton || features.mapHeatmapSingleLap || features.mapSAlignment || features.mapDualRibbon || features.mapZoomPan || features.mapLegend || features.mapHover || features.mapLinkedHighlight || true;
     if (!anyMapFeature) {
       canvas.style.display = "none";
       svg.style.display = "";
@@ -2416,10 +2350,25 @@ function createTrackHeatmapController(getMapState2) {
       }, () => buildOpts({ respectZoomFlag: false, includeMapSAlignment: false }));
     }
   }
+  let _currentCursorBinIdx = null;
+  function setCursorBinIdx(idx) {
+    _currentCursorBinIdx = idx;
+  }
+  function drawCursorDot(binIdx) {
+    const canvas = document.getElementById("track-heatmap-canvas");
+    if (!canvas) return;
+    const { currentTrackX: currentTrackX2, currentTrackZ: currentTrackZ2 } = getMapState2();
+    const transform = getLastTransform();
+    if (!currentTrackX2 || !currentTrackZ2 || !transform) return;
+    const lapA = { x: currentTrackX2, z: currentTrackZ2 };
+    drawCanvasCursorDot(canvas, lapA, transform, binIdx);
+  }
   return {
     render,
     getMapInteractionState: () => mapInteraction?.getState() ?? null,
-    getMapHoverState: () => mapHover?.getState() ?? null
+    getMapHoverState: () => mapHover?.getState() ?? null,
+    setCursorBinIdx,
+    drawCursorDot
   };
 }
 
@@ -2633,26 +2582,37 @@ function renderDtPanel(def, dtBins, maxDist, sectorDists, zoomRange, overlapRang
 
 // web/js/cursor.js
 init_appState();
-function initCursorAndZoom(renderAll2, getRenderState2) {
+function initCursorAndZoom(renderAll2, getRenderState2, canvasCursor) {
   const plotArea = document.getElementById("plot-area");
   const cursorLine = document.getElementById("cursor-line");
   const tooltip = document.getElementById("tooltip");
+  let _currentBinIdx = null;
+  window.__debugGetCursorBinIdx = () => _currentBinIdx;
   function updateCursorDot(binIdx) {
+    _currentBinIdx = binIdx;
     const { currentTrackX: currentTrackX2, currentTrackZ: currentTrackZ2, trackTransform: trackTransform2 } = getRenderState2();
     const cursorDot = document.getElementById("cursor-dot");
-    if (!cursorDot || !currentTrackX2 || !currentTrackZ2 || !trackTransform2) {
+    if (!currentTrackX2 || !currentTrackZ2 || !trackTransform2) {
       if (cursorDot) cursorDot.style.display = "none";
+      if (canvasCursor?.setCursorBinIdx) canvasCursor.setCursorBinIdx(null);
+      if (canvasCursor?.drawCursorDot) canvasCursor.drawCursorDot(null);
       return;
     }
     if (binIdx === null || !isFinite(currentTrackX2[binIdx]) || !isFinite(currentTrackZ2[binIdx])) {
-      cursorDot.style.display = "none";
+      if (cursorDot) cursorDot.style.display = "none";
+      if (canvasCursor?.setCursorBinIdx) canvasCursor.setCursorBinIdx(null);
+      if (canvasCursor?.drawCursorDot) canvasCursor.drawCursorDot(null);
       return;
     }
-    const mapX = trackTransform2.toMapX(currentTrackX2[binIdx]);
-    const mapZ = trackTransform2.toMapZ(currentTrackZ2[binIdx]);
-    cursorDot.setAttribute("cx", mapX.toFixed(1));
-    cursorDot.setAttribute("cy", mapZ.toFixed(1));
-    cursorDot.style.display = "block";
+    if (cursorDot) {
+      const mapX = trackTransform2.toMapX(currentTrackX2[binIdx]);
+      const mapZ = trackTransform2.toMapZ(currentTrackZ2[binIdx]);
+      cursorDot.setAttribute("cx", mapX.toFixed(1));
+      cursorDot.setAttribute("cy", mapZ.toFixed(1));
+      cursorDot.style.display = "block";
+    }
+    if (canvasCursor?.setCursorBinIdx) canvasCursor.setCursorBinIdx(binIdx);
+    if (canvasCursor?.drawCursorDot) canvasCursor.drawCursorDot(binIdx);
   }
   function updateCursorPosition(e) {
     const { currentSessionBins: currentSessionBins2, currentRefBins: currentRefBins2, currentZoomRange: currentZoomRange2, currentOverlapRange: currentOverlapRange2, currentDtBins: currentDtBins2 } = getRenderState2();
@@ -3105,20 +3065,10 @@ function apexAnnotationKey(annotations) {
 function isApexAnnotationJson(value) {
   return !!(value && typeof value === "object" && !Array.isArray(value) && "track_id" in value && "layout_id" in value && "corners" in value);
 }
-function isBoundaryJson(value) {
-  return !!(value && typeof value === "object" && !Array.isArray(value) && "track_id" in value && "layout_id" in value && Array.isArray(value.left) && Array.isArray(value.right));
-}
 async function loadSidecar(file) {
   try {
     const text = await file.text();
     const sidecar = JSON.parse(text);
-    if (isBoundaryJson(sidecar)) {
-      const key = boundaryKey(sidecar.track_id, sidecar.layout_id);
-      learnedBoundariesByLayout.set(key, sidecar);
-      console.log(`loaded boundary data for ${sidecar.track_id}/${sidecar.layout_id} (${sidecar.left?.length ?? 0} left, ${sidecar.right?.length ?? 0} right points)`);
-      rebuildPickers();
-      return;
-    }
     if (isApexAnnotationJson(sidecar)) {
       const validation = validateApexAnnotations(sidecar);
       if (validation.ok) {
@@ -3411,7 +3361,6 @@ function installDebugHooks(deps) {
   window.__devFeatures = devFeatures2;
   window.__getSessionKeys = () => [...store2.keys()];
   window.__getSessionData = (key) => store2.get(key)?.data || null;
-  window.__learnedBoundariesByLayout = deps.learnedBoundariesByLayout;
   window.__resamplerDebug = function(storeKeyStr, segIdx) {
     const entry = store2.get(storeKeyStr);
     if (!entry) throw new Error(`store key not found: ${storeKeyStr}`);
@@ -3461,7 +3410,7 @@ function installDebugHooks(deps) {
   window.__setFeatureFlag = (name, value) => {
     setFeatureFlag2(name, value);
     syncFeatureFlagMenuLabels(features2);
-    if (name === "mapWalkingSkeleton" || name === "mapTrackOutline" || name === "mapHeatmapSingleLap" || name === "mapSAlignment" || name === "mapDualRibbon" || name === "mapZoomPan" || name === "mapLegend" || name === "mapHover" || name === "mapLinkedHighlight" || name === "learnedTrackOutline") {
+    if (name === "mapWalkingSkeleton" || name === "mapHeatmapSingleLap" || name === "mapSAlignment" || name === "mapDualRibbon" || name === "mapZoomPan" || name === "mapLegend" || name === "mapHover" || name === "mapLinkedHighlight") {
       renderTrackHeatmapMap2();
     }
   };
@@ -4082,8 +4031,7 @@ function getMapState() {
     currentRefBins,
     currentLapARaw,
     currentLapBRaw,
-    currentZoomRange,
-    learnedBoundariesByLayout
+    currentZoomRange
   };
 }
 function getRenderState() {
@@ -4103,7 +4051,10 @@ function getRenderState() {
   };
 }
 initUI(renderAll);
-initCursorAndZoom(renderAll, getRenderState);
+initCursorAndZoom(renderAll, getRenderState, {
+  drawCursorDot: trackHeatmapController.drawCursorDot,
+  setCursorBinIdx: trackHeatmapController.setCursorBinIdx
+});
 installDebugHooks({
   store,
   features,
@@ -4116,8 +4067,7 @@ installDebugHooks({
   fitToView,
   setFeatureFlag,
   setDevFeatureFlag,
-  renderTrackHeatmapMap,
-  learnedBoundariesByLayout
+  renderTrackHeatmapMap
 });
 
 </script></script>
