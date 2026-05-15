@@ -525,10 +525,11 @@ The viewer inlines all data and opens in any browser. The track map shows the ce
 
 **Out of scope:** rendering, low-confidence styling, diagnostics, gap-filling.
 
-**Deferred improvements from Phase 9.2 visual QA:**
+**Deferred improvements from Phase 9.2/9.3 visual QA:**
 
 1. **Curved-section boundary oscillation remains too high.** Spa/La Source still shows unacceptable boundary oscillation in some curved sections after positional smoothing. The observed jitter amplitude can approach the inferred track width, which suggests the boundary derivation is mixing per-bin extremes rather than tracing a stable physical edge. A future improvement should experiment with reconstructing a local left/right width envelope instead of only smoothing final `(x_m, z_m)` points: e.g. compute robust local maxima for left and right widths over short windows (roughly 3–5m to start), reject outlier edge hits, interpolate those maxima along `s_m`, and then derive boundaries from the stable envelope.
-2. **One side of the outline disappears in some curves.** Visual QA shows that in some turns the left outline collapses/disappears, while in other turns the right outline collapses/disappears. This is the one-sided/zero-width data-coverage limitation: if the source bins have no observations for one side, Phase 9.2 preserves those zero-width points at the center path instead of inventing a boundary. A future boundary-quality phase should recover missing-side outlines from a stable local width envelope, symmetric track-width assumptions, or calibrated max-left/max-right interpolation before rendering treats the outline as complete.
+2. **One side of the outline disappears in some curves.** Visual QA shows that in some turns the left outline collapses/disappears, while in other turns the right outline collapses/disappears. This is the one-sided/zero-width data-coverage limitation: if the source bins have no observations for one side, Phase 9.2 preserves those zero-width points at the center path instead of inventing a boundary. Phase 9.3's short-gap local-total-width inference was too conservative to materially improve Spa Bus Stop: it inferred only a small number of emitted boundary points and the previous best visual output remained more coherent. A future boundary-quality phase should recover missing-side outlines from a stable local width envelope, symmetric track-width assumptions, or calibrated max-left/max-right interpolation before rendering treats the outline as complete.
+3. **Do not invest further in presentation until geometry improves.** Phase 10 rendering proves the data path, but Spa visual QA shows the learned outline is not yet reliable track-boundary geometry. Phase 11 low-confidence styling can make uncertainty visible, but it will not fix the Bus Stop/La Source shape problems. Continue the original plan only where it gives a large expected benefit; otherwise prioritize robust boundary reconstruction or stop treating learned boundaries as user-facing track limits.
 
 These should be treated as boundary-quality/calibration enhancements, separate from Phase 10 rendering.
 
@@ -573,7 +574,7 @@ Inference must be explicit in data, never silent. Preserve raw widths/counts/sta
 - Inferred boundary points are marked with explicit low-confidence/inferred metadata.
 - `computeBoundaries` without the new option returns the same output as before.
 - CLI output includes a summary count for inferred left and right widths.
-- Visual QA: Bus Stop no longer loses one side through the direction change when inference is enabled; La Source may still show noisy learned data, but inferred sections must be visibly distinguishable in data for Phase 11 styling.
+- Visual QA follow-up: Bus Stop did **not** materially improve with the conservative heuristic. The data contract is useful, but this phase should not be considered a successful boundary-quality fix for Spa.
 
 **Out of scope:** importing TUMFTM or any external track data, official boundary claims, renderer styling changes, filled polygons, and automatic profile discovery.
 
