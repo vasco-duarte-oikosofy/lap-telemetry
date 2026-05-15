@@ -499,6 +499,34 @@ The viewer inlines all data and opens in any browser. The track map shows the ce
 
 ---
 
+## Phase 9.2 — Smooth boundary polylines
+
+**Why this exists:** Raw boundary polylines exhibit visible jitter caused by unsmoothed per-bin position noise in the center path and by per-bin normal oscillation. Smoothing the boundaries before rendering produces clean, usable track outlines.
+
+**Independence:** depends on Phase 9.1.
+
+**Goal:** apply smoothing to boundary polylines so the rendered outline is visually clean without losing geometric accuracy.
+
+**Tasks:**
+1. Add a fixture with known jitter to prove smoothing removes oscillation while preserving overall shape.
+2. Implement a boundary smoothing function that operates on the output of `computeBoundaries`.
+3. Integrate smoothing as an option (`--smooth-window`) in the `compute_boundaries` CLI.
+4. Visual QA: regenerated boundaries with smoothing should show smooth, non-oscillating lines in the profile viewer.
+
+**Acceptance (executable tests):**
+- Straight-line fixture: smoothing a straight boundary returns the same straight line (no shape distortion).
+- Jittered fixture: a boundary with artificial high-frequency oscillation is smoothed to a recognizable shape; the smoothed line has smaller max-per-point deviation from the true shape than the raw line.
+- Curved fixture: smoothing a circular-arc boundary does not shrink the arc radius significantly (geometric accuracy preserved).
+- Zero-width bins: points with zero width (one-sided or missing) are handled gracefully — they are not smoothed into non-zero positions.
+- Gap handling: gaps in the path (missing s_m bins) do not cause smoothing to bridge across discontinuities.
+- Window parameter: larger window = more smoothing; window=1 returns the original boundary.
+- CLI: `--smooth-window N` accepts a positive integer, default 5; `--smooth-window 1` is identity.
+- Existing tests remain green; `computeBoundaries` with no smoothing option returns the same output as before.
+
+**Out of scope:** rendering, low-confidence styling, diagnostics, gap-filling.
+
+---
+
 ## Phase 10 — Render learned track outline behind existing map
 
 **Why this exists:** This is the first user-visible width-profile result. It should be a background context layer only, so it cannot break lap comparison.
