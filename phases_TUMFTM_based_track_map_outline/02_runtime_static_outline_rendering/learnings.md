@@ -7,3 +7,5 @@
 3. The static outline is projected with the existing trajectory-derived `trackTransform`. This preserves current map framing/zoom behavior and avoids letting the larger static boundary corridor change the viewport.
 
 4. The artifact uses simulator `x/y` coordinates, and the current map transform expects simulator `x/z` coordinates. For this artifact, `point.y` maps through `toMapZ`, matching the Phase 01 coordinate-system contract.
+
+5. **The canvas renderer hides the SVG** (`svg.style.display = 'none'`) when any map feature flag is active. The initial implementation only wired the static outline into the SVG path; it was invisible because the canvas took over. The fix adds a canvas drawing path via `drawStaticTrackOutline()` in `trackHeatmapMap.js`, gated by `showStaticOutline: true` in the controller options. The `anyMapFeature` guard must also account for the static outline being always-on.

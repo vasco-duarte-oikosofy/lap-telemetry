@@ -15,6 +15,7 @@ import {
   drawStartFinishTick, drawDebugTicks,
 } from './trackHeatmapDrawing.js';
 import { drawLearnedBoundaries } from './learnedOutline.js';
+import { getSpaStaticOutline, drawStaticTrackOutline } from './staticTrackOutline.js';
 
 let _lastTransform = null;
 export function getLastTransform() { return _lastTransform; }
@@ -84,7 +85,7 @@ export function applyUserTransform(base, userScale, userPanX, userPanY) {
 // Phase 00.6: adds track outline background underneath.
 
 export function renderWalkingSkeleton(canvas, lapA, lapB, options = {}) {
-  const { showOutline = false, showHeatmapSingleLap = false, showSAlignmentDebug = false, showDualRibbon = false, showLegend = false, ribbonWidthPx = 8, ribbonGapPx = 2, userScale = 1, userPanX = 0, userPanY = 0, learnedBoundaries = null, showLearnedOutline = false } = options;
+  const { showOutline = false, showHeatmapSingleLap = false, showSAlignmentDebug = false, showDualRibbon = false, showLegend = false, ribbonWidthPx = 8, ribbonGapPx = 2, userScale = 1, userPanX = 0, userPanY = 0, learnedBoundaries = null, showLearnedOutline = false, showStaticOutline = false } = options;
   
   const ctx = canvas.getContext('2d');
   const rect = canvas.getBoundingClientRect();
@@ -115,6 +116,11 @@ export function renderWalkingSkeleton(canvas, lapA, lapB, options = {}) {
   // Phase 10: Draw learned boundaries FIRST (bottom layer)
   if (showLearnedOutline && learnedBoundaries) {
     drawLearnedBoundaries(ctx, learnedBoundaries, transform);
+  }
+
+  // TUMFTM Phase 02: Draw static Spa outline (bottom layer, under trajectories)
+  if (showStaticOutline) {
+    drawStaticTrackOutline(ctx, getSpaStaticOutline(), transform);
   }
 
   // Phase 00.6: Draw track outline FIRST (bottom layer)

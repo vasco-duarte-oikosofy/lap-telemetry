@@ -39,6 +39,43 @@ function renderBoundary(points, trackTransform, part, className) {
   return `<polyline data-static-outline-part="${part}" class="${className}" points="${pts}"/>`;
 }
 
+/**
+ * Draw the static Spa outline on a canvas 2D context.
+ * Draws boundaries and dashed centerline as faint visual context.
+ * @param {CanvasRenderingContext2D} ctx
+ * @param {Object} outline - Schema v1 static outline from getSpaStaticOutline()
+ * @param {Object} transform - World-to-screen transform with toScreenX/toScreenY
+ */
+export function drawStaticTrackOutline(ctx, outline, transform) {
+  if (!outline || !transform) return;
+  validateStaticOutline(outline);
+  const boundaryColor = 'rgba(210, 210, 210, 0.28)';
+  const centerColor = 'rgba(210, 210, 210, 0.18)';
+  drawPointsPolyline(ctx, outline.left_boundary, transform, boundaryColor, 1);
+  drawPointsPolyline(ctx, outline.right_boundary, transform, boundaryColor, 1);
+  drawPointsPolyline(ctx, outline.centerline, transform, centerColor, 0.8, [3, 4]);
+}
+
+function drawPointsPolyline(ctx, points, transform, color, lineWidth, dash) {
+  if (!points || points.length < 2) return;
+  ctx.strokeStyle = color;
+  ctx.lineWidth = lineWidth;
+  ctx.lineJoin = 'round';
+  ctx.lineCap = 'round';
+  if (dash) ctx.setLineDash(dash); else ctx.setLineDash([]);
+  ctx.beginPath();
+  let started = false;
+  for (const point of points) {
+    const sx = transform.toScreenX(point.x);
+    const sy = transform.toScreenY(point.y);
+    if (!isFinite(sx) || !isFinite(sy)) { started = false; continue; }
+    if (!started) { ctx.moveTo(sx, sy); started = true; }
+    else { ctx.lineTo(sx, sy); }
+  }
+  ctx.stroke();
+  ctx.setLineDash([]);
+}
+
 function pointsToSvg(points, trackTransform) {
   const pts = [];
   for (const point of points) {

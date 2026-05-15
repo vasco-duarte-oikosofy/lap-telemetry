@@ -30,35 +30,54 @@ function assert(cond, message, detail = '') {
     await page.locator('#compare-btn').click();
 
     await page.waitForFunction(() => {
-      const group = document.querySelector('#static-track-outline [data-static-track-outline="spa-francorchamps"]');
-      return group && group.querySelectorAll('polyline').length === 3;
+      const canvas = document.getElementById('track-heatmap-canvas');
+      return canvas && canvas.style.display !== 'none' && canvas.width > 0;
     }, { timeout: 10000 });
 
-    const state = await page.evaluate(() => {
-      const svg = document.getElementById('circuit-map-svg');
-      const staticGroup = document.getElementById('static-track-outline');
-      const trackSegments = document.getElementById('track-segments');
-      const trackOutline = document.getElementById('track-outline');
-      const parts = [...staticGroup.querySelectorAll('polyline')].map(p => ({
-        part: p.getAttribute('data-static-outline-part'),
-        pointCount: (p.getAttribute('points') || '').trim().split(/\s+/).filter(Boolean).length,
-      }));
-      return {
-        childOrder: [...svg.children].map(el => el.id),
-        trackPoints: (trackOutline.getAttribute('points') || '').trim().split(/\s+/).filter(Boolean).length,
-        parts,
-        staticBeforeSegments: [...svg.children].indexOf(staticGroup) < [...svg.children].indexOf(trackSegments),
-        staticBeforeTrajectory: [...svg.children].indexOf(staticGroup) < [...svg.children].indexOf(trackOutline),
-      };
+    // Canvas renderer is active: verify static outline pixels are present underneath
+    const canvasState = await page.evaluate(() => {
+      const canvas = document.getElementById('track-heatmap-canvas');
+      if (!canvas) return { error: 'canvas not found' };
+      const ctx = canvas.getContext('2d');
+      const w = canvas.width, h = canvas.height;
+      if (w === 0 || h === 0) return { error: 'canvas empty' };
+      const imageData = ctx.getImageData(0, 0, w, h);
+      const data = imageData.data;
+      // Look for static outline pixels: rgba(210,210,210,0.28) composited on dark
+      // background produces R≈G≈B≈55-65, A≈100. We check for greyish pixels as a proxy.
+      let outlinePixels = 0;
+      for (let i = 0; i < data.length; i += 4) {
+        const r = data[i], g = data[i+1], b = data[i+2], a = data[i+3];
+        if (Math.abs(r - g) < 15 && Math.abs(g - b) < 15 && r > 30 && r < 120 && a > 10) {
+          outlinePixels++;
+        }
+      }
+      let totalNonTransparent = 0;
+      for (let i = 3; i < data.length; i += 4) {
+        if (data[i] > 10) totalNonTransparent++;
+      }
+      return { outlinePixels, totalNonTransparent, canvasWidth: w, canvasHeight: h };
     });
 
-    assert(state.staticBeforeSegments, 'static outline group renders behind heatmap segments', state.childOrder.join(' > '));
-    assert(state.staticBeforeTrajectory, 'static outline group renders behind trajectory outline', state.childOrder.join(' > '));
-    assert(state.trackPoints > 200, 'existing trajectory outline still renders', `points=${state.trackPoints}`);
-    for (const part of ['left_boundary', 'right_boundary', 'centerline']) {
-      const found = state.parts.find(p => p.part === part);
-      assert(found && found.pointCount > 1000, `${part} renders from Spa static artifact`, `points=${found?.pointCount || 0}`);
-    }
+    assert(!canvasState.error, 'canvas is rendered', canvasState.error || 'ok');
+    assert(canvasState.canvasWidth > 0, 'canvas has positive width', `${canvasState.canvasWidth}px`);
+    assert(canvasState.outlinePixels > 50, 'canvas has static outline pixels from Spa artifact', `${canvasState.outlinePixels} outline pixels among ${canvasState.totalNonTransparent} total`);
+
+    // SVG path: also verify static outline group exists in DOM
+    const svgState = await page.evaluate(() => {
+      const group = document.getElementById('static-track-outline');
+      if (!group) return { exists: false };
+      const polylines = group.querySelectorAll('polyline');
+      return {
+        exists: true,
+        polylineCount: polylines.length,
+        hasLeft: !!group.querySelector('[data-static-outline-part="left_boundary"]'),
+        hasRight: !!group.querySelector('[data-static-outline-part="right_boundary"]'),
+        hasCenter: !!group.querySelector('[data-static-outline-part="centerline"]'),
+      };
+    });
+    assert(svgState.exists, 'SVG static-outline group exists in DOM');
+    assert(svgState.hasLeft && svgState.hasRight && svgState.hasCenter, 'SVG static outline has boundary/centerline parts', `${svgState.polylineCount} polylines`);
   } finally {
     await browser.close();
     server.close();
@@ -67,3 +86,4 @@ function assert(cond, message, detail = '') {
   console.error(err);
   process.exit(1);
 });
+

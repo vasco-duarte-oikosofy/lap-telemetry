@@ -76,6 +76,7 @@ export function createTrackHeatmapController(getMapState) {
       userPanX: s.tx,
       userPanY: s.ty,
       showLearnedOutline: !!features.learnedTrackOutline,
+      showStaticOutline: true,
       learnedBoundaries,
     };
   }
@@ -85,7 +86,7 @@ export function createTrackHeatmapController(getMapState) {
     const svg = document.getElementById('circuit-map-svg');
     if (!canvas || !svg) return;
 
-    const anyMapFeature = features.mapWalkingSkeleton || features.mapTrackOutline || features.mapHeatmapSingleLap || features.mapSAlignment || features.mapDualRibbon || features.mapZoomPan || features.mapLegend || features.mapHover || features.mapLinkedHighlight || features.learnedTrackOutline;
+    const anyMapFeature = features.mapWalkingSkeleton || features.mapTrackOutline || features.mapHeatmapSingleLap || features.mapSAlignment || features.mapDualRibbon || features.mapZoomPan || features.mapLegend || features.mapHover || features.mapLinkedHighlight || features.learnedTrackOutline || true;
     if (!anyMapFeature) {
       canvas.style.display = 'none';
       svg.style.display = '';

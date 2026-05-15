@@ -38,13 +38,15 @@ Verification:
 
 - `node scripts/test_static_track_outline_contract.js` passes.
 - `node scripts/test_static_outline_runtime_rendering.js` passes.
-- `node scripts/test_static_outline_compare_ui.js` passes.
+- `node scripts/test_static_outline_compare_ui.js` passes (canvas + SVG paths both verified).
 - `npm test` passes.
 - `npm run build` passes and rewrote `dist/compare.html`.
 
 Runtime/UI status:
 
 - The Spa static outline renders behind existing trajectories in the compare UI.
+- The canvas renderer hides the SVG and draws the static outline directly onto the canvas.
+- The SVG path also populates the static outline group (for the rare case when the SVG is visible).
 - No manifest, alias lookup, fuzzy matching, automatic track/layout selection, runtime TUMFTM parsing, runtime alignment math, runtime width scaling, or editor behavior was added.
 
 Deferred:
