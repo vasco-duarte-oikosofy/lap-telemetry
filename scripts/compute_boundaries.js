@@ -5,11 +5,12 @@
  *
  * Usage:
  *   node scripts/compute_boundaries.js --path <path.json> --profile <profile.json> \
- *     --out <boundaries.json> [--smooth] [--overwrite]
+ *     --out <boundaries.json> [--smooth] [--smooth-boundary <window>] [--overwrite]
  *
  * Options:
- *   --smooth     Use smoothed widths (left_width_smooth_m / right_width_smooth_m)
- *   --overwrite  Replace existing output file (default: refuse)
+ *   --smooth              Use smoothed widths (left_width_smooth_m / right_width_smooth_m)
+ *   --smooth-boundary N   Smooth boundary polyline positions with local polynomial window N
+ *   --overwrite          Replace existing output file (default: refuse)
  */
 
 'use strict';
@@ -59,22 +60,115 @@ function computeTangentNormal(points, index) {
 }
 
 /**
+ * Fit a local polynomial around one point and return the value at t=0.
+ * A quadratic fit preserves straight lines exactly while avoiding the curve
+ * shrinkage of a raw moving average. Falls back to linear/identity for small
+ * segments.
+ */
+function localPolynomialValue(points, index, start, end, window, field) {
+  const rows = [];
+  const centerS = points[index].s_m;
+  for (let w = -window; w <= window; w++) {
+    const ni = index + w;
+    if (ni < start || ni >= end) continue;
+    rows.push({ t: points[ni].s_m - centerS, y: points[ni][field] });
+  }
+
+  if (rows.length < 3) {
+    return points[index][field];
+  }
+
+  let n = 0, st = 0, st2 = 0, st3 = 0, st4 = 0;
+  let sy = 0, sty = 0, st2y = 0;
+  for (const r of rows) {
+    const t2 = r.t * r.t;
+    n++;
+    st += r.t;
+    st2 += t2;
+    st3 += t2 * r.t;
+    st4 += t2 * t2;
+    sy += r.y;
+    sty += r.t * r.y;
+    st2y += t2 * r.y;
+  }
+
+  const det = n * (st2 * st4 - st3 * st3)
+    - st * (st * st4 - st2 * st3)
+    + st2 * (st * st3 - st2 * st2);
+
+  if (Math.abs(det) < 1e-9) {
+    return points[index][field];
+  }
+
+  // Cramer's rule for coefficient a in y = a + bt + ct².
+  const detA = sy * (st2 * st4 - st3 * st3)
+    - st * (sty * st4 - st3 * st2y)
+    + st2 * (sty * st3 - st2 * st2y);
+  return detA / det;
+}
+
+/**
+ * Smooth boundary polyline positions with local polynomial smoothing.
+ *
+ * @param {Array} boundaryPoints - [{ s_m, x_m, z_m, width_m, status, confidence }, ...]
+ * @param {number} window - Half-window size (±window bins). 0 or 1 = no smoothing.
+ * @param {number} [binSize] - Bin size in meters for gap detection. Default 1.
+ *   Gaps where s_m jumps > binSize*2 are segment breaks (not bridged).
+ * @returns {Array} Smoothed boundary points (same length, x_m and z_m smoothed).
+ */
+function smoothBoundary(boundaryPoints, window, binSize = 1) {
+  if (window <= 1 || boundaryPoints.length === 0) {
+    return boundaryPoints.map(p => ({ ...p }));
+  }
+
+  const result = boundaryPoints.map(p => ({ ...p }));
+  const maxGap = binSize * 2;
+  const isBarrier = boundaryPoints.map(p => p.width_m === 0);
+
+  let start = null;
+  for (let i = 0; i <= boundaryPoints.length; i++) {
+    const atEnd = i === boundaryPoints.length;
+    const barrier = !atEnd && isBarrier[i];
+    const gapBefore = !atEnd && i > 0 && boundaryPoints[i].s_m - boundaryPoints[i - 1].s_m > maxGap;
+
+    if (start != null && (atEnd || barrier || gapBefore)) {
+      for (let j = start; j < i; j++) {
+        result[j].x_m = localPolynomialValue(boundaryPoints, j, start, i, window, 'x_m');
+        result[j].z_m = localPolynomialValue(boundaryPoints, j, start, i, window, 'z_m');
+      }
+      start = null;
+    }
+
+    if (barrier) {
+      result[i].x_m = boundaryPoints[i].x_m;
+      result[i].z_m = boundaryPoints[i].z_m;
+      continue;
+    }
+
+    if (!atEnd && start == null) start = i;
+  }
+
+  return result;
+}
+
+/**
  * Derive left and right boundary polylines from path points + width samples.
  *
  * @param {Array} pathPoints  - [{ s_m, x_m, z_m, sample_count }, ...]
  * @param {Array} profileSamples - [{ s_m, left_width_m, right_width_m, (left_width_smooth_m, right_width_smooth_m), status, confidence }, ...]
  * @param {boolean} useSmooth - Use smoothed widths instead of raw
- * @returns {{ left, right, use_smooth, summary }}
+ * @param {number} [smoothBoundaryWindow] - Window for boundary smoothing (0 = no smoothing)
+ * @returns {{ left, right, use_smooth, smooth_boundary_window, summary }}
  */
-function computeBoundaries({ pathPoints, profileSamples, useSmooth }) {
+function computeBoundaries({ pathPoints, profileSamples, useSmooth, smoothBoundaryWindow = 0 }) {
   // Build profile lookup by s_m
   const profileByS = new Map();
   for (const s of profileSamples) {
     profileByS.set(s.s_m, s);
   }
 
-  const left = [];
-  const right = [];
+  let left = [];
+  let right = [];
   let unmatchedPath = 0;
 
   for (let i = 0; i < pathPoints.length; i++) {
@@ -111,10 +205,21 @@ function computeBoundaries({ pathPoints, profileSamples, useSmooth }) {
     });
   }
 
+  // Apply boundary smoothing if requested
+  if (smoothBoundaryWindow > 0) {
+    // Determine bin_size_m from the path data
+    const binSize = pathPoints.length > 1
+      ? pathPoints[1].s_m - pathPoints[0].s_m
+      : 1;
+    left = smoothBoundary(left, smoothBoundaryWindow, binSize);
+    right = smoothBoundary(right, smoothBoundaryWindow, binSize);
+  }
+
   return {
     left,
     right,
     use_smooth: useSmooth,
+    smooth_boundary_window: smoothBoundaryWindow || 0,
     summary: {
       path_points: pathPoints.length,
       profile_samples: profileSamples.length,
@@ -126,7 +231,7 @@ function computeBoundaries({ pathPoints, profileSamples, useSmooth }) {
   };
 }
 
-async function computeBoundariesFromFiles({ pathPath, profilePath, outPath, useSmooth, overwrite }) {
+async function computeBoundariesFromFiles({ pathPath, profilePath, outPath, useSmooth, smoothBoundaryWindow = 0, overwrite }) {
   const pathData = JSON.parse(await fs.readFile(pathPath, 'utf8'));
   const profileData = JSON.parse(await fs.readFile(profilePath, 'utf8'));
 
@@ -138,6 +243,7 @@ async function computeBoundariesFromFiles({ pathPath, profilePath, outPath, useS
     pathPoints: pathData.points,
     profileSamples: profileData.samples,
     useSmooth,
+    smoothBoundaryWindow,
   });
 
   const output = {
@@ -145,6 +251,7 @@ async function computeBoundariesFromFiles({ pathPath, profilePath, outPath, useS
     layout_id: pathData.layout_id,
     bin_size_m: pathData.bin_size_m,
     use_smooth: useSmooth,
+    smooth_boundary_window: result.smooth_boundary_window,
     left: result.left,
     right: result.right,
     summary: result.summary,
@@ -164,13 +271,20 @@ async function computeBoundariesFromFiles({ pathPath, profilePath, outPath, useS
 }
 
 function parseArgs(argv) {
-  const opts = { overwrite: false, smooth: false };
+  const opts = { overwrite: false, smooth: false, smoothBoundary: 0 };
   for (let i = 0; i < argv.length; i++) {
     const arg = argv[i];
     if (arg === '--overwrite') {
       opts.overwrite = true;
     } else if (arg === '--smooth') {
       opts.smooth = true;
+    } else if (arg === '--smooth-boundary') {
+      const value = argv[++i];
+      if (!value) throw new Error('missing value for --smooth-boundary');
+      if (!/^\d+$/.test(value)) {
+        throw new Error('--smooth-boundary must be a non-negative integer');
+      }
+      opts.smoothBoundary = parseInt(value, 10);
     } else if (arg === '--path' || arg === '--profile' || arg === '--out') {
       const value = argv[++i];
       if (!value) throw new Error(`missing value for ${arg}`);
@@ -193,13 +307,14 @@ async function main(argv) {
     profilePath: opts.profile,
     outPath: opts.out,
     useSmooth: opts.smooth,
+    smoothBoundaryWindow: opts.smoothBoundary,
     overwrite: opts.overwrite,
   });
   const s = result.summary;
   console.log(`wrote ${opts.out} (${s.left_boundary_points} left, ${s.right_boundary_points} right, ${s.unmatched_path} unmatched)`);
 }
 
-module.exports = { computeBoundaries, computeBoundariesFromFiles, computeTangentNormal };
+module.exports = { computeBoundaries, computeBoundariesFromFiles, computeTangentNormal, smoothBoundary };
 
 if (require.main === module) {
   main(process.argv.slice(2)).catch(err => {

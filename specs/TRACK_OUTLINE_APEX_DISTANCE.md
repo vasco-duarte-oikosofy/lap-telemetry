@@ -510,7 +510,7 @@ The viewer inlines all data and opens in any browser. The track map shows the ce
 **Tasks:**
 1. Add a fixture with known jitter to prove smoothing removes oscillation while preserving overall shape.
 2. Implement a boundary smoothing function that operates on the output of `computeBoundaries`.
-3. Integrate smoothing as an option (`--smooth-window`) in the `compute_boundaries` CLI.
+3. Integrate smoothing as an option (`--smooth-boundary`) in the `compute_boundaries` CLI.
 4. Visual QA: regenerated boundaries with smoothing should show smooth, non-oscillating lines in the profile viewer.
 
 **Acceptance (executable tests):**
@@ -520,10 +520,17 @@ The viewer inlines all data and opens in any browser. The track map shows the ce
 - Zero-width bins: points with zero width (one-sided or missing) are handled gracefully — they are not smoothed into non-zero positions.
 - Gap handling: gaps in the path (missing s_m bins) do not cause smoothing to bridge across discontinuities.
 - Window parameter: larger window = more smoothing; window=1 returns the original boundary.
-- CLI: `--smooth-window N` accepts a positive integer, default 5; `--smooth-window 1` is identity.
+- CLI: `--smooth-boundary N` accepts a non-negative integer, default 0; `--smooth-boundary 1` is identity.
 - Existing tests remain green; `computeBoundaries` with no smoothing option returns the same output as before.
 
 **Out of scope:** rendering, low-confidence styling, diagnostics, gap-filling.
+
+**Deferred improvements from Phase 9.2 visual QA:**
+
+1. **Curved-section boundary oscillation remains too high.** Spa/La Source still shows unacceptable boundary oscillation in some curved sections after positional smoothing. The observed jitter amplitude can approach the inferred track width, which suggests the boundary derivation is mixing per-bin extremes rather than tracing a stable physical edge. A future improvement should experiment with reconstructing a local left/right width envelope instead of only smoothing final `(x_m, z_m)` points: e.g. compute robust local maxima for left and right widths over short windows (roughly 3–5m to start), reject outlier edge hits, interpolate those maxima along `s_m`, and then derive boundaries from the stable envelope.
+2. **One side of the outline disappears in some curves.** Visual QA shows that in some turns the left outline collapses/disappears, while in other turns the right outline collapses/disappears. This is the one-sided/zero-width data-coverage limitation: if the source bins have no observations for one side, Phase 9.2 preserves those zero-width points at the center path instead of inventing a boundary. A future boundary-quality phase should recover missing-side outlines from a stable local width envelope, symmetric track-width assumptions, or calibrated max-left/max-right interpolation before rendering treats the outline as complete.
+
+These should be treated as boundary-quality/calibration enhancements, separate from Phase 10 rendering.
 
 ---
 
