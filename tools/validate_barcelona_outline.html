@@ -1,0 +1,218 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Barcelona Outline Validation</title>
+<style>
+  body { margin: 0; font: 14px system-ui, sans-serif; background: #101217; color: #e8ecf2; }
+  #app { display: grid; grid-template-columns: 340px 1fr; height: 100vh; }
+  aside { padding: 14px; overflow: auto; border-right: 1px solid #2d3340; }
+  canvas { width: 100%; height: 100%; display: block; background: #080a0d; }
+  .hint { color: #97a6b8; font-size: 12px; line-height: 1.4; }
+  .status { white-space: pre-wrap; color: #d5e7a6; font-size: 12px; margin-top: 10px; }
+  button { margin: 8px 6px 0 0; padding: 7px 10px; background: #263448; color: #fff; border: 1px solid #4a5b72; border-radius: 4px; cursor: pointer; }
+  button:hover { background: #314159; }
+  h3 { margin-top: 16px; color: #fff; }
+  .landmark { margin: 4px 0; padding: 4px 8px; background: #1a2634; border-radius: 3px; }
+</style>
+</head>
+<body>
+<div id="app">
+  <aside>
+    <h2>Barcelona Outline Validation</h2>
+    <p class="hint">Averaged trajectory outline from <strong>19 laps</strong> across <strong>3 sessions</strong>:</p>
+    <ul class="hint">
+      <li>1× LMP3 (6 laps)</li>
+      <li>2× GT3 (13 laps)</li>
+    </ul>
+    <p class="hint">Width: ±5m from centerline</p>
+    
+    <button id="load-outline">Load Outline</button>
+    <button id="reset-view">Reset View</button>
+    <button id="screenshot">Save Screenshot</button>
+    
+    <h3>Landmarks to verify:</h3>
+    <div class="landmark">🏁 Start/finish straight (yellow dot)</div>
+    <div class="landmark">↪ Turn 1 — tight right after long straight</div>
+    <div class="landmark">↩ Camp corner — tight left hairpin at far end</div>
+    <div class="landmark">→ Back straight — length and orientation</div>
+    <div class="landmark">⤢ Turn 10 / chicane area</div>
+    
+    <pre id="status" class="status">Click "Load Outline" to visualize</pre>
+    
+    <p class="hint"><strong>Controls:</strong><br>
+    • Drag to pan<br>
+    • Scroll to zoom<br>
+    • Screenshot saves PNG</p>
+  </aside>
+  <main><canvas id="canvas"></canvas></main>
+</div>
+<script>
+const canvas = document.getElementById('canvas');
+const ctx = canvas.getContext('2d');
+const status = document.getElementById('status');
+
+let outline = null;
+let viewScale = 1;
+let viewX = 0;
+let viewY = 0;
+let isDragging = false;
+let lastX = 0, lastY = 0;
+
+function resize() {
+  canvas.width = canvas.parentElement.clientWidth;
+  canvas.height = canvas.parentElement.clientHeight;
+  draw();
+}
+window.addEventListener('resize', resize);
+
+async function loadOutline() {
+  try {
+    const resp = await fetch('data/track-outlines/circuit-de-barcelona.json');
+    outline = await resp.json();
+    status.textContent = `✅ Loaded: ${outline.source}
+
+Centerline: ${outline.centerline.length} points
+Left boundary: ${outline.left_boundary.length} points
+Right boundary: ${outline.right_boundary.length} points
+
+Sessions: ${outline.alignment.session_count}
+Laps averaged: ${outline.alignment.lap_count}
+Width per side: ${outline.alignment.width_per_side}m
+
+Sessions used:
+${outline.alignment.sessions.map(s => '  • ' + s).join('\n')}`;
+    resetView();
+  } catch (e) {
+    status.textContent = `❌ Error: ${e.message}\n\nMake sure to serve this from a local server:\n  python3 -m http.server 8000\n\nThen open: http://localhost:8000/tools/validate_barcelona_outline.html`;
+  }
+}
+
+function resetView() {
+  if (!outline) return;
+  // Compute bounds
+  const xs = outline.centerline.map(p => p.x);
+  const ys = outline.centerline.map(p => p.y);
+  const minX = Math.min(...xs), maxX = Math.max(...xs);
+  const minY = Math.min(...ys), maxY = Math.max(...ys);
+  const padding = 50;
+  const trackW = maxX - minX + padding * 2;
+  const trackH = maxY - minY + padding * 2;
+  viewScale = Math.min(canvas.width / trackW, canvas.height / trackH);
+  viewX = canvas.width / 2 - (minX + maxX) / 2 * viewScale;
+  viewY = canvas.height / 2 - (minY + maxY) / 2 * viewScale;
+  draw();
+}
+
+function toScreen(p) {
+  return {
+    x: p.x * viewScale + viewX,
+    y: canvas.height - (p.y * viewScale + viewY)
+  };
+}
+
+function draw() {
+  ctx.fillStyle = '#080a0d';
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  
+  if (!outline) return;
+  
+  // Draw boundaries (filled area)
+  ctx.fillStyle = 'rgba(58, 74, 90, 0.3)';
+  ctx.beginPath();
+  outline.left_boundary.forEach((p, i) => {
+    const s = toScreen(p);
+    i === 0 ? ctx.moveTo(s.x, s.y) : ctx.lineTo(s.x, s.y);
+  });
+  outline.right_boundary.slice().reverse().forEach(p => {
+    const s = toScreen(p);
+    ctx.lineTo(s.x, s.y);
+  });
+  ctx.closePath();
+  ctx.fill();
+  
+  // Left boundary line
+  ctx.strokeStyle = '#3a4a5a';
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  outline.left_boundary.forEach((p, i) => {
+    const s = toScreen(p);
+    i === 0 ? ctx.moveTo(s.x, s.y) : ctx.lineTo(s.x, s.y);
+  });
+  ctx.closePath();
+  ctx.stroke();
+  
+  // Right boundary line
+  ctx.beginPath();
+  outline.right_boundary.forEach((p, i) => {
+    const s = toScreen(p);
+    i === 0 ? ctx.moveTo(s.x, s.y) : ctx.lineTo(s.x, s.y);
+  });
+  ctx.closePath();
+  ctx.stroke();
+  
+  // Draw centerline
+  ctx.strokeStyle = '#4fc3f7';
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  outline.centerline.forEach((p, i) => {
+    const s = toScreen(p);
+    i === 0 ? ctx.moveTo(s.x, s.y) : ctx.lineTo(s.x, s.y);
+  });
+  ctx.closePath();
+  ctx.stroke();
+  
+  // Draw start/finish marker
+  const start = toScreen(outline.centerline[0]);
+  ctx.fillStyle = '#ffeb3b';
+  ctx.beginPath();
+  ctx.arc(start.x, start.y, 8, 0, Math.PI * 2);
+  ctx.fill();
+  
+  // Draw direction indicator (first 10 points)
+  ctx.strokeStyle = 'rgba(255, 235, 59, 0.5)';
+  ctx.lineWidth = 3;
+  ctx.beginPath();
+  for (let i = 0; i < Math.min(10, outline.centerline.length); i++) {
+    const s = toScreen(outline.centerline[i]);
+    i === 0 ? ctx.moveTo(s.x, s.y) : ctx.lineTo(s.x, s.y);
+  }
+  ctx.stroke();
+}
+
+// Mouse controls
+canvas.addEventListener('mousedown', e => {
+  isDragging = true;
+  lastX = e.clientX;
+  lastY = e.clientY;
+});
+canvas.addEventListener('mousemove', e => {
+  if (!isDragging) return;
+  viewX += e.clientX - lastX;
+  viewY += e.clientY - lastY;
+  lastX = e.clientX;
+  lastY = e.clientY;
+  draw();
+});
+canvas.addEventListener('mouseup', () => isDragging = false);
+canvas.addEventListener('mouseleave', () => isDragging = false);
+canvas.addEventListener('wheel', e => {
+  e.preventDefault();
+  const delta = e.deltaY > 0 ? 0.9 : 1.1;
+  viewScale *= delta;
+  draw();
+});
+
+document.getElementById('load-outline').onclick = loadOutline;
+document.getElementById('reset-view').onclick = resetView;
+document.getElementById('screenshot').onclick = () => {
+  const link = document.createElement('a');
+  link.download = 'barcelona-outline-validation.png';
+  link.href = canvas.toDataURL();
+  link.click();
+};
+
+resize();
+</script>
+</body>
+</html>
