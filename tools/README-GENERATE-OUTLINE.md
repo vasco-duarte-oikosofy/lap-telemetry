@@ -36,6 +36,23 @@ python3 scripts/average_trajectory_outline.py data/track-outlines/circuit-de-bar
 node scripts/generate_outline_module.js data/track-outlines/circuit-de-barcelona.json
 ```
 
+### Register in Manifest (Required for compare.html)
+
+**Important:** The outline won't show in `dist/compare.html` until you register it:
+
+```javascript
+// web/js/trackOutlineManifest.js
+import { BAHRAIN_OUTLINE_STATIC_OUTLINE } from './staticBahrain_outlineOutlineData.js';
+
+const OUTLINES = new Map([
+  // ... existing tracks
+  ['bahrain-international-circuit', BAHRAIN_OUTLINE_STATIC_OUTLINE],
+  ['bahrain', BAHRAIN_OUTLINE_STATIC_OUTLINE],
+]);
+```
+
+The comparison viewer looks up outlines by track name slug. If your track isn't in the `OUTLINES` map, it won't display.
+
 ### Verify
 
 ```bash
