@@ -322,6 +322,50 @@ async function runTests() {
     assert(bin0.right_width_m === 5.0, 'zero-lateral right_width_m = 5.0', String(bin0.right_width_m));
     assert(bin0.right_sample_count === 1, 'zero-lateral right_sample_count = 1', String(bin0.right_sample_count));
   }
+
+  // ── Test 9: Real session integration (Spa endurance) ──
+  console.log('\n── Real session: Spa endurance profile ──');
+  {
+    const spaSession = path.join(ROOT, 'sessions', 'session_20260514T182139Z_circuit-de-spa-francorchamps-endurance_lmu.parquet');
+    if (!fs.existsSync(spaSession)) {
+      console.log('  [SKIP] Spa endurance session not found — skipping real-data test');
+    } else {
+      const outPath = tempPath('wp-spa-out', '.json');
+      const profile = await exportWidthProfile({
+        sessionPaths: [spaSession],
+        trackId: 'circuit-de-spa-francorchamps-endurance',
+        layoutId: 'default',
+        outPath,
+      });
+
+      assert(profile.track_id === 'circuit-de-spa-francorchamps-endurance', 'real profile track_id', profile.track_id);
+      assert(profile.layout_id === 'default', 'real profile layout_id', profile.layout_id);
+      assert(profile.bin_size_m === 1, 'real profile bin_size_m = 1');
+      assert(Array.isArray(profile.samples) && profile.samples.length > 0, 'real profile has samples', String(profile.samples.length));
+      assert(typeof profile.summary.input_rows === 'number' && profile.summary.input_rows > 0, 'real profile input_rows > 0', String(profile.summary.input_rows));
+      assert(typeof profile.summary.skipped_rows === 'number', 'real profile skipped_rows is numeric', String(profile.summary.skipped_rows));
+
+      // All samples should have the §0.4 shape
+      const badSamples = profile.samples.filter(s =>
+        typeof s.s_m !== 'number' ||
+        typeof s.left_width_m !== 'number' ||
+        typeof s.right_width_m !== 'number' ||
+        typeof s.left_sample_count !== 'number' ||
+        typeof s.right_sample_count !== 'number'
+      );
+      assert(badSamples.length === 0, 'real profile samples match §0.4 shape', `${badSamples.length} bad`);
+
+      // At least some samples should have right-width data (positive track_edge + non-negative lateral)
+      const rightBins = profile.samples.filter(s => s.right_sample_count > 0 && s.right_width_m > 0);
+      assert(rightBins.length > 0, 'real profile has bins with right-width data', String(rightBins.length));
+
+      // Disk round-trip
+      const disk = readJson(outPath);
+      assert(disk.samples.length === profile.samples.length, 'real profile disk round-trip matches sample count');
+
+      console.log(`    bins=${profile.samples.length} input_rows=${profile.summary.input_rows} skipped=${profile.summary.skipped_rows}`);
+    }
+  }
 }
 
 async function main() {
