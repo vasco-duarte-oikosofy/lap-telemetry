@@ -534,6 +534,51 @@ These should be treated as boundary-quality/calibration enhancements, separate f
 
 ---
 
+## Phase 9.3 — Infer missing one-sided boundary widths from local total width
+
+**Why this exists:** Visual QA after Phase 10 shows that one boundary side can disappear midway through turns such as Bus Stop, even when the other side is plausible and the lap trajectories are smooth. Collapsing zero-width one-sided bins to the center path makes the outline misleading and visually broken. A simple local-width assumption is a smaller step than importing external track geometry.
+
+**Independence:** depends on Phases 8.1, 9.1, and 9.2. It improves the boundary JSON used by Phase 10 rendering but does not change rendering behavior directly.
+
+**Goal:** when exactly one side of a boundary bin has zero/missing width, infer the missing side from nearby stable total track width, mark it low-confidence/inferred, and keep long unknown regions blank.
+
+**Simple heuristic:**
+
+```text
+local_total_width = median(left_width + right_width) over nearby complete/high-confidence bins
+
+if left_width == 0 and right_width > 0:
+  inferred_left_width = max(local_total_width - right_width, 0)
+
+if right_width == 0 and left_width > 0:
+  inferred_right_width = max(local_total_width - left_width, 0)
+```
+
+Inference must be explicit in data, never silent. Preserve raw widths/counts/status and add fields such as `left_width_inferred_m`, `right_width_inferred_m`, `left_inferred`, `right_inferred`, or an equivalent small shape. Boundary points produced from inferred widths should carry a low-confidence status such as `inferred` / `inferred-one-sided` so Phase 11 can style them differently.
+
+**Tasks:**
+1. Add fixtures with complete bins, short one-sided gaps, long one-sided gaps, and changing track width.
+2. Implement a pure helper that computes local median total width from nearby complete/high-confidence bins.
+3. Infer the missing side only across short one-sided runs with enough local context.
+4. Do not infer across long gaps or where both sides are missing.
+5. Integrate inferred widths into `compute_boundaries.js` behind an explicit CLI option such as `--infer-missing-widths`.
+6. Ensure existing default boundary output remains unchanged unless the option is enabled.
+7. Regenerate Spa visual QA artifacts with `--smooth --smooth-boundary 5 --infer-missing-widths` and inspect Bus Stop and La Source.
+
+**Acceptance (executable tests):**
+- A one-sided bin inside a short run gets the missing side inferred from nearby median total width.
+- Existing non-zero/high-confidence widths are not changed.
+- Both-missing bins remain missing/zero and do not produce invented boundaries.
+- Long one-sided runs beyond a documented threshold remain blank or uninferred.
+- Inferred boundary points are marked with explicit low-confidence/inferred metadata.
+- `computeBoundaries` without the new option returns the same output as before.
+- CLI output includes a summary count for inferred left and right widths.
+- Visual QA: Bus Stop no longer loses one side through the direction change when inference is enabled; La Source may still show noisy learned data, but inferred sections must be visibly distinguishable in data for Phase 11 styling.
+
+**Out of scope:** importing TUMFTM or any external track data, official boundary claims, renderer styling changes, filled polygons, and automatic profile discovery.
+
+---
+
 ## Phase 10 — Render learned track outline behind existing map
 
 **Why this exists:** This is the first user-visible width-profile result. It should be a background context layer only, so it cannot break lap comparison.

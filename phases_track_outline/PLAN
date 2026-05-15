@@ -17,7 +17,8 @@
 | 09-center-path-cli | Generate binned center/path polyline from world positions | ✅ DONE |
 | 09.1-boundary-polylines | Derive left/right boundary polylines from path + widths | ✅ DONE |
 | 09.2-boundary-smoothing | Smooth boundary polylines to remove path jitter | ✅ DONE |
-| 10-learned-outline-rendering | Render learned boundaries behind existing map | ⬜ TODO |
+| 09.3-infer-missing-boundary-widths | Infer short one-sided boundary gaps from local total width while marking them low confidence | ⬜ TODO |
+| 10-learned-outline-rendering | Render learned boundaries behind existing map | ✅ DONE |
 | 11-low-confidence-outline-styling | Visually distinguish low-confidence outline sections | ⬜ TODO |
 | 12-profile-diagnostics | Generate profile diagnostics report | ⬜ TODO |
 | 13-calibration-docs | Document calibration-lap workflow and caveats | ⬜ TODO |
