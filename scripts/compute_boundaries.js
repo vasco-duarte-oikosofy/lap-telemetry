@@ -10,6 +10,7 @@
  * Options:
  *   --smooth              Use smoothed widths (left_width_smooth_m / right_width_smooth_m)
  *   --smooth-boundary N   Smooth boundary polyline positions with local polynomial window N
+ *   --infer-missing-widths Infer short one-sided zero widths from local total width
  *   --overwrite          Replace existing output file (default: refuse)
  */
 
@@ -17,6 +18,7 @@
 
 const fs = require('fs/promises');
 const path = require('path');
+const { inferMissingWidths } = require('./boundary_width_inference');
 
 /**
  * Compute tangent and normal at a point in a polyline.
@@ -158,12 +160,18 @@ function smoothBoundary(boundaryPoints, window, binSize = 1) {
  * @param {Array} profileSamples - [{ s_m, left_width_m, right_width_m, (left_width_smooth_m, right_width_smooth_m), status, confidence }, ...]
  * @param {boolean} useSmooth - Use smoothed widths instead of raw
  * @param {number} [smoothBoundaryWindow] - Window for boundary smoothing (0 = no smoothing)
+ * @param {boolean} [inferMissingWidths] - Infer short one-sided missing widths before offsetting
+ * @param {Object} [inferMissingWidthsOptions] - Options for one-sided width inference
  * @returns {{ left, right, use_smooth, smooth_boundary_window, summary }}
  */
-function computeBoundaries({ pathPoints, profileSamples, useSmooth, smoothBoundaryWindow = 0 }) {
+function computeBoundaries({ pathPoints, profileSamples, useSmooth, smoothBoundaryWindow = 0, inferMissingWidths: shouldInferMissingWidths = false, inferMissingWidthsOptions = {} }) {
+  const inference = shouldInferMissingWidths
+    ? inferMissingWidths(profileSamples, { ...inferMissingWidthsOptions, useSmooth })
+    : { samples: profileSamples, summary: { inferred_left_widths: 0, inferred_right_widths: 0 } };
+
   // Build profile lookup by s_m
   const profileByS = new Map();
-  for (const s of profileSamples) {
+  for (const s of inference.samples) {
     profileByS.set(s.s_m, s);
   }
 
@@ -179,30 +187,44 @@ function computeBoundaries({ pathPoints, profileSamples, useSmooth, smoothBounda
       continue;
     }
 
-    const leftWidth = useSmooth ? (ws.left_width_smooth_m ?? ws.left_width_m) : ws.left_width_m;
-    const rightWidth = useSmooth ? (ws.right_width_smooth_m ?? ws.right_width_m) : ws.right_width_m;
+    const leftWidth = ws.left_inferred
+      ? ws.left_width_inferred_m
+      : (useSmooth ? (ws.left_width_smooth_m ?? ws.left_width_m) : ws.left_width_m);
+    const rightWidth = ws.right_inferred
+      ? ws.right_width_inferred_m
+      : (useSmooth ? (ws.right_width_smooth_m ?? ws.right_width_m) : ws.right_width_m);
 
     // Compute tangent/normal for this path point
     const { nx, nz } = computeTangentNormal(pathPoints, i);
 
     // Offset: left = path + normal * leftWidth, right = path - normal * rightWidth
-    left.push({
+    const leftPoint = {
       s_m: pp.s_m,
       x_m: pp.x_m + nx * leftWidth,
       z_m: pp.z_m + nz * leftWidth,
       width_m: leftWidth,
-      status: ws.status,
-      confidence: ws.confidence,
-    });
+      status: ws.left_inferred ? 'inferred-one-sided' : ws.status,
+      confidence: ws.left_inferred ? ws.inferred_confidence : ws.confidence,
+    };
+    if (ws.left_inferred) {
+      leftPoint.inferred = true;
+      leftPoint.inferred_side = 'left';
+    }
+    left.push(leftPoint);
 
-    right.push({
+    const rightPoint = {
       s_m: pp.s_m,
       x_m: pp.x_m - nx * rightWidth,
       z_m: pp.z_m - nz * rightWidth,
       width_m: rightWidth,
-      status: ws.status,
-      confidence: ws.confidence,
-    });
+      status: ws.right_inferred ? 'inferred-one-sided' : ws.status,
+      confidence: ws.right_inferred ? ws.inferred_confidence : ws.confidence,
+    };
+    if (ws.right_inferred) {
+      rightPoint.inferred = true;
+      rightPoint.inferred_side = 'right';
+    }
+    right.push(rightPoint);
   }
 
   // Apply boundary smoothing if requested
@@ -215,23 +237,29 @@ function computeBoundaries({ pathPoints, profileSamples, useSmooth, smoothBounda
     right = smoothBoundary(right, smoothBoundaryWindow, binSize);
   }
 
+  const summary = {
+    path_points: pathPoints.length,
+    profile_samples: profileSamples.length,
+    matched_bins: left.length,
+    unmatched_path: unmatchedPath,
+    left_boundary_points: left.length,
+    right_boundary_points: right.length,
+  };
+  if (shouldInferMissingWidths) {
+    summary.inferred_left_widths = left.filter(p => p.inferred === true).length;
+    summary.inferred_right_widths = right.filter(p => p.inferred === true).length;
+  }
+
   return {
     left,
     right,
     use_smooth: useSmooth,
     smooth_boundary_window: smoothBoundaryWindow || 0,
-    summary: {
-      path_points: pathPoints.length,
-      profile_samples: profileSamples.length,
-      matched_bins: left.length,
-      unmatched_path: unmatchedPath,
-      left_boundary_points: left.length,
-      right_boundary_points: right.length,
-    },
+    summary,
   };
 }
 
-async function computeBoundariesFromFiles({ pathPath, profilePath, outPath, useSmooth, smoothBoundaryWindow = 0, overwrite }) {
+async function computeBoundariesFromFiles({ pathPath, profilePath, outPath, useSmooth, smoothBoundaryWindow = 0, inferMissingWidths: shouldInferMissingWidths = false, overwrite }) {
   const pathData = JSON.parse(await fs.readFile(pathPath, 'utf8'));
   const profileData = JSON.parse(await fs.readFile(profilePath, 'utf8'));
 
@@ -244,6 +272,7 @@ async function computeBoundariesFromFiles({ pathPath, profilePath, outPath, useS
     profileSamples: profileData.samples,
     useSmooth,
     smoothBoundaryWindow,
+    inferMissingWidths: shouldInferMissingWidths,
   });
 
   const output = {
@@ -256,6 +285,7 @@ async function computeBoundariesFromFiles({ pathPath, profilePath, outPath, useS
     right: result.right,
     summary: result.summary,
   };
+  if (shouldInferMissingWidths) output.infer_missing_widths = true;
 
   await fs.mkdir(path.dirname(outPath), { recursive: true });
   try {
@@ -271,13 +301,15 @@ async function computeBoundariesFromFiles({ pathPath, profilePath, outPath, useS
 }
 
 function parseArgs(argv) {
-  const opts = { overwrite: false, smooth: false, smoothBoundary: 0 };
+  const opts = { overwrite: false, smooth: false, smoothBoundary: 0, inferMissingWidths: false };
   for (let i = 0; i < argv.length; i++) {
     const arg = argv[i];
     if (arg === '--overwrite') {
       opts.overwrite = true;
     } else if (arg === '--smooth') {
       opts.smooth = true;
+    } else if (arg === '--infer-missing-widths') {
+      opts.inferMissingWidths = true;
     } else if (arg === '--smooth-boundary') {
       const value = argv[++i];
       if (!value) throw new Error('missing value for --smooth-boundary');
@@ -308,13 +340,17 @@ async function main(argv) {
     outPath: opts.out,
     useSmooth: opts.smooth,
     smoothBoundaryWindow: opts.smoothBoundary,
+    inferMissingWidths: opts.inferMissingWidths,
     overwrite: opts.overwrite,
   });
   const s = result.summary;
-  console.log(`wrote ${opts.out} (${s.left_boundary_points} left, ${s.right_boundary_points} right, ${s.unmatched_path} unmatched)`);
+  const inferredText = opts.inferMissingWidths
+    ? `, ${s.inferred_left_widths} inferred left, ${s.inferred_right_widths} inferred right`
+    : '';
+  console.log(`wrote ${opts.out} (${s.left_boundary_points} left, ${s.right_boundary_points} right, ${s.unmatched_path} unmatched${inferredText})`);
 }
 
-module.exports = { computeBoundaries, computeBoundariesFromFiles, computeTangentNormal, smoothBoundary };
+module.exports = { computeBoundaries, computeBoundariesFromFiles, computeTangentNormal, smoothBoundary, inferMissingWidths };
 
 if (require.main === module) {
   main(process.argv.slice(2)).catch(err => {
