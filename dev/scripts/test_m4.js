@@ -21,7 +21,7 @@ const { execSync } = require('child_process');
 
 // ─── Paths ────────────────────────────────────────────────────────────────────
 const ROOT = path.resolve(__dirname, '..', '..');
-const HTML_FILE = path.join(ROOT, 'web', 'compare.html');
+const HTML_FILE = path.join(ROOT, 'product', 'web', 'compare.html');
 const SESSIONS_DIR = path.join(ROOT, 'dev', 'sessions');
 const REPORT_DIR = path.join(ROOT, 'var', 'test-output', 'm4-test-report');
 const SCREENSHOTS_DIR = path.join(REPORT_DIR, 'screenshots');
@@ -207,7 +207,7 @@ async function main() {
 
       // Python resampler: reference lap
       const pythonRefPath = path.join(REPORT_DIR, 'python_resampled_ref.json');
-      execSync(`python "${path.join(ROOT, 'scripts', 'check_resampler.py')}" "${REF_LAP}" --out "${pythonRefPath}"`, { cwd: ROOT });
+      execSync(`python "${path.join(ROOT, 'dev', 'scripts', 'check_resampler.py')}" "${REF_LAP}" --out "${pythonRefPath}"`, { cwd: ROOT });
       const pythonRefBins = JSON.parse(fs.readFileSync(pythonRefPath, 'utf8'));
 
       // Compare

@@ -18,4 +18,9 @@ This folder is the future extraction boundary for a standalone product repositor
 - Development-only scripts and one-off tools.
 - Third-party/vendor code.
 
-No source files are moved into this folder in the current slice.
+## Current subfolders
+
+- `web/` — browser comparison app source.
+- `python/` — Python package source.
+- `data/` — product-owned data and track outline assets.
+- `dist/` — generated standalone browser bundle.

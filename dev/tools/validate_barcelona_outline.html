@@ -68,7 +68,7 @@ window.addEventListener('resize', resize);
 
 async function loadOutline() {
   try {
-    const resp = await fetch('data/track-outlines/circuit-de-barcelona.json');
+    const resp = await fetch('/product/data/track-outlines/circuit-de-barcelona.json');
     outline = await resp.json();
     status.textContent = `✅ Loaded: ${outline.source}
 

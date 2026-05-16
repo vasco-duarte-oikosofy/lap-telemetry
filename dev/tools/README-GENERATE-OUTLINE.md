@@ -27,22 +27,22 @@ Different drivers take different racing lines through corners (early apex vs lat
 
 ```bash
 # Default: 3 Barcelona sessions (2× GT3, 1× LMP3)
-python3 dev/scripts/average_trajectory_outline.py data/track-outlines/circuit-de-barcelona.json
+python3 dev/scripts/average_trajectory_outline.py product/data/track-outlines/circuit-de-barcelona.json
 ```
 
 ### Register Outline (Single Command)
 
 ```bash
-python3 dev/scripts/register_outline.py data/track-outlines/bahrain_outline.json
+python3 dev/scripts/register_outline.py product/data/track-outlines/bahrain_outline.json
 ```
 
 This command:
 1. Validates the outline JSON structure
-2. Generates the ES module (`web/js/static<Track>OutlineData.js`)
-3. Creates a backup of the manifest (`web/js/trackOutlineManifest_backup.js`)
-4. Adds import statement to `web/js/trackOutlineManifest.js`
+2. Generates the ES module (`product/web/js/static<Track>OutlineData.js`)
+3. Creates a backup of the manifest (`product/web/js/trackOutlineManifest_backup.js`)
+4. Adds import statement to `product/web/js/trackOutlineManifest.js`
 5. Registers all track name variants in the OUTLINES map
-6. Rebuilds `dist/compare.html`
+6. Rebuilds `product/dist/compare.html`
 
 **Result:** Outline is immediately visible in compare.html — no manual steps needed.
 
@@ -62,7 +62,7 @@ npm run build
 To use different sessions, pass them with `--sessions`:
 
 ```bash
-python3 dev/scripts/average_trajectory_outline.py data/track-outlines/circuit-de-barcelona.json \
+python3 dev/scripts/average_trajectory_outline.py product/data/track-outlines/circuit-de-barcelona.json \
   --sessions \
     dev/sessions/session_20260514T141305Z_circuit-de-barcelona_lmu.parquet \
     dev/sessions/session_20260510T124244Z_circuit-de-barcelona_lmu.parquet
@@ -175,12 +175,12 @@ open http://localhost:8000/tools/validate_barcelona_outline.html
 Or use the manual alignment tool:
 
 ```bash
-open tools/manual_outline_align.html
+open dev/tools/manual_outline_align.html
 ```
 
 Load:
-- **Slot 1 (Reference trajectory):** `data/track-outlines/alignment-artifacts/circuit-de-barcelona/trajectory-barcelona-lap3.json`
-- **Slot 2 (Outline):** `data/track-outlines/circuit-de-barcelona.json`
+- **Slot 1 (Reference trajectory):** `product/data/track-outlines/alignment-artifacts/circuit-de-barcelona/trajectory-barcelona-lap3.json`
+- **Slot 2 (Outline):** `product/data/track-outlines/circuit-de-barcelona.json`
 
 The outline and trajectory should overlay almost perfectly at scale 1.0.
 
@@ -190,7 +190,7 @@ The outline and trajectory should overlay almost perfectly at scale 1.0.
 python3 << 'EOF'
 import json
 
-with open('data/track-outlines/circuit-de-barcelona.json') as f:
+with open('product/data/track-outlines/circuit-de-barcelona.json') as f:
     outline = json.load(f)
 
 xs = [p['x'] for p in outline['centerline']]
@@ -284,13 +284,13 @@ To generate an outline for a new track (e.g., Spa):
 ls dev/sessions/*spa*.parquet
 
 # 2. Generate outline
-python3 dev/scripts/average_trajectory_outline.py data/track-outlines/spa-francorchamps.json \
+python3 dev/scripts/average_trajectory_outline.py product/data/track-outlines/spa-francorchamps.json \
   --sessions \
     dev/sessions/session_20260510T173248Z_circuit-de-spa-francorchamps_lmu.parquet \
     dev/sessions/session_20260511T183100Z_circuit-de-spa-francorchamps_lmu.parquet
 
 # 3. Register outline (generates ES module + updates manifest + rebuilds)
-python3 dev/scripts/register_outline.py data/track-outlines/spa-francorchamps.json
+python3 dev/scripts/register_outline.py product/data/track-outlines/spa-francorchamps.json
 ```
 
 ---
@@ -300,7 +300,7 @@ python3 dev/scripts/register_outline.py data/track-outlines/spa-francorchamps.js
 - `dev/tools/manual_outline_align.html` — Manual alignment and QA tool
 - `dev/tools/validate_barcelona_outline.html` — Barcelona-specific validation
 - `dev/scripts/generate_outline_module.js` — Converts outline JSON to ES module
-- `web/js/trackOutlineManifest.js` — Manifest mapping track names to outlines
+- `product/web/js/trackOutlineManifest.js` — Manifest mapping track names to outlines
 
 ---
 
@@ -328,8 +328,8 @@ python3 dev/scripts/explore_and_export_laps.py dev/sessions/session_*.parquet --
 python3 dev/scripts/explore_and_export_laps.py dev/sessions/session_*.parquet --export 8
 
 # 3. Generate outline from single lap
-python3 dev/scripts/average_trajectory_outline.py data/track-outlines/track_outline.json \
-  --laps data/track-outlines/alignment-artifacts/exported-laps/lap8.json
+python3 dev/scripts/average_trajectory_outline.py product/data/track-outlines/track_outline.json \
+  --laps product/data/track-outlines/alignment-artifacts/exported-laps/lap8.json
 ```
 
 ### Result:
@@ -349,7 +349,7 @@ For **track outline generation**, always prefer **single fastest lap**.
 
 ---
 
-## Manual Alignment with `tools/manual_outline_align.html`
+## Manual Alignment with `dev/tools/manual_outline_align.html`
 
 The `manual_outline_align.html` tool lets you visually verify and refine track outlines.
 
@@ -360,17 +360,17 @@ The `manual_outline_align.html` tool lets you visually verify and refine track o
 python3 -m http.server 8000
 
 # Open in browser
-open http://localhost:8000/tools/manual_outline_align.html
+open http://localhost:8000/dev/tools/manual_outline_align.html
 ```
 
 ### Loading Files
 
 1. **Slot 1: Simulator reference trajectory**
-   - Load an exported lap JSON (e.g., `data/track-outlines/alignment-artifacts/exported-laps/lap8.json`)
+   - Load an exported lap JSON (e.g., `product/data/track-outlines/alignment-artifacts/exported-laps/lap8.json`)
    - This shows the actual driven trajectory
 
 2. **Slot 2: TUMFTM track JSON (outline)**
-   - Load your generated outline (e.g., `data/track-outlines/bahrain_outline.json`)
+   - Load your generated outline (e.g., `product/data/track-outlines/bahrain_outline.json`)
    - This shows the outline boundaries
 
 3. **Slot 3 (Optional): Extra trajectories**
@@ -419,9 +419,9 @@ For a **single-lap outline**, the trajectory and outline should overlay **perfec
 
 ---
 
-## Troubleshooting: Outline Not Showing in `dist/compare.html`
+## Troubleshooting: Outline Not Showing in `product/dist/compare.html`
 
 - Confirm `track_name_mapping.accepted_sim_track_names` includes the session's track name.
-- Re-run `python3 dev/scripts/register_outline.py data/track-outlines/bahrain_outline.json`.
-- Open `dist/compare.html` and check the browser console for either `Loaded outline for track: ...` or `No outline found for track: ...`.
+- Re-run `python3 dev/scripts/register_outline.py product/data/track-outlines/bahrain_outline.json`.
+- Open `product/dist/compare.html` and check the browser console for either `Loaded outline for track: ...` or `No outline found for track: ...`.
 

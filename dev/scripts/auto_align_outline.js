@@ -370,7 +370,7 @@ async function main(argv) {
   const simTrackName = opts.simTrackName || trajectory.track_name || 'Unknown';
   const outline = generateOutline(tumftmTrack, opts, simTrackName, `Auto-aligned via ICP. ${opts.tryAllFlips ? 'Tried all flip combinations.' : `Used flip_x=${opts.flip_x}, flip_y=${opts.flip_y}.`} Visual verification needed.`);
 
-  const outPath = opts.outPath || `data/track-outlines/${simTrackName.toLowerCase().replace(/\s+/g, '-')}.json`;
+  const outPath = opts.outPath || `product/data/track-outlines/${simTrackName.toLowerCase().replace(/\s+/g, '-')}.json`;
   await fs.mkdir(path.dirname(outPath), { recursive: true });
   await fs.writeFile(outPath, JSON.stringify(outline, null, 2) + '\n');
   console.log(`\nWrote ${outPath}`);

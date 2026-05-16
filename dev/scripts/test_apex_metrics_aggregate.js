@@ -51,7 +51,7 @@ function metricKey(metric) {
 }
 
 async function runTests() {
-  const mod = await import(path.join(ROOT, 'web/js/apexMetrics.js'));
+  const mod = await import(path.join(ROOT, 'product/web/js/apexMetrics.js'));
 
   const result = mod.computeApexMetricsForSession(sessionEntry(), { status: 'ok', annotations: annotations() });
   assert(result.status === 'ok', 'aggregator returns ok for configured compatible telemetry', JSON.stringify(result));

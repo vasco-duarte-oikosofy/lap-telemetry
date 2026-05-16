@@ -225,7 +225,7 @@ async function runTests() {
   // ── Test 10: Real Spa data integration ──
   console.log('\n── Real Spa data: boundary smoothing integration ──');
   {
-    const dataDir = path.join(ROOT, 'data', 'circuit-de-spa-francorchamps-endurance', 'default');
+    const dataDir = path.join(ROOT, 'product', 'data', 'circuit-de-spa-francorchamps-endurance', 'default');
     const pathFile = path.join(dataDir, 'path.json');
     const profileFile = path.join(dataDir, 'width-profile.json');
 

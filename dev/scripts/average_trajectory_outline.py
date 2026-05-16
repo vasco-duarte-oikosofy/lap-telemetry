@@ -16,15 +16,15 @@ Strategy:
 
 Usage:
     # From exported lap JSONs (recommended)
-    python3 scripts/average_trajectory_outline.py data/track-outlines/bahrain_outline.json \
-      --laps data/track-outlines/alignment-artifacts/exported-laps/lap*.json
+    python3 scripts/average_trajectory_outline.py product/data/track-outlines/bahrain_outline.json \
+      --laps product/data/track-outlines/alignment-artifacts/exported-laps/lap*.json
 
     # From session parquets (auto-selects fastest 5)
-    python3 scripts/average_trajectory_outline.py data/track-outlines/circuit-de-barcelona.json \
+    python3 scripts/average_trajectory_outline.py product/data/track-outlines/circuit-de-barcelona.json \
       --sessions dev/sessions/session_*.parquet
 
     # Default (Barcelona sessions for backwards compatibility)
-    python3 scripts/average_trajectory_outline.py data/track-outlines/circuit-de-barcelona.json
+    python3 scripts/average_trajectory_outline.py product/data/track-outlines/circuit-de-barcelona.json
 """
 
 import json
@@ -167,11 +167,11 @@ def main():
         print()
         print("Examples:")
         print("  # From exported laps")
-        print("  python3 scripts/average_trajectory_outline.py data/track-outlines/bahrain.json \\")
-        print("    --laps data/track-outlines/alignment-artifacts/exported-laps/lap*.json")
+        print("  python3 scripts/average_trajectory_outline.py product/data/track-outlines/bahrain.json \\")
+        print("    --laps product/data/track-outlines/alignment-artifacts/exported-laps/lap*.json")
         print()
         print("  # From sessions (auto-select fastest 5)")
-        print("  python3 scripts/average_trajectory_outline.py data/track-outlines/circuit-de-barcelona.json \\")
+        print("  python3 scripts/average_trajectory_outline.py product/data/track-outlines/circuit-de-barcelona.json \\")
         print("    --sessions dev/sessions/session_*.parquet")
         sys.exit(1)
     

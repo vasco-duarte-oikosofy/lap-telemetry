@@ -6,6 +6,8 @@
 #   bash scripts/test-summary.sh <file>   # re-run a single failing test script
 set -euo pipefail
 
+export PYTHONPATH="$(pwd)/product/python${PYTHONPATH:+:$PYTHONPATH}"
+
 now_ms() { python3 -c "import time; print(int(time.time()*1000))"; }
 
 # Patterns that match a passing assertion in any of our test formats:

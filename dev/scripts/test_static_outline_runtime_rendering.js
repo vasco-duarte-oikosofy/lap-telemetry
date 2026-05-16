@@ -6,15 +6,15 @@ const fs = require('fs');
 const path = require('path');
 
 const ROOT = path.resolve(__dirname, '..', '..');
-const sourcePath = path.join(ROOT, 'data', 'track-outlines', 'spa-francorchamps.json');
-const runtimePath = path.join(ROOT, 'web', 'js', 'staticSpaOutlineData.js');
+const sourcePath = path.join(ROOT, 'product', 'data', 'track-outlines', 'spa-francorchamps.json');
+const runtimePath = path.join(ROOT, 'product', 'web', 'js', 'staticSpaOutlineData.js');
 
 (async () => {
   const source = JSON.parse(fs.readFileSync(sourcePath, 'utf8'));
   const { SPA_STATIC_OUTLINE } = await import(`${runtimePath}?t=${Date.now()}`);
-  assert.deepStrictEqual(SPA_STATIC_OUTLINE, source, 'runtime Spa outline data matches data/track-outlines source artifact');
+  assert.deepStrictEqual(SPA_STATIC_OUTLINE, source, 'runtime Spa outline data matches product/data/track-outlines source artifact');
 
-  const modulePath = path.join(ROOT, 'web', 'js', 'staticTrackOutline.js');
+  const modulePath = path.join(ROOT, 'product', 'web', 'js', 'staticTrackOutline.js');
   const { getSpaStaticOutline, renderStaticTrackOutlineSvg } = await import(`${modulePath}?t=${Date.now()}`);
   const outline = getSpaStaticOutline();
   assert.strictEqual(outline.schema_version, 1, 'runtime outline exposes schema v1');

@@ -37,9 +37,9 @@ function moduleUrl(relativePath) {
 
 async function loadProjectModules() {
   const [annotations, metrics, pipeline] = await Promise.all([
-    import(moduleUrl('web/js/apexAnnotations.js')),
-    import(moduleUrl('web/js/apexMetrics.js')),
-    import(moduleUrl('web/js/pipeline.js')),
+    import(moduleUrl('product/web/js/apexAnnotations.js')),
+    import(moduleUrl('product/web/js/apexMetrics.js')),
+    import(moduleUrl('product/web/js/pipeline.js')),
   ]);
   return {
     loadApexAnnotationsFile: annotations.loadApexAnnotationsFile,

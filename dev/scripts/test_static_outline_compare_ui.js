@@ -6,7 +6,7 @@ const path = require('path');
 const { startServer } = require('./lib/test-server');
 
 const ROOT = path.resolve(__dirname, '..', '..');
-const WEB_DIR = path.join(ROOT, 'web');
+const WEB_DIR = path.join(ROOT, 'product', 'web');
 const SESSION = path.join(ROOT, 'dev', 'sessions', 'session_20260512T140000Z_spa-francorchamps_lmu.parquet');
 
 function assert(cond, message, detail = '') {

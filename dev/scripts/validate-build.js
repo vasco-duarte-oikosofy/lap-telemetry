@@ -1,5 +1,5 @@
 /**
- * Automated verification that dist/compare.html works via file:// with full functionality.
+ * Automated verification that product/dist/compare.html works via file:// with full functionality.
  *
  * Test coverage:
  * - Page loads without JS errors
@@ -12,7 +12,7 @@ const { chromium } = require('playwright');
 const path = require('path');
 
 async function validateBuild() {
-  console.log('═══ Validate Build: dist/compare.html ═══\n');
+  console.log('═══ Validate Build: product/dist/compare.html ═══\n');
   
   const browser = await chromium.launch();
   const page = await browser.newPage();
@@ -30,7 +30,7 @@ async function validateBuild() {
   });
   
   // Load via file://
-  const distPath = path.resolve(__dirname, '../dist/compare.html');
+  const distPath = path.resolve(__dirname, '../../product/dist/compare.html');
   const fileUrl = 'file:///' + distPath.replace(/\\/g, '/');
   console.log(`Loading: ${fileUrl}`);
   

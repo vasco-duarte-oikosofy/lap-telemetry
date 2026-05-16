@@ -190,7 +190,7 @@ Examples:
     parser.add_argument('--export', type=str, help='Export specific laps (comma-separated, e.g., "3,5")')
     parser.add_argument('--fastest', type=int, help='Export N fastest complete laps')
     parser.add_argument('--export-all', action='store_true', help='Export all complete laps')
-    parser.add_argument('--output-dir', type=Path, default=Path('data/track-outlines/alignment-artifacts/exported-laps'),
+    parser.add_argument('--output-dir', type=Path, default=Path('product/data/track-outlines/alignment-artifacts/exported-laps'),
                         help='Output directory for exported JSON files')
     
     args = parser.parse_args()

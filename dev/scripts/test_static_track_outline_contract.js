@@ -5,7 +5,7 @@ const assert = require('assert');
 const fs = require('fs');
 const path = require('path');
 
-const outlinePath = path.join(__dirname, '..', '..', 'data', 'track-outlines', 'spa-francorchamps.json');
+const outlinePath = path.join(__dirname, '..', '..', 'product', 'data', 'track-outlines', 'spa-francorchamps.json');
 const outline = JSON.parse(fs.readFileSync(outlinePath, 'utf8'));
 
 assert.strictEqual(outline.schema_version, 1, 'schema_version is 1');

@@ -5,7 +5,7 @@ Telemetry recorder + browser-based lap-comparison tool for **rFactor 2** and **L
 Reads the same shared memory that [TinyPedal](https://github.com/s-victor/TinyPedal) reads, writes laps as standard Parquet + JSON sidecar, and gives you an offline HTML viewer to overlay any two laps and find where time was lost or gained.
 
 - **Recorder**: long-running CLI daemon, 50 Hz, captures `speed`, `throttle`, `brake`, `RPM`, `gear`, `steering`, `slip angle` (per axle), `ABS/TC` activity (LMU), per-frame position and lap distance.
-- **Comparison app**: a single `web/compare.html` file. No build step, no server — open it locally, drop in two parquet files (or a recording vs a TinyPedal `deltabest.csv`), and you get 8 panels + circuit map with synced cursor, drag-zoom, sector markers, and a smooth Δt trace.
+- **Comparison app**: a browser app under `product/web/`, bundled to `product/dist/compare.html` for standalone `file://` use. Drop in two parquet files (or a recording vs a TinyPedal `deltabest.csv`) and you get 8 panels + circuit map with synced cursor, drag-zoom, sector markers, and a smooth Δt trace.
 
 See [`DESIGN.md`](DESIGN.md) for the full spec and rationale.
 
@@ -61,10 +61,11 @@ lap-telemetry summary <dir>                # one-line overview across a folder
 
 ### Compare
 
-Open `web/compare.html` in a browser — `file://` works, no server needed:
+Open `product/dist/compare.html` in a browser — `file://` works, no server needed:
 
 ```powershell
-start web/compare.html
+npm run build
+start product/dist/compare.html
 ```
 
 Drop one or more `session_*.parquet` files (and their `.json` sidecars) onto the loader, pick a session lap and a reference lap, hit Compare. TinyPedal `deltabest.csv` files load as a synthetic single-lap reference if you want to compare against your TinyPedal best.
@@ -81,19 +82,20 @@ Plus a circuit-map sidebar (outline / speed-heatmap / brake-heatmap / throttle-h
 ## Repo layout
 
 ```
-lap_telemetry/
-  cli.py             # entry point: `lap-telemetry record` / `summary`
-  recorder/
-    connect.py       # SHM abstraction over rF2 / LMU, common `Frame` dataclass
-    writer.py        # SessionWriter — buffering, Parquet shards, JSON sidecar
-    record.py        # daemon loop + lap-boundary detection
-web/
-  compare.html       # the entire viewer — ESM imports from CDN, no build
-scripts/
-  test_m5.js         # AFK Playwright suite (load, compare, Δt cross-check)
-  test_f1f2.js       # circuit-map + zoom interaction
-  test_m6.js         # lap colours, ABS/TC strips, TinyPedal CSV ingest
-  test_m6_extras.js  # heatmaps, sector readouts, persistent zoom
+product/
+  python/lap_telemetry/
+    cli.py             # entry point: `lap-telemetry record` / `summary`
+    recorder/
+      connect.py       # SHM abstraction over rF2 / LMU, common `Frame` dataclass
+      writer.py        # SessionWriter — buffering, Parquet shards, JSON sidecar
+      record.py        # daemon loop + lap-boundary detection
+  web/
+    compare.html       # browser app source
+  dist/
+    compare.html       # bundled standalone viewer
+dev/
+  scripts/             # test/build/data-prep implementation scripts
+  sessions/            # tracked development session data
 pyRfactor2SharedMemory/  # submodule
 pyLMUSharedMemory/       # submodule
 ```
@@ -109,10 +111,11 @@ Parquet works out of the box with pandas, polars, duckdb, R, Julia, Rust, and JS
 Playwright + Chromium, pre-installed via the dev deps:
 
 ```powershell
-node scripts/test_m5.js          # core load/compare + Δt cross-check vs Python
-node scripts/test_f1f2.js        # circuit map + zoom
-node scripts/test_m6.js          # lap colours, ABS/TC, deltabest CSV
-node scripts/test_m6_extras.js   # heatmaps, sector readouts, persistent zoom
+bash scripts/test-summary.sh                 # full suite, concise output
+node dev/scripts/test_m5.js                  # core load/compare + Δt cross-check vs Python
+node dev/scripts/test_f1f2.js                # circuit map + zoom
+node dev/scripts/test_m6.js                  # lap colours, ABS/TC, deltabest CSV
+node dev/scripts/test_m6_extras.js           # heatmaps, sector readouts, persistent zoom
 ```
 
 Each suite emits a `*-test-report/` folder with screenshots, console log, and a `REPORT.md`.

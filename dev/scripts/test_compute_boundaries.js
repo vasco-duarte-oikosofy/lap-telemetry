@@ -468,7 +468,7 @@ async function runTests() {
   // ── Test 15: Real session integration (Spa endurance) ──
   console.log('\n── Real session: Spa endurance boundaries ──');
   {
-    const dataDir = path.join(ROOT, 'data', 'circuit-de-spa-francorchamps-endurance', 'default');
+    const dataDir = path.join(ROOT, 'product', 'data', 'circuit-de-spa-francorchamps-endurance', 'default');
     const pathFile = path.join(dataDir, 'path.json');
     const profileFile = path.join(dataDir, 'width-profile.json');
 

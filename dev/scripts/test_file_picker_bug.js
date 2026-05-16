@@ -22,7 +22,7 @@ const path = require('path');
 const { startServer } = require('./lib/test-server');
 
 const ROOT = path.resolve(__dirname, '..', '..');
-const WEB_DIR = path.join(ROOT, 'web');
+const WEB_DIR = path.join(ROOT, 'product', 'web');
 const SESSIONS_DIR = path.join(ROOT, 'dev', 'sessions');
 const REPORT_DIR = path.join(ROOT, 'var', 'test-output', 'file-picker-bug-test-report');
 const SHOTS_DIR = path.join(REPORT_DIR, 'screenshots');

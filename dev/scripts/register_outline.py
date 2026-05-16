@@ -3,13 +3,13 @@
 Register a track outline: generate ES module, update manifest, rebuild bundle.
 
 Usage:
-    python3 scripts/register_outline.py data/track-outlines/bahrain_outline.json
+    python3 scripts/register_outline.py product/data/track-outlines/bahrain_outline.json
 
 This command:
 1. Validates the outline JSON
 2. Generates the ES module (calls generate_outline_module.js)
 3. Adds import + map entries to trackOutlineManifest.js
-4. Rebuilds dist/compare.html
+4. Rebuilds product/dist/compare.html
 
 Idempotent: running twice makes no changes on the second run.
 """
@@ -23,10 +23,10 @@ import sys
 from pathlib import Path
 
 # ── Project root ──────────────────────────────────────────────────────────
-ROOT = Path(__file__).resolve().parent.parent
-MANIFEST_PATH = ROOT / "web" / "js" / "trackOutlineManifest.js"
-BACKUP_PATH = ROOT / "web" / "js" / "trackOutlineManifest_backup.js"
-GENERATE_SCRIPT = ROOT / "scripts" / "generate_outline_module.js"
+ROOT = Path(__file__).resolve().parents[2]
+MANIFEST_PATH = ROOT / "product" / "web" / "js" / "trackOutlineManifest.js"
+BACKUP_PATH = ROOT / "product" / "web" / "js" / "trackOutlineManifest_backup.js"
+GENERATE_SCRIPT = ROOT / "dev" / "scripts" / "generate_outline_module.js"
 
 # ── ANSI helpers ───────────────────────────────────────────────────────────
 GREEN = "\033[32m"
@@ -175,14 +175,14 @@ def generate_es_module(outline_path: str) -> tuple[str, str]:
         fail(f"generate_outline_module.js failed:\n{result.stderr}")
         sys.exit(1)
 
-    # Parse output like: "Wrote web/js/staticBahrain_outlineOutlineData.js (42 KB, export: BAHRAIN_OUTLINE_STATIC_OUTLINE)"
+    # Parse output like: "Wrote product/web/js/staticBahrain_outlineOutlineData.js (42 KB, export: BAHRAIN_OUTLINE_STATIC_OUTLINE)"
     output = result.stdout.strip()
     match = re.search(r"Wrote\s+(\S+)\s+\([^)]*export:\s*(\w+)\)", output)
     if not match:
         fail(f"Could not parse generate_outline_module.js output:\n{output}")
         sys.exit(1)
 
-    module_file = match.group(1)  # e.g., "web/js/staticBahrain_outlineOutlineData.js"
+    module_file = match.group(1)  # e.g., "product/web/js/staticBahrain_outlineOutlineData.js"
     export_name = match.group(2)  # e.g., "BAHRAIN_OUTLINE_STATIC_OUTLINE"
     return module_file, export_name
 
@@ -535,23 +535,23 @@ def main() -> None:
         sys.exit(1)
 
     # ── Step 3: Rebuild ────────────────────────────────────────────────
-    print("\n🔨 Rebuilding dist/compare.html...")
+    print("\n🔨 Rebuilding product/dist/compare.html...")
     if not run_build():
         fail("Build failed — restoring manifest from backup")
         shutil.copy2(BACKUP_PATH, MANIFEST_PATH)
         sys.exit(1)
-    ok("Rebuilt dist/compare.html")
+    ok("Rebuilt product/dist/compare.html")
 
     # ── Summary ─────────────────────────────────────────────────────────
     print(f"\n{'='*60}")
-    ok(f"Generated ES module: web/js/{module_filename}")
+    ok(f"Generated ES module: product/web/js/{module_filename}")
     if not import_exists or added_keys:
-        ok("Updated manifest: web/js/trackOutlineManifest.js")
+        ok("Updated manifest: product/web/js/trackOutlineManifest.js")
         if added_keys:
             ok(f"Added {len(added_keys)} entries to OUTLINES map:")
             for key in added_keys:
                 print(f"     - {key}")
-    ok("Rebuilt dist/compare.html")
+    ok("Rebuilt product/dist/compare.html")
     print(f"{'='*60}\n")
 
 

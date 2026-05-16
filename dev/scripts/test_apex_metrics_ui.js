@@ -14,7 +14,7 @@ const path = require('path');
 const { spawnSync } = require('child_process');
 
 const ROOT = path.resolve(__dirname, '..', '..');
-const WEB_DIR = path.join(ROOT, 'web');
+const WEB_DIR = path.join(ROOT, 'product', 'web');
 
 let passCount = 0;
 let failCount = 0;

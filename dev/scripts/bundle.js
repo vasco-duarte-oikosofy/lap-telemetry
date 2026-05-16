@@ -15,8 +15,8 @@ const path = require('path');
 const { execSync } = require('child_process');
 
 const ROOT = path.resolve(__dirname, '..', '..');
-const WEB_DIR = path.join(ROOT, 'web');
-const DIST_DIR = path.join(ROOT, 'dist');
+const WEB_DIR = path.join(ROOT, 'product', 'web');
+const DIST_DIR = path.join(ROOT, 'product', 'dist');
 const HTML_FILE = path.join(WEB_DIR, 'compare.html');
 const CSS_FILE = path.join(WEB_DIR, 'css', 'styles.css');
 const JS_DIR = path.join(WEB_DIR, 'js');

@@ -14,7 +14,7 @@ const path = require('path');
 const { spawnSync } = require('child_process');
 
 const ROOT = path.resolve(__dirname, '..', '..');
-const WEB_DIR = path.join(ROOT, 'web');
+const WEB_DIR = path.join(ROOT, 'product', 'web');
 
 let passCount = 0;
 let failCount = 0;
@@ -107,7 +107,7 @@ async function loadFiles(page, files) {
 }
 
 async function runPureModuleTests() {
-  const mod = await import(path.join(ROOT, 'web/js/trackOutlineChannels.js'));
+  const mod = await import(path.join(ROOT, 'product/web/js/trackOutlineChannels.js'));
   const legacy = { lap_distance_m: [10, 20] };
   const future = {
     raw_lap_distance_m: [10.25, 20.25],

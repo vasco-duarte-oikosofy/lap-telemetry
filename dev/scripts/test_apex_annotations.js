@@ -43,7 +43,7 @@ function invalidMessage(result) {
 }
 
 async function runTests() {
-  const mod = await import(path.join(ROOT, 'web/js/apexAnnotations.js'));
+  const mod = await import(path.join(ROOT, 'product/web/js/apexAnnotations.js'));
 
   const valid = mod.validateApexAnnotations(validAnnotation());
   assert(valid.ok === true, 'valid one-corner annotation validates successfully', invalidMessage(valid));

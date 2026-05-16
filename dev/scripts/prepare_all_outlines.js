@@ -12,7 +12,7 @@
  * 1. Convert TUMFTM CSVs to JSON
  * 2. Extract reference laps from session parquets
  * 3. Run auto-alignment (ICP)
- * 4. Write outline JSON files to data/track-outlines/
+ * 4. Write outline JSON files to product/data/track-outlines/
  */
 
 const fs = require('fs/promises');
@@ -22,8 +22,8 @@ const { runICP, generateOutline, transformPoint } = require('./auto_align_outlin
 
 const TUMFTM_DIR = '/private/tmp/tumftm';
 const SESSIONS_DIR = 'sessions';
-const OUTLINES_DIR = 'data/track-outlines';
-const ARTIFACTS_DIR = 'data/track-outlines/alignment-artifacts';
+const OUTLINES_DIR = 'product/data/track-outlines';
+const ARTIFACTS_DIR = 'product/data/track-outlines/alignment-artifacts';
 
 // Track mappings: sim track slug → { tumftmCsvName, tumftmTrackName, simTrackName, sessionFile }
 // Only entries where TUMFTM data exists

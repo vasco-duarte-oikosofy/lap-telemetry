@@ -2,12 +2,12 @@
 'use strict';
 
 /**
- * Generate a static outline ES module from a data/track-outlines/*.json file.
+ * Generate a static outline ES module from a product/data/track-outlines/*.json file.
  * The output module exports the outline as a named const so it can be imported
  * by the track outline manifest at build time.
  *
  * Usage:
- *   node scripts/generate_outline_module.js data/track-outlines/circuit-de-barcelona.json
+ *   node dev/scripts/generate_outline_module.js product/data/track-outlines/circuit-de-barcelona.json
  */
 
 const fs = require('fs/promises');
@@ -44,7 +44,7 @@ async function main(argv) {
     ``
   ].join('\n');
 
-  const outPath = path.join('web', 'js', `${moduleName}.js`);
+  const outPath = path.join('product', 'web', 'js', `${moduleName}.js`);
   await fs.mkdir(path.dirname(outPath), { recursive: true });
   await fs.writeFile(outPath, lines);
   console.log(`Wrote ${outPath} (${(lines.length / 1024).toFixed(0)} KB, export: ${exportName})`);

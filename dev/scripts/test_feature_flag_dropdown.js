@@ -10,7 +10,7 @@ const { chromium } = require('playwright');
 const { startServer } = require('./lib/test-server');
 const path = require('path');
 
-const WEB_DIR = path.join(__dirname, '..', '..', 'web');
+const WEB_DIR = path.join(__dirname, '..', '..', 'product', 'web');
 const KNOWN_FLAGS = ['mapWalkingSkeleton', 'mapHeatmapSingleLap', 'mapSAlignment', 'mapDualRibbon', 'mapZoomPan', 'mapLegend', 'mapHover', 'mapLinkedHighlight'];
 let passCount = 0;
 let failCount = 0;

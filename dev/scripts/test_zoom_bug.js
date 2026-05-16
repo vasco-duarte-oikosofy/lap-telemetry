@@ -12,7 +12,7 @@ const path = require('path');
 const { startServer } = require('./lib/test-server');
 
 const ROOT = path.resolve(__dirname, '..', '..');
-const DIST_DIR = path.join(ROOT, 'dist');
+const DIST_DIR = path.join(ROOT, 'product', 'dist');
 const SESSIONS_DIR = path.join(ROOT, 'dev', 'sessions');
 const REPORT_DIR = path.join(ROOT, 'var', 'test-output', 'zoom-bug-test-report');
 const SHOTS_DIR = path.join(REPORT_DIR, 'screenshots');
