@@ -43,6 +43,7 @@ import { initUI, rebuildPickers, parsePickerValue, addSessionEntry, refreshSessi
 
 // ── Debug hooks ──────────────────────────────────────────────────────────────
 import { installDebugHooks } from './debugHooks.js';
+import { computeSegmentBounds } from './trackHeatmapMap.js';
 
 // ── Apex metrics UI ──────────────────────────────────────────────────────────
 import { renderApexMetricsPanel } from './apexMetricsUi.js';
@@ -407,3 +408,28 @@ installDebugHooks({
   setDevFeatureFlag,
   renderTrackHeatmapMap,
 });
+
+// ── F16 auto-zoom debug hooks ────────────────────────────────────────────────
+// Set a chart zoom range and re-render the map. Returns the new range.
+window.__setZoomRange = (start, end) => {
+  currentZoomRange = { start, end };
+  renderTrackHeatmapMap();
+  return currentZoomRange;
+};
+
+// Clear the chart zoom range (full-track) and re-render the map.
+window.__clearZoomRange = () => {
+  if (currentMaxDist > 0) {
+    currentZoomRange = { start: 0, end: currentMaxDist };
+  } else {
+    currentZoomRange = null;
+  }
+  renderTrackHeatmapMap();
+  return currentZoomRange;
+};
+
+// Wrap computeSegmentBounds for test access.
+window.__computeSegmentBounds = (lapA, visibleRange) => computeSegmentBounds(lapA, visibleRange);
+
+// Read the current zoom range.
+window.__getZoomRange = () => currentZoomRange;

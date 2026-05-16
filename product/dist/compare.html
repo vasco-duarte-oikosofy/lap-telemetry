@@ -3433,7 +3433,7 @@ function installDebugHooks(deps) {
   window.__setFeatureFlag = (name, value) => {
     setFeatureFlag2(name, value);
     syncFeatureFlagMenuLabels(features2);
-    if (name === "mapWalkingSkeleton" || name === "mapHeatmapSingleLap" || name === "mapSAlignment" || name === "mapDualRibbon" || name === "mapZoomPan" || name === "mapLegend" || name === "mapHover" || name === "mapLinkedHighlight") {
+    if (name === "mapWalkingSkeleton" || name === "mapHeatmapSingleLap" || name === "mapSAlignment" || name === "mapDualRibbon" || name === "mapZoomPan" || name === "mapLegend" || name === "mapHover" || name === "mapLinkedHighlight" || name === "mapAutoZoom") {
       renderTrackHeatmapMap2();
     }
   };
@@ -4099,6 +4099,22 @@ installDebugHooks({
   setDevFeatureFlag,
   renderTrackHeatmapMap
 });
+window.__setZoomRange = (start, end) => {
+  currentZoomRange = { start, end };
+  renderTrackHeatmapMap();
+  return currentZoomRange;
+};
+window.__clearZoomRange = () => {
+  if (currentMaxDist > 0) {
+    currentZoomRange = { start: 0, end: currentMaxDist };
+  } else {
+    currentZoomRange = null;
+  }
+  renderTrackHeatmapMap();
+  return currentZoomRange;
+};
+window.__computeSegmentBounds = (lapA, visibleRange) => computeSegmentBounds(lapA, visibleRange);
+window.__getZoomRange = () => currentZoomRange;
 
 </script></script>
 

@@ -74,7 +74,7 @@ export function installDebugHooks(deps) {
   window.__setFeatureFlag = (name, value) => {
     setFeatureFlag(name, value);
     syncFeatureFlagMenuLabels(features);
-    if (name === 'mapWalkingSkeleton' || name === 'mapHeatmapSingleLap' || name === 'mapSAlignment' || name === 'mapDualRibbon' || name === 'mapZoomPan' || name === 'mapLegend' || name === 'mapHover' || name === 'mapLinkedHighlight') {
+    if (name === 'mapWalkingSkeleton' || name === 'mapHeatmapSingleLap' || name === 'mapSAlignment' || name === 'mapDualRibbon' || name === 'mapZoomPan' || name === 'mapLegend' || name === 'mapHover' || name === 'mapLinkedHighlight' || name === 'mapAutoZoom') {
       renderTrackHeatmapMap();
     }
   };
