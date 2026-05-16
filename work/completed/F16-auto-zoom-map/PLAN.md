@@ -4,7 +4,7 @@
 
 **Goal:** When the user zooms into a distance range on a telemetry chart, the track map canvas automatically zooms and pans to frame the corresponding track segment. When the chart zoom is reset, the map resets to the default full-track view.
 
-**Status:** 🟢 In progress
+**Status:** ✅ Completed
 
 ---
 
@@ -30,4 +30,4 @@
 
 ## Bug log
 
-See [`BUGS.md`](./BUGS.md) for the full list of bugs found during implementation, including root causes and fixes applied. Open bugs (5–9) are still being resolved.
+See [`BUGS.md`](./BUGS.md) for the full list of bugs found during implementation. All 12 bugs resolved: 1–5 and 9–12 fixed; 6–8 obsolete/non-repro.
