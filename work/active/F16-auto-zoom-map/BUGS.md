@@ -25,13 +25,13 @@ When `mapZoomPan` is enabled, double-clicking the map resets zoom (returns to fu
 When the user toggles `mapAutoZoom` on (with no chart range selected), the map should NOT move. This was previously suspected as a regression, but is no longer reproducible. Current acceptance coverage includes SC4 in `dev/scripts/test_f16_auto_zoom_acceptance.js`, which verifies enabling `mapAutoZoom` with a full-track range does not move the map.
 **Resolution**: Marked obsolete/non-repro. No code change required.
 
-## Bug 7: Inconsistent zoom target calculation (OPEN)
-When selecting different portions of the telemetry charts, the auto-zoom target appears random — as if a different portion of the track is shown each time, even for the same selection.
-**Investigate**: `computeSegmentBounds` uses `lapA.x` as both the X-coordinate AND the distance axis. If `lapA.x[i]` is not the same as the distance values used in `currentZoomRange`, the bounds will be wrong. Need to verify that `visibleRange.start/end` and `lapA.x[i]` are in the same coordinate system.
+## Bug 7: Inconsistent zoom target calculation (OBSOLETE — NON-REPRO)
+When selecting different portions of the telemetry charts, the auto-zoom target appeared random. The original suspected cause (using `lapA.x[i]` as distance instead of array index) was fixed in Bug 9/11. No longer reproducible after the index-based filtering fix.
+**Resolution**: Marked obsolete/non-repro. No code change required.
 
-## Bug 8: Long highlighted portion (e.g., T1 at Fuji) — end of highlight not shown (OPEN)
-When a long section of track is highlighted, the auto-zoom doesn't show the end of the highlighted portion. The bounds may be too tight or the padding insufficient.
-**Investigate**: Check if the 10% padding is sufficient, or if the `fitToView` call needs adjustment for very elongated segments. Also check if `lapA` (session lap) bounds are representative of `lapB` (reference lap) — if they diverge, only session-portion bounds are used.
+## Bug 8: Long highlighted portion end not shown (OBSOLETE — NON-REPRO)
+When a long section of track was highlighted, the auto-zoom didn't show the end of the highlighted portion. No longer reproducible after the Bug 9/11 index-based filtering fix and the dynamic min-scale fix (Bug 12).
+**Resolution**: Marked obsolete/non-repro. No code change required.
 
 ## Bug 9: Map moves to show selected portion but does not ZOOM (FIXED)
 When selecting a portion of the telemetry charts, the map pans to show the selected area but does not zoom in — the track segment is shown at the same scale as full-track, just centered.
