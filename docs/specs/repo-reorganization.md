@@ -28,6 +28,7 @@ Reorganize the repository so agents and humans can quickly distinguish productio
 - Root must have `CATALOG_INDEX.md` that progressively discloses all L1 folders.
 - Ongoing and completed implementation work must live under `work/` as mission folders.
 - Historical root-level plans and handoffs should be archived under `work/archived-plans/`.
+- Legacy root-level phase directories should be moved under `work/archived-plans/` so tracked root directories stay limited to the documented L1 areas plus compatibility wrappers.
 
 ## Proposed ownership
 

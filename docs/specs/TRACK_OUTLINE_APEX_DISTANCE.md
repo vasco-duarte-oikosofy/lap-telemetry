@@ -18,7 +18,7 @@ Follow the standing project rules in `AGENTS.md` and the working pattern from `d
 4. **Refactors are separate commits.** Refactor first, prove green, then change behavior.
 5. **YAGNI.** Implement only the current subphase. No generic track database, no editor UI, no official boundary import until a later spec asks for it.
 6. **Always working.** Old Parquet files and current compare UI must continue to work after every subphase.
-7. **Stop at green.** When the subphase acceptance passes, write `phases_track_outline/<phase>/learnings.md` and `handoff.md`, commit, and stop.
+7. **Stop at green.** When the subphase acceptance passes, write the slice's `learnings.md` and `handoff.md` under `work/`, commit, and stop.
 
 Before changing or adding tests, read `docs/TESTING_LESSONS.md`.
 

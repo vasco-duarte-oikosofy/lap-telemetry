@@ -11,3 +11,4 @@ Spec: [`docs/specs/repo-reorganization.md`](../../../docs/specs/repo-reorganizat
 | `05-product-subtree` | ✅ Complete | Move production/final code into `product/` and update build/runtime paths so the subtree is extractable. |
 | `06-docs-and-work-archive` | ✅ Complete | Move stable docs into `docs/` and historical root planning files into `work/archived-plans/`. |
 | `07-vendor-boundary` | ✅ Complete | Clarify third-party/submodule ownership under `vendor/` and update submodule/docs references. |
+| `08-root-cleanup` | ✅ Complete | Move legacy root phase directories under `work/archived-plans/` and keep tracked root directories limited to documented L1 areas plus compatibility wrappers. |
