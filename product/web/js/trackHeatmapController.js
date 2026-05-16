@@ -5,7 +5,7 @@ import { createMapInteraction, setBaseTransform } from './mapInteraction.js';
 import { renderWalkingSkeleton, initTrackHeatmapResize, fitToView, getLastTransform, computeSegmentBounds } from './trackHeatmapMap.js';
 
 
-export function createTrackHeatmapController(getMapState) {
+export function createTrackHeatmapController(getMapState, resetChartZoom = null) {
   let trackHeatmapObserver = null;
   let mapInteraction = null;
   let mapHover = null;
@@ -110,6 +110,7 @@ export function createTrackHeatmapController(getMapState) {
           suppressedAutoZoomRange = currentZoomRange
             ? `${currentZoomRange.start}:${currentZoomRange.end}`
             : null;
+          if (resetChartZoom) resetChartZoom();
         },
         getMinScale: () => currentMinUserScale,
       });

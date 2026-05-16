@@ -310,7 +310,7 @@ async function runTests() {
 
     await page.screenshot({ path: path.join(SHOTS_DIR, 'sc6_zoomed_with_pan.png') });
 
-    // Double-click to reset user-zoom — auto-zoom should re-apply
+    // Double-click resets the map and clears chart selection, like Escape
     const canvas6 = await page.$('#track-heatmap-canvas');
     await canvas6.hover({ position: { x: 5, y: 5 } });
     const box6 = await canvas6.boundingBox();
@@ -330,8 +330,8 @@ async function runTests() {
       const zoom = window.__getZoomRange();
       return { scale: state?.scale, tx: state?.tx, ty: state?.ty, zoomStart: zoom?.start, zoomEnd: zoom?.end };
     });
-    assert(s6dbl.zoomStart === 300 && s6dbl.zoomEnd === 700,
-      'SC6: zoom range persists after dblclick',
+    assert(s6dbl.zoomStart === 0,
+      'SC6: zoom range clears after dblclick',
       `start=${s6dbl.zoomStart} end=${s6dbl.zoomEnd}`);
     assert(s6dbl.scale === 1, 'SC6: scale returns to 1 after dblclick',
       `scale=${s6dbl.scale}`);

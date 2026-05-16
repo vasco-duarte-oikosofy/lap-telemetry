@@ -176,18 +176,18 @@ async function runTests() {
       `${afterVsFull.matches}/${afterVsFull.total} pixels match full-track baseline`);
 
     const chartZoom = await page.evaluate(() => window.__getZoomRange());
-    assert(chartZoom.start === 300 && chartZoom.end === 700,
-      'double-click: chart zoom range persists while map view resets',
+    assert(chartZoom.start === 0,
+      'double-click: chart selection is cleared like Escape',
       `start=${chartZoom.start} end=${chartZoom.end}`);
     await page.screenshot({ path: path.join(SHOTS_DIR, 'bug5_after_doubleclick.png') });
 
-    console.log('\n════ Step 3: changing chart range re-enables auto-zoom ════');
+    console.log('\n════ Step 3: selecting a new chart range re-enables auto-zoom ════');
     await page.evaluate(() => window.__setZoomRange(1000, 2000));
     await waitForZoomRange(page, 1000, 2000);
     const changedRange = await sampleCanvas(page);
     const changedVsFull = countMatching(fullTrack, changedRange);
     assert(changedVsFull.matches < changedVsFull.total,
-      'range change: auto-zoom reactivates after double-click suppression',
+      'new range: auto-zoom reactivates after double-click cleared selection',
       `${changedVsFull.total - changedVsFull.matches}/${changedVsFull.total} pixels differ from full-track`);
   } finally {
     await browser.close();

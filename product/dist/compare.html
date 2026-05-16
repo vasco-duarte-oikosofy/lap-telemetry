@@ -2249,7 +2249,7 @@ function updateZoomIndicator(canvas, scale) {
 }
 
 // product/web/js/trackHeatmapController.js
-function createTrackHeatmapController(getMapState2) {
+function createTrackHeatmapController(getMapState2, resetChartZoom2 = null) {
   let trackHeatmapObserver = null;
   let mapInteraction = null;
   let mapHover = null;
@@ -2347,6 +2347,7 @@ function createTrackHeatmapController(getMapState2) {
         onReset: () => {
           const { currentZoomRange: currentZoomRange3 } = getMapState2();
           suppressedAutoZoomRange = currentZoomRange3 ? `${currentZoomRange3.start}:${currentZoomRange3.end}` : null;
+          if (resetChartZoom2) resetChartZoom2();
         },
         getMinScale: () => currentMinUserScale
       });
@@ -3900,9 +3901,20 @@ var trackTransform = null;
 var currentLapARaw = null;
 var currentLapBRaw = null;
 var currentTrackName = null;
-var trackHeatmapController = createTrackHeatmapController(getMapState);
+var trackHeatmapController = createTrackHeatmapController(getMapState, resetChartZoom);
 function renderTrackHeatmapMap() {
   trackHeatmapController.render();
+}
+function resetChartZoom() {
+  if (!currentSessionBins || !currentZoomRange) return;
+  currentZoomRange.start = 0;
+  currentZoomRange.end = currentMaxDist;
+  persistZoom(currentZoomRange, currentMaxDist);
+  if (state.currentRenderParams) {
+    renderAll(...state.currentRenderParams);
+  } else {
+    renderTrackHeatmapMap();
+  }
 }
 function renderAll(sessionEntry, sessionSegIdx, refEntry, refSegIdx) {
   currentTrackName = sessionEntry?.sidecar?.track || inferTrackNameFromFileName(sessionEntry?.fileName) || null;

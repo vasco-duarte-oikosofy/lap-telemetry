@@ -83,8 +83,19 @@ let trackTransform     = null; // Updated by renderCircuitMap
 let currentLapARaw     = null;   // Phase 01b: raw arrays for s alignment
 let currentLapBRaw     = null;   // Phase 01b: raw arrays for s alignment
 let currentTrackName   = null;  // Session sidecar track name for outline lookup
-const trackHeatmapController = createTrackHeatmapController(getMapState);
+const trackHeatmapController = createTrackHeatmapController(getMapState, resetChartZoom);
 function renderTrackHeatmapMap() { trackHeatmapController.render(); }
+function resetChartZoom() {
+  if (!currentSessionBins || !currentZoomRange) return;
+  currentZoomRange.start = 0;
+  currentZoomRange.end = currentMaxDist;
+  persistZoom(currentZoomRange, currentMaxDist);
+  if (state.currentRenderParams) {
+    renderAll(...state.currentRenderParams);
+  } else {
+    renderTrackHeatmapMap();
+  }
+}
 function renderAll(sessionEntry, sessionSegIdx, refEntry, refSegIdx) {
   currentTrackName = sessionEntry?.sidecar?.track || inferTrackNameFromFileName(sessionEntry?.fileName) || null;
   const sSeg = sessionEntry.segments[sessionSegIdx];
