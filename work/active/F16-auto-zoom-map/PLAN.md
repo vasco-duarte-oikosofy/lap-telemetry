@@ -4,7 +4,7 @@
 
 **Goal:** When the user zooms into a distance range on a telemetry chart, the track map canvas automatically zooms and pans to frame the corresponding track segment. When the chart zoom is reset, the map resets to the default full-track view.
 
-**Status:** 🔲 Planning
+**Status:** 🟢 In progress
 
 ---
 
@@ -12,7 +12,7 @@
 
 | Slice | Status | Vertical outcome |
 |---|---|---|
-| `01-feature-flag-and-wiring` | 🔲 Not started | `mapAutoZoom: false` flag in dropdown, toggling logs to console; Playwright test verifies flag state |
+| `01-feature-flag-and-wiring` | ✅ Completed | `mapAutoZoom: false` flag in dropdown, Playwright test verifies flag state |
 | `02-compute-segment-bounds` | 🔲 Not started | `computeSegmentBounds()` returns bounding box for visible range; Node unit tests for edge cases |
 | `03-auto-zoom-transform` | 🔲 Not started | Map auto-zooms to segment when flag + highlight are on, resets on zoom clear |
 | `04-playwright-acceptance-test` | 🔲 Not started | Playwright test verifies auto-zoom behaviour; trials `domcontentloaded` + batched evaluate optimisation patterns|
