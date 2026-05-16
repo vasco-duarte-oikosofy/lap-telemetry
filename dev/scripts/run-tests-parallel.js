@@ -91,8 +91,10 @@ function printSummary(results, elapsed) {
   for (const r of results) {
     totalPassed += countPasses(r.output);
     const failures = extractFailures(r.output);
-    if (failures.length > 0 || r.exitCode !== 0 || countPasses(r.output) === 0) {
-      failedScripts.push({ script: r.script, output: r.output, failures });
+    const passCount = countPasses(r.output);
+    if (failures.length > 0 || r.exitCode !== 0 || passCount === 0) {
+      const reason = r.exitCode !== 0 ? `exit ${r.exitCode}` : failures.length > 0 ? `${failures.length} failures` : '0 assertions (protocol violation)';
+      failedScripts.push({ script: r.script, output: r.output, failures, reason });
     }
   }
   if (failedScripts.length === 0) {
@@ -102,7 +104,7 @@ function printSummary(results, elapsed) {
   console.log(`FAILED — ${totalPassed} passed, ${failedScripts.length} of ${results.length} scripts failed in ${elapsed}`);
   console.log('');
   for (const f of failedScripts) {
-    console.log(`=== FAIL: ${f.script} ===`);
+    console.log(`=== FAIL: ${f.script} (${f.reason}) ===`);
     (f.failures.length > 0 ? f.failures : f.output.split('\n').slice(0, 20)).forEach(l => console.log(l));
     console.log('');
   }
@@ -127,11 +129,13 @@ async function runSingleTest(target) {
   const elapsed = ((Date.now() - start) / 1000).toFixed(1);
   const failures = extractFailures(r.output);
 
-  if (failures.length === 0 && r.exitCode === 0 && countPasses(r.output) > 0) {
-    console.log(`PASS — ${countPasses(r.output)} assertions in ${elapsed}s (${script})`);
+  const passCount = countPasses(r.output);
+  if (failures.length === 0 && r.exitCode === 0 && passCount > 0) {
+    console.log(`PASS — ${passCount} assertions in ${elapsed}s (${script})`);
     return 0;
   }
-  console.log(`FAIL — ${script}`);
+  const reason = r.exitCode !== 0 ? `exit ${r.exitCode}` : failures.length > 0 ? `${failures.length} failures` : '0 assertions (protocol violation)';
+  console.log(`FAIL — ${script} (${reason})`);
   (failures.length > 0 ? failures : r.output.split('\n').slice(0, 20)).forEach(l => console.log(l));
   return 1;
 }

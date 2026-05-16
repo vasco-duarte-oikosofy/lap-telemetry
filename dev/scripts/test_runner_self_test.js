@@ -30,8 +30,10 @@ assert(ok.l[0].includes('ALL PASS — 1 assertions across 1'), 'printSummary: AL
 const bad = cap(() => printSummary([R('fail.js', 1, '  [FAIL] broken')], '1.0'));
 assert(bad.r === 1, 'printSummary: failing returns 1');
 assert(bad.l[0].includes('FAILED'), 'printSummary: FAILED format');
+assert(bad.l.some(l => l.includes('exit 1')), 'printSummary: shows exit reason');
 const zero = cap(() => printSummary([R('zero.js', 0, '')], '1.0'));
 assert(zero.r === 1, 'printSummary: zero-assertion returns 1');
+assert(zero.l.some(l => l.includes('protocol violation')), 'printSummary: shows protocol violation reason');
 
 // ── Integration: single-test mode via subprocess
 const run = s => spawnSync('node', [RUNNER, s], { encoding: 'utf8', cwd: ROOT });
@@ -40,8 +42,10 @@ assert(ps.status === 0, 'single-test: passing exits 0');
 assert(ps.stdout.includes('PASS — 1 assertions'), 'single-test: passing output');
 const fRes = run(path.join(F, 'fixture-fail.js'));
 assert(fRes.status === 1, 'single-test: failing exits 1');
+assert(fRes.stdout.includes('exit 1'), 'single-test: failing shows exit reason');
 const zRes = run(path.join(F, 'fixture-zero.js'));
 assert(zRes.status === 1, 'single-test: zero-assertion exits 1');
+assert(zRes.stdout.includes('protocol violation'), 'single-test: zero-assertion shows protocol violation');
 
 console.log(`\n  Runner self-test: ${pass} passed, ${fail} failed`);
 if (fail > 0) process.exitCode = 1;
