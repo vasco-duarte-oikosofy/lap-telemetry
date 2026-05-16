@@ -43,12 +43,22 @@ Full setup walkthrough: [`docs/SETUP.md`](docs/SETUP.md).
 
 ### Record
 
+The recorder implementation lives under `product/python/lap_telemetry/recorder/` and is normally run through the installed CLI entry point:
+
 ```powershell
-lap-telemetry record                       # waits for sim, records until Ctrl+C
-lap-telemetry record --out-dir ./sessions  # explicit output dir
-lap-telemetry record --once                # 3 s probe, print one frame, exit
-lap-telemetry record --rate 25             # override poll rate
+lap-telemetry record                           # waits for sim, records until Ctrl+C
+lap-telemetry record --out-dir dev/sessions    # write into tracked development sessions
+lap-telemetry record --once                    # 3 s probe, print one frame, exit
+lap-telemetry record --rate 25                 # override poll rate
 ```
+
+From a source checkout, the equivalent direct module invocation is:
+
+```powershell
+python -m lap_telemetry.cli record --out-dir dev/sessions
+```
+
+Use `dev/sessions/` for session data you want to keep in this repository for development and testing. Use another local output folder if the recording is temporary or private.
 
 Start it before launching the sim and leave it running across an evening of mixed sessions — combo changes (track or vehicle) or 5 s of idle automatically close the writer and start a fresh file. A hard kill still leaves identifying metadata on disk, and orphan recovery on next startup stamps `recovered: true`.
 

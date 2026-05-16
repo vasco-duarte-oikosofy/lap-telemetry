@@ -91,7 +91,7 @@ function printSummary(results, elapsed) {
   for (const r of results) {
     totalPassed += countPasses(r.output);
     const failures = extractFailures(r.output);
-    if (failures.length > 0 || r.exitCode !== 0) {
+    if (failures.length > 0 || r.exitCode !== 0 || countPasses(r.output) === 0) {
       failedScripts.push({ script: r.script, output: r.output, failures });
     }
   }
@@ -127,7 +127,7 @@ async function runSingleTest(target) {
   const elapsed = ((Date.now() - start) / 1000).toFixed(1);
   const failures = extractFailures(r.output);
 
-  if (failures.length === 0 && r.exitCode === 0) {
+  if (failures.length === 0 && r.exitCode === 0 && countPasses(r.output) > 0) {
     console.log(`PASS — ${countPasses(r.output)} assertions in ${elapsed}s (${script})`);
     return 0;
   }
@@ -166,4 +166,8 @@ async function main() {
   process.exit(printSummary([...nResults, ...pResults, ...sResults], elapsed));
 }
 
-main().catch(err => { console.error('Runner error:', err); process.exit(1); });
+module.exports = { countPasses, extractFailures, printSummary, runTest, runSingleTest };
+
+if (require.main === module) {
+  main().catch(err => { console.error('Runner error:', err); process.exit(1); });
+}

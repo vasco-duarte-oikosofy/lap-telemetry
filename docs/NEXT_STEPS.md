@@ -1,6 +1,6 @@
-# lap-telemetry — Next Steps & Future Improvements
+# lap-telemetry - Next Steps & Future Improvements
 
-**Date:** 2026-05-14  
+**Date:** 2026-05-14
 **Status:** `refactor-main-js` complete · `main.js` reduced from 543 → 389 lines; all JS modules are under the 437-line ceiling
 
 ---
@@ -85,7 +85,7 @@ Splitting it would create artificial boundaries and hurt clarity more than help.
 
 ---
 
-## Future Fixes — UX Backlog (from DESIGN.md §13)
+## Future Fixes - UX Backlog (from DESIGN.md §13)
 
 ### U2. Circuit map needs more pixels for brake/throttle overlays
 
@@ -98,7 +98,7 @@ Splitting it would create artificial boundaries and hurt clarity more than help.
 
 **Scope.** `web/compare.html` layout + `renderCircuitMap` viewBox scaling. No schema or recorder changes.
 
-**Priority:** Medium — affects track-overlay analysis workflows.
+**Priority:** Medium - affects track-overlay analysis workflows.
 
 ---
 
@@ -114,7 +114,7 @@ Remove any channel-specific green/red colour overrides from earlier designs.
 
 **Scope.** `PANEL_DEFS` in `web/js/panelConfig.js`. No schema or recorder changes.
 
-**Priority:** High — visual regression affecting core comparison feature.
+**Priority:** High - visual regression affecting core comparison feature.
 
 ---
 
@@ -127,7 +127,7 @@ Remove any channel-specific green/red colour overrides from earlier designs.
 tooltip.innerHTML = `
   dist: ${binIdx} m<br>
   speed: <span style="color:var(--session)">${sSpeed.toFixed(1)}</span> /
-         <span style="color:var(--ref)">${rSpeed?.toFixed(1) ?? '—'}</span> km/h<br>
+         <span style="color:var(--ref)">${rSpeed?.toFixed(1) ?? '-'}</span> km/h<br>
   ...
 `;
 ```
@@ -136,7 +136,7 @@ Apply same colouring to throttle, brake, and other dual-value fields. Sanitise u
 
 **Scope.** Tooltip rendering in `updateCursorPosition` in `web/js/cursor.js`. No schema or recorder changes.
 
-**Priority:** Medium — improves readability, not blocking.
+**Priority:** Medium - improves readability, not blocking.
 
 ---
 
@@ -154,11 +154,11 @@ Add regression test confirming channel colour/dash for Speed, Throttle, Brake, S
 
 **Scope.** `PANEL_DEFS` in `web/js/panelConfig.js`; optionally extend `test_f8f9f10f11.js`.
 
-**Priority:** Medium — visual consistency across panels.
+**Priority:** Medium - visual consistency across panels.
 
 ---
 
-## Known Issues — Recorder/Reader (from DESIGN.md §10)
+## Known Issues - Recorder/Reader (from DESIGN.md §10)
 
 ### O1/O2. Sector lookup mid-update / off-by-one ✅ Resolved M4
 
@@ -166,22 +166,22 @@ Add regression test confirming channel colour/dash for Speed, Throttle, Brake, S
 
 ---
 
-### O3. First-compare UI freeze (~100–300 ms)
+### O3. First-compare UI freeze (~100-300 ms)
 
-**Symptom.** After loading a parquet, the first time both lap pickers are populated and `renderAll` fires, the page is unresponsive for ~100 ms on fast hardware and ~200–300 ms on slower machines.
+**Symptom.** After loading a parquet, the first time both lap pickers are populated and `renderAll` fires, the page is unresponsive for ~100 ms on fast hardware and ~200-300 ms on slower machines.
 
 **Cause.** Profiled on a ~25k row session: `renderAll` does ~31 ms of resampling (16 channels × 2 traces) and ~70 ms of SVG string-building + `innerHTML` parse + paint, all in one synchronous JS block.
 
 **Remediations (if it becomes a friction point):**
 1. **Cache resampled bins** per `(storeKey, segIdx, col)` so repeat picks are instant (~50 lines)
-2. **Async pre-resample** after file load with "warming…" badge, chunked with `await yield()` (~80 lines)
+2. **Async pre-resample** after file load with "warming..." badge, chunked with `await yield()` (~80 lines)
 3. **Yield between panels** inside `renderAll` so panels appear progressively (~20 lines)
 
-**Priority:** Low — workflow completes, freeze is short. Revisit if users report it as blocking.
+**Priority:** Low - workflow completes, freeze is short. Revisit if users report it as blocking.
 
 ---
 
-## Future Features — Not Yet Scheduled
+## Future Features - Not Yet Scheduled
 
 ### F12. Persistent lap selection
 
@@ -226,7 +226,7 @@ Add regression test confirming channel colour/dash for Speed, Throttle, Brake, S
 **Behaviour.**
 1. User drag-selects a distance range on a chart panel (existing zoom interaction).
 2. The linked highlight band marks the corresponding track segment on the map (existing `mapLinkedHighlight` feature flag).
-3. With `mapAutoZoomPanLinkedHighlight` enabled, the map canvas computes a bounding box around the highlighted segment's XY coordinates, expands it by 10 % in each direction, and applies a `fitToView`-style transform that frames the expanded box — overriding the current user zoom/pan state.
+3. With `mapAutoZoomPanLinkedHighlight` enabled, the map canvas computes a bounding box around the highlighted segment's XY coordinates, expands it by 10 % in each direction, and applies a `fitToView`-style transform that frames the expanded box - overriding the current user zoom/pan state.
 4. When the chart zoom is reset (double-click / Esc), the map also resets to its default full-track view.
 
 **Feature flag.** `mapAutoZoomPanLinkedHighlight` (default: `false`). Toggled from the top-right feature-flag dropdown alongside existing flags. Depends on `mapLinkedHighlight` being active (the highlight band must be drawn for the auto-zoom target to be defined).
@@ -242,7 +242,16 @@ Add regression test confirming channel colour/dash for Speed, Throttle, Brake, S
 
 **Scope.** `web/js/appState.js` (flag definition), `web/js/trackHeatmapController.js` (auto-zoom logic), `web/js/trackHeatmapMap.js` (bounded fitToView helper). No schema or recorder changes.
 
-**Priority:** Medium — enhances track-analysis workflow when inspecting specific corners or braking zones.
+**Priority:** Medium - enhances track-analysis workflow when inspecting specific corners or braking zones.
+
+---
+
+### F17. Parallel test runner with concise agent summary — 🟢 IN PROGRESS
+
+**Spec:** [`docs/specs/parallel-test-runner.md`](specs/parallel-test-runner.md)
+**Work:** `work/active/parallel-test-runner/`
+**Status:** Feature spec written; implementation under way across 6 slices (01–06).
+**Achieved so far:** Full-suite wall-time reduced from ~42 s to ~6.5 s.
 
 ---
 
@@ -259,25 +268,25 @@ Add regression test confirming channel colour/dash for Speed, Throttle, Brake, S
 - Dispatch a synthetic `mousemove` event with correct coordinates
 - Test hover behavior separately from content verification
 
-**Scope.** `scripts/test_m5.js` — split hover trigger test from content assertions.
+**Scope.** `scripts/test_m5.js` - split hover trigger test from content assertions.
 
 ---
 
 ## Test Writing Lessons
 
-Moved to **[TESTING_LESSONS.md](TESTING_LESSONS.md)** — the canonical reference for all
+Moved to **[TESTING_LESSONS.md](TESTING_LESSONS.md)** - the canonical reference for all
 Playwright test guidelines. Read that file before writing or fixing any test.
 
 ---
 
 ## References
 
-- [DESIGN.md](DESIGN.md) — Architecture, file format, milestone plan
-- [RENDER_DESIGN.md](RENDER_DESIGN.md) — Rendering architecture, module structure, panel pipeline
-- [m2-plan.md](m2-plan.md) — M2 implementation (write loop, Parquet shards, sidecar)
-- [m3-plan.md](m3-plan.md) — M3 implementation (sectors in summary, recoverable metadata)
-- [m4-plan.md](m4-plan.md), [m5-plan.md](m5-plan.md), [F1F2-plan.md](F1F2-plan.md) — Comparison app milestones
-- [web-refactor-step10-handoff.md](web-refactor-step10-handoff.md) — Step 10 handoff (pickers.js extraction)
+- [DESIGN.md](DESIGN.md) - Architecture, file format, milestone plan
+- [RENDER_DESIGN.md](RENDER_DESIGN.md) - Rendering architecture, module structure, panel pipeline
+- [m2-plan.md](m2-plan.md) - M2 implementation (write loop, Parquet shards, sidecar)
+- [m3-plan.md](m3-plan.md) - M3 implementation (sectors in summary, recoverable metadata)
+- [m4-plan.md](m4-plan.md), [m5-plan.md](m5-plan.md), [F1F2-plan.md](F1F2-plan.md) - Comparison app milestones
+- [web-refactor-step10-handoff.md](web-refactor-step10-handoff.md) - Step 10 handoff (pickers.js extraction)
 
 ---
 
@@ -286,11 +295,12 @@ Playwright test guidelines. Read that file before writing or fixing any test.
 **Refactoring current.** `main.js` is 389 lines and every `web/js` module is under the 437-line ceiling; full test/build passed during `refactor-main-js`.
 
 **Next priorities:**
-1. **U3** — Fix Throttle/Brake panel colours (visual regression)
-2. **U5** — Audit all panels for consistent colour/line-style
-3. **U4** — Colour tooltip speed values by lap identity
-4. **U2** — Enlarge circuit map for overlay readability
-5. **F16** — Auto-zoom map canvas to selected track segment
+1. **F17** — Parallel test runner with concise agent summary **(in progress)**
+2. **U3** - Fix Throttle/Brake panel colours (visual regression)
+3. **U5** - Audit all panels for consistent colour/line-style
+4. **U4** - Colour tooltip speed values by lap identity
+5. **U2** - Enlarge circuit map for overlay readability
+6. **F16** - Auto-zoom map canvas to selected track segment
 
 **Optional further refactoring:**
 - Extract debug hooks to `debug.js` if test-only globals need stronger isolation.
