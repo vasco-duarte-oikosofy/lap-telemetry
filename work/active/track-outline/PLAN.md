@@ -19,7 +19,7 @@ Tracks are ordered by data quality: TUMFTM first (real widths), then trajectory-
 | `01-spa` | Circuit de Spa-Francorchamps | TUMFTM `Spa.csv` | Real | ✅ Done |
 | `02-spa-endurance` | Circuit de Spa-Francorchamps Endurance | Same Spa outline (alias) | Real (alias) | ✅ Done |
 | `03-bahrain` | Bahrain International Circuit | TUMFTM `Sakhir.csv` | Real | ✅ Done |
-| `04-barcelona` | Circuit de Barcelona-Catalunya | TUMFTM `Catalunya.csv` ⚠️ wrong layout | Real | 🔲 Not started |
+| `04-barcelona` | Circuit de Barcelona-Catalunya | ❌ No TUMFTM (wrong layout) | Clean trajectory | 🔲 Not started |
 | `05-monza` | Autodromo Nazionale Monza | TUMFTM `Monza.csv` | Real | 🔲 Not started |
 | `06-interlagos` | Autódromo José Carlos Pace | TUMFTM `SaoPaulo.csv` | Real | 🔲 Not started |
 | `07-cota` | Circuit of the Americas | TUMFTM `Austin.csv` | Real | 🔲 Not started |
@@ -88,10 +88,9 @@ TUMFTM `Catalunya.csv` is the old F1 layout (pre-2007 chicane). LMU uses the Mot
 - Manifest entries: `bahrain-international-circuit`, `bahrain`
 
 ### 04-barcelona
-- **TUMFTM CSV:** `Catalunya.csv`
-- **⚠️ Layout mismatch:** TUMFTM has the old F1 layout (no chicane). LMU uses the MotoGP chicane layout. The ICP alignment may produce a visibly wrong outline at the chicane. Visual QA in slice 04-b will determine whether to keep TUMFTM or fall back to trajectory.
+- **No TUMFTM data.** TUMFTM `Catalunya.csv` is the old F1 layout (no chicane), which doesn't match the LMU MotoGP/chicane layout. Source will be `clean trajectory`.
 - **Session data:** `circuit-de-barcelona` (multiple sessions exist)
-- **Current state:** Has a trajectory outline (`circuit-de-barcelona.json` sourced from "Median trajectory from 5 fastest laps") — needs upgrade to TUMFTM or confirmation of trajectory quality.
+- **Current state:** Has a trajectory outline (`circuit-de-barcelona.json` sourced from "Median trajectory from 5 fastest laps") — upgrade to a clean trajectory outline with consistent source labeling.
 - **Manifest entries:** `circuit-de-barcelona`, `barcelona-catalunya`, `catalunya`
 
 ### 05-monza
@@ -151,7 +150,7 @@ These tracks appear in LMU but have no session data yet. They'll get slices once
 
 ## Out of scope
 
-- **Barcelona layout mismatch resolution** — may need to find alternative TUMFTM-quality data for the MotoGP layout. For now, we attempt ICP and fall back to trajectory if visual QA fails.
+- **Barcelona layout mismatch** — TUMFTM `Catalunya.csv` is the wrong layout. If correct-layout TUMFTM-quality data is found in the future, Barcelona can be upgraded from trajectory to real outline.
 - **Width estimation for trajectory-only tracks** — no per-corner width heuristics; constant width is acceptable.
 - **OSM centerline extraction** — not used. Trajectory outlines from driving data are simpler and equally useful when TUMFTM is unavailable.
 - **bacinger/f1-circuits** — explicitly excluded. WGS84 lon/lat requires coordinate transform, and no width data means it's no better than a trajectory outline.
