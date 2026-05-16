@@ -143,9 +143,9 @@ export function renderWalkingSkeleton(canvas, lapA, lapB, options = {}) {
 
   if (!lapA || !lapA.x || !lapA.z || !lapB || !lapB.x || !lapB.z) return;
 
-  // Compute bounding boxes
-  const boundsA = computeTrackBounds(Array.from(lapA.x), Array.from(lapA.z));
-  const boundsB = computeTrackBounds(Array.from(lapB.x), Array.from(lapB.z));
+  // Compute bounding boxes — use autoZoomBounds when provided (F16)
+  const boundsA = options.autoZoomBounds || computeTrackBounds(Array.from(lapA.x), Array.from(lapA.z));
+  const boundsB = options.autoZoomBounds || computeTrackBounds(Array.from(lapB.x), Array.from(lapB.z));
 
   const padding = 15;
   const baseTransform = fitToView(boundsA, boundsB, rect.width, rect.height, padding);
