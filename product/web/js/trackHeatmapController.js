@@ -2,7 +2,7 @@ import { features, devFeatures } from './appState.js';
 import { computeTrackBounds } from './pipeline.js';
 import { createMapHover } from './mapHover.js';
 import { createMapInteraction, setBaseTransform } from './mapInteraction.js';
-import { renderWalkingSkeleton, initTrackHeatmapResize, fitToView, getLastTransform } from './trackHeatmapMap.js';
+import { renderWalkingSkeleton, initTrackHeatmapResize, fitToView, getLastTransform, computeSegmentBounds } from './trackHeatmapMap.js';
 
 
 export function createTrackHeatmapController(getMapState) {
@@ -92,6 +92,10 @@ export function createTrackHeatmapController(getMapState) {
       mapInteraction = createMapInteraction(canvas, () => render());
     }
 
+    if (features.mapAutoZoom && !mapInteraction) {
+      mapInteraction = createMapInteraction(canvas, () => render());
+    }
+
     if (features.mapHover && !mapHover) {
       mapHover = createMapHover(canvas, () => {
         const sessionColor = getCssColor('--session', '#4fc3f7');
@@ -119,6 +123,32 @@ export function createTrackHeatmapController(getMapState) {
       const rect = canvas.getBoundingClientRect();
       const tf = fitToView(boundsA, boundsB, rect.width, rect.height, 15);
       setBaseTransform(tf);
+    }
+
+    // F16: Auto-zoom to highlighted segment
+    if (features.mapAutoZoom && lapA && lapA.x) {
+      const { currentZoomRange } = getMapState();
+      const segBounds = computeSegmentBounds(lapA, currentZoomRange);
+      if (segBounds) {
+        // Add 10% padding on each axis
+        const dx = (segBounds.maxX - segBounds.minX) || 1;
+        const dz = (segBounds.maxZ - segBounds.minZ) || 1;
+        const padX = dx * 0.1;
+        const padZ = dz * 0.1;
+        const paddedBounds = {
+          minX: segBounds.minX - padX,
+          maxX: segBounds.maxX + padX,
+          minZ: segBounds.minZ - padZ,
+          maxZ: segBounds.maxZ + padZ,
+        };
+        const rect = canvas.getBoundingClientRect();
+        const tf = fitToView(paddedBounds, paddedBounds, rect.width, rect.height, 15);
+        setBaseTransform(tf);
+        if (mapInteraction) mapInteraction.setState({ scale: 1, tx: 0, ty: 0 });
+      } else {
+        // No segment bounds (full-track or null range) → reset to default view
+        if (mapInteraction) mapInteraction.setState({ scale: 1, tx: 0, ty: 0 });
+      }
     }
 
     if (!trackHeatmapObserver) {

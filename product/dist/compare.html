@@ -1835,6 +1835,39 @@ function applyUserTransform(base, userScale, userPanX, userPanY) {
     userPanY: ty
   };
 }
+function computeSegmentBounds(lapA, visibleRange) {
+  if (!visibleRange) return null;
+  if (!lapA || !lapA.x || !lapA.z) return null;
+  const n = lapA.x.length;
+  if (n === 0) return null;
+  let { start, end } = visibleRange;
+  if (start > end) {
+    const tmp = start;
+    start = end;
+    end = tmp;
+  }
+  const firstDist = lapA.x[0];
+  const lastDist = lapA.x[n - 1];
+  if (start <= firstDist && end >= lastDist) return null;
+  let minX = Infinity, maxX = -Infinity, minZ = Infinity, maxZ = -Infinity;
+  let found = false;
+  for (let i = 0; i < n; i++) {
+    const s = lapA.x[i];
+    if (s >= start && s <= end) {
+      const x = lapA.x[i];
+      const z = lapA.z[i];
+      if (isFinite(x) && isFinite(z)) {
+        if (x < minX) minX = x;
+        if (x > maxX) maxX = x;
+        if (z < minZ) minZ = z;
+        if (z > maxZ) maxZ = z;
+        found = true;
+      }
+    }
+  }
+  if (!found) return null;
+  return { minX, maxX, minZ, maxZ };
+}
 function renderWalkingSkeleton(canvas, lapA, lapB, options = {}) {
   const { showHeatmapSingleLap = false, showSAlignmentDebug = false, showDualRibbon = false, showLegend = false, ribbonWidthPx = 8, ribbonGapPx = 2, userScale = 1, userPanX = 0, userPanY = 0, showStaticOutline = false, trackName = null } = options;
   const ctx = canvas.getContext("2d");
@@ -2299,6 +2332,9 @@ function createTrackHeatmapController(getMapState2) {
       }
       mapInteraction = createMapInteraction(canvas, () => render());
     }
+    if (features.mapAutoZoom && !mapInteraction) {
+      mapInteraction = createMapInteraction(canvas, () => render());
+    }
     if (features.mapHover && !mapHover) {
       mapHover = createMapHover(canvas, () => {
         const sessionColor2 = getCssColor("--session", "#4fc3f7");
@@ -2322,6 +2358,28 @@ function createTrackHeatmapController(getMapState2) {
       const rect = canvas.getBoundingClientRect();
       const tf = fitToView(boundsA, boundsB, rect.width, rect.height, 15);
       setBaseTransform(tf);
+    }
+    if (features.mapAutoZoom && lapA && lapA.x) {
+      const { currentZoomRange: currentZoomRange2 } = getMapState2();
+      const segBounds = computeSegmentBounds(lapA, currentZoomRange2);
+      if (segBounds) {
+        const dx = segBounds.maxX - segBounds.minX || 1;
+        const dz = segBounds.maxZ - segBounds.minZ || 1;
+        const padX = dx * 0.1;
+        const padZ = dz * 0.1;
+        const paddedBounds = {
+          minX: segBounds.minX - padX,
+          maxX: segBounds.maxX + padX,
+          minZ: segBounds.minZ - padZ,
+          maxZ: segBounds.maxZ + padZ
+        };
+        const rect = canvas.getBoundingClientRect();
+        const tf = fitToView(paddedBounds, paddedBounds, rect.width, rect.height, 15);
+        setBaseTransform(tf);
+        if (mapInteraction) mapInteraction.setState({ scale: 1, tx: 0, ty: 0 });
+      } else {
+        if (mapInteraction) mapInteraction.setState({ scale: 1, tx: 0, ty: 0 });
+      }
     }
     if (!trackHeatmapObserver) {
       trackHeatmapObserver = initTrackHeatmapResize(canvas, () => {
