@@ -21,9 +21,9 @@ When `mapZoomPan` is enabled, double-clicking the map resets zoom (returns to fu
 **Root cause**: Auto-zoom is a render-level bounds change, not `mapInteraction` scale. Double-click reset correctly set the user transform to `{scale:1,tx:0,ty:0}`, but the next render still passed `autoZoomBounds`, so the canvas continued fitting only the selected segment at apparent `1x`.
 **Fix**: `createMapInteraction` now accepts an `onReset` callback. The controller handles map double-click as an Escape-equivalent reset: it clears the chart selection to full-track, persists the reset zoom range, and re-renders the charts and map. This preserves the existing double-click semantic while preventing auto-zoom from immediately reapplying the selected-segment bounds.
 
-## Bug 6: Map moves when enabling mapAutoZoom with nothing selected (OPEN, regression)
-When the user toggles `mapAutoZoom` on (with no chart range selected), the map should NOT move. Currently it does — likely because toggling the flag triggers a re-render, and the re-render path applies some transform change even when `computeSegmentBounds` returns null.
-**Investigate**: Check if `setBaseTransform` or `setState` is being called when `autoZooming` is false. Also check if the rendering guard or `mapInteraction` creation is causing a visual shift.
+## Bug 6: Map moves when enabling mapAutoZoom with nothing selected (OBSOLETE — NON-REPRO)
+When the user toggles `mapAutoZoom` on (with no chart range selected), the map should NOT move. This was previously suspected as a regression, but is no longer reproducible. Current acceptance coverage includes SC4 in `dev/scripts/test_f16_auto_zoom_acceptance.js`, which verifies enabling `mapAutoZoom` with a full-track range does not move the map.
+**Resolution**: Marked obsolete/non-repro. No code change required.
 
 ## Bug 7: Inconsistent zoom target calculation (OPEN)
 When selecting different portions of the telemetry charts, the auto-zoom target appears random — as if a different portion of the track is shown each time, even for the same selection.
