@@ -2147,7 +2147,7 @@ var baseTransformRef = { offsetX: 0, offsetY: 0 };
 function setBaseTransform(transform) {
   baseTransformRef = transform || { offsetX: 0, offsetY: 0 };
 }
-function createMapInteraction(canvas, onChange) {
+function createMapInteraction(canvas, onChange, { onReset } = {}) {
   const state2 = { scale: 1, tx: 0, ty: 0 };
   let dragging = false;
   let dragStartX = 0;
@@ -2204,6 +2204,7 @@ function createMapInteraction(canvas, onChange) {
     state2.tx = 0;
     state2.ty = 0;
     updateZoomIndicator(canvas, state2.scale);
+    if (onReset) onReset();
     trigger();
   }
   function onTestEvent(e) {
@@ -2253,6 +2254,7 @@ function createTrackHeatmapController(getMapState2) {
   let mapHover = null;
   let rendering = false;
   let prevAutoZoomRange = null;
+  let suppressedAutoZoomRange = null;
   function getCssColor(name, fallback) {
     return getComputedStyle(document.documentElement).getPropertyValue(name).trim() || fallback;
   }
@@ -2339,7 +2341,12 @@ function createTrackHeatmapController(getMapState2) {
         const panel = document.getElementById("circuit-map-panel");
         if (panel) panel.appendChild(indicator);
       }
-      mapInteraction = createMapInteraction(canvas, () => render());
+      mapInteraction = createMapInteraction(canvas, () => render(), {
+        onReset: () => {
+          const { currentZoomRange: currentZoomRange3 } = getMapState2();
+          suppressedAutoZoomRange = currentZoomRange3 ? `${currentZoomRange3.start}:${currentZoomRange3.end}` : null;
+        }
+      });
     }
     if (features.mapHover && !mapHover) {
       mapHover = createMapHover(canvas, () => {
@@ -2361,10 +2368,14 @@ function createTrackHeatmapController(getMapState2) {
     const { currentZoomRange: currentZoomRange2 } = getMapState2();
     const rangeKey = currentZoomRange2 ? `${currentZoomRange2.start}:${currentZoomRange2.end}` : null;
     const rangeChanged = rangeKey !== prevAutoZoomRange;
+    if (rangeChanged && suppressedAutoZoomRange !== rangeKey) {
+      suppressedAutoZoomRange = null;
+    }
     const wasAutoZoomed = prevAutoZoomRange !== null;
     const isNowFullTrack = rangeKey === null || rangeKey === "0:4650";
     const deactivating = wasAutoZoomed && !autoZooming;
-    if (features.mapAutoZoom && lapA && lapA.x) {
+    const autoZoomSuppressed = suppressedAutoZoomRange === rangeKey;
+    if (features.mapAutoZoom && lapA && lapA.x && !autoZoomSuppressed) {
       const segBounds = computeSegmentBounds(lapA, currentZoomRange2);
       if (segBounds) {
         autoZooming = true;

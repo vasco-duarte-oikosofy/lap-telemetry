@@ -11,6 +11,7 @@ export function createTrackHeatmapController(getMapState) {
   let mapHover = null;
   let rendering = false;
   let prevAutoZoomRange = null; // track previous range to detect changes
+  let suppressedAutoZoomRange = null; // user double-click reset suppresses auto-zoom for this range
 
   function getCssColor(name, fallback) {
     return getComputedStyle(document.documentElement).getPropertyValue(name).trim() || fallback;
@@ -102,7 +103,14 @@ export function createTrackHeatmapController(getMapState) {
         const panel = document.getElementById('circuit-map-panel');
         if (panel) panel.appendChild(indicator);
       }
-      mapInteraction = createMapInteraction(canvas, () => render());
+      mapInteraction = createMapInteraction(canvas, () => render(), {
+        onReset: () => {
+          const { currentZoomRange } = getMapState();
+          suppressedAutoZoomRange = currentZoomRange
+            ? `${currentZoomRange.start}:${currentZoomRange.end}`
+            : null;
+        },
+      });
     }
 
     if (features.mapHover && !mapHover) {
@@ -137,11 +145,15 @@ export function createTrackHeatmapController(getMapState) {
     const { currentZoomRange } = getMapState();
     const rangeKey = currentZoomRange ? `${currentZoomRange.start}:${currentZoomRange.end}` : null;
     const rangeChanged = rangeKey !== prevAutoZoomRange;
+    if (rangeChanged && suppressedAutoZoomRange !== rangeKey) {
+      suppressedAutoZoomRange = null;
+    }
     // Detect transition from auto-zoomed to full-track (user cleared selection)
     const wasAutoZoomed = prevAutoZoomRange !== null;
     const isNowFullTrack = rangeKey === null || rangeKey === '0:4650'; // approximate
     const deactivating = wasAutoZoomed && !autoZooming; // set below after compute
-    if (features.mapAutoZoom && lapA && lapA.x) {
+    const autoZoomSuppressed = suppressedAutoZoomRange === rangeKey;
+    if (features.mapAutoZoom && lapA && lapA.x && !autoZoomSuppressed) {
       const segBounds = computeSegmentBounds(lapA, currentZoomRange);
       if (segBounds) {
         autoZooming = true;

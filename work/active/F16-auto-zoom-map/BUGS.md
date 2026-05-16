@@ -16,9 +16,10 @@
 Same root cause as Bug 3 — unconditional `setState({1,0,0})` on every render overrode user zoom.
 **Fix**: Only reset user transform when actively auto-zooming a segment.
 
-## Bug 5: Double-click reset broken when mapAutoZoom is on (OPEN)
-When `mapZoomPan` is enabled, double-clicking the map resets zoom (returns to full-track). When `mapAutoZoom` is also enabled, double-click no longer resets. The new feature interferes with existing behaviour. This is an anti-pattern — new features must not break existing ones.
-**Probable cause**: The auto-zoom logic sets `setBaseTransform(segmentTf)` on every render, and `setState({1,0,0})` when auto-zooming. Double-click resets the user transform to `{scale:1,tx:0,ty:0}`, but the base transform remains the segment-view transform, so the map stays zoomed into the segment. The auto-zoom code then re-applies the segment transform on the next render cycle, undoing the reset.
+## Bug 5: Double-click reset broken when mapAutoZoom is on (FIXED)
+When `mapZoomPan` is enabled, double-clicking the map resets zoom (returns to full-track). When `mapAutoZoom` is also enabled, double-click no longer resets. The new feature interfered with existing behaviour. This is an anti-pattern — new features must not break existing ones.
+**Root cause**: Auto-zoom is a render-level bounds change, not `mapInteraction` scale. Double-click reset correctly set the user transform to `{scale:1,tx:0,ty:0}`, but the next render still passed `autoZoomBounds`, so the canvas continued fitting only the selected segment at apparent `1x`.
+**Fix**: `createMapInteraction` now accepts an `onReset` callback. The controller suppresses auto-zoom for the current chart range when the user double-clicks, passes `autoZoomBounds: null`, and uses full-track bounds until the chart range changes. The chart zoom range remains selected.
 
 ## Bug 6: Map moves when enabling mapAutoZoom with nothing selected (OPEN, regression)
 When the user toggles `mapAutoZoom` on (with no chart range selected), the map should NOT move. Currently it does — likely because toggling the flag triggers a re-render, and the re-render path applies some transform change even when `computeSegmentBounds` returns null.

@@ -16,7 +16,7 @@ export function getBaseTransform() {
   return baseTransformRef;
 }
 
-export function createMapInteraction(canvas, onChange) {
+export function createMapInteraction(canvas, onChange, { onReset } = {}) {
   const state = { scale: 1, tx: 0, ty: 0 };
   let dragging = false;
   let dragStartX = 0;
@@ -80,6 +80,7 @@ export function createMapInteraction(canvas, onChange) {
     state.tx = 0;
     state.ty = 0;
     updateZoomIndicator(canvas, state.scale);
+    if (onReset) onReset();
     trigger();
   }
 
