@@ -30,28 +30,23 @@ Different drivers take different racing lines through corners (early apex vs lat
 python3 scripts/average_trajectory_outline.py data/track-outlines/circuit-de-barcelona.json
 ```
 
-### Regenerate the ES module
+### Register Outline (Single Command)
 
 ```bash
-node scripts/generate_outline_module.js data/track-outlines/circuit-de-barcelona.json
+python3 scripts/register_outline.py data/track-outlines/bahrain_outline.json
 ```
 
-### Register in Manifest (Required for compare.html)
+This command:
+1. Validates the outline JSON structure
+2. Generates the ES module (`web/js/static<Track>OutlineData.js`)
+3. Creates a backup of the manifest (`web/js/trackOutlineManifest_backup.js`)
+4. Adds import statement to `web/js/trackOutlineManifest.js`
+5. Registers all track name variants in the OUTLINES map
+6. Rebuilds `dist/compare.html`
 
-**Important:** The outline won't show in `dist/compare.html` until you register it:
+**Result:** Outline is immediately visible in compare.html — no manual steps needed.
 
-```javascript
-// web/js/trackOutlineManifest.js
-import { BAHRAIN_OUTLINE_STATIC_OUTLINE } from './staticBahrain_outlineOutlineData.js';
-
-const OUTLINES = new Map([
-  // ... existing tracks
-  ['bahrain-international-circuit', BAHRAIN_OUTLINE_STATIC_OUTLINE],
-  ['bahrain', BAHRAIN_OUTLINE_STATIC_OUTLINE],
-]);
-```
-
-The comparison viewer looks up outlines by track name slug. If your track isn't in the `OUTLINES` map, it won't display.
+The script is **idempotent**: running it twice makes no changes on the second run.
 
 ### Verify
 
@@ -294,15 +289,8 @@ python3 scripts/average_trajectory_outline.py data/track-outlines/spa-francorcha
     sessions/session_20260510T173248Z_circuit-de-spa-francorchamps_lmu.parquet \
     sessions/session_20260511T183100Z_circuit-de-spa-francorchamps_lmu.parquet
 
-# 3. Generate ES module
-node scripts/generate_outline_module.js data/track-outlines/spa-francorchamps.json
-
-# 4. Update manifest
-# Edit web/js/trackOutlineManifest.js to import the new module
-
-# 5. Test
-bash scripts/test-summary.sh
-npm run build
+# 3. Register outline (generates ES module + updates manifest + rebuilds)
+python3 scripts/register_outline.py data/track-outlines/spa-francorchamps.json
 ```
 
 ---
@@ -419,7 +407,7 @@ If the outline needs adjustment:
 2. Click **"Export aligned outline JSON"**
 3. Save the exported JSON
 4. Replace your outline file with the exported version
-5. Regenerate ES module: `node scripts/generate_outline_module.js <outline.json>`
+5. Register outline: `python3 scripts/register_outline.py <outline.json>` (also regenerates ES module)
 
 ### Expected Result
 
@@ -448,27 +436,15 @@ The outline's `track_name_mapping` must match the session's track name:
 }
 ```
 
-### 2. Add to Manifest
-
-The outline must be registered in `web/js/trackOutlineManifest.js`:
-
-```javascript
-import { BAHRAIN_OUTLINE_STATIC_OUTLINE } from './staticBahrain_outlineOutlineData.js';
-
-const OUTLINES = new Map([
-  // ... existing tracks
-  ['bahrain-international-circuit', BAHRAIN_OUTLINE_STATIC_OUTLINE],
-]);
-```
-
-### 3. Regenerate Bundle
+### 2. Register Outline
 
 ```bash
-node scripts/generate_outline_module.js data/track-outlines/bahrain_outline.json
-npm run build
+python3 scripts/register_outline.py data/track-outlines/bahrain_outline.json
 ```
 
-### 4. Verify in Browser Console
+This generates the ES module, registers the outline in the manifest, and rebuilds `dist/compare.html`.
+
+### 3. Verify in Browser Console
 
 Open `dist/compare.html` and check console for:
 - `Loaded outline for track: Bahrain International Circuit` (success)
