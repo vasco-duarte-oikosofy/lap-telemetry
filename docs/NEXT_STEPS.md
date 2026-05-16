@@ -166,21 +166,6 @@ Add regression test confirming channel colour/dash for Speed, Throttle, Brake, S
 
 ---
 
-### O3. First-compare UI freeze (~100-300 ms)
-
-**Symptom.** After loading a parquet, the first time both lap pickers are populated and `renderAll` fires, the page is unresponsive for ~100 ms on fast hardware and ~200-300 ms on slower machines.
-
-**Cause.** Profiled on a ~25k row session: `renderAll` does ~31 ms of resampling (16 channels × 2 traces) and ~70 ms of SVG string-building + `innerHTML` parse + paint, all in one synchronous JS block.
-
-**Remediations (if it becomes a friction point):**
-1. **Cache resampled bins** per `(storeKey, segIdx, col)` so repeat picks are instant (~50 lines)
-2. **Async pre-resample** after file load with "warming..." badge, chunked with `await yield()` (~80 lines)
-3. **Yield between panels** inside `renderAll` so panels appear progressively (~20 lines)
-
-**Priority:** Low - workflow completes, freeze is short. Revisit if users report it as blocking.
-
----
-
 ## Future Features - Not Yet Scheduled
 
 ### F12. Persistent lap selection
@@ -246,12 +231,11 @@ Add regression test confirming channel colour/dash for Speed, Throttle, Brake, S
 
 ---
 
-### F17. Parallel test runner with concise agent summary — 🟢 IN PROGRESS
+### F17. Parallel test runner with concise agent summary ✅
 
 **Spec:** [`docs/specs/parallel-test-runner.md`](specs/parallel-test-runner.md)
 **Work:** `work/active/parallel-test-runner/`
-**Status:** Feature spec written; implementation under way across 6 slices (01–06).
-**Achieved so far:** Full-suite wall-time reduced from ~42 s to ~6.5 s.
+**Status:** Complete. Full-suite wall-time reduced from ~42 s to ~6.5 s. Runner has dual-pool concurrency, zero-assertion detection, failure reason output, and protocol enforcement meta-tests.
 
 ---
 
@@ -295,12 +279,11 @@ Playwright test guidelines. Read that file before writing or fixing any test.
 **Refactoring current.** `main.js` is 389 lines and every `web/js` module is under the 437-line ceiling; full test/build passed during `refactor-main-js`.
 
 **Next priorities:**
-1. **F17** — Parallel test runner with concise agent summary **(in progress)**
-2. **U3** - Fix Throttle/Brake panel colours (visual regression)
-3. **U5** - Audit all panels for consistent colour/line-style
-4. **U4** - Colour tooltip speed values by lap identity
-5. **U2** - Enlarge circuit map for overlay readability
-6. **F16** - Auto-zoom map canvas to selected track segment
+1. **U3** - Fix Throttle/Brake panel colours (visual regression)
+2. **U5** - Audit all panels for consistent colour/line-style
+3. **U4** - Colour tooltip speed values by lap identity
+4. **U2** - Enlarge circuit map for overlay readability
+5. **F16** - Auto-zoom map canvas to selected track segment
 
 **Optional further refactoring:**
 - Extract debug hooks to `debug.js` if test-only globals need stronger isolation.
