@@ -3,8 +3,9 @@
 // @parallel true
 
 /**
- * Parallel test runner — runs @parallel true tests concurrently, @parallel false
- * tests sequentially after.  Output matches the old bash runner's contract.
+ * Parallel test runner — dual-pool: Node tests (unlimited) + Playwright tests
+ * (bounded concurrency). @parallel false tests run sequentially after.
+ * Output matches the old bash runner's contract.
  *
  * Usage:
  *   node dev/scripts/run-tests-parallel.js                # full suite
@@ -19,7 +20,8 @@ const path = require('path');
 
 const PASS_RE = /\[PASS\]|^\s+PASS /m;
 const FAIL_RE = /\[FAIL\]|^\s+FAIL |^Error:|^AssertionError/m;
-const DEFAULT_CONCURRENCY = Math.min(cpus().length - 2, 6);
+const DEFAULT_PW_CONCURRENCY = Math.min(cpus().length - 2, 8);
+const PW_RE = /require\s*\(\s*['"](@?playwright|chromium)/;
 const ROOT = path.resolve(__dirname, '..', '..');
 
 // ── Discovery ─────────────────────────────────────────────────────────────────
@@ -29,6 +31,11 @@ function getParallelMode(filePath) {
     const m = fs.readFileSync(filePath, 'utf8').match(/^\/\/ @parallel (true|false)\s*$/m);
     return m ? m[1] === 'true' : false;
   } catch { return false; }
+}
+
+function isPlaywright(filePath) {
+  try { return PW_RE.test(fs.readFileSync(filePath, 'utf8')); }
+  catch { return false; }
 }
 
 function getTestScripts() {
@@ -133,22 +140,30 @@ async function runSingleTest(target) {
 
 async function main() {
   const args = process.argv.slice(2);
-  let concurrency = DEFAULT_CONCURRENCY;
+  let concurrency = DEFAULT_PW_CONCURRENCY;
   const ci = args.indexOf('--concurrency');
   if (ci !== -1) { concurrency = parseInt(args[ci + 1], 10); args.splice(ci, 2); }
 
   if (args.length > 0) { process.exit(await runSingleTest(args[0])); }
 
   const scripts = getTestScripts();
-  const parallel = [], serial = [];
-  for (const s of scripts) (getParallelMode(path.resolve(ROOT, s)) ? parallel : serial).push(s);
+  const nodePool = [], pwPool = [], serial = [];
+  for (const s of scripts) {
+    const abs = path.resolve(ROOT, s);
+    if (!getParallelMode(abs)) { serial.push(s); }
+    else if (isPlaywright(abs)) { pwPool.push(s); }
+    else { nodePool.push(s); }
+  }
 
   const start = Date.now();
-  const pResults = parallel.length ? await runConcurrently(parallel, concurrency) : [];
+  const [nResults, pResults] = await Promise.all([
+    nodePool.length ? runConcurrently(nodePool, nodePool.length) : Promise.resolve([]),
+    pwPool.length ? runConcurrently(pwPool, concurrency) : Promise.resolve([]),
+  ]);
   const sResults = serial.length ? await runSequentially(serial) : [];
   const elapsed = ((Date.now() - start) / 1000).toFixed(1);
 
-  process.exit(printSummary([...pResults, ...sResults], elapsed));
+  process.exit(printSummary([...nResults, ...pResults, ...sResults], elapsed));
 }
 
 main().catch(err => { console.error('Runner error:', err); process.exit(1); });

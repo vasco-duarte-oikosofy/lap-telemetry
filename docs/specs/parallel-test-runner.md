@@ -35,15 +35,16 @@ current tests are safe to run in parallel with bounded concurrency.
 ## Expected benefit
 
 | Metric                        | Before | After (target) | After (achieved) |
-|-------------------------------|-------:|:---------------|:----------------- |
-| Full-suite wall-time          | ~42 s  | < 10 s         | ~7 s             |
+|-------------------------------|-------:|:---------------|:------------------|
+| Full-suite wall-time          | ~42 s  | < 10 s         | ~6.5 s           |
 | Output contract               | same   | unchanged      | unchanged        |
 | Single-test rerun             | works  | unchanged      | unchanged        |
 | New-test opt-in               | none   | `// @parallel true` comment | `// @parallel true` comment |
 
-With 14 cores available and a concurrency limit of 6 Playwright processes, 18
-Playwright tests complete in 3 batches × ~2.5 s ≈ 7.5 s. The 18 Node tests
-finish in under 1 s. Total ≈ 8 s.
+The < 10 s target is achieved by combining dual-pool concurrency (Node tests
+unlimited, Playwright tests bounded) with Python fixture batching (slice 04).
+The theoretical floor without Python optimisation is ~14 s, limited by
+4 Python-invoking Node tests (2.6–7.6 s each) that spawn `python3` subprocesses.
 
 ## Requirements
 
@@ -72,7 +73,10 @@ finish in under 1 s. Total ≈ 8 s.
    format and exit-code behaviour using tiny fixture scripts.
 
 8. **Concurrency configurable.** A `--concurrency` flag (default:
-   `min(os.cpus().length - 2, 6)`) allows tuning without editing code.
+   `min(os.cpus().length - 2, 8)`) sets the maximum number of Playwright
+tests running simultaneously. Node tests run with unlimited concurrency.
+The dual-pool design runs both groups via `Promise.all`, overlapping
+Node test work with Playwright test work.
 
 9. **Protocol enforcement.** Every test script in the suite must emit
    `[PASS]`/`[FAIL]` lines that the runner can count. A meta-test
