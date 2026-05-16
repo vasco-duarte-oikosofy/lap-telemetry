@@ -64,6 +64,5 @@ lap-telemetry record
 
 ## Submodules
 
-`pyRfactor2SharedMemory` and `pyLMUSharedMemory` are vendored as git submodules
-in the repo root. They are added to `sys.path` automatically by `connect.py` — no
-separate `pip install` step is needed for them.
+`vendor/pyRfactor2SharedMemory` and `vendor/pyLMUSharedMemory` are vendored as git submodules.
+They are added to `sys.path` automatically by `connect.py` — no separate `pip install` step is needed for them.

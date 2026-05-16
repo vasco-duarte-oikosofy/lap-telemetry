@@ -24,4 +24,4 @@ lap-telemetry = "lap_telemetry.cli:main"
 [tool.setuptools.packages.find]
 where = ["product/python"]
 include = ["lap_telemetry*"]
-exclude = ["pyRfactor2SharedMemory*", "pyLMUSharedMemory*", "tests*"]
+exclude = ["vendor*", "pyRfactor2SharedMemory*", "pyLMUSharedMemory*", "tests*"]

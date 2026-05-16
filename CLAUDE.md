@@ -83,7 +83,7 @@ warning badge fires for those.
   common `Frame` dataclass and `probe_and_connect()` function
 - Writer: `lap_telemetry/recorder/writer.py` — `SessionWriter` owns buffering,
   shard files, finalisation, and sidecar; module-level `PARQUET_SCHEMA` constant
-- Submodules `pyRfactor2SharedMemory` and `pyLMUSharedMemory` are injected into
+- Submodules `vendor/pyRfactor2SharedMemory` and `vendor/pyLMUSharedMemory` are injected into
   `sys.path` by `connect.py`; do not add them as pip dependencies
 - Copy-mode mmap (`create(0)`) is required when writing rows — direct mode can tear
 - App: `web/compare.html` is the only browser file; open via `file://` or any static server.

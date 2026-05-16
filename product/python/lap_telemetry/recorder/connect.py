@@ -19,9 +19,9 @@ from typing import Optional
 
 # Make the vendored submodules importable when running from a source checkout
 # without a pip install.
-_REPO_ROOT = Path(__file__).resolve().parents[2]
-if str(_REPO_ROOT) not in sys.path:
-    sys.path.insert(0, str(_REPO_ROOT))
+_VENDOR_DIR = Path(__file__).resolve().parents[4] / "vendor"
+if str(_VENDOR_DIR) not in sys.path:
+    sys.path.insert(0, str(_VENDOR_DIR))
 
 
 SimName = str  # "lmu" | "rf2"

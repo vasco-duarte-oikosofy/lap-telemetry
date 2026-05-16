@@ -1,8 +1,13 @@
 # vendor/
 
-Third-party and externally sourced code will live here.
+Third-party and externally sourced code lives here.
 
 Use this folder for code whose primary ownership is outside this repository, including Git submodules and vendored dependencies.
+
+## Current contents
+
+- `vendor/pyLMUSharedMemory/` — TinyPedal fork of the LMU shared-memory Python bindings, tracked as a Git submodule.
+- `vendor/pyRfactor2SharedMemory/` — TinyPedal fork of the rFactor 2 shared-memory Python bindings, tracked as a Git submodule.
 
 ## Belongs here
 
@@ -16,4 +21,4 @@ Use this folder for code whose primary ownership is outside this repository, inc
 - Development-only scripts.
 - Mission plans or temporary artifacts.
 
-No vendor files are moved into this folder in the current slice.
+Update these dependencies through normal Git submodule commands from the repository root, for example `git submodule update --init --recursive`.

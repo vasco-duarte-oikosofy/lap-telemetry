@@ -36,7 +36,7 @@ A telemetry recorder + lap-comparison tool for rFactor 2 and Le Mans Ultimate. R
 
 ## 3. Constraints from the data source
 
-Pulled from the `pyRfactor2SharedMemory` and `pyLMUSharedMemory` modules that TinyPedal vendors as submodules:
+Pulled from the `vendor/pyRfactor2SharedMemory` and `vendor/pyLMUSharedMemory` modules that TinyPedal vendors as submodules:
 
 - Shared memory updates run roughly at the sim's physics tick (~90–100 Hz for rF2/LMU). We poll on a fixed interval.
 - A `paused` flag in scoring info goes high when the game freezes (menu, pause). We must not record paused frames — or we'll get long flat segments that pollute lap detection.
@@ -58,7 +58,7 @@ Two processes, one shared file format:
    └───────────────────────────┘         └───────────────────────────┘
 ```
 
-Both are plain Python packages in this repo. The recorder depends on `pyRfactor2SharedMemory` and `pyLMUSharedMemory` (vendored as git submodules from the TinyPedal forks — same upstreams TinyPedal uses, so we get the same parity). The analyzer depends only on the file format.
+Both are plain Python packages in this repo. The recorder depends on `vendor/pyRfactor2SharedMemory` and `vendor/pyLMUSharedMemory` (vendored as git submodules from the TinyPedal forks — same upstreams TinyPedal uses, so we get the same parity). The analyzer depends only on the file format.
 
 ### 4.1 Recorder
 
@@ -319,7 +319,7 @@ render so first paint is correct.
 
 **What.** New nullable `abs_active` / `tc_active` boolean columns capture
 LMU's `mABSActive` / `mTCActive` per-vehicle telemetry flags
-(`pyLMUSharedMemory/lmu_data.py:159-160`). rF2 has no equivalent — both
+(`vendor/pyLMUSharedMemory/lmu_data.py:159-160`). rF2 has no equivalent — both
 columns are written as `None`. The app renders a 4 px coloured bar at
 the bottom of the brake panel (red `var(--brake)`) for ABS-active runs
 and the throttle panel (green `var(--throttle)`) for TC-active runs.

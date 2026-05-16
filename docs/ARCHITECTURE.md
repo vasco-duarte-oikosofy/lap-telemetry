@@ -179,7 +179,7 @@ The sidecar is written at session start and refreshed on every shard flush so a 
 npm run build
 ```
 
-Creates `dist/compare.html` — a standalone single file that inlines CSS and bundles JS dependencies via esbuild. Works via `file://` with no server.
+Creates `product/dist/compare.html` — a standalone single file that inlines CSS and bundles JS dependencies via esbuild. Works via `file://` with no server.
 
 ---
 
@@ -214,8 +214,8 @@ Creates `dist/compare.html` — a standalone single file that inlines CSS and bu
 
 | Submodule | Origin | Purpose |
 |-----------|--------|---------|
-| `pyLMUSharedMemory/` | TinyPedal fork | LMU shared-memory structs + mmap |
-| `pyRfactor2SharedMemory/` | TinyPedal fork | rF2 shared-memory structs + mmap |
+| `vendor/pyLMUSharedMemory/` | TinyPedal fork | LMU shared-memory structs + mmap |
+| `vendor/pyRfactor2SharedMemory/` | TinyPedal fork | rF2 shared-memory structs + mmap |
 
 Both are the **same upstreams** TinyPedal uses, ensuring parity. We do not modify them; we only import their public API in `connect.py`.
 

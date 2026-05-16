@@ -1,6 +1,6 @@
 [submodule "pyRfactor2SharedMemory"]
-	path = pyRfactor2SharedMemory
+	path = vendor/pyRfactor2SharedMemory
 	url = https://github.com/TinyPedal/pyRfactor2SharedMemory.git
 [submodule "pyLMUSharedMemory"]
-	path = pyLMUSharedMemory
+	path = vendor/pyLMUSharedMemory
 	url = https://github.com/TinyPedal/pyLMUSharedMemory.git

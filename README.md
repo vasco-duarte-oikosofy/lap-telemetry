@@ -31,7 +31,7 @@ python -m venv .venv
 pip install -e .
 ```
 
-`pyRfactor2SharedMemory` and `pyLMUSharedMemory` come in as git submodules — they're injected into `sys.path` at runtime, no separate install.
+`vendor/pyRfactor2SharedMemory` and `vendor/pyLMUSharedMemory` come in as git submodules — they're injected into `sys.path` at runtime, no separate install.
 
 If you forgot `--recurse-submodules`:
 
@@ -96,8 +96,9 @@ product/
 dev/
   scripts/             # test/build/data-prep implementation scripts
   sessions/            # tracked development session data
-pyRfactor2SharedMemory/  # submodule
-pyLMUSharedMemory/       # submodule
+vendor/
+  pyRfactor2SharedMemory/  # submodule
+  pyLMUSharedMemory/       # submodule
 ```
 
 ## File format

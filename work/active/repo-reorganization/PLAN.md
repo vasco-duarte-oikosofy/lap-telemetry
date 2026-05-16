@@ -10,4 +10,4 @@ Spec: [`docs/specs/repo-reorganization.md`](../../../docs/specs/repo-reorganizat
 | `04-development-area` | ✅ Complete | Move development-only tooling and tracked development inputs, including `sessions/`, under `dev/` and update references. |
 | `05-product-subtree` | ✅ Complete | Move production/final code into `product/` and update build/runtime paths so the subtree is extractable. |
 | `06-docs-and-work-archive` | ✅ Complete | Move stable docs into `docs/` and historical root planning files into `work/archived-plans/`. |
-| `07-vendor-boundary` | Planned | Clarify third-party/submodule ownership under `vendor/` and update submodule/docs references. |
+| `07-vendor-boundary` | ✅ Complete | Clarify third-party/submodule ownership under `vendor/` and update submodule/docs references. |

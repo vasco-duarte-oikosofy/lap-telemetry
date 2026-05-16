@@ -23,9 +23,13 @@ function runPythonRecorderCheck() {
   const code = `
 import json, math, sys, tempfile
 from pathlib import Path
-sys.path.insert(0, r'''${ROOT}''')
+sys.path.insert(0, r'''${path.join(ROOT, 'product', 'python')}''')
 from lap_telemetry.recorder.writer import SessionWriter, _SCHEMA
 from lap_telemetry.recorder.connect import Frame
+from pyLMUSharedMemory import lmu_data
+from pyRfactor2SharedMemory import rF2data
+assert hasattr(lmu_data, 'LMUTelemetryData'), 'LMU shared-memory structs importable'
+assert hasattr(rF2data, 'rF2Telemetry'), 'rF2 shared-memory structs importable'
 
 expected = [
     'raw_lap_distance_m', 'path_lateral_m', 'track_edge_m',
