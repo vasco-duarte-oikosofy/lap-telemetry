@@ -74,6 +74,7 @@ export const features = {
   mapLegend: false,              // Phase 03 - lap legend and identification
   mapHover: false,                // Phase 04 - hover crosshair and per-lap readout
   mapLinkedHighlight: false,       // Phase 05a - linked highlight band from trace charts
+  mapAutoZoom: false,             // F16 - auto-zoom map to highlighted segment
   apexAnnotations: false,          // Track outline Phase 03 - apex annotation loading
   apexMetrics: false,              // Track outline Phase 04 - in-memory apex metrics
   apexMetricsUi: false,            // Track outline Phase 05 - text-only apex metrics UI
