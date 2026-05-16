@@ -13,7 +13,7 @@
 | Slice | Status | Vertical outcome |
 |---|---|---|
 | `01-annotate-tests` | ✅ Complete | Every test script has a `// @parallel` header; sequential suite still passes |
-| `02-parallel-runner-node` | 🔲 Not started | Runner executes Node-only tests in parallel; output contract matches current; single-test rerun still works |
+| `02-parallel-runner-node` | ✅ Complete | Runner executes all @parallel true tests concurrently; output contract matches; single-test rerun works; 3 silently-broken tests fixed |
 | `03-parallel-runner-playwright` | 🔲 Not started | Runner executes Playwright tests in parallel with bounded concurrency; full suite < 10 s on dev machine |
 | `04-runner-self-test` | 🔲 Not started | Self-test verifies runner output format and exit-code behaviour with tiny fixture scripts |
 
