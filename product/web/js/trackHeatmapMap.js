@@ -79,6 +79,49 @@ export function applyUserTransform(base, userScale, userPanX, userPanY) {
 }
 
 
+// ── computeSegmentBounds ──────────────────────────────────────────────────────
+// F16: Returns the axis-aligned bounding box of track coordinates within the
+// visible distance range. Returns null for null/undefined/full-track ranges,
+// meaning "no auto-zoom needed — show the full track".
+
+export function computeSegmentBounds(lapA, visibleRange) {
+  if (!visibleRange) return null;
+  if (!lapA || !lapA.x || !lapA.z) return null;
+
+  const n = lapA.x.length;
+  if (n === 0) return null;
+
+  // Handle inverted ranges (start > end) by normalizing
+  let { start, end } = visibleRange;
+  if (start > end) { const tmp = start; start = end; end = tmp; }
+
+  // Full-track range: start at or before first point, end at or after last
+  const firstDist = lapA.x[0];
+  const lastDist = lapA.x[n - 1];
+  if (start <= firstDist && end >= lastDist) return null;
+
+  // Find the index range that falls within [start, end]
+  let minX = Infinity, maxX = -Infinity, minZ = Infinity, maxZ = -Infinity;
+  let found = false;
+  for (let i = 0; i < n; i++) {
+    const s = lapA.x[i];
+    if (s >= start && s <= end) {
+      const x = lapA.x[i];
+      const z = lapA.z[i];
+      if (isFinite(x) && isFinite(z)) {
+        if (x < minX) minX = x;
+        if (x > maxX) maxX = x;
+        if (z < minZ) minZ = z;
+        if (z > maxZ) maxZ = z;
+        found = true;
+      }
+    }
+  }
+
+  if (!found) return null;
+  return { minX, maxX, minZ, maxZ };
+}
+
 // ── Main render function ──────────────────────────────────────────────────────
 // Renders both laps as polylines on the given canvas.
 // Phase 00.6: adds track outline background underneath.

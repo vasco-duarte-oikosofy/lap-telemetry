@@ -13,7 +13,7 @@
 | Slice | Status | Vertical outcome |
 |---|---|---|
 | `01-feature-flag-and-wiring` | ✅ Completed | `mapAutoZoom: false` flag in dropdown, Playwright test verifies flag state |
-| `02-compute-segment-bounds` | 🔲 Not started | `computeSegmentBounds()` returns bounding box for visible range; Node unit tests for edge cases |
+| `02-compute-segment-bounds` | ✅ Completed | `computeSegmentBounds()` returns bounding box for visible range; Node unit tests for edge cases |
 | `03-auto-zoom-transform` | 🔲 Not started | Map auto-zooms to segment when flag + highlight are on, resets on zoom clear |
 | `04-playwright-acceptance-test` | 🔲 Not started | Playwright test verifies auto-zoom behaviour; trials `domcontentloaded` + batched evaluate optimisation patterns|
 
