@@ -141,12 +141,13 @@ async function runTests() {
   console.log('\n════ SCENARIO 7: exact bounds for known geometry ════');
   {
     // Simple track: points at (0,0), (100,200), (200,0), (300,-100), (400,50)
+    // Index i corresponds to distance i (resampled at 1m bins convention).
     const x = new Float64Array([0, 100, 200, 300, 400]);
     const z = new Float64Array([0, 200, 0, -100, 50]);
     const lap = { x, z };
 
-    // Range covering points at distance 100–300 (indices 1–3)
-    const result = computeSegmentBounds(lap, { start: 100, end: 300 });
+    // Range covering indices 1–3 (distances 100–300 in resampled convention)
+    const result = computeSegmentBounds(lap, { start: 1, end: 3 });
     assert(result !== null, 'partial range returns non-null');
     if (result) {
       assert(approxEq(result.minX, 100), 'minX = 100', String(result.minX));

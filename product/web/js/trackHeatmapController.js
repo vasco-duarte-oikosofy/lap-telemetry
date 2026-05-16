@@ -10,6 +10,7 @@ export function createTrackHeatmapController(getMapState) {
   let mapInteraction = null;
   let mapHover = null;
   let rendering = false;
+  let prevAutoZoomRange = null; // track previous range to detect changes
 
   function getCssColor(name, fallback) {
     return getComputedStyle(document.documentElement).getPropertyValue(name).trim() || fallback;
@@ -127,10 +128,20 @@ export function createTrackHeatmapController(getMapState) {
     // compute the padded segment bounds so renderWalkingSkeleton zooms into
     // that segment. When no range is selected, autoZoomBounds is null and
     // the map renders the full track as usual.
+    //
+    // Bug 10 fix: only reset the user pan/zoom transform when the zoom
+    // range actually changes, so that manual pan/zoom composes on top
+    // of the auto-zoomed view instead of being stomped on every render.
     let autoZoomBounds = null;
     let autoZooming = false;
+    const { currentZoomRange } = getMapState();
+    const rangeKey = currentZoomRange ? `${currentZoomRange.start}:${currentZoomRange.end}` : null;
+    const rangeChanged = rangeKey !== prevAutoZoomRange;
+    // Detect transition from auto-zoomed to full-track (user cleared selection)
+    const wasAutoZoomed = prevAutoZoomRange !== null;
+    const isNowFullTrack = rangeKey === null || rangeKey === '0:4650'; // approximate
+    const deactivating = wasAutoZoomed && !autoZooming; // set below after compute
     if (features.mapAutoZoom && lapA && lapA.x) {
-      const { currentZoomRange } = getMapState();
       const segBounds = computeSegmentBounds(lapA, currentZoomRange);
       if (segBounds) {
         autoZooming = true;
@@ -142,11 +153,17 @@ export function createTrackHeatmapController(getMapState) {
           minZ: segBounds.minZ - dz * 0.1,
           maxZ: segBounds.maxZ + dz * 0.1,
         };
-        // Reset user transform so auto-zoom view is unmodified by
-        // previous manual zoom/pan. Only reset when actually zooming.
-        if (mapInteraction) mapInteraction.setState({ scale: 1, tx: 0, ty: 0 });
+        // Only reset user transform when the range changes, not every render.
+        // This lets the user pan/zoom on top of auto-zoom.
+        if (rangeChanged && mapInteraction) mapInteraction.setState({ scale: 1, tx: 0, ty: 0 });
       }
     }
+    // When auto-zoom deactivates (range cleared or became full-track),
+    // reset user pan/zoom so the map snaps back to full-track.
+    if (!autoZooming && wasAutoZoomed && rangeChanged && mapInteraction) {
+      mapInteraction.setState({ scale: 1, tx: 0, ty: 0 });
+    }
+    prevAutoZoomRange = rangeKey;
 
     renderWalkingSkeleton(canvas, lapA, lapB, buildOpts({ autoZoomBounds }));
 

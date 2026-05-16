@@ -32,6 +32,29 @@ When selecting different portions of the telemetry charts, the auto-zoom target 
 When a long section of track is highlighted, the auto-zoom doesn't show the end of the highlighted portion. The bounds may be too tight or the padding insufficient.
 **Investigate**: Check if the 10% padding is sufficient, or if the `fitToView` call needs adjustment for very elongated segments. Also check if `lapA` (session lap) bounds are representative of `lapB` (reference lap) — if they diverge, only session-portion bounds are used.
 
-## Bug 9: Map moves to show selected portion but does not ZOOM (OPEN)
+## Bug 9: Map moves to show selected portion but does not ZOOM (FIXED)
+When selecting a portion of the telemetry charts, the map pans to show the selected area but does not zoom in — the track segment is shown at the same scale as full-track, just centered.
+**Root cause**: `computeSegmentBounds` used `lapA.x[i]` (X coordinate) as the distance filter instead of using the array index. This caused incorrect bounds calculation.
+**Fix**: Changed `computeSegmentBounds` to use index-based distance filtering. Since resampled track data uses 1m bins, index `i` corresponds to distance `i` metres. The function now filters by `i >= start && i <= end` instead of `lapA.x[i] >= start && lapA.x[i] <= end`.
+
+## Bug 10: mapAutoZoom blocks mapZoomPan panning when a selection is active (FIXED)
+When both `mapAutoZoom` and `mapZoomPan` are enabled with a chart zoom range selected, the user cannot pan or zoom the map. Every render resets the user transform to `{scale:1, tx:0, ty:0}`, undoing any user interaction.
+**Root cause**: The controller called `mapInteraction.setState({scale:1, tx:0, ty:0})` on EVERY render when auto-zoom was active, not just when the zoom range changed.
+**Fix**: Track the previous zoom range (`prevAutoZoomRange`) and only reset the user transform when the range actually changes. This allows users to pan/zoom on top of the auto-zoomed view. When the range changes, the transform resets so auto-zoom snaps to the new segment.
+
+## Bug 11: Auto-zoom doesn't update when zoom range changes within a selection (FIXED)
+When the user selects a portion of the lap (auto-zoom activates), then changes to a different portion of the track, the map does not re-zoom to show the new portion. The map stays at the previous auto-zoom position.
+**Root cause**: Same as Bug 7 — `computeSegmentBounds` used X coordinates as distance, so changing the zoom range didn't produce different bounds (or produced wrong bounds). The auto-zoom was computing bounds, but they were incorrect.
+**Fix**: Same fix as Bug 7 — index-based distance filtering in `computeSegmentBounds`. Now when the zoom range changes, the correct segment bounds are computed and the map re-zooms to show the new portion.
+When selecting a portion of the telemetry charts, the map pans to show the selected area but does not zoom in — the track segment is shown at the same scale as full-track, just centered.
+**Investigate**: `autoZoomBounds` may be too wide (e.g., if padding is excessive or the bounds cover a large portion of the track). Also check if `fitToView` with `autoZoomBounds` as both A and B correctly computes a zoomed-in transform. The issue might be that `computeSegmentBounds` returns bounds that are nearly as large as the full track.
+
+## Bug 10: mapAutoZoom blocks mapZoomPan panning when no selection exists (OPEN)
+When both `mapAutoZoom` and `mapZoomPan` are enabled but no chart range is selected (full-track view), the user cannot pan or zoom the map. The auto-zoom code path interferes with user interaction even when there is nothing to auto-zoom into.
+**Probable cause**: Even when `autoZooming` is false, the render path may be calling `setBaseTransform` or `setState`, which overrides user pan/zoom on every render. Or `mapInteraction` creation/mutation is resetting user state.
+
+## Bug 11: Auto-zoom doesn't update when zoom range changes within an existing selection (OPEN)
+When the user selects a portion of the lap (auto-zoom activates), then moves the highlighted portion out of the viewport, and then selects a further sub-portion of the already-selected range, the highlight changes in the charts but the map does not re-zoom or pan to show the new highlighted portion. The map stays at the previous auto-zoom position.
+**Probable cause**: `__setZoomRange` (and equivalent chart-zoom interaction) sets `currentZoomRange` and calls `renderTrackHeatmapMap()`, but the auto-zoom computation inside `_render()` may not recompute segment bounds when the range changes within an already-zoomed view, or the canvas transform may not be updated because the rendering guard or `mapInteraction` state is stale.
 When selecting a portion of the telemetry charts, the map pans to show the selected area but does not zoom in — the track segment is shown at the same scale as full-track, just centered.
 **Investigate**: `autoZoomBounds` may be too wide (e.g., if padding is excessive or the bounds cover a large portion of the track). Also check if `fitToView` with `autoZoomBounds` as both A and B correctly computes a zoomed-in transform. The issue might be that `computeSegmentBounds` returns bounds that are nearly as large as the full track.

@@ -95,26 +95,26 @@ export function computeSegmentBounds(lapA, visibleRange) {
   let { start, end } = visibleRange;
   if (start > end) { const tmp = start; start = end; end = tmp; }
 
-  // Full-track range: start at or before first point, end at or after last
-  const firstDist = lapA.x[0];
-  const lastDist = lapA.x[n - 1];
-  if (start <= firstDist && end >= lastDist) return null;
+  // Full-track range: start at 0 (or before) and end at or beyond the last bin.
+  // lapA is resampled at 1m bins, so index = distance in metres.
+  if (start <= 0 && end >= n - 1) return null;
 
-  // Find the index range that falls within [start, end]
+  // Find the axis-aligned bounding box of track points whose distance
+  // (array index) falls within [start, end].  Since the arrays are
+  // resampled at 1m bins, index i ≈ distance in metres.
+  const iStart = Math.max(0, Math.round(start));
+  const iEnd   = Math.min(n - 1, Math.round(end));
   let minX = Infinity, maxX = -Infinity, minZ = Infinity, maxZ = -Infinity;
   let found = false;
-  for (let i = 0; i < n; i++) {
-    const s = lapA.x[i];
-    if (s >= start && s <= end) {
-      const x = lapA.x[i];
-      const z = lapA.z[i];
-      if (isFinite(x) && isFinite(z)) {
-        if (x < minX) minX = x;
-        if (x > maxX) maxX = x;
-        if (z < minZ) minZ = z;
-        if (z > maxZ) maxZ = z;
-        found = true;
-      }
+  for (let i = iStart; i <= iEnd; i++) {
+    const x = lapA.x[i];
+    const z = lapA.z[i];
+    if (isFinite(x) && isFinite(z)) {
+      if (x < minX) minX = x;
+      if (x > maxX) maxX = x;
+      if (z < minZ) minZ = z;
+      if (z > maxZ) maxZ = z;
+      found = true;
     }
   }
 

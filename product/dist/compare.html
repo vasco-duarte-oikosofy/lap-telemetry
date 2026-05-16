@@ -1846,23 +1846,20 @@ function computeSegmentBounds(lapA, visibleRange) {
     start = end;
     end = tmp;
   }
-  const firstDist = lapA.x[0];
-  const lastDist = lapA.x[n - 1];
-  if (start <= firstDist && end >= lastDist) return null;
+  if (start <= 0 && end >= n - 1) return null;
+  const iStart = Math.max(0, Math.round(start));
+  const iEnd = Math.min(n - 1, Math.round(end));
   let minX = Infinity, maxX = -Infinity, minZ = Infinity, maxZ = -Infinity;
   let found = false;
-  for (let i = 0; i < n; i++) {
-    const s = lapA.x[i];
-    if (s >= start && s <= end) {
-      const x = lapA.x[i];
-      const z = lapA.z[i];
-      if (isFinite(x) && isFinite(z)) {
-        if (x < minX) minX = x;
-        if (x > maxX) maxX = x;
-        if (z < minZ) minZ = z;
-        if (z > maxZ) maxZ = z;
-        found = true;
-      }
+  for (let i = iStart; i <= iEnd; i++) {
+    const x = lapA.x[i];
+    const z = lapA.z[i];
+    if (isFinite(x) && isFinite(z)) {
+      if (x < minX) minX = x;
+      if (x > maxX) maxX = x;
+      if (z < minZ) minZ = z;
+      if (z > maxZ) maxZ = z;
+      found = true;
     }
   }
   if (!found) return null;
@@ -2255,6 +2252,7 @@ function createTrackHeatmapController(getMapState2) {
   let mapInteraction = null;
   let mapHover = null;
   let rendering = false;
+  let prevAutoZoomRange = null;
   function getCssColor(name, fallback) {
     return getComputedStyle(document.documentElement).getPropertyValue(name).trim() || fallback;
   }
@@ -2360,8 +2358,13 @@ function createTrackHeatmapController(getMapState2) {
     const { lapA, lapB } = buildLaps(sessionColor, refColor);
     let autoZoomBounds = null;
     let autoZooming = false;
+    const { currentZoomRange: currentZoomRange2 } = getMapState2();
+    const rangeKey = currentZoomRange2 ? `${currentZoomRange2.start}:${currentZoomRange2.end}` : null;
+    const rangeChanged = rangeKey !== prevAutoZoomRange;
+    const wasAutoZoomed = prevAutoZoomRange !== null;
+    const isNowFullTrack = rangeKey === null || rangeKey === "0:4650";
+    const deactivating = wasAutoZoomed && !autoZooming;
     if (features.mapAutoZoom && lapA && lapA.x) {
-      const { currentZoomRange: currentZoomRange2 } = getMapState2();
       const segBounds = computeSegmentBounds(lapA, currentZoomRange2);
       if (segBounds) {
         autoZooming = true;
@@ -2373,9 +2376,13 @@ function createTrackHeatmapController(getMapState2) {
           minZ: segBounds.minZ - dz * 0.1,
           maxZ: segBounds.maxZ + dz * 0.1
         };
-        if (mapInteraction) mapInteraction.setState({ scale: 1, tx: 0, ty: 0 });
+        if (rangeChanged && mapInteraction) mapInteraction.setState({ scale: 1, tx: 0, ty: 0 });
       }
     }
+    if (!autoZooming && wasAutoZoomed && rangeChanged && mapInteraction) {
+      mapInteraction.setState({ scale: 1, tx: 0, ty: 0 });
+    }
+    prevAutoZoomRange = rangeKey;
     renderWalkingSkeleton(canvas, lapA, lapB, buildOpts({ autoZoomBounds }));
     if (mapHover) mapHover.rebuild();
     if (autoZooming) {
