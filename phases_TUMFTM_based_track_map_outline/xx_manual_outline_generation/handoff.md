@@ -86,6 +86,16 @@ Sources (in priority order, deduplicated):
 
 No changes to feature flags.
 
+## Fuji Speedway — end-to-end pipeline tested
+
+Ran the full pipeline for Fuji Speedway:
+1. Explored laps: `python3 scripts/explore_and_export_laps.py sessions/*fuji*.parquet`
+2. Exported fastest lap: `--fastest 1` → `lap7.json` (99.29s)
+3. Generated outline from single lap (resampled to 500 points, ±5m boundaries)
+4. Registered: `python3 scripts/register_outline.py data/track-outlines/fuji-speedway_outline.json`
+
+Result: `fuji-speedway` and `fuji` entries in OUTLINES map, outline visible in compare.html.
+
 ## Deferred
 
 - No test file for `register_outline.py` yet (could be added as a shell script that validates the exit codes and output messages)
