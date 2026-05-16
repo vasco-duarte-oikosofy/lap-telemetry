@@ -62,7 +62,20 @@ The theoretical floor without Python optimisation is ~14 s, limited by
 
 4. **Agent-friendly output preserved.** On success, print exactly one line:
    `ALL PASS — N assertions across M test scripts in Xs`. On failure, list
-   only the failing script paths with their captured error output.
+   each failing script with a reason and its captured error output.
+
+   Failure reasons are prioritised by specificity:
+   - **N failures** — test produced `[FAIL]` lines (most useful; shows which
+     assertions failed)
+   - **exit N** — test exited non-zero with no `[FAIL]` lines (crash or
+     unhandled error)
+   - **0 assertions (protocol violation)** — test exited 0 but produced
+     zero `[PASS]` or `[FAIL]` output (silent bug; the test uses `assert()` or
+     `console.log()` instead of the `[PASS]`/`[FAIL]` protocol)
+
+   Both suite-mode and single-test-mode show the reason:
+   - Suite: `=== FAIL: path/to/test.js (1 failure) ===`
+   - Single: `FAIL — path/to/test.js (0 assertions (protocol violation))`
 
 5. **Exit code.** Exit 0 iff every child process exits 0. Exit 1 otherwise.
 
