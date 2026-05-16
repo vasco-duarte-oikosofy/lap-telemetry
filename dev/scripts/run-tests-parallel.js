@@ -93,7 +93,7 @@ function printSummary(results, elapsed) {
     const failures = extractFailures(r.output);
     const passCount = countPasses(r.output);
     if (failures.length > 0 || r.exitCode !== 0 || passCount === 0) {
-      const reason = r.exitCode !== 0 ? `exit ${r.exitCode}` : failures.length > 0 ? `${failures.length} failures` : '0 assertions (protocol violation)';
+      const reason = failures.length > 0 ? `${failures.length} failure${failures.length > 1 ? 's' : ''}` : r.exitCode !== 0 ? `exit ${r.exitCode}` : '0 assertions (protocol violation)';
       failedScripts.push({ script: r.script, output: r.output, failures, reason });
     }
   }
@@ -134,7 +134,7 @@ async function runSingleTest(target) {
     console.log(`PASS — ${passCount} assertions in ${elapsed}s (${script})`);
     return 0;
   }
-  const reason = r.exitCode !== 0 ? `exit ${r.exitCode}` : failures.length > 0 ? `${failures.length} failures` : '0 assertions (protocol violation)';
+  const reason = failures.length > 0 ? `${failures.length} failure${failures.length > 1 ? 's' : ''}` : r.exitCode !== 0 ? `exit ${r.exitCode}` : '0 assertions (protocol violation)';
   console.log(`FAIL — ${script} (${reason})`);
   (failures.length > 0 ? failures : r.output.split('\n').slice(0, 20)).forEach(l => console.log(l));
   return 1;
