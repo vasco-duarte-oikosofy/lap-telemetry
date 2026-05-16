@@ -134,7 +134,7 @@ def _run_file(path: Path) -> int:
     # per-unique-lap_number. Frames are already in time order, so segments
     # come out chronologically. This handles race-restart rewinds (lap_number
     # going back to 0 mid-recording) and rolling-start out-laps without
-    # mis-sorting or mis-detecting the first/last lap. See m3-plan.md §E1/§E2.
+    # mis-sorting or mis-detecting the first/last lap. See work/archived-plans/m3-plan.md §E1/§E2.
     lap_col      = t.column("lap_number").to_pylist()
     lap_t_col    = t.column("lap_time_s").to_pylist()
     valid_col    = t.column("lap_valid").to_pylist() if has_valid_col else None

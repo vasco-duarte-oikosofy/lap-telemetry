@@ -4,7 +4,7 @@ Record loop: probe sim, poll frames, write Parquet shards via SessionWriter.
 Designed to be left running across a whole driving evening: the probe retries
 until a sim appears, the frame gate ignores `mInRealtime` (which is False in
 LMU's pit garage / menus), and one recorder run produces a separate session
-file per (track, vehicle) combo. See `m3-plan.md` §D for rationale.
+file per (track, vehicle) combo. See `work/archived-plans/m3-plan.md` §D for rationale.
 """
 from __future__ import annotations
 

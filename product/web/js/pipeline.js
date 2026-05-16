@@ -175,8 +175,8 @@ export function resample(distances, values, maxDist) {
 // Δt(d) = lap_time_s_session(d) − lap_time_s_ref(d), in milliseconds.
 // Read directly from the recorder's sim-clock-derived `lap_time_s` column at
 // each 1 m bin. Bypasses the F4 distance over-count that previously surfaced
-// as a phantom ~60 ms asymmetry vs the real lap-time delta (see rca-deltat-
-// phantom-error.md and DESIGN.md §4.2).
+// as a phantom ~60 ms asymmetry vs the real lap-time delta (see
+// work/archived-plans/rca-deltat-phantom-error.md and docs/DESIGN.md §4.2).
 export function computeDeltaT(sessionLapTime, refLapTime) {
   const len = Math.min(sessionLapTime.length, refLapTime.length);
   const dt = new Float64Array(len);

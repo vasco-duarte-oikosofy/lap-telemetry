@@ -28,7 +28,7 @@ set -euo pipefail
 
 REPO_ROOT="${REPO_ROOT:-$(git rev-parse --show-toplevel)}"
 PHASES_DIR="$REPO_ROOT/phases"
-SPEC_FILE="$REPO_ROOT/track-heatmap-spec.md"
+SPEC_FILE="$REPO_ROOT/docs/track-heatmap-spec.md"
 AGENTS_FILE="$REPO_ROOT/AGENTS.md"
 PLAN_FILE="$PHASES_DIR/PLAN"
 CURRENT_FILE="$PHASES_DIR/CURRENT"
@@ -144,7 +144,7 @@ You are not done until all of these exist:
 ## What you should NOT do
 
 - Do not start a subphase other than the one named in your current prompt.
-- Do not modify `AGENTS.md` or `track-heatmap-spec.md` without being asked.
+- Do not modify `AGENTS.md` or `docs/track-heatmap-spec.md` without being asked.
 - Do not run `pi update`, `pi install`, or any pi self-modification commands.
 - Do not exceed 437 lines in any file. Not even temporarily.
 - Do not write a generic abstraction when a specific implementation suffices.

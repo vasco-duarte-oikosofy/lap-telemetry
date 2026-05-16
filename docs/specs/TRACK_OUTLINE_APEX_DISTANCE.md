@@ -10,7 +10,7 @@ Subphases are independently shippable. A later stalled subphase must never make 
 
 ## XP working agreements
 
-Follow the standing project rules in `AGENTS.md` and the working pattern from `track-heatmap-spec.md`:
+Follow the standing project rules in `AGENTS.md` and the working pattern from `docs/track-heatmap-spec.md`:
 
 1. **One subphase at a time.** Do not combine recorder, analysis, and UI work in one delivery.
 2. **Test-first.** Turn every acceptance bullet below into an executable test before implementation.
@@ -20,7 +20,7 @@ Follow the standing project rules in `AGENTS.md` and the working pattern from `t
 6. **Always working.** Old Parquet files and current compare UI must continue to work after every subphase.
 7. **Stop at green.** When the subphase acceptance passes, write `phases_track_outline/<phase>/learnings.md` and `handoff.md`, commit, and stop.
 
-Before changing or adding tests, read `TESTING_LESSONS.md`.
+Before changing or adding tests, read `docs/TESTING_LESSONS.md`.
 
 ---
 
@@ -687,7 +687,7 @@ Do not start these until the core phase they depend on is green. Each item needs
 
 ## What an agent should not do
 
-- Do not modify `track-heatmap-spec.md` or `AGENTS.md` without explicit permission.
+- Do not modify `docs/track-heatmap-spec.md` or `AGENTS.md` without explicit permission.
 - Do not make apex metrics depend on learned width profiles; manual apex annotations plus recorder edge distance are enough for the first slices.
 - Do not render learned outlines before the CLI/profile data is tested.
 - Do not silently treat `lap_distance_m` as `raw_lap_distance_m` for apex/width calculations unless a phase explicitly defines that fallback.
