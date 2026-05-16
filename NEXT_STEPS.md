@@ -219,6 +219,33 @@ Add regression test confirming channel colour/dash for Speed, Throttle, Brake, S
 
 ---
 
+### F16. Auto-zoom map canvas to selected track segment
+
+**What.** When the user selects (zooms into) a distance range on any telemetry chart panel, the track-map canvas at the top of `dist/compare.html` automatically zooms and pans so the highlighted portion of the track fills the viewport with 10 % extra context on each side.
+
+**Behaviour.**
+1. User drag-selects a distance range on a chart panel (existing zoom interaction).
+2. The linked highlight band marks the corresponding track segment on the map (existing `mapLinkedHighlight` feature flag).
+3. With `mapAutoZoomPanLinkedHighlight` enabled, the map canvas computes a bounding box around the highlighted segment's XY coordinates, expands it by 10 % in each direction, and applies a `fitToView`-style transform that frames the expanded box — overriding the current user zoom/pan state.
+4. When the chart zoom is reset (double-click / Esc), the map also resets to its default full-track view.
+
+**Feature flag.** `mapAutoZoomPanLinkedHighlight` (default: `false`). Toggled from the top-right feature-flag dropdown alongside existing flags. Depends on `mapLinkedHighlight` being active (the highlight band must be drawn for the auto-zoom target to be defined).
+
+**Implementation sketch.**
+- Add `mapAutoZoomPanLinkedHighlight: false` to the `features` object in `web/js/appState.js`.
+- In `trackHeatmapController.js`, when both `mapLinkedHighlight` and `mapAutoZoomPanLinkedHighlight` are enabled and a `visibleRange` is present:
+  - Walk `lapA.x[startIdx..endIdx]` / `lapA.z[startIdx..endIdx]` to find `minX, maxX, minZ, maxZ`.
+  - Expand the box by 10 % on each axis: `pad = max(dx, dz) * 0.10`.
+  - Compute a `fitToView`-equivalent transform for the padded box and apply it to the canvas (set `mapInteraction` state or bypass user transform).
+- When `visibleRange` is cleared (zoom reset), restore the default full-track transform.
+- The existing feature-flag dropdown (`syncFeatureFlagMenu`) and change handler in `compare.html` will pick up the new flag automatically since they iterate `Object.entries(features)`.
+
+**Scope.** `web/js/appState.js` (flag definition), `web/js/trackHeatmapController.js` (auto-zoom logic), `web/js/trackHeatmapMap.js` (bounded fitToView helper). No schema or recorder changes.
+
+**Priority:** Medium — enhances track-analysis workflow when inspecting specific corners or braking zones.
+
+---
+
 ## Deferred Test Coverage
 
 ### T1. Hover interaction triggers tooltip visibility
@@ -263,6 +290,7 @@ Playwright test guidelines. Read that file before writing or fixing any test.
 2. **U5** — Audit all panels for consistent colour/line-style
 3. **U4** — Colour tooltip speed values by lap identity
 4. **U2** — Enlarge circuit map for overlay readability
+5. **F16** — Auto-zoom map canvas to selected track segment
 
 **Optional further refactoring:**
 - Extract debug hooks to `debug.js` if test-only globals need stronger isolation.

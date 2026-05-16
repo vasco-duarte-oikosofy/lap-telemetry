@@ -20,4 +20,4 @@ Failed: 0
 | PASS | dblclick resets tx to 0 | 0 |
 | PASS | dblclick resets ty to 0 | 0 |
 | PASS | canvas has grab cursor | grab |
-| PASS | perf: p99 frame time <= 16ms | p99=0.20000004768371582ms max=0.5ms frames=247 |
+| PASS | perf: p99 frame time <= 16ms | p99=0.20000004768371582ms max=0.30000007152557373ms frames=249 |
