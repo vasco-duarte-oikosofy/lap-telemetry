@@ -309,7 +309,7 @@ Playwright test guidelines. Read that file before writing or fixing any test.
 4. **U5** — Audit all panels for consistent colour/line-style
 5. **U4** — Colour tooltip speed values by lap identity
 6. **U2** — Enlarge circuit map for overlay readability
-7. **F16** — Auto-zoom map canvas to selected track segment
+7. **F16** — Auto-zoom map canvas to selected track segment — ✅ **Done**
 
 **Optional further refactoring:**
 - Extract debug hooks to `debug.js` if test-only globals need stronger isolation.

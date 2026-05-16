@@ -32,7 +32,7 @@ kerb or far from the outside wall.
 | Circuit de Spa-Francorchamps | `circuit-de-spa-francorchamps` | **Real** | TUMFTM `Spa.csv` | Varies per point (3.9–8.6m left, 4.8–7.3m right) | ✅ Yes |
 | Circuit de Spa-Francorchamps Endurance | `circuit-de-spa-francorchamps-endurance` | **Real** | Same Spa outline | Same | ✅ Yes |
 | Circuit de Barcelona-Catalunya | `circuit-de-barcelona` | Trajectory | Median of 5 fastest laps | Constant 5m each side | ❌ No |
-| Bahrain International Circuit | `bahrain-international-circuit` | Trajectory | Single lap (lap 8) | Constant 5m each side | ❌ No |
+| Bahrain International Circuit | `bahrain-international-circuit` | **Real** | TUMFTM `Sakhir.csv` | Varies per point | ✅ Yes |
 | Fuji Speedway | `fuji-speedway` | Trajectory | Single lap (lap 7) | Constant 3m each side | ❌ No |
 | Autodromo Enzo e Dino Ferrari | `autodromo-enzo-e-dino-ferrari` | ❌ None | — | — | — |
 
@@ -57,7 +57,7 @@ kerb or far from the outside wall.
 | Track | TUMFTM CSV | Status |
 |-------|-----------|--------|
 | Circuit de Spa-Francorchamps | `Spa.csv` | ✅ Done |
-| Bahrain International Circuit | `Sakhir.csv` | Replace trajectory with TUMFTM |
+| Bahrain International Circuit | `Sakhir.csv` | ✅ Done |
 | Autódromo José Carlos Pace (Interlagos) | `SaoPaulo.csv` | No session data yet |
 | Autodromo Nazionale Monza | `Monza.csv` | No session data yet |
 | Circuit of the Americas | `Austin.csv` | No session data yet |
@@ -90,7 +90,7 @@ kerb or far from the outside wall.
 
 ## Recommended upgrade order
 
-1. **Bahrain** — Replace trajectory outline with TUMFTM `Sakhir.csv` alignment. Immediate quality gain, session data already exists.
+1. ~~**Bahrain**~~ — ✅ Done. TUMFTM `Sakhir.csv` aligned.
 2. **Imola** — Most requested LMU track without a real outline. Use bacinger centerline + width estimation. Needs new alignment pipeline step for lon/lat → sim coordinate conversion.
 3. **Barcelona** — Upgrade to real boundaries. The TUMFTM `Catalunya.csv` is the **old F1 layout**, not the MotoGP/chicane layout used in LMU. Either find correct-layout data or use bacinger + width estimation.
 4. **Fuji** — No automated data source. OSM extraction or hand-drawn only.

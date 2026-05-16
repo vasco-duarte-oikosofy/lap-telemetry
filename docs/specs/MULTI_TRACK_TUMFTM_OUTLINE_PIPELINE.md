@@ -284,7 +284,7 @@ The simulator uses `pos_x_m` as X and `pos_z_m` as Y (the track map's vertical a
 | Autodromo Enzo e Dino Ferrari (Imola) | ❌ | it-1953 | bacinger + width estimation |
 | Autódromo José Carlos Pace (Interlagos) | SaoPaulo ✅ | br-1940 | TUMFTM ★ |
 | Autodromo Nazionale Monza | Monza ✅ | it-1922 | TUMFTM ★ |
-| Bahrain (all layouts) | Sakhir ✅ | bh-2002 | TUMFTM ★ |
+| Bahrain (all layouts) | Sakhir ✅ | bh-2002 | ✅ Done |
 | Circuit de la Sarthe (Le Mans) | ❌ | ❌ | OSM extraction |
 | Circuit de Spa-Francorchamps | Spa ✅ | be-1925 | ✅ Done |
 | Circuit of the Americas | Austin ✅ | us-2012 | TUMFTM ★ |
@@ -292,7 +292,7 @@ The simulator uses `pos_x_m` as X and `pos_z_m` as Y (the track map's vertical a
 | Lusail International Circuit | ❌ | qa-2004 | bacinger + width estimation |
 | Sebring International Raceway | ❌ | ❌ | OSM extraction |
 
-**Summary:** 11 tracks have TUMFTM (best quality), 4 more have bacinger centerlines, 6 need OSM extraction.
+**Summary:** 1 track done, 3 more ready for TUMFTM (once sessions exist), 4 have bacinger centerlines, 5 need OSM extraction.
 
 ### Alternative data sources explored
 
