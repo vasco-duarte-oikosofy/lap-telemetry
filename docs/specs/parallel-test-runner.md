@@ -74,6 +74,14 @@ finish in under 1 s. Total ≈ 8 s.
 8. **Concurrency configurable.** A `--concurrency` flag (default:
    `min(os.cpus().length - 2, 6)`) allows tuning without editing code.
 
+9. **Protocol enforcement.** Every test script in the suite must emit
+   `[PASS]`/`[FAIL]` lines that the runner can count. A meta-test
+   (`test_protocol_enforcement.js`) ensures no test silently produces zero
+   counted assertions — the class of bug where a test crashes or uses an
+   incompatible assert library and the runner reports 0 assertions instead
+   of a failure. See slice `06-protocol-enforcement` in
+   `work/active/parallel-test-runner/PLAN.md`.
+
 ## Out of scope
 
 - Reorganising existing tests into suites or groups beyond parallel/serial.
