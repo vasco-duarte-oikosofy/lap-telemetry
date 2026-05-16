@@ -36,12 +36,19 @@ You are not done until all of these exist:
 
 1. `bash scripts/test-summary.sh` exits 0 (runs full suite, all pass).
 2. `npm run build` succeeds and `dist/compare.html` is current (no stale bundle).
-3. `phases/<this-phase>/learnings.md` — what surprised you, anything the
-   next agent needs to know that is not in the spec.
-4. `phases/<this-phase>/handoff.md` — concrete state: what is on disk now,
-   what feature flags are live, new helpers worth knowing about, deferred
+3. The current mission slice has `learnings.md` — what surprised you, anything
+   the next agent needs to know that is not in the spec.
+4. The current mission slice has `handoff.md` — concrete state: what is on disk
+   now, what feature flags are live, new helpers worth knowing about, deferred
    TODOs.
 5. Commits directly on `main`, with `refactor:` prefixes where appropriate.
+
+## Work missions
+
+Ongoing and completed work is tracked under `work/`. Follow the mission-folder
+convention documented in [`work/README.md`](work/README.md): each mission has a
+`PLAN.md`, and each vertical slice has `prompt.md`, `artifacts/`, `handoff.md`,
+and `learnings.md`.
 
 ## Build instructions
 
