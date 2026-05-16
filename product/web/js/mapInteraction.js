@@ -16,7 +16,7 @@ export function getBaseTransform() {
   return baseTransformRef;
 }
 
-export function createMapInteraction(canvas, onChange, { onReset } = {}) {
+export function createMapInteraction(canvas, onChange, { onReset, getMinScale } = {}) {
   const state = { scale: 1, tx: 0, ty: 0 };
   let dragging = false;
   let dragStartX = 0;
@@ -35,7 +35,8 @@ export function createMapInteraction(canvas, onChange, { onReset } = {}) {
     const my = e.clientY - rect.top;
 
     const oldScale = state.scale;
-    const newScale = Math.min(MAX_SCALE, Math.max(MIN_SCALE, oldScale * (WHEEL_SENSITIVITY ** -e.deltaY)));
+    const minScale = getMinScale ? getMinScale() : MIN_SCALE;
+    const newScale = Math.min(MAX_SCALE, Math.max(minScale, oldScale * (WHEEL_SENSITIVITY ** -e.deltaY)));
     if (newScale === oldScale) return;
 
     const zoomRatio = newScale / oldScale;

@@ -12,6 +12,7 @@ export function createTrackHeatmapController(getMapState) {
   let rendering = false;
   let prevAutoZoomRange = null; // track previous range to detect changes
   let suppressedAutoZoomRange = null; // user double-click reset suppresses auto-zoom for this range
+  let currentMinUserScale = 1; // dynamic lower bound for wheel zoom
 
   function getCssColor(name, fallback) {
     return getComputedStyle(document.documentElement).getPropertyValue(name).trim() || fallback;
@@ -110,6 +111,7 @@ export function createTrackHeatmapController(getMapState) {
             ? `${currentZoomRange.start}:${currentZoomRange.end}`
             : null;
         },
+        getMinScale: () => currentMinUserScale,
       });
     }
 
@@ -186,15 +188,22 @@ export function createTrackHeatmapController(getMapState) {
     // zoom (if any) is relative to the auto-zoomed view. Otherwise use
     // the full-track bounds as usual.
     if (autoZooming) {
+      const boundsA = computeTrackBounds(Array.from(lapA.x), Array.from(lapA.z));
+      const boundsB = computeTrackBounds(Array.from(lapB.x), Array.from(lapB.z));
       const rect = canvas.getBoundingClientRect();
-      const tf = fitToView(autoZoomBounds, autoZoomBounds, rect.width, rect.height, 15);
-      setBaseTransform(tf);
+      const autoTf = fitToView(autoZoomBounds, autoZoomBounds, rect.width, rect.height, 15);
+      const fullTf = fitToView(boundsA, boundsB, rect.width, rect.height, 15);
+      currentMinUserScale = Math.min(1, fullTf.scale / autoTf.scale);
+      setBaseTransform(autoTf);
     } else if (features.mapZoomPan) {
       const boundsA = computeTrackBounds(Array.from(lapA.x), Array.from(lapA.z));
       const boundsB = computeTrackBounds(Array.from(lapB.x), Array.from(lapB.z));
       const rect = canvas.getBoundingClientRect();
       const tf = fitToView(boundsA, boundsB, rect.width, rect.height, 15);
+      currentMinUserScale = 1;
       setBaseTransform(tf);
+    } else {
+      currentMinUserScale = 1;
     }
 
     if (!trackHeatmapObserver) {

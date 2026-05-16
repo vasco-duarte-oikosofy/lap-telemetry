@@ -2147,7 +2147,7 @@ var baseTransformRef = { offsetX: 0, offsetY: 0 };
 function setBaseTransform(transform) {
   baseTransformRef = transform || { offsetX: 0, offsetY: 0 };
 }
-function createMapInteraction(canvas, onChange, { onReset } = {}) {
+function createMapInteraction(canvas, onChange, { onReset, getMinScale } = {}) {
   const state2 = { scale: 1, tx: 0, ty: 0 };
   let dragging = false;
   let dragStartX = 0;
@@ -2163,7 +2163,8 @@ function createMapInteraction(canvas, onChange, { onReset } = {}) {
     const mx = e.clientX - rect.left;
     const my = e.clientY - rect.top;
     const oldScale = state2.scale;
-    const newScale = Math.min(MAX_SCALE, Math.max(MIN_SCALE, oldScale * WHEEL_SENSITIVITY ** -e.deltaY));
+    const minScale = getMinScale ? getMinScale() : MIN_SCALE;
+    const newScale = Math.min(MAX_SCALE, Math.max(minScale, oldScale * WHEEL_SENSITIVITY ** -e.deltaY));
     if (newScale === oldScale) return;
     const zoomRatio = newScale / oldScale;
     const ox = baseTransformRef.offsetX || 0;
@@ -2255,6 +2256,7 @@ function createTrackHeatmapController(getMapState2) {
   let rendering = false;
   let prevAutoZoomRange = null;
   let suppressedAutoZoomRange = null;
+  let currentMinUserScale = 1;
   function getCssColor(name, fallback) {
     return getComputedStyle(document.documentElement).getPropertyValue(name).trim() || fallback;
   }
@@ -2345,7 +2347,8 @@ function createTrackHeatmapController(getMapState2) {
         onReset: () => {
           const { currentZoomRange: currentZoomRange3 } = getMapState2();
           suppressedAutoZoomRange = currentZoomRange3 ? `${currentZoomRange3.start}:${currentZoomRange3.end}` : null;
-        }
+        },
+        getMinScale: () => currentMinUserScale
       });
     }
     if (features.mapHover && !mapHover) {
@@ -2397,15 +2400,22 @@ function createTrackHeatmapController(getMapState2) {
     renderWalkingSkeleton(canvas, lapA, lapB, buildOpts({ autoZoomBounds }));
     if (mapHover) mapHover.rebuild();
     if (autoZooming) {
+      const boundsA = computeTrackBounds(Array.from(lapA.x), Array.from(lapA.z));
+      const boundsB = computeTrackBounds(Array.from(lapB.x), Array.from(lapB.z));
       const rect = canvas.getBoundingClientRect();
-      const tf = fitToView(autoZoomBounds, autoZoomBounds, rect.width, rect.height, 15);
-      setBaseTransform(tf);
+      const autoTf = fitToView(autoZoomBounds, autoZoomBounds, rect.width, rect.height, 15);
+      const fullTf = fitToView(boundsA, boundsB, rect.width, rect.height, 15);
+      currentMinUserScale = Math.min(1, fullTf.scale / autoTf.scale);
+      setBaseTransform(autoTf);
     } else if (features.mapZoomPan) {
       const boundsA = computeTrackBounds(Array.from(lapA.x), Array.from(lapA.z));
       const boundsB = computeTrackBounds(Array.from(lapB.x), Array.from(lapB.z));
       const rect = canvas.getBoundingClientRect();
       const tf = fitToView(boundsA, boundsB, rect.width, rect.height, 15);
+      currentMinUserScale = 1;
       setBaseTransform(tf);
+    } else {
+      currentMinUserScale = 1;
     }
     if (!trackHeatmapObserver) {
       trackHeatmapObserver = initTrackHeatmapResize(canvas, () => {
