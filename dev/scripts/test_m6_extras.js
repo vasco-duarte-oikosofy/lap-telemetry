@@ -12,8 +12,8 @@ const fs = require('fs');
 const { chromium } = require('playwright');
 const { startServer } = require('./lib/test-server');
 
-const REPO = path.resolve(__dirname, '..', '..');
-const WEB_DIR = path.join(REPO, 'web');
+const ROOT = path.resolve(__dirname, '..', '..');
+const WEB_DIR = path.join(ROOT, 'product', 'web');
 const PARQUET = 'dev/sessions/session_20260511T151203Z_circuit-de-barcelona_lmu.parquet';
 const JSON_SIDECAR = 'dev/sessions/session_20260511T151203Z_circuit-de-barcelona_lmu.json';
 
@@ -36,8 +36,8 @@ function assert(cond, msg) {
   await page.goto(url);
 
   // ── Inject parquet + sidecar JSON via the multi-file picker ─────────────
-  const pBuf = fs.readFileSync(path.resolve(REPO, PARQUET));
-  const jBuf = fs.readFileSync(path.resolve(REPO, JSON_SIDECAR));
+  const pBuf = fs.readFileSync(path.resolve(ROOT, PARQUET));
+  const jBuf = fs.readFileSync(path.resolve(ROOT, JSON_SIDECAR));
   const pName = path.basename(PARQUET);
   const jName = path.basename(JSON_SIDECAR);
 
