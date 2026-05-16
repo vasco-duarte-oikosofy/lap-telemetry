@@ -128,9 +128,17 @@ Remove any channel-specific colour overrides that break the visual identity conv
 
 **Priority:** Medium - clutter/redundancy in the Throttle panel.
 
-**Scope.** `PANEL_DEFS` in `web/js/panelConfig.js`. No schema or recorder changes.
+---
 
-**Priority:** High - visual regression affecting core comparison feature.
+### U3c. TC active panel shows only one lap in green instead of two laps in session/ref colours
+
+**Symptom.** The TC active panel (`id: 'tc'`) renders a single green trace using `color: 'var(--throttle)'` with only `trace: 'session'`. In comparison mode the user expects to see both laps — session (solid, blue) and reference (dashed, orange) — so they can compare TC activation zones between laps. Currently the ref lap is missing entirely.
+
+**Fix direction.** Add a second channel entry for the reference trace: `{ col: 'tc_active', trace: 'ref', color: 'var(--ref)', dash: true, step: true }`. Change the session trace colour from `var(--throttle)` to `var(--session)`. Keep `step: true` on both traces since TC is a binary on/off signal.
+
+**Scope.** `product/web/js/panelConfig.js`. No schema or recorder changes.
+
+**Priority:** High - core comparison feature missing half its data.
 
 ---
 
@@ -297,10 +305,11 @@ Playwright test guidelines. Read that file before writing or fixing any test.
 **Next priorities:**
 1. **U3** — Fix Slip angle / TC panel colours (visual regression)
 2. **U3b** — Remove TC activity strip from Throttle panel (redundant)
-3. **U5** — Audit all panels for consistent colour/line-style
-4. **U4** — Colour tooltip speed values by lap identity
-5. **U2** — Enlarge circuit map for overlay readability
-6. **F16** — Auto-zoom map canvas to selected track segment
+3. **U3c** — Fix TC active panel to show both laps in session/ref colours (missing ref trace)
+4. **U5** — Audit all panels for consistent colour/line-style
+5. **U4** — Colour tooltip speed values by lap identity
+6. **U2** — Enlarge circuit map for overlay readability
+7. **F16** — Auto-zoom map canvas to selected track segment
 
 **Optional further refactoring:**
 - Extract debug hooks to `debug.js` if test-only globals need stronger isolation.
