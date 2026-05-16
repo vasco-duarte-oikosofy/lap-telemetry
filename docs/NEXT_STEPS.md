@@ -102,15 +102,31 @@ Splitting it would create artificial boundaries and hurt clarity more than help.
 
 ---
 
-### U3. Throttle panel shows wrong colour and only one trace
+### U3. Slip angle panel uses wrong colours; TC active panel same
 
-**Symptom.** The Throttle panel renders a single green trace instead of two traces (session + reference) coloured with lap identity colours (`--session` / `--ref`) and solid/dashed line style.
+**Symptom.** The Slip angle and TC active panels should use lap-identity colours (`var(--session)` solid / `var(--ref)` dashed) for their session+ref traces, but may still use channel-specific colour overrides from an earlier design (e.g. `var(--slip-fl)` / `var(--throttle)`).
 
-**Fix direction.** Audit Throttle (and Brake) channel definitions in `PANEL_DEFS`. Both should declare:
+**Fix direction.** Audit Slip angle and TC active channel definitions in `PANEL_DEFS`. Each comparison trace pair should use:
 - One `trace: 'session'` in `var(--session)` solid
 - One `trace: 'ref'` in `var(--ref)` dashed
 
-Remove any channel-specific green/red colour overrides from earlier designs.
+Remove any channel-specific colour overrides that break the visual identity convention.
+
+**Scope.** `PANEL_DEFS` in `product/web/js/panelConfig.js`. No schema or recorder changes.
+
+**Priority:** High - visual regression affecting core comparison feature.
+
+---
+
+### U3b. Throttle panel shows TC activity trace but should not
+
+**Symptom.** The Throttle panel renders a TC activity strip (`tc_active`) alongside the throttle trace. TC is its own dedicated panel (`id: 'tc'`) — showing it again inside Throttle is redundant and makes the throttle trace harder to read.
+
+**Fix direction.** Remove the `activityStrip` entry from the Throttle panel definition. The TC panel already shows TC state independently. Similarly audit the Brake panel — its `activityStrip` for ABS should stay since there is no dedicated ABS panel.
+
+**Scope.** `product/web/js/panelConfig.js`. No schema or recorder changes.
+
+**Priority:** Medium - clutter/redundancy in the Throttle panel.
 
 **Scope.** `PANEL_DEFS` in `web/js/panelConfig.js`. No schema or recorder changes.
 
@@ -279,11 +295,12 @@ Playwright test guidelines. Read that file before writing or fixing any test.
 **Refactoring current.** `main.js` is 389 lines and every `web/js` module is under the 437-line ceiling; full test/build passed during `refactor-main-js`.
 
 **Next priorities:**
-1. **U3** - Fix Throttle/Brake panel colours (visual regression)
-2. **U5** - Audit all panels for consistent colour/line-style
-3. **U4** - Colour tooltip speed values by lap identity
-4. **U2** - Enlarge circuit map for overlay readability
-5. **F16** - Auto-zoom map canvas to selected track segment
+1. **U3** — Fix Slip angle / TC panel colours (visual regression)
+2. **U3b** — Remove TC activity strip from Throttle panel (redundant)
+3. **U5** — Audit all panels for consistent colour/line-style
+4. **U4** — Colour tooltip speed values by lap identity
+5. **U2** — Enlarge circuit map for overlay readability
+6. **F16** — Auto-zoom map canvas to selected track segment
 
 **Optional further refactoring:**
 - Extract debug hooks to `debug.js` if test-only globals need stronger isolation.
