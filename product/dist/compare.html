@@ -2359,26 +2359,26 @@ function createTrackHeatmapController(getMapState2) {
     const refColor = getCssColor("--ref", "#ff9800");
     const { lapA, lapB } = buildLaps(sessionColor, refColor);
     let autoZoomBounds = null;
+    let autoZooming = false;
     if (features.mapAutoZoom && lapA && lapA.x) {
       const { currentZoomRange: currentZoomRange2 } = getMapState2();
       const segBounds = computeSegmentBounds(lapA, currentZoomRange2);
       if (segBounds) {
+        autoZooming = true;
         const dx = segBounds.maxX - segBounds.minX || 1;
         const dz = segBounds.maxZ - segBounds.minZ || 1;
-        const padX = dx * 0.1;
-        const padZ = dz * 0.1;
         autoZoomBounds = {
-          minX: segBounds.minX - padX,
-          maxX: segBounds.maxX + padX,
-          minZ: segBounds.minZ - padZ,
-          maxZ: segBounds.maxZ + padZ
+          minX: segBounds.minX - dx * 0.1,
+          maxX: segBounds.maxX + dx * 0.1,
+          minZ: segBounds.minZ - dz * 0.1,
+          maxZ: segBounds.maxZ + dz * 0.1
         };
+        if (mapInteraction) mapInteraction.setState({ scale: 1, tx: 0, ty: 0 });
       }
-      if (mapInteraction) mapInteraction.setState({ scale: 1, tx: 0, ty: 0 });
     }
     renderWalkingSkeleton(canvas, lapA, lapB, buildOpts({ autoZoomBounds }));
     if (mapHover) mapHover.rebuild();
-    if (autoZoomBounds) {
+    if (autoZooming) {
       const rect = canvas.getBoundingClientRect();
       const tf = fitToView(autoZoomBounds, autoZoomBounds, rect.width, rect.height, 15);
       setBaseTransform(tf);

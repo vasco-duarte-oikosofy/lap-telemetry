@@ -122,33 +122,41 @@ export function createTrackHeatmapController(getMapState) {
     const refColor = getCssColor('--ref', '#ff9800');
     const { lapA, lapB } = buildLaps(sessionColor, refColor);
 
-    // F16: Compute auto-zoom bounds BEFORE rendering so the correct view is used
+    // F16: Compute auto-zoom bounds before rendering.
+    // When mapAutoZoom is on and a zoom range is selected (not full-track),
+    // compute the padded segment bounds so renderWalkingSkeleton zooms into
+    // that segment. When no range is selected, autoZoomBounds is null and
+    // the map renders the full track as usual.
     let autoZoomBounds = null;
+    let autoZooming = false;
     if (features.mapAutoZoom && lapA && lapA.x) {
       const { currentZoomRange } = getMapState();
       const segBounds = computeSegmentBounds(lapA, currentZoomRange);
       if (segBounds) {
+        autoZooming = true;
         const dx = (segBounds.maxX - segBounds.minX) || 1;
         const dz = (segBounds.maxZ - segBounds.minZ) || 1;
-        const padX = dx * 0.1;
-        const padZ = dz * 0.1;
         autoZoomBounds = {
-          minX: segBounds.minX - padX,
-          maxX: segBounds.maxX + padX,
-          minZ: segBounds.minZ - padZ,
-          maxZ: segBounds.maxZ + padZ,
+          minX: segBounds.minX - dx * 0.1,
+          maxX: segBounds.maxX + dx * 0.1,
+          minZ: segBounds.minZ - dz * 0.1,
+          maxZ: segBounds.maxZ + dz * 0.1,
         };
+        // Reset user transform so auto-zoom view is unmodified by
+        // previous manual zoom/pan. Only reset when actually zooming.
+        if (mapInteraction) mapInteraction.setState({ scale: 1, tx: 0, ty: 0 });
       }
-      // Reset user transform so auto-zoom overrides any manual zoom/pan
-      if (mapInteraction) mapInteraction.setState({ scale: 1, tx: 0, ty: 0 });
     }
 
     renderWalkingSkeleton(canvas, lapA, lapB, buildOpts({ autoZoomBounds }));
 
     if (mapHover) mapHover.rebuild();
 
-    // Set base transform for manual zoom/pan (or auto-zoom if applicable)
-    if (autoZoomBounds) {
+    // Set base transform for user zoom/pan reference.
+    // When auto-zoom is active, use the segment bounds so future manual
+    // zoom (if any) is relative to the auto-zoomed view. Otherwise use
+    // the full-track bounds as usual.
+    if (autoZooming) {
       const rect = canvas.getBoundingClientRect();
       const tf = fitToView(autoZoomBounds, autoZoomBounds, rect.width, rect.height, 15);
       setBaseTransform(tf);
