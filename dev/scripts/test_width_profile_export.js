@@ -11,6 +11,7 @@ const fs = require('fs');
 const os = require('os');
 const path = require('path');
 const { spawnSync } = require('child_process');
+const { ParquetFixtureBuilder, WIDTH_PROFILE_COLS } = require('./parquet-fixture');
 
 const ROOT = path.resolve(__dirname, '..', '..');
 const EXPORT_SCRIPT = path.join(ROOT, 'dev/scripts/export_width_profile.js');
@@ -28,72 +29,66 @@ function tempPath(name, ext) {
   return path.join(os.tmpdir(), `${name}-${Date.now()}-${Math.random().toString(16).slice(2)}${ext}`);
 }
 
-function writeJson(filePath, value) {
-  fs.writeFileSync(filePath, JSON.stringify(value, null, 2));
-}
-
 function readJson(filePath) {
   return JSON.parse(fs.readFileSync(filePath, 'utf8'));
-}
-
-/**
- * Build a synthetic Parquet file with track outline channels.
- * rows: array of { raw_lap_distance_m, path_lateral_m, track_edge_m }
- * If a row property is undefined, the column value is null.
- */
-function buildParquet(name, rows) {
-  const out = tempPath(name, '.parquet');
-  // Convert to Python literals, mapping null → None
-  function pyList(arr) {
-    const inner = arr.map(v => v === null || v === undefined ? 'None' : JSON.stringify(v)).join(', ');
-    return `[${inner}]`;
-  }
-  const rawLapDist = rows.map(r => r.raw_lap_distance_m ?? null);
-  const pathLateral = rows.map(r => r.path_lateral_m ?? null);
-  const trackEdge = rows.map(r => r.track_edge_m ?? null);
-  const lapNumber = rows.map(() => 1);
-  const lapTimeS = rows.map((_, i) => i * 0.1);
-  const lapDistM = rows.map(r => r.raw_lap_distance_m ?? 0);
-
-  const code = `
-import pyarrow as pa, pyarrow.parquet as pq
-cols = [
-  pa.array(${pyList(lapNumber)}, type=pa.int32()),
-  pa.array(${pyList(lapTimeS)}, type=pa.float32()),
-  pa.array(${pyList(lapDistM)}, type=pa.float32()),
-  pa.array(${pyList(rawLapDist)}, type=pa.float32()),
-  pa.array(${pyList(pathLateral)}, type=pa.float32()),
-  pa.array(${pyList(trackEdge)}, type=pa.float32()),
-]
-names = ['lap_number', 'lap_time_s', 'lap_distance_m',
-         'raw_lap_distance_m', 'path_lateral_m', 'track_edge_m']
-pq.write_table(pa.Table.from_arrays(cols, names=names), r'''${out}''', compression='snappy')
-`;
-  const res = spawnSync('python3', ['-c', code], { encoding: 'utf8', timeout: 30000 });
-  if (res.error || res.status !== 0) throw new Error(res.error?.message || res.stderr);
-  return out;
 }
 
 async function runTests() {
   const { exportWidthProfile } = require(EXPORT_SCRIPT);
 
+  // ── Queue all Parquet fixtures and create in one batch ──
+  const b = new ParquetFixtureBuilder();
+
+  const wpSingle    = b.add('wp-single',    WIDTH_PROFILE_COLS, [
+    { raw_lap_distance_m: 0.4, path_lateral_m: -1, track_edge_m: 7.0 },
+    { raw_lap_distance_m: 0.8, path_lateral_m: 2,  track_edge_m: 6.0 },
+    { raw_lap_distance_m: 1.2, path_lateral_m: -3, track_edge_m: 8.0 },
+    { raw_lap_distance_m: 1.6, path_lateral_m: 1,  track_edge_m: 5.0 },
+  ]);
+  const wpAccA      = b.add('wp-acc-a',     WIDTH_PROFILE_COLS, [
+    { raw_lap_distance_m: 0.3, path_lateral_m: -2, track_edge_m: 5.0 },
+    { raw_lap_distance_m: 0.7, path_lateral_m: 3,  track_edge_m: 4.0 },
+  ]);
+  const wpAccB      = b.add('wp-acc-b',     WIDTH_PROFILE_COLS, [
+    { raw_lap_distance_m: 0.5, path_lateral_m: -1, track_edge_m: 7.0 },
+    { raw_lap_distance_m: 0.6, path_lateral_m: 2,  track_edge_m: 3.0 },
+  ]);
+  const wpSkip      = b.add('wp-skip',      WIDTH_PROFILE_COLS, [
+    { raw_lap_distance_m: 0.5,  path_lateral_m: -1, track_edge_m: 6.0 },
+    { raw_lap_distance_m: null,  path_lateral_m: -1, track_edge_m: 5.0 },
+    { raw_lap_distance_m: 1.5,   path_lateral_m: null, track_edge_m: 5.0 },
+    { raw_lap_distance_m: 2.5,   path_lateral_m: 1,    track_edge_m: null },
+    { raw_lap_distance_m: 3.5,   path_lateral_m: -1,   track_edge_m: 0.0 },
+  ]);
+  const wpOverwrite = b.add('wp-overwrite', WIDTH_PROFILE_COLS, [
+    { raw_lap_distance_m: 0, path_lateral_m: -1, track_edge_m: 5 },
+  ]);
+  const wpCli       = b.add('wp-cli',       WIDTH_PROFILE_COLS, [
+    { raw_lap_distance_m: 0, path_lateral_m: -1, track_edge_m: 9 },
+    { raw_lap_distance_m: 0, path_lateral_m: 2,  track_edge_m: 6 },
+  ]);
+  const wpBinkey    = b.add('wp-binkey',    WIDTH_PROFILE_COLS, [
+    { raw_lap_distance_m: 0.4, path_lateral_m: -1, track_edge_m: 3.0 },
+    { raw_lap_distance_m: 1.9, path_lateral_m: 1,  track_edge_m: 4.0 },
+  ]);
+  const wpMaxAcc    = b.add('wp-max-acc',   WIDTH_PROFILE_COLS, [
+    { raw_lap_distance_m: 0.1, path_lateral_m: -1, track_edge_m: 3.0 },
+    { raw_lap_distance_m: 0.2, path_lateral_m: -1, track_edge_m: 5.0 },
+    { raw_lap_distance_m: 0.3, path_lateral_m: 1,  track_edge_m: 4.0 },
+    { raw_lap_distance_m: 0.4, path_lateral_m: 1,  track_edge_m: 7.0 },
+  ]);
+  const wpZeroLat   = b.add('wp-zero-lat',  WIDTH_PROFILE_COLS, [
+    { raw_lap_distance_m: 0, path_lateral_m: 0, track_edge_m: 5.0 },
+  ]);
+
+  b.flush(); // ← single Python process creates all 9 Parquet files at once
+
   // ── Test 1: Single fixture with left/right binning ──
   console.log('\n── Single fixture: left/right binning ──');
   {
-    // s=0: path_lateral=-1 → left, track_edge=7.0
-    // s=0: path_lateral=2 → right, track_edge=6.0
-    // s=1: path_lateral=-3 → left, track_edge=8.0
-    // s=1: path_lateral=1 → right, track_edge=5.0
-    const session = buildParquet('wp-single', [
-      { raw_lap_distance_m: 0.4, path_lateral_m: -1, track_edge_m: 7.0 },
-      { raw_lap_distance_m: 0.8, path_lateral_m: 2, track_edge_m: 6.0 },
-      { raw_lap_distance_m: 1.2, path_lateral_m: -3, track_edge_m: 8.0 },
-      { raw_lap_distance_m: 1.6, path_lateral_m: 1, track_edge_m: 5.0 },
-    ]);
     const outPath = tempPath('wp-single-out', '.json');
-
     const profile = await exportWidthProfile({
-      sessionPaths: [session],
+      sessionPaths: [wpSingle],
       trackId: 'test-track',
       layoutId: 'default',
       outPath,
@@ -103,8 +98,6 @@ async function runTests() {
     assert(profile.layout_id === 'default', 'profile includes layout_id', profile.layout_id);
     assert(profile.bin_size_m === 1, 'profile includes bin_size_m', String(profile.bin_size_m));
 
-    // Bin 0: left max=7.0 (1 sample), right max=6.0 (1 sample)
-    // Bin 1: left max=8.0 (1 sample), right max=5.0 (1 sample)
     const samples = profile.samples;
     assert(samples.length === 2, 'profile has 2 bins', String(samples.length));
 
@@ -123,7 +116,6 @@ async function runTests() {
     assert(bin1.left_sample_count === 1, 'bin 1 left_sample_count = 1', String(bin1.left_sample_count));
     assert(bin1.right_sample_count === 1, 'bin 1 right_sample_count = 1', String(bin1.right_sample_count));
 
-    // Summary
     assert(profile.summary.input_rows === 4, 'summary input_rows = 4', String(profile.summary.input_rows));
     assert(profile.summary.skipped_rows === 0, 'summary skipped_rows = 0', String(profile.summary.skipped_rows));
 
@@ -136,21 +128,11 @@ async function runTests() {
   // ── Test 2: Multiple sessions accumulate max widths and sample counts ──
   console.log('\n── Multiple sessions: accumulation ──');
   {
-    const sessionA = buildParquet('wp-acc-a', [
-      { raw_lap_distance_m: 0.3, path_lateral_m: -2, track_edge_m: 5.0 },
-      { raw_lap_distance_m: 0.7, path_lateral_m: 3, track_edge_m: 4.0 },
-    ]);
-    const sessionB = buildParquet('wp-acc-b', [
-      { raw_lap_distance_m: 0.5, path_lateral_m: -1, track_edge_m: 7.0 },  // left max should become 7.0
-      { raw_lap_distance_m: 0.6, path_lateral_m: 2, track_edge_m: 3.0 },   // right stays 4.0
-    ]);
-    const outPath = tempPath('wp-acc-out', '.json');
-
     const profile = await exportWidthProfile({
-      sessionPaths: [sessionA, sessionB],
+      sessionPaths: [wpAccA, wpAccB],
       trackId: 'acc-track',
       layoutId: 'alt',
-      outPath,
+      outPath: tempPath('wp-acc-out', '.json'),
     });
 
     const bin0 = profile.samples.find(s => s.s_m === 0);
@@ -166,20 +148,11 @@ async function runTests() {
   // ── Test 3: Rows missing required fields are skipped and counted ──
   console.log('\n── Missing/non-finite required fields: skip and count ──');
   {
-    const session = buildParquet('wp-skip', [
-      { raw_lap_distance_m: 0.5, path_lateral_m: -1, track_edge_m: 6.0 },   // valid
-      { raw_lap_distance_m: null, path_lateral_m: -1, track_edge_m: 5.0 },  // missing raw_lap_distance_m
-      { raw_lap_distance_m: 1.5, path_lateral_m: null, track_edge_m: 5.0 }, // missing path_lateral_m
-      { raw_lap_distance_m: 2.5, path_lateral_m: 1, track_edge_m: null },   // missing track_edge_m
-      { raw_lap_distance_m: 3.5, path_lateral_m: -1, track_edge_m: 0.0 },   // valid (edge=0 is finite)
-    ]);
-    const outPath = tempPath('wp-skip-out', '.json');
-
     const profile = await exportWidthProfile({
-      sessionPaths: [session],
+      sessionPaths: [wpSkip],
       trackId: 'skip-track',
       layoutId: 'default',
-      outPath,
+      outPath: tempPath('wp-skip-out', '.json'),
     });
 
     assert(profile.summary.input_rows === 5, 'skip summary input_rows = 5', String(profile.summary.input_rows));
@@ -200,16 +173,13 @@ async function runTests() {
   // ── Test 4: Overwrite refusal ──
   console.log('\n── Overwrite refusal ──');
   {
-    const session = buildParquet('wp-overwrite', [
-      { raw_lap_distance_m: 0, path_lateral_m: -1, track_edge_m: 5 },
-    ]);
     const sentinelPath = tempPath('wp-sentinel', '.json');
     fs.writeFileSync(sentinelPath, 'SENTINEL');
 
     let refused = false;
     try {
       await exportWidthProfile({
-        sessionPaths: [session],
+        sessionPaths: [wpOverwrite],
         trackId: 'ow-track',
         layoutId: 'default',
         outPath: sentinelPath,
@@ -221,7 +191,7 @@ async function runTests() {
     assert(fs.readFileSync(sentinelPath, 'utf8') === 'SENTINEL', 'refused export does not overwrite sentinel');
 
     await exportWidthProfile({
-      sessionPaths: [session],
+      sessionPaths: [wpOverwrite],
       trackId: 'ow-track',
       layoutId: 'default',
       outPath: sentinelPath,
@@ -234,17 +204,13 @@ async function runTests() {
   // ── Test 5: CLI invocation ──
   console.log('\n── CLI invocation ──');
   {
-    const session = buildParquet('wp-cli', [
-      { raw_lap_distance_m: 0, path_lateral_m: -1, track_edge_m: 9 },
-      { raw_lap_distance_m: 0, path_lateral_m: 2, track_edge_m: 6 },
-    ]);
     const cliOut = tempPath('wp-cli-out', '.json');
     const cli = spawnSync('node', [
       EXPORT_SCRIPT,
       '--out', cliOut,
       '--track-id', 'cli-track',
       '--layout-id', 'default',
-      session,
+      wpCli,
     ], { encoding: 'utf8', timeout: 30000 });
 
     assert(cli.status === 0, 'CLI exits 0', `${cli.stderr}`);
@@ -260,18 +226,11 @@ async function runTests() {
   // ── Test 6: bin_size_m=1 bucketing via floor ──
   console.log('\n── Bin key floor rule ──');
   {
-    // s=0.4 → floor(0.4/1)*1 = 0
-    // s=1.9 → floor(1.9/1)*1 = 1
-    const session = buildParquet('wp-binkey', [
-      { raw_lap_distance_m: 0.4, path_lateral_m: -1, track_edge_m: 3.0 },
-      { raw_lap_distance_m: 1.9, path_lateral_m: 1, track_edge_m: 4.0 },
-    ]);
-    const outPath = tempPath('wp-binkey-out', '.json');
     const profile = await exportWidthProfile({
-      sessionPaths: [session],
+      sessionPaths: [wpBinkey],
       trackId: 'binkey-track',
       layoutId: 'default',
-      outPath,
+      outPath: tempPath('wp-binkey-out', '.json'),
     });
 
     assert(profile.samples.length === 2, 'binkey produces 2 bins');
@@ -284,18 +243,11 @@ async function runTests() {
   // ── Test 7: same-bin max accumulation within one session ──
   console.log('\n── Same bin max accumulation within one session ──');
   {
-    const session = buildParquet('wp-max-acc', [
-      { raw_lap_distance_m: 0.1, path_lateral_m: -1, track_edge_m: 3.0 },
-      { raw_lap_distance_m: 0.2, path_lateral_m: -1, track_edge_m: 5.0 },
-      { raw_lap_distance_m: 0.3, path_lateral_m: 1, track_edge_m: 4.0 },
-      { raw_lap_distance_m: 0.4, path_lateral_m: 1, track_edge_m: 7.0 },
-    ]);
-    const outPath = tempPath('wp-max-acc-out', '.json');
     const profile = await exportWidthProfile({
-      sessionPaths: [session],
+      sessionPaths: [wpMaxAcc],
       trackId: 'max-track',
       layoutId: 'default',
-      outPath,
+      outPath: tempPath('wp-max-acc-out', '.json'),
     });
 
     const bin0 = profile.samples.find(s => s.s_m === 0);
@@ -309,15 +261,11 @@ async function runTests() {
   // ── Test 8: path_lateral_m = 0 goes to right bin ──
   console.log('\n── Zero lateral → right bin ──');
   {
-    const session = buildParquet('wp-zero-lat', [
-      { raw_lap_distance_m: 0, path_lateral_m: 0, track_edge_m: 5.0 },
-    ]);
-    const outPath = tempPath('wp-zero-lat-out', '.json');
     const profile = await exportWidthProfile({
-      sessionPaths: [session],
+      sessionPaths: [wpZeroLat],
       trackId: 'zero-lat-track',
       layoutId: 'default',
-      outPath,
+      outPath: tempPath('wp-zero-lat-out', '.json'),
     });
 
     const bin0 = profile.samples.find(s => s.s_m === 0);
@@ -335,12 +283,12 @@ async function runTests() {
     if (!fs.existsSync(spaSession)) {
       console.log('  [SKIP] Spa endurance session not found — skipping real-data test');
     } else {
-      const outPath = tempPath('wp-spa-out', '.json');
+      const spaOutPath = tempPath('wp-spa-out', '.json');
       const profile = await exportWidthProfile({
         sessionPaths: [spaSession],
         trackId: 'circuit-de-spa-francorchamps-endurance',
         layoutId: 'default',
-        outPath,
+        outPath: spaOutPath,
       });
 
       assert(profile.track_id === 'circuit-de-spa-francorchamps-endurance', 'real profile track_id', profile.track_id);
@@ -350,7 +298,6 @@ async function runTests() {
       assert(typeof profile.summary.input_rows === 'number' && profile.summary.input_rows > 0, 'real profile input_rows > 0', String(profile.summary.input_rows));
       assert(typeof profile.summary.skipped_rows === 'number', 'real profile skipped_rows is numeric', String(profile.summary.skipped_rows));
 
-      // All samples should have the §0.4 shape
       const badSamples = profile.samples.filter(s =>
         typeof s.s_m !== 'number' ||
         typeof s.left_width_m !== 'number' ||
@@ -360,12 +307,11 @@ async function runTests() {
       );
       assert(badSamples.length === 0, 'real profile samples match §0.4 shape', `${badSamples.length} bad`);
 
-      // At least some samples should have right-width data (positive track_edge + non-negative lateral)
       const rightBins = profile.samples.filter(s => s.right_sample_count > 0 && s.right_width_m > 0);
       assert(rightBins.length > 0, 'real profile has bins with right-width data', String(rightBins.length));
 
       // Disk round-trip
-      const disk = readJson(outPath);
+      const disk = readJson(spaOutPath);
       assert(disk.samples.length === profile.samples.length, 'real profile disk round-trip matches sample count');
 
       console.log(`    bins=${profile.samples.length} input_rows=${profile.summary.input_rows} skipped=${profile.summary.skipped_rows}`);

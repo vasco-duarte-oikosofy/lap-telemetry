@@ -11,6 +11,7 @@ const fs = require('fs');
 const os = require('os');
 const path = require('path');
 const { spawnSync } = require('child_process');
+const { ParquetFixtureBuilder, WIDTH_PROFILE_COLS } = require('./parquet-fixture');
 
 const ROOT = path.resolve(__dirname, '..', '..');
 const EXPORT_SCRIPT = path.join(ROOT, 'dev/scripts/export_width_profile.js');
@@ -32,48 +33,40 @@ function readJson(filePath) {
   return JSON.parse(fs.readFileSync(filePath, 'utf8'));
 }
 
-/**
- * Build a synthetic Parquet file with track outline channels.
- */
-function buildParquet(name, rows) {
-  const out = tempPath(name, '.parquet');
-  function pyList(arr) {
-    const inner = arr.map(v => v === null || v === undefined ? 'None' : JSON.stringify(v)).join(', ');
-    return `[${inner}]`;
-  }
-  const rawLapDist = rows.map(r => r.raw_lap_distance_m ?? null);
-  const pathLateral = rows.map(r => r.path_lateral_m ?? null);
-  const trackEdge = rows.map(r => r.track_edge_m ?? null);
-  const lapNumber = rows.map(() => 1);
-  const lapTimeS = rows.map((_, i) => i * 0.1);
-  const lapDistM = rows.map(r => r.raw_lap_distance_m ?? 0);
-
-  const code = `
-import pyarrow as pa, pyarrow.parquet as pq
-cols = [
-  pa.array(${pyList(lapNumber)}, type=pa.int32()),
-  pa.array(${pyList(lapTimeS)}, type=pa.float32()),
-  pa.array(${pyList(lapDistM)}, type=pa.float32()),
-  pa.array(${pyList(rawLapDist)}, type=pa.float32()),
-  pa.array(${pyList(pathLateral)}, type=pa.float32()),
-  pa.array(${pyList(trackEdge)}, type=pa.float32()),
-]
-names = ['lap_number', 'lap_time_s', 'lap_distance_m',
-         'raw_lap_distance_m', 'path_lateral_m', 'track_edge_m']
-pq.write_table(pa.Table.from_arrays(cols, names=names), r'''${out}''', compression='snappy')
-`;
-  const res = spawnSync('python3', ['-c', code], { encoding: 'utf8', timeout: 30000 });
-  if (res.error || res.status !== 0) throw new Error(res.error?.message || res.stderr);
-  return out;
-}
-
 async function runTests() {
   const { exportWidthProfile, buildProfileFromRows } = require(EXPORT_SCRIPT);
+
+  // ── Queue all Parquet fixtures and create in one batch ──
+  const b = new ParquetFixtureBuilder();
+
+  // Test 7 fixtures
+  const wpConfCli = b.add('wp-conf-cli', WIDTH_PROFILE_COLS, [
+    { raw_lap_distance_m: 0.1, path_lateral_m: -1, track_edge_m: 5 },
+    { raw_lap_distance_m: 0.2, path_lateral_m: -1, track_edge_m: 5 },
+    { raw_lap_distance_m: 0.3, path_lateral_m: -1, track_edge_m: 5 },
+    { raw_lap_distance_m: 0.4, path_lateral_m: 1,  track_edge_m: 4 },
+    { raw_lap_distance_m: 0.5, path_lateral_m: 1,  track_edge_m: 4 },
+    { raw_lap_distance_m: 0.6, path_lateral_m: 1,  track_edge_m: 4 },
+    { raw_lap_distance_m: 3.1, path_lateral_m: 2,  track_edge_m: 6 },
+  ]);
+
+  // Test 8 fixtures
+  const wpConfStdout = b.add('wp-conf-stdout', WIDTH_PROFILE_COLS, [
+    { raw_lap_distance_m: 0.1, path_lateral_m: -1, track_edge_m: 5 },
+    { raw_lap_distance_m: 3.1, path_lateral_m: 1,  track_edge_m: 4 },
+  ]);
+
+  // Test 10 fixtures (negative track_edge_m)
+  const wpNegTe = b.add('wp-neg-te', WIDTH_PROFILE_COLS, [
+    { raw_lap_distance_m: 0.5, path_lateral_m: -2, track_edge_m: -7.4 },
+    { raw_lap_distance_m: 0.6, path_lateral_m: 1,  track_edge_m: 6.8 },
+  ]);
+
+  b.flush(); // ← single Python process creates all 3 Parquet files at once
 
   // ── Test 1: Complete bins get status="complete" and confidence=1 ──
   console.log('\n── Complete bins: both sides, adequate samples ──');
   {
-    // MIN_SAMPLES = 3; create 4 left + 4 right samples in bin 0
     const rows = [];
     for (let i = 0; i < 4; i++) {
       rows.push({ raw_lap_distance_m: 0.1 * (i + 1), path_lateral_m: -1, track_edge_m: 5.0 + i });
@@ -90,8 +83,6 @@ async function runTests() {
   // ── Test 2: One-sided bins: only one side has samples ──
   console.log('\n── One-sided bins ──');
   {
-    // bin 0: only left samples (5 of them)
-    // bin 1: only right samples (5 of them)
     const rows = [];
     for (let i = 0; i < 5; i++) {
       rows.push({ raw_lap_distance_m: 0.1 * (i + 1), path_lateral_m: -1, track_edge_m: 7.0 });
@@ -112,28 +103,24 @@ async function runTests() {
   // ── Test 3: Low-sample bins: both sides present but < MIN_SAMPLES on one side ──
   console.log('\n── Low-sample bins ──');
   {
-    // bin 0: 4 left, 2 right (< MIN_SAMPLES=3)
     const rows = [
-      // left side: 4 samples
       { raw_lap_distance_m: 0.1, path_lateral_m: -1, track_edge_m: 5 },
       { raw_lap_distance_m: 0.2, path_lateral_m: -1, track_edge_m: 5 },
       { raw_lap_distance_m: 0.3, path_lateral_m: -1, track_edge_m: 5 },
       { raw_lap_distance_m: 0.4, path_lateral_m: -1, track_edge_m: 5 },
-      // right side: 2 samples (< 3)
       { raw_lap_distance_m: 0.5, path_lateral_m: 1, track_edge_m: 4 },
       { raw_lap_distance_m: 0.6, path_lateral_m: 1, track_edge_m: 4 },
     ];
     const { samples } = buildProfileFromRows(rows, 1);
     const bin0 = samples.find(s => s.s_m === 0);
 
-    assert(bin0 && bin0.status === 'low-sample', 'low-sample bin status = "low-sample"', bin0?.status);
-    assert(bin0 && bin0.confidence === 0.75, 'low-sample bin confidence = 0.75', String(bin0?.confidence));
+    assert(bin0 && bin0.status === 'low-sample', 'low-sample bin status = "low-sample"', bin0.status);
+    assert(bin0 && bin0.confidence === 0.75, 'low-sample bin confidence = 0.75', String(bin0.confidence));
   }
 
   // ── Test 4: Missing bins (gaps) are explicitly present, not omitted ──
   console.log('\n── Missing gap bins are explicit ──');
   {
-    // data at s=0 and s=3, gap at s=1 and s=2
     const rows = [
       { raw_lap_distance_m: 0.5, path_lateral_m: -1, track_edge_m: 5 },
       { raw_lap_distance_m: 3.5, path_lateral_m: 1, track_edge_m: 6 },
@@ -161,7 +148,6 @@ async function runTests() {
   // ── Test 5: Negative track_edge_m uses abs for width ──
   console.log('\n── Negative track_edge_m uses abs() ──');
   {
-    // Left-side row with negative track_edge_m (LMU encoding style)
     const rows = [
       { raw_lap_distance_m: 0.5, path_lateral_m: -2, track_edge_m: -7.4 },
       { raw_lap_distance_m: 0.6, path_lateral_m: 1, track_edge_m: 6.8 },
@@ -177,10 +163,8 @@ async function runTests() {
   console.log('\n── Confidence ordering ──');
   {
     const rows = [
-      // bin 0: complete (4 left, 3 right)
       ...Array.from({ length: 4 }, (_, i) => ({ raw_lap_distance_m: 0.1 * (i + 1), path_lateral_m: -1, track_edge_m: 5 })),
       ...Array.from({ length: 3 }, (_, i) => ({ raw_lap_distance_m: 0.1 * (i + 5), path_lateral_m: 1, track_edge_m: 4 })),
-      // bin 5: one-sided (3 left, 0 right)
       ...Array.from({ length: 3 }, (_, i) => ({ raw_lap_distance_m: 5.1 + 0.1 * i, path_lateral_m: -1, track_edge_m: 7 })),
     ];
     const { samples } = buildProfileFromRows(rows, 1);
@@ -195,25 +179,11 @@ async function runTests() {
   // ── Test 7: CLI summary includes missing, one-sided, low-confidence counts ──
   console.log('\n── CLI summary aggregate counts ──');
   {
-    const session = buildParquet('wp-conf-cli', [
-      // bin 0: complete (3 left + 3 right)
-      { raw_lap_distance_m: 0.1, path_lateral_m: -1, track_edge_m: 5 },
-      { raw_lap_distance_m: 0.2, path_lateral_m: -1, track_edge_m: 5 },
-      { raw_lap_distance_m: 0.3, path_lateral_m: -1, track_edge_m: 5 },
-      { raw_lap_distance_m: 0.4, path_lateral_m: 1, track_edge_m: 4 },
-      { raw_lap_distance_m: 0.5, path_lateral_m: 1, track_edge_m: 4 },
-      { raw_lap_distance_m: 0.6, path_lateral_m: 1, track_edge_m: 4 },
-      // bin 3: one-sided (right only)
-      { raw_lap_distance_m: 3.1, path_lateral_m: 2, track_edge_m: 6 },
-      // gap at s=1, s=2
-    ]);
-    const outPath = tempPath('wp-conf-cli-out', '.json');
-
     const profile = await exportWidthProfile({
-      sessionPaths: [session],
+      sessionPaths: [wpConfCli],
       trackId: 'conf-track',
       layoutId: 'default',
-      outPath,
+      outPath: tempPath('wp-conf-cli-out', '.json'),
     });
 
     const summary = profile.summary;
@@ -222,13 +192,11 @@ async function runTests() {
     assert(typeof summary.low_sample_bins === 'number', 'summary includes low_sample_bins', String(summary.low_sample_bins));
     assert(typeof summary.complete_bins === 'number', 'summary includes complete_bins', String(summary.complete_bins));
 
-    // bins: s=0 (complete), s=1 (missing gap), s=2 (missing gap), s=3 (one-sided)
     assert(summary.complete_bins === 1, 'summary complete_bins = 1', String(summary.complete_bins));
     assert(summary.missing_bins === 2, 'summary missing_bins = 2', String(summary.missing_bins));
     assert(summary.one_sided_bins === 1, 'summary one_sided_bins = 1', String(summary.one_sided_bins));
     assert(summary.low_sample_bins === 0, 'summary low_sample_bins = 0', String(summary.low_sample_bins));
 
-    // Verify total counts add up
     const totalExplicit = summary.complete_bins + summary.one_sided_bins + summary.low_sample_bins + summary.missing_bins;
     assert(totalExplicit === profile.samples.length, 'status counts sum to total bins', `${totalExplicit} vs ${profile.samples.length}`);
   }
@@ -236,17 +204,13 @@ async function runTests() {
   // ── Test 8: CLI output prints confidence summary ──
   console.log('\n── CLI output prints confidence summary ──');
   {
-    const session = buildParquet('wp-conf-stdout', [
-      { raw_lap_distance_m: 0.1, path_lateral_m: -1, track_edge_m: 5 },
-      { raw_lap_distance_m: 3.1, path_lateral_m: 1, track_edge_m: 4 },
-    ]);
     const cliOut = tempPath('wp-conf-stdout-out', '.json');
     const cli = spawnSync('node', [
       EXPORT_SCRIPT,
       '--out', cliOut,
       '--track-id', 'stdout-track',
       '--layout-id', 'default',
-      session,
+      wpConfStdout,
     ], { encoding: 'utf8', timeout: 30000 });
 
     assert(cli.status === 0, 'CLI exits 0', cli.stderr);
@@ -259,10 +223,6 @@ async function runTests() {
   // ── Test 9: Full profile fixture with all statuses ──
   console.log('\n── Mixed fixture: all four statuses ──');
   {
-    // bin 0: complete (4L, 4R)
-    // bin 1: low-sample (4L, 2R)
-    // gap at s=2, s=3, s=4
-    // bin 5: one-sided right (0L, 3R)
     const rows = [
       ...Array.from({ length: 4 }, (_, i) => ({ raw_lap_distance_m: 0.1 * (i + 1), path_lateral_m: -1, track_edge_m: 5 })),
       ...Array.from({ length: 4 }, (_, i) => ({ raw_lap_distance_m: 0.1 * (i + 5), path_lateral_m: 1, track_edge_m: 4 })),
@@ -297,17 +257,11 @@ async function runTests() {
   // ── Test 10: Negative track_edge_m with confidence (full flow via Parquet) ──
   console.log('\n── Negative track_edge_m via Parquet round-trip ──');
   {
-    const session = buildParquet('wp-neg-te', [
-      { raw_lap_distance_m: 0.5, path_lateral_m: -2, track_edge_m: -7.4 },
-      { raw_lap_distance_m: 0.6, path_lateral_m: 1, track_edge_m: 6.8 },
-    ]);
-    const outPath = tempPath('wp-neg-te-out', '.json');
-
     const profile = await exportWidthProfile({
-      sessionPaths: [session],
+      sessionPaths: [wpNegTe],
       trackId: 'neg-te-track',
       layoutId: 'default',
-      outPath,
+      outPath: tempPath('wp-neg-te-out', '.json'),
     });
 
     const bin0 = profile.samples.find(s => s.s_m === 0);
@@ -318,7 +272,6 @@ async function runTests() {
   // ── Test 11: Low-sample bin with both sides under MIN ──
   console.log('\n── Both sides under MIN_SAMPLES ──');
   {
-    // 2 left + 2 right (< MIN_SAMPLES=3 on both sides)
     const rows = [
       { raw_lap_distance_m: 0.1, path_lateral_m: -1, track_edge_m: 5 },
       { raw_lap_distance_m: 0.2, path_lateral_m: -1, track_edge_m: 5 },
@@ -330,16 +283,6 @@ async function runTests() {
 
     assert(bin0 && bin0.status === 'low-sample', 'both-sides-under-MIN status = "low-sample"', bin0?.status);
     assert(bin0 && bin0.confidence === 0.75, 'both-sides-under-MIN confidence = 0.75', String(bin0?.confidence));
-  }
-
-  // ── Test 12: Existing compare UI unchanged (smoke) ──
-  console.log('\n── Existing tests still pass (smoke) ──');
-  {
-    const existingTest = spawnSync('node', [path.join(ROOT, 'dev/scripts/test_width_profile_export.js')], {
-      encoding: 'utf8',
-      timeout: 60000,
-    });
-    assert(existingTest.status === 0, 'Phase 07 tests still pass', existingTest.stderr || existingTest.stdout.slice(-200));
   }
 }
 

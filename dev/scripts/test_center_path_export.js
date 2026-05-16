@@ -11,6 +11,7 @@ const fs = require('fs');
 const os = require('os');
 const path = require('path');
 const { spawnSync } = require('child_process');
+const { ParquetFixtureBuilder, WIDTH_PROFILE_COLS, CENTER_PATH_COLS } = require('./parquet-fixture');
 
 const ROOT = path.resolve(__dirname, '..', '..');
 const EXPORT_SCRIPT = path.join(ROOT, 'dev/scripts/export_center_path.js');
@@ -32,58 +33,81 @@ function readJson(filePath) {
   return JSON.parse(fs.readFileSync(filePath, 'utf8'));
 }
 
-/**
- * Build a synthetic Parquet file with position + lap distance channels.
- * rows: array of { raw_lap_distance_m, pos_x_m, pos_z_m }
- * If a row property is undefined, the column value is null.
- */
-function buildParquet(name, rows) {
-  const out = tempPath(name, '.parquet');
-  function pyList(arr) {
-    const inner = arr.map(v => v === null || v === undefined ? 'None' : JSON.stringify(v)).join(', ');
-    return `[${inner}]`;
-  }
-  const rawLapDist = rows.map(r => r.raw_lap_distance_m ?? null);
-  const posX = rows.map(r => r.pos_x_m ?? null);
-  const posY = rows.map(r => 0);
-  const posZ = rows.map(r => r.pos_z_m ?? null);
-  const lapNumber = rows.map(() => 1);
-  const lapTimeS = rows.map((_, i) => i * 0.1);
-
-  const code = `
-import pyarrow as pa, pyarrow.parquet as pq
-cols = [
-  pa.array(${pyList(lapNumber)}, type=pa.int32()),
-  pa.array(${pyList(lapTimeS)}, type=pa.float32()),
-  pa.array(${pyList(rawLapDist)}, type=pa.float32()),
-  pa.array(${pyList(posX)}, type=pa.float32()),
-  pa.array(${pyList(posY)}, type=pa.float32()),
-  pa.array(${pyList(posZ)}, type=pa.float32()),
-]
-names = ['lap_number', 'lap_time_s', 'raw_lap_distance_m',
-         'pos_x_m', 'pos_y_m', 'pos_z_m']
-pq.write_table(pa.Table.from_arrays(cols, names=names), r'''${out}''', compression='snappy')
-`;
-  const res = spawnSync('python3', ['-c', code], { encoding: 'utf8', timeout: 30000 });
-  if (res.error || res.status !== 0) throw new Error(res.error?.message || res.stderr);
-  return out;
-}
-
 async function runTests() {
   const { exportCenterPath, buildPathFromRows } = require(EXPORT_SCRIPT);
+
+  // ── Queue all Parquet fixtures and create in one batch ──
+  const b = new ParquetFixtureBuilder();
+
+  // Test 1: Single fixture – averaged positions per bin
+  const cpSingle = b.add('cp-single', CENTER_PATH_COLS, [
+    { raw_lap_distance_m: 0.3, pos_x_m: 10.0, pos_z_m: 20.0 },
+    { raw_lap_distance_m: 0.7, pos_x_m: 14.0, pos_z_m: 26.0 },
+    { raw_lap_distance_m: 1.2, pos_x_m: 30.0, pos_z_m: 40.0 },
+  ]);
+
+  // Test 2: Same-bin averaging
+  const cpAvg = b.add('cp-avg', CENTER_PATH_COLS, [
+    { raw_lap_distance_m: 0.1, pos_x_m: 0.0, pos_z_m: 0.0 },
+    { raw_lap_distance_m: 0.2, pos_x_m: 3.0, pos_z_m: 6.0 },
+    { raw_lap_distance_m: 0.3, pos_x_m: 6.0, pos_z_m: 12.0 },
+    { raw_lap_distance_m: 0.9, pos_x_m: 9.0, pos_z_m: 18.0 },
+  ]);
+
+  // Test 3: Multiple sessions
+  const cpAccA = b.add('cp-acc-a', CENTER_PATH_COLS, [
+    { raw_lap_distance_m: 0.5, pos_x_m: 10.0, pos_z_m: 100.0 },
+  ]);
+  const cpAccB = b.add('cp-acc-b', CENTER_PATH_COLS, [
+    { raw_lap_distance_m: 0.5, pos_x_m: 20.0, pos_z_m: 200.0 },
+  ]);
+
+  // Test 4: Missing/non-finite positions
+  const cpSkip = b.add('cp-skip', CENTER_PATH_COLS, [
+    { raw_lap_distance_m: 0.5, pos_x_m: 10.0, pos_z_m: 20.0 },
+    { raw_lap_distance_m: 1.5, pos_x_m: null,  pos_z_m: 30.0 },
+    { raw_lap_distance_m: 2.5, pos_x_m: 50.0,  pos_z_m: null },
+    { raw_lap_distance_m: 3.5, pos_x_m: 70.0,  pos_z_m: 80.0 },
+    { raw_lap_distance_m: 4.5, pos_x_m: null,  pos_z_m: null },
+  ]);
+
+  // Test 5: Points ordered by s_m
+  const cpOrder = b.add('cp-order', CENTER_PATH_COLS, [
+    { raw_lap_distance_m: 5.2, pos_x_m: 50.0, pos_z_m: 50.0 },
+    { raw_lap_distance_m: 1.1, pos_x_m: 10.0, pos_z_m: 10.0 },
+    { raw_lap_distance_m: 3.3, pos_x_m: 30.0, pos_z_m: 30.0 },
+  ]);
+
+  // Test 6: No gap-filling
+  const cpGap = b.add('cp-gap', CENTER_PATH_COLS, [
+    { raw_lap_distance_m: 0.5, pos_x_m: 1.0, pos_z_m: 1.0 },
+    { raw_lap_distance_m: 5.5, pos_x_m: 5.0, pos_z_m: 5.0 },
+  ]);
+
+  // Test 8: CLI invocation
+  const cpCli = b.add('cp-cli', CENTER_PATH_COLS, [
+    { raw_lap_distance_m: 0, pos_x_m: -136.94, pos_z_m: 646.23 },
+    { raw_lap_distance_m: 0, pos_x_m: -137.06, pos_z_m: 646.17 },
+  ]);
+
+  // Test 9: Overwrite refusal
+  const cpOw = b.add('cp-ow', CENTER_PATH_COLS, [
+    { raw_lap_distance_m: 0, pos_x_m: 0, pos_z_m: 0 },
+  ]);
+
+  // Test 11: Width profile command still works (needs WIDTH_PROFILE_COLS)
+  const cpWp = b.add('cp-wp', WIDTH_PROFILE_COLS, [
+    { raw_lap_distance_m: 0.5, path_lateral_m: -1, track_edge_m: 6.0 },
+  ]);
+
+  b.flush(); // ← single Python process creates all 10 Parquet files at once
 
   // ── Test 1: Single fixture with known positions averaged by bin ──
   console.log('\n── Single fixture: averaged positions per bin ──');
   {
-    const session = buildParquet('cp-single', [
-      { raw_lap_distance_m: 0.3, pos_x_m: 10.0, pos_z_m: 20.0 },
-      { raw_lap_distance_m: 0.7, pos_x_m: 14.0, pos_z_m: 26.0 },
-      { raw_lap_distance_m: 1.2, pos_x_m: 30.0, pos_z_m: 40.0 },
-    ]);
     const outPath = tempPath('cp-single-out', '.json');
-
     const result = await exportCenterPath({
-      sessionPaths: [session],
+      sessionPaths: [cpSingle],
       trackId: 'test-track',
       layoutId: 'default',
       outPath,
@@ -100,42 +124,31 @@ async function runTests() {
     assert(p0, 'point at s_m=0 exists');
     assert(p1, 'point at s_m=1 exists');
 
-    // Bin 0: average of (10,20) and (14,26) → (12, 23)
     assert(p0.x_m === 12.0, 'bin 0 x_m averaged = 12.0', String(p0.x_m));
     assert(p0.z_m === 23.0, 'bin 0 z_m averaged = 23.0', String(p0.z_m));
     assert(p0.sample_count === 2, 'bin 0 sample_count = 2', String(p0.sample_count));
 
-    // Bin 1: single sample (30, 40)
     assert(p1.x_m === 30.0, 'bin 1 x_m = 30.0', String(p1.x_m));
     assert(p1.z_m === 40.0, 'bin 1 z_m = 40.0', String(p1.z_m));
     assert(p1.sample_count === 1, 'bin 1 sample_count = 1', String(p1.sample_count));
 
-    // Summary
     assert(result.summary.input_rows === 3, 'summary input_rows = 3', String(result.summary.input_rows));
     assert(result.summary.skipped_rows === 0, 'summary skipped_rows = 0', String(result.summary.skipped_rows));
 
     // Disk round-trip
     const disk = readJson(outPath);
     assert(disk.track_id === result.track_id, 'disk matches returned track_id');
-    assert(disk.points.length === 2, 'disk points match count');
+    assert(disk.points.length === result.points.length, 'disk points match count');
   }
 
   // ── Test 2: Multiple samples in same bin averaged correctly ──
   console.log('\n── Same-bin averaging ──');
   {
-    const session = buildParquet('cp-avg', [
-      { raw_lap_distance_m: 0.1, pos_x_m: 0.0, pos_z_m: 0.0 },
-      { raw_lap_distance_m: 0.2, pos_x_m: 3.0, pos_z_m: 6.0 },
-      { raw_lap_distance_m: 0.3, pos_x_m: 6.0, pos_z_m: 12.0 },
-      { raw_lap_distance_m: 0.9, pos_x_m: 9.0, pos_z_m: 18.0 },
-    ]);
-    const outPath = tempPath('cp-avg-out', '.json');
-
     const result = await exportCenterPath({
-      sessionPaths: [session],
+      sessionPaths: [cpAvg],
       trackId: 'avg-track',
       layoutId: 'default',
-      outPath,
+      outPath: tempPath('cp-avg-out', '.json'),
     });
 
     const p0 = result.points.find(p => p.s_m === 0);
@@ -148,19 +161,11 @@ async function runTests() {
   // ── Test 3: Multiple input sessions accumulate ──
   console.log('\n── Multiple sessions: accumulation ──');
   {
-    const sessionA = buildParquet('cp-acc-a', [
-      { raw_lap_distance_m: 0.5, pos_x_m: 10.0, pos_z_m: 100.0 },
-    ]);
-    const sessionB = buildParquet('cp-acc-b', [
-      { raw_lap_distance_m: 0.5, pos_x_m: 20.0, pos_z_m: 200.0 },
-    ]);
-    const outPath = tempPath('cp-acc-out', '.json');
-
     const result = await exportCenterPath({
-      sessionPaths: [sessionA, sessionB],
+      sessionPaths: [cpAccA, cpAccB],
       trackId: 'acc-track',
       layoutId: 'default',
-      outPath,
+      outPath: tempPath('cp-acc-out', '.json'),
     });
 
     const p0 = result.points.find(p => p.s_m === 0);
@@ -174,20 +179,11 @@ async function runTests() {
   // ── Test 4: Rows with missing position fields are skipped and counted ──
   console.log('\n── Missing/non-finite positions: skip and count ──');
   {
-    const session = buildParquet('cp-skip', [
-      { raw_lap_distance_m: 0.5, pos_x_m: 10.0, pos_z_m: 20.0 },     // valid
-      { raw_lap_distance_m: 1.5, pos_x_m: null, pos_z_m: 30.0 },     // missing pos_x_m
-      { raw_lap_distance_m: 2.5, pos_x_m: 50.0, pos_z_m: null },     // missing pos_z_m
-      { raw_lap_distance_m: 3.5, pos_x_m: 70.0, pos_z_m: 80.0 },     // valid
-      { raw_lap_distance_m: 4.5, pos_x_m: null, pos_z_m: null },     // both missing
-    ]);
-    const outPath = tempPath('cp-skip-out', '.json');
-
     const result = await exportCenterPath({
-      sessionPaths: [session],
+      sessionPaths: [cpSkip],
       trackId: 'skip-track',
       layoutId: 'default',
-      outPath,
+      outPath: tempPath('cp-skip-out', '.json'),
     });
 
     assert(result.summary.input_rows === 5, 'skip summary input_rows = 5', String(result.summary.input_rows));
@@ -203,18 +199,11 @@ async function runTests() {
   // ── Test 5: Points ordered by increasing s_m ──
   console.log('\n── Points ordered by increasing s_m ──');
   {
-    const session = buildParquet('cp-order', [
-      { raw_lap_distance_m: 5.2, pos_x_m: 50.0, pos_z_m: 50.0 },
-      { raw_lap_distance_m: 1.1, pos_x_m: 10.0, pos_z_m: 10.0 },
-      { raw_lap_distance_m: 3.3, pos_x_m: 30.0, pos_z_m: 30.0 },
-    ]);
-    const outPath = tempPath('cp-order-out', '.json');
-
     const result = await exportCenterPath({
-      sessionPaths: [session],
+      sessionPaths: [cpOrder],
       trackId: 'order-track',
       layoutId: 'default',
-      outPath,
+      outPath: tempPath('cp-order-out', '.json'),
     });
 
     assert(result.points.length === 3, 'order result has 3 points');
@@ -227,17 +216,11 @@ async function runTests() {
   // ── Test 6: No gap-filling — missing bins absent ──
   console.log('\n── No gap-filling: missing bins absent ──');
   {
-    const session = buildParquet('cp-gap', [
-      { raw_lap_distance_m: 0.5, pos_x_m: 1.0, pos_z_m: 1.0 },
-      { raw_lap_distance_m: 5.5, pos_x_m: 5.0, pos_z_m: 5.0 },
-    ]);
-    const outPath = tempPath('cp-gap-out', '.json');
-
     const result = await exportCenterPath({
-      sessionPaths: [session],
+      sessionPaths: [cpGap],
       trackId: 'gap-track',
       layoutId: 'default',
-      outPath,
+      outPath: tempPath('cp-gap-out', '.json'),
     });
 
     assert(result.points.length === 2, 'gap result has exactly 2 points', String(result.points.length));
@@ -271,17 +254,13 @@ async function runTests() {
   // ── Test 8: CLI invocation ──
   console.log('\n── CLI invocation ──');
   {
-    const session = buildParquet('cp-cli', [
-      { raw_lap_distance_m: 0, pos_x_m: -136.94, pos_z_m: 646.23 },
-      { raw_lap_distance_m: 0, pos_x_m: -137.06, pos_z_m: 646.17 },
-    ]);
     const cliOut = tempPath('cp-cli-out', '.json');
     const cli = spawnSync('node', [
       EXPORT_SCRIPT,
       '--out', cliOut,
       '--track-id', 'cli-track',
       '--layout-id', 'default',
-      session,
+      cpCli,
     ], { encoding: 'utf8', timeout: 30000 });
 
     assert(cli.status === 0, 'CLI exits 0', `${cli.stderr}`);
@@ -294,7 +273,6 @@ async function runTests() {
     const p0 = disk.points[0];
     assert(p0.s_m === 0, 'CLI point at s_m=0', String(p0.s_m));
     assert(p0.sample_count === 2, 'CLI point sample_count = 2', String(p0.sample_count));
-    // Averaged: (-136.94 + -137.06)/2 = -137.0, (646.23 + 646.17)/2 = 646.2
     assert(p0.x_m === -137.0, 'CLI point x_m = -137.0', String(p0.x_m));
     assert(Math.abs(p0.z_m - 646.2) < 0.01, 'CLI point z_m ≈ 646.2', String(p0.z_m));
     assert(disk.summary.input_rows === 2, 'CLI summary input_rows = 2');
@@ -304,16 +282,13 @@ async function runTests() {
   // ── Test 9: Overwrite refusal ──
   console.log('\n── Overwrite refusal ──');
   {
-    const session = buildParquet('cp-ow', [
-      { raw_lap_distance_m: 0, pos_x_m: 0, pos_z_m: 0 },
-    ]);
     const sentinelPath = tempPath('cp-sentinel', '.json');
     fs.writeFileSync(sentinelPath, 'SENTINEL');
 
     let refused = false;
     try {
       await exportCenterPath({
-        sessionPaths: [session],
+        sessionPaths: [cpOw],
         trackId: 'ow-track',
         layoutId: 'default',
         outPath: sentinelPath,
@@ -324,7 +299,7 @@ async function runTests() {
     assert(refused, 'existing output file is refused by default');
 
     await exportCenterPath({
-      sessionPaths: [session],
+      sessionPaths: [cpOw],
       trackId: 'ow-track',
       layoutId: 'default',
       outPath: sentinelPath,
@@ -341,12 +316,12 @@ async function runTests() {
     if (!fs.existsSync(spaSession)) {
       console.log('  [SKIP] Spa endurance session not found — skipping real-data test');
     } else {
-      const outPath = tempPath('cp-spa-out', '.json');
+      const spaOutPath = tempPath('cp-spa-out', '.json');
       const result = await exportCenterPath({
         sessionPaths: [spaSession],
         trackId: 'circuit-de-spa-francorchamps-endurance',
         layoutId: 'default',
-        outPath,
+        outPath: spaOutPath,
       });
 
       assert(result.track_id === 'circuit-de-spa-francorchamps-endurance', 'real track_id', result.track_id);
@@ -356,7 +331,6 @@ async function runTests() {
       assert(typeof result.summary.input_rows === 'number' && result.summary.input_rows > 0, 'real input_rows > 0', String(result.summary.input_rows));
       assert(typeof result.summary.skipped_rows === 'number', 'real skipped_rows is numeric', String(result.summary.skipped_rows));
 
-      // All points should have required shape
       const badPoints = result.points.filter(p =>
         typeof p.s_m !== 'number' ||
         typeof p.x_m !== 'number' ||
@@ -365,7 +339,6 @@ async function runTests() {
       );
       assert(badPoints.length === 0, 'real points match expected shape', `${badPoints.length} bad`);
 
-      // Points should be sorted by s_m
       const sValues = result.points.map(p => p.s_m);
       let sorted = true;
       for (let i = 1; i < sValues.length; i++) {
@@ -374,27 +347,24 @@ async function runTests() {
       assert(sorted, 'real points sorted by s_m');
 
       // Disk round-trip
-      const disk = readJson(outPath);
+      const disk = readJson(spaOutPath);
       assert(disk.points.length === result.points.length, 'real disk round-trip matches point count');
 
       console.log(`    points=${result.points.length} input_rows=${result.summary.input_rows} skipped=${result.summary.skipped_rows}`);
     }
   }
 
-  // ── Test 11: Existing width-profile command unchanged ──
+  // ── Test 11: Width profile command still works (cross-module smoke) ──
   console.log('\n── Width profile command still works ──');
   {
     const wpScript = path.join(ROOT, 'dev/scripts/export_width_profile.js');
-    const session = buildParquet('cp-wp', [
-      { raw_lap_distance_m: 0.5, path_lateral_m: -1, track_edge_m: 6.0 },
-    ]);
     const wpOut = tempPath('cp-wp-out', '.json');
     const wp = spawnSync('node', [
       wpScript,
       '--out', wpOut,
       '--track-id', 'cp-wp-track',
       '--layout-id', 'default',
-      session,
+      cpWp,
     ], { encoding: 'utf8', timeout: 30000 });
 
     assert(wp.status === 0, 'width profile CLI still exits 0', `${wp.stderr}`);
