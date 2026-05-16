@@ -20,7 +20,7 @@ const { startServer } = require('./lib/test-server');
 const ROOT         = path.resolve(__dirname, '..');
 const WEB_DIR      = path.join(ROOT, 'web');
 const SESSIONS_DIR = path.join(ROOT, 'sessions');
-const REPORT_DIR   = path.join(ROOT, 'm6-test-report');
+const REPORT_DIR   = path.join(ROOT, 'var', 'test-output', 'm6-test-report');
 const SHOTS_DIR    = path.join(REPORT_DIR, 'screenshots');
 
 const SESSION_FRESH    = path.join(SESSIONS_DIR, 'session_20260512T140000Z_spa-francorchamps_lmu.parquet');

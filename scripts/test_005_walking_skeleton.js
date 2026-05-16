@@ -24,7 +24,7 @@ const { startServer } = require('./lib/test-server');
 const ROOT         = path.resolve(__dirname, '..');
 const WEB_DIR      = path.join(ROOT, 'web');
 const SESSIONS_DIR = path.join(ROOT, 'sessions');
-const REPORT_DIR   = path.join(ROOT, '005-test-report');
+const REPORT_DIR   = path.join(ROOT, 'var', 'test-output', '005-test-report');
 const SHOTS_DIR    = path.join(REPORT_DIR, 'screenshots');
 
 const SESSION = path.join(SESSIONS_DIR, 'session_20260510T074144Z_circuit-de-barcelona_lmu.parquet');

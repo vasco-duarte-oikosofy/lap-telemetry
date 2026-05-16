@@ -16,7 +16,7 @@ const path = require('path');
 const ROOT         = path.resolve(__dirname, '..');
 const HTML_FILE    = path.join(ROOT, 'web', 'compare.html');
 const SESSIONS_DIR = path.join(ROOT, 'sessions');
-const REPORT_DIR   = path.join(ROOT, 'f8f9f10f11-test-report');
+const REPORT_DIR   = path.join(ROOT, 'var', 'test-output', 'f8f9f10f11-test-report');
 const SHOTS_DIR    = path.join(REPORT_DIR, 'screenshots');
 
 const SESSION_A = path.join(SESSIONS_DIR, 'session_20260510T142624Z_circuit-de-barcelona_lmu.parquet');

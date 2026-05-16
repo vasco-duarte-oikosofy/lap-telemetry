@@ -24,7 +24,7 @@ const { startServer } = require('./lib/test-server');
 const ROOT = path.resolve(__dirname, '..');
 const WEB_DIR = path.join(ROOT, 'web');
 const SESSIONS_DIR = path.join(ROOT, 'sessions');
-const REPORT_DIR = path.join(ROOT, 'file-picker-bug-test-report');
+const REPORT_DIR = path.join(ROOT, 'var', 'test-output', 'file-picker-bug-test-report');
 const SHOTS_DIR = path.join(REPORT_DIR, 'screenshots');
 
 fs.mkdirSync(SHOTS_DIR, { recursive: true });

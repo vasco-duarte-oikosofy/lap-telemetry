@@ -23,7 +23,7 @@ const { execSync } = require('child_process');
 const ROOT = path.resolve(__dirname, '..');
 const HTML_FILE = path.join(ROOT, 'web', 'compare.html');
 const SESSIONS_DIR = path.join(ROOT, 'sessions');
-const REPORT_DIR = path.join(ROOT, 'm4-test-report');
+const REPORT_DIR = path.join(ROOT, 'var', 'test-output', 'm4-test-report');
 const SCREENSHOTS_DIR = path.join(REPORT_DIR, 'screenshots');
 
 const SESSION_CLEAN = path.join(SESSIONS_DIR, 'session_20260510T093245Z_circuit-de-barcelona_lmu.parquet');

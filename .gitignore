@@ -11,9 +11,15 @@ venv/
 .mypy_cache/
 .ruff_cache/
 *.parquet.tmp
-m*-test-report/
-f1f2-test-report/
-f8f9f10f11-test-report/
+/*-test-report/
+/screenshots/
+/out.txt
+var/test-output/*
+!var/test-output/README.md
+var/screenshots/*
+!var/screenshots/README.md
+var/tmp/*
+!var/tmp/README.md
 node_modules/
 package-lock.json
 

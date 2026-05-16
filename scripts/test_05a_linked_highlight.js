@@ -13,7 +13,7 @@ const { startServer } = require('./lib/test-server');
 
 const ROOT = path.resolve(__dirname, '..');
 const WEB_DIR = path.join(ROOT, 'web');
-const REPORT_DIR = path.join(ROOT, '05a-test-report');
+const REPORT_DIR = path.join(ROOT, 'var', 'test-output', '05a-test-report');
 const SHOTS_DIR = path.join(REPORT_DIR, 'screenshots');
 fs.mkdirSync(SHOTS_DIR, { recursive: true });
 
