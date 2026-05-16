@@ -68,7 +68,7 @@ Create the next slice folder (`02-<next-slice>/`) with its own `prompt.md`, `art
 
 ## Key guardrails
 
-- **One subphase at a time.** Never bundle slices.
+- **One slice at a time.** Never bundle slices.
 - **YAGNI.** Only build what the current slice needs.
 - **200-line default ceiling, 437-line hard ceiling** per file. One file, one job.
 - **Read three nearby files** before adding a new one, to follow existing patterns.

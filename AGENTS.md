@@ -1,24 +1,24 @@
-# AGENTS.md — standing rules for every phase of this project
+# AGENTS.md — standing rules for every slice of this project
 
-These rules apply to every commit you make, on every phase. They override
+These rules apply to every commit you make, on every slice. They override
 convenience. Pi loads this file automatically at startup; you do not need
 to be reminded of these rules in each prompt.
 
 ## XP working agreements
 
-1. **One subphase at a time.** Never bundle two subphases into one delivery.
+1. **One slice at a time.** Never bundle two slices into one delivery.
 2. **Test-first.** Write the failing test before the code that makes it pass.
-3. **Commit cadence: small and green.** Many small commits per subphase, each
+3. **Commit cadence: small and green.** Many small commits per slice, each
    one passing the existing test suite. No "WIP" commits.
 4. **Refactor commits are separate from behavior commits.** Refactor commits
    start with `refactor:` and must not change rendered output.
-5. **YAGNI is an active veto.** Develop only what is needed to complete the sub-phase you are on, nothing else. Keep it focused and simple. 
+5. **YAGNI is an active veto.** Develop only what is needed to complete the slice you are on, nothing else. Keep it focused and simple. 
 6. **The simplest thing that could possibly work.** Optimize only when a
-   later subphase reveals a real problem.
+   later slice reveals a real problem.
 7. **Spike, then stabilize.** For unknowns, write a throwaway spike, learn,
    throw it away, then implement properly with tests. Do not ship the spike.
-8. **Stop at green.** When this subphase's acceptance passes, commit, write
-   your handoff, exit. Do not start the next subphase.
+8. **Stop at green.** When this slice's acceptance passes, commit, write
+   your handoff, exit. Do not start the next slice.
 9. **When in doubt, ask.** If anything is ambiguous, STOP and ask.
 10. **Narrate decisions in commit messages.** Explain *why*, not just *what*.
 
@@ -30,7 +30,7 @@ to be reminded of these rules in each prompt.
 - **Hard ceiling: 437 lines per file. No file may exceed this, ever.**
 - One file, one job.
 
-## Required artifacts at end of every phase
+## Required artifacts at end of every slice
 
 You are not done until all of these exist:
 
@@ -88,6 +88,6 @@ makes it hard to spot failures.
 
 ## Standing orders
 
-- Start only the subphase named in your current prompt.
+- Start only the slice named in your current prompt.
 - Ask before modifying `AGENTS.md` or `track-heatmap-spec.md`.
 - Start with a specific and focused implementation, refactor only as needed to respect SOLID rules and YAGNI.
