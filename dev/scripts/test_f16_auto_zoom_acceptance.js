@@ -88,9 +88,12 @@ async function loadSessionAndCompare(page) {
       sp.dispatchEvent(new Event('change'));
     }
   });
-  await page.waitForFunction(() =>
-    document.querySelectorAll('#panels .panel-svg').length >= 2, { timeout: 10000 });
-  await page.waitForFunction(() => window.__getZoomRange?.() != null, { timeout: 5000 });
+  // Combined readiness check: panels rendered and zoom range ready
+  await page.waitForFunction(() => {
+    const panels = document.querySelectorAll('#panels .panel-svg');
+    const zoom = window.__getZoomRange?.();
+    return panels.length >= 2 && zoom != null;
+  }, { timeout: 10000 });
 }
 
 const GRID = 5; // 5×5 sampling grid
@@ -113,18 +116,20 @@ async function runTests() {
       window.__setFeatureFlag('mapLinkedHighlight', true);
       window.__setFeatureFlag('mapAutoZoom', true);
     });
-    await page.waitForTimeout(200);
+    // Wait for feature flags to be applied
+    await page.waitForFunction(() => {
+      const f = window.__features;
+      return f && f.mapLinkedHighlight === true && f.mapAutoZoom === true;
+    }, { timeout: 2000 });
 
     // SC1: verify auto-zoom doesn't modify the map when range is full-track.
-    // computeSegmentBounds uses index-based filtering; with raw data
-    // (non-resampled), the full-track range 0–4650 selects indices 0–4650
-    // which is a subset of the 26k+ points. So we check the visual result
-    // instead: canvas should be the same with and without autoZoom.
+    // Batch state read in single round-trip
     const s1 = await page.evaluate(() => ({
       autoZoom: window.__features.mapAutoZoom,
       linkedHL: window.__features.mapLinkedHighlight,
       zoomStart: window.__getZoomRange().start,
       zoomEnd: window.__getZoomRange().end,
+      mapState: window.__mapZoomPanState,
     }));
     assert(s1.autoZoom === true, 'SC1: mapAutoZoom enabled', String(s1.autoZoom));
     assert(s1.linkedHL === true, 'SC1: mapLinkedHighlight enabled', String(s1.linkedHL));
@@ -135,13 +140,43 @@ async function runTests() {
     // ── SC2: Auto-zoom activates on zoom range ──────────────────────────────
     console.log('\n════ SCENARIO 2: Auto-zoom activates ════');
     await page.evaluate(() => window.__setZoomRange(300, 700));
-    await page.waitForTimeout(300);
+    // Wait for zoom range to be applied
+    await page.waitForFunction(
+      ([start, end]) => {
+        const z = window.__getZoomRange();
+        return z && z.start === start && z.end === end;
+      },
+      [300, 700],
+      { timeout: 2000 }
+    );
 
-    const s2range = await page.evaluate(() => window.__getZoomRange());
-    assert(s2range.start === 300, 'SC2: zoom start is 300', `start=${s2range.start}`);
-    assert(s2range.end === 700, 'SC2: zoom end is 700', `end=${s2range.end}`);
+    // Batch state read: zoom range + canvas pixels in one round-trip
+    const s2state = await page.evaluate(() => {
+      const canvas = document.getElementById('track-heatmap-canvas');
+      if (!canvas) return null;
+      const ctx = canvas.getContext('2d');
+      const w = canvas.width, h = canvas.height;
+      const GRID = 5;
+      const pts = [];
+      for (let py = 0; py < GRID; py++) {
+        for (let px = 0; px < GRID; px++) {
+          const x = Math.floor(w * (px + 1) / (GRID + 1));
+          const y = Math.floor(h * (py + 1) / (GRID + 1));
+          const d = ctx.getImageData(x, y, 1, 1).data;
+          pts.push({ r: d[0], g: d[1], b: d[2], a: d[3] });
+        }
+      }
+      return {
+        zoom: window.__getZoomRange(),
+        mapState: window.__mapZoomPanState,
+        canvas: { w, h, pixels: pts },
+      };
+    });
+    assert(s2state !== null, 'SC2: canvas state read succeeded');
+    assert(s2state.zoom.start === 300, 'SC2: zoom start is 300', `start=${s2state.zoom.start}`);
+    assert(s2state.zoom.end === 700, 'SC2: zoom end is 700', `end=${s2state.zoom.end}`);
 
-    const s2pts = await sampleGrid(page, GRID, GRID);
+    const s2pts = s2state.canvas.pixels;
     const sc2cmp = countMatching(fullTrack, s2pts);
     assert(sc2cmp.matches < sc2cmp.total,
       'SC2: canvas pixels changed after auto-zoom',
@@ -154,12 +189,42 @@ async function runTests() {
     // ── SC3: Auto-zoom resets on clear ──────────────────────────────────────
     console.log('\n════ SCENARIO 3: Auto-zoom resets on clear ════');
     await page.evaluate(() => window.__clearZoomRange());
-    await page.waitForTimeout(300);
+    // Wait for zoom range to be cleared
+    await page.waitForFunction(
+      () => {
+        const z = window.__getZoomRange();
+        return z && z.start === 0;
+      },
+      [],
+      { timeout: 2000 }
+    );
 
-    const s3zoom = await page.evaluate(() => window.__getZoomRange());
-    assert(s3zoom.start === 0, 'SC3: zoom starts at 0 after clear', `start=${s3zoom.start}`);
+    // Batch state read: zoom range + canvas pixels in one round-trip
+    const s3state = await page.evaluate(() => {
+      const canvas = document.getElementById('track-heatmap-canvas');
+      if (!canvas) return null;
+      const ctx = canvas.getContext('2d');
+      const w = canvas.width, h = canvas.height;
+      const GRID = 5;
+      const pts = [];
+      for (let py = 0; py < GRID; py++) {
+        for (let px = 0; px < GRID; px++) {
+          const x = Math.floor(w * (px + 1) / (GRID + 1));
+          const y = Math.floor(h * (py + 1) / (GRID + 1));
+          const d = ctx.getImageData(x, y, 1, 1).data;
+          pts.push({ r: d[0], g: d[1], b: d[2], a: d[3] });
+        }
+      }
+      return {
+        zoom: window.__getZoomRange(),
+        mapState: window.__mapZoomPanState,
+        canvas: { w, h, pixels: pts },
+      };
+    });
+    assert(s3state !== null, 'SC3: canvas state read succeeded');
+    assert(s3state.zoom.start === 0, 'SC3: zoom starts at 0 after clear', `start=${s3state.zoom.start}`);
 
-    const s3pts = await sampleGrid(page, GRID, GRID);
+    const s3pts = s3state.canvas.pixels;
     const sc3cmp = countMatching(fullTrack, s3pts);
     assert(sc3cmp.matches >= sc3cmp.total * 0.8,
       'SC3: canvas returns to full-track rendering',
@@ -173,12 +238,21 @@ async function runTests() {
       window.__setFeatureFlag('mapAutoZoom', false);
       window.__clearZoomRange();
     });
-    await page.waitForTimeout(300);
+    // Wait for feature flag and zoom range to be applied
+    await page.waitForFunction(() => {
+      const f = window.__features;
+      const z = window.__getZoomRange();
+      return f && f.mapAutoZoom === false && z && z.start === 0;
+    }, { timeout: 2000 });
 
     const s4before = await sampleGrid(page, 3, 3);
 
     await page.evaluate(() => window.__setFeatureFlag('mapAutoZoom', true));
-    await page.waitForTimeout(300);
+    // Wait for feature flag to be applied
+    await page.waitForFunction(() => {
+      const f = window.__features;
+      return f && f.mapAutoZoom === true;
+    }, { timeout: 2000 });
 
     const s4after = await sampleGrid(page, 3, 3);
     const s4cmp = countMatching(s4before, s4after);
@@ -188,6 +262,7 @@ async function runTests() {
 
     // ── SC5: computeSegmentBounds consistency ──────────────────────────────
     console.log('\n════ SCENARIO 5: computeSegmentBounds deterministic ════');
+    // Batch computation in single round-trip
     const s5 = await page.evaluate(() => {
       const key = window.__getSessionKeys()[0];
       const d = window.__getSessionData(key);
@@ -196,7 +271,7 @@ async function runTests() {
       const range = { start: 100, end: 500 };
       const b1 = window.__computeSegmentBounds(lapA, range);
       const b2 = window.__computeSegmentBounds(lapA, range);
-      return { b1, b2 };
+      return { b1, b2, range };
     });
     assert(s5.b1 !== null, 'SC5: computeSegmentBounds non-null for range 100–500');
     if (s5.b1 && s5.b2) {
@@ -213,12 +288,21 @@ async function runTests() {
       window.__setFeatureFlag('mapAutoZoom', true);
       window.__setZoomRange(300, 700);
     });
-    await page.waitForTimeout(400);
+    // Wait for zoom range to be applied
+    await page.waitForFunction(
+      ([start, end]) => {
+        const z = window.__getZoomRange();
+        return z && z.start === start && z.end === end;
+      },
+      [300, 700],
+      { timeout: 2000 }
+    );
 
+    // Batch state read in single round-trip
     const s6 = await page.evaluate(() => {
       const state = window.__mapZoomPanState;
       const zoom = window.__getZoomRange();
-      return { scale: state?.scale, zoomStart: zoom?.start, zoomEnd: zoom?.end };
+      return { scale: state?.scale, tx: state?.tx, ty: state?.ty, zoomStart: zoom?.start, zoomEnd: zoom?.end };
     });
     assert(s6.zoomStart === 300 && s6.zoomEnd === 700,
       'SC6: zoom range set with mapZoomPan', `start=${s6.zoomStart} end=${s6.zoomEnd}`);
@@ -233,13 +317,18 @@ async function runTests() {
     assert(box6 !== null, 'SC6: canvas has bounding box');
     if (box6) {
       await page.mouse.dblclick(box6.x + box6.width / 2, box6.y + box6.height / 2);
-      await page.waitForTimeout(400);
+      // Wait for map state to stabilize after double-click reset
+      await page.waitForFunction(() => {
+        const s = window.__mapZoomPanState;
+        return s && s.scale === 1;
+      }, { timeout: 2000 });
     }
 
+    // Batch state read in single round-trip
     const s6dbl = await page.evaluate(() => {
       const state = window.__mapZoomPanState;
       const zoom = window.__getZoomRange();
-      return { scale: state?.scale, zoomStart: zoom?.start, zoomEnd: zoom?.end };
+      return { scale: state?.scale, tx: state?.tx, ty: state?.ty, zoomStart: zoom?.start, zoomEnd: zoom?.end };
     });
     assert(s6dbl.zoomStart === 300 && s6dbl.zoomEnd === 700,
       'SC6: zoom range persists after dblclick',

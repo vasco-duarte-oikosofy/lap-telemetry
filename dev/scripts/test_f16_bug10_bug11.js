@@ -49,9 +49,12 @@ async function loadSession(page) {
       document.getElementById('session-picker').dispatchEvent(new Event('change'));
     }
   });
-  await page.waitForFunction(() =>
-    document.querySelectorAll('#panels .panel-svg').length >= 2, { timeout: 10000 });
-  await page.waitForFunction(() => window.__getZoomRange?.() != null, { timeout: 5000 });
+  // Combined readiness check: panels rendered and zoom range ready
+  await page.waitForFunction(() => {
+    const panels = document.querySelectorAll('#panels .panel-svg');
+    const zoom = window.__getZoomRange?.();
+    return panels.length >= 2 && zoom != null;
+  }, { timeout: 10000 });
 }
 
 /** Sample canvas pixels on a grid. */
@@ -141,8 +144,17 @@ async function runTests() {
       window.__setFeatureFlag('mapAutoZoom', true);
       window.__setZoomRange(300, 700);
     });
-    await page.waitForTimeout(300);
+    // Wait for zoom range to be applied
+    await page.waitForFunction(
+      ([start, end]) => {
+        const z = window.__getZoomRange();
+        return z && z.start === start && z.end === end;
+      },
+      [300, 700],
+      { timeout: 2000 }
+    );
 
+    // Batch state read in single round-trip
     const b10_state0 = await page.evaluate(() => ({
       mapState: window.__mapZoomPanState,
       zoom: window.__getZoomRange(),
@@ -163,7 +175,8 @@ async function runTests() {
       await page.mouse.down();
       await page.mouse.move(box10.x + 150, box10.y + 50, { steps: 10 });
       await page.mouse.up();
-      await page.waitForTimeout(300);
+      // Wait for pan state to stabilize
+      await page.waitForFunction(() => window.__mapZoomPanState != null, { timeout: 2000 });
 
       const b10_afterPan = await page.evaluate(() => window.__mapZoomPanState);
       // The pan should NOT be reset to 0 — the user's pan should persist
@@ -177,7 +190,15 @@ async function runTests() {
     // ── BUG 10 follow-up: panning with no selection should also work ──────
     console.log('\n════ BUG 10 follow-up: pan with no selection ════');
     await page.evaluate(() => window.__clearZoomRange());
-    await page.waitForTimeout(300);
+    // Wait for zoom range to be cleared
+    await page.waitForFunction(
+      () => {
+        const z = window.__getZoomRange();
+        return z && z.start === 0 && z.end === 4650; // full track
+      },
+      [],
+      { timeout: 2000 }
+    );
 
     // Reset user transform before testing
     const canvas10b = await page.$('#track-heatmap-canvas');
@@ -185,7 +206,10 @@ async function runTests() {
     if (box10b) {
       // Double-click to reset any existing pan
       await page.mouse.dblclick(box10b.x + box10b.width / 2, box10b.y + box10b.height / 2);
-      await page.waitForTimeout(200);
+      await page.waitForFunction(() => {
+        const s = window.__mapZoomPanState;
+        return s && s.tx === 0 && s.ty === 0;
+      }, { timeout: 2000 });
     }
 
     const b10b_state0 = await page.evaluate(() => window.__mapZoomPanState);
@@ -197,7 +221,7 @@ async function runTests() {
     await page.mouse.down();
     await page.mouse.move(box10b.x + 200, box10b.y + 50, { steps: 10 });
     await page.mouse.up();
-    await page.waitForTimeout(300);
+    await page.waitForFunction(() => window.__mapZoomPanState != null, { timeout: 2000 });
 
     const b10b_afterPan = await page.evaluate(() => window.__mapZoomPanState);
     assert(b10b_afterPan.tx !== 0,
@@ -216,25 +240,79 @@ async function runTests() {
       window.__setFeatureFlag('mapAutoZoom', true);
       window.__setZoomRange(1000, 2000);
     });
-    await page.waitForTimeout(300);
+    // Wait for zoom range to be applied
+    await page.waitForFunction(
+      ([start, end]) => {
+        const z = window.__getZoomRange();
+        return z && z.start === start && z.end === end;
+      },
+      [1000, 2000],
+      { timeout: 2000 }
+    );
 
-    const b11_range1 = await page.evaluate(() => window.__getZoomRange());
-    assert(b11_range1.start === 1000 && b11_range1.end === 2000,
-      'B11: initial range set', `start=${b11_range1.start} end=${b11_range1.end}`);
-
-    const b11_analysis1 = await analyzeCanvas(page);
-    assert(b11_analysis1 !== null, 'B11: canvas analysis 1 succeeded');
+    // Batch state read: zoom range + canvas analysis in one round-trip
+    const b11_state1 = await page.evaluate(() => {
+      const canvas = document.getElementById('track-heatmap-canvas');
+      if (!canvas) return null;
+      const ctx = canvas.getContext('2d');
+      const w = canvas.width, h = canvas.height;
+      const pixels = [];
+      for (let py = 0; py < 10; py++) {
+        for (let px = 0; px < 10; px++) {
+          const x = Math.floor(w * (px + 1) / 11);
+          const y = Math.floor(h * (py + 1) / 11);
+          const d = ctx.getImageData(x, y, 1, 1).data;
+          pixels.push({ r: d[0], g: d[1], b: d[2], a: d[3] });
+        }
+      }
+      return {
+        zoom: window.__getZoomRange(),
+        mapState: window.__mapZoomPanState,
+        canvas: { w, h, pixels },
+      };
+    });
+    assert(b11_state1 !== null, 'B11: canvas analysis 1 succeeded');
+    assert(b11_state1.zoom.start === 1000 && b11_state1.zoom.end === 2000,
+      'B11: initial range set', `start=${b11_state1.zoom.start} end=${b11_state1.zoom.end}`);
+    const b11_analysis1 = b11_state1.canvas;
 
     // Change to a dramatically different range — auto-zoom should update
     await page.evaluate(() => window.__setZoomRange(3000, 4000));
-    await page.waitForTimeout(300);
+    // Wait for zoom range to be applied
+    await page.waitForFunction(
+      ([start, end]) => {
+        const z = window.__getZoomRange();
+        return z && z.start === start && z.end === end;
+      },
+      [3000, 4000],
+      { timeout: 2000 }
+    );
 
-    const b11_range2 = await page.evaluate(() => window.__getZoomRange());
-    assert(b11_range2.start === 3000 && b11_range2.end === 4000,
-      'B11: second range set', `start=${b11_range2.start} end=${b11_range2.end}`);
-
-    const b11_analysis2 = await analyzeCanvas(page);
-    assert(b11_analysis2 !== null, 'B11: canvas analysis 2 succeeded');
+    // Batch state read: zoom range + canvas analysis in one round-trip
+    const b11_state2 = await page.evaluate(() => {
+      const canvas = document.getElementById('track-heatmap-canvas');
+      if (!canvas) return null;
+      const ctx = canvas.getContext('2d');
+      const w = canvas.width, h = canvas.height;
+      const pixels = [];
+      for (let py = 0; py < 10; py++) {
+        for (let px = 0; px < 10; px++) {
+          const x = Math.floor(w * (px + 1) / 11);
+          const y = Math.floor(h * (py + 1) / 11);
+          const d = ctx.getImageData(x, y, 1, 1).data;
+          pixels.push({ r: d[0], g: d[1], b: d[2], a: d[3] });
+        }
+      }
+      return {
+        zoom: window.__getZoomRange(),
+        mapState: window.__mapZoomPanState,
+        canvas: { w, h, pixels },
+      };
+    });
+    assert(b11_state2 !== null, 'B11: canvas analysis 2 succeeded');
+    assert(b11_state2.zoom.start === 3000 && b11_state2.zoom.end === 4000,
+      'B11: second range set', `start=${b11_state2.zoom.start} end=${b11_state2.zoom.end}`);
+    const b11_analysis2 = b11_state2.canvas;
 
     // The map should show a different portion of track
     const cmp1 = compareCanvas(b11_analysis1, b11_analysis2);
@@ -244,7 +322,15 @@ async function runTests() {
 
     // Now narrow the range further (sub-selection)
     await page.evaluate(() => window.__setZoomRange(3200, 3600));
-    await page.waitForTimeout(300);
+    // Wait for zoom range to be applied
+    await page.waitForFunction(
+      ([start, end]) => {
+        const z = window.__getZoomRange();
+        return z && z.start === start && z.end === end;
+      },
+      [3200, 3600],
+      { timeout: 2000 }
+    );
 
     const b11_analysis3 = await analyzeCanvas(page);
 
