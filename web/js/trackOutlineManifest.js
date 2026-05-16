@@ -12,6 +12,7 @@
 import { SPA_STATIC_OUTLINE } from './staticSpaOutlineData.js';
 import { CIRCUIT_BARCELONA_STATIC_OUTLINE } from './staticCircuitBarcelonaOutlineData.js';
 import { BAHRAIN_OUTLINE_STATIC_OUTLINE } from './staticBahrain_outlineOutlineData.js';
+import { FUJI_SPEEDWAY_OUTLINE_STATIC_OUTLINE } from './staticFujiSpeedway_outlineOutlineData.js';
 
 // slug normalization: lowercase, collapse whitespace to single dash, strip non-alnum/dash
 function slugify(name) {
@@ -30,6 +31,9 @@ const OUTLINES = new Map([
   // Bahrain International Circuit
   ['bahrain-international-circuit', BAHRAIN_OUTLINE_STATIC_OUTLINE],
   ['bahrain', BAHRAIN_OUTLINE_STATIC_OUTLINE],
+  // Fuji Speedway
+  ['fuji-speedway', FUJI_SPEEDWAY_OUTLINE_STATIC_OUTLINE],
+  ['fuji', FUJI_SPEEDWAY_OUTLINE_STATIC_OUTLINE],
 ]);
 
 /**
