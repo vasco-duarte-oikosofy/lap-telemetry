@@ -6,10 +6,10 @@ This folder is for things needed to build, test, inspect, or evolve the product,
 
 ## Belongs here
 
-- Test runners and development scripts.
-- One-off or reusable development tools.
+- `scripts/` — test runners, build implementation scripts, and development automation.
+- `tools/` — one-off or reusable development tools.
+- `sessions/` — tracked development session data used by tests and exploration.
 - Test fixtures.
-- Tracked development data, including future `dev/sessions/`.
 
 ## Does not belong here
 
