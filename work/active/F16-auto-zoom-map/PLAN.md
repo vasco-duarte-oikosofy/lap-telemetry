@@ -14,7 +14,7 @@
 |---|---|---|
 | `01-feature-flag-and-wiring` | ✅ Completed | `mapAutoZoom: false` flag in dropdown, Playwright test verifies flag state |
 | `02-compute-segment-bounds` | ✅ Completed | `computeSegmentBounds()` returns bounding box for visible range; Node unit tests for edge cases |
-| `03-auto-zoom-transform` | ✅ Completed (bug fix: infinite loop + no-visual-effect) | Map auto-zooms to segment when flag + highlight are on, resets on zoom clear |
+| `03-auto-zoom-transform` | 🔧 Fixing bugs | Map auto-zooms to segment when flag + highlight are on, resets on zoom clear |
 | `04-playwright-acceptance-test` | 🔲 Not started | Playwright test verifies auto-zoom behaviour; trials `domcontentloaded` + batched evaluate optimisation patterns|
 
 ---
@@ -26,3 +26,7 @@
 - The linked highlight band is drawn by `drawLinkedHighlight()` in `trackHeatmapDrawing.js` when `mapLinkedHighlight` is on and `visibleRange` is present.
 - `mapInteraction.js` provides `setState({ scale, tx, ty })` for programmatic zoom/pan control.
 - `currentZoomRange` (renamed `visibleRange` in map context) is computed in `main.js` and passed through the controller.
+
+## Bug log
+
+See [`BUGS.md`](./BUGS.md) for the full list of bugs found during implementation, including root causes and fixes applied. Open bugs (5–9) are still being resolved.
