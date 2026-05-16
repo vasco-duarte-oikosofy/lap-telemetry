@@ -15,7 +15,7 @@
 | `01-feature-flag-and-wiring` | ✅ Completed | `mapAutoZoom: false` flag in dropdown, Playwright test verifies flag state |
 | `02-compute-segment-bounds` | ✅ Completed | `computeSegmentBounds()` returns bounding box for visible range; Node unit tests for edge cases |
 | `03-auto-zoom-transform` | 🔧 Fixing bugs | Map auto-zooms to segment when flag + highlight are on, resets on zoom clear |
-| `04-playwright-acceptance-test` | 🔲 Not started | Playwright test verifies auto-zoom behaviour; trials `domcontentloaded` + batched evaluate optimisation patterns|
+| `04-playwright-acceptance-test` | 🔲 Not started | Playwright test verifies auto-zoom behaviour; exercises known bugs 5–9 from BUGS.md |
 
 ---
 
