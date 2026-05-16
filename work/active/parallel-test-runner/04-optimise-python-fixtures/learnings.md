@@ -10,7 +10,9 @@
 
 4. **The `ParquetFixtureBuilder` pattern is reusable.** Any future test that needs synthetic Parquet fixtures can use `const b = new ParquetFixtureBuilder(); ...; b.flush()` instead of per-file `spawnSync`. The `WIDTH_PROFILE_COLS` and `CENTER_PATH_COLS` presets cover the two schemas used across all tests.
 
-5. **The < 10 s target is now achievable without dual-pool concurrency.** At ~7 s with the default single-pool runner, the fixture optimisation alone gets us under 10 s. Dual-pool concurrency (slice 03) would push this even lower.
+5. **`test_m4.js` was silently broken.** It used outdated selectors (`#lap-picker`, `#session-input`, `#ref-input`), a broken HTTP server that only served HTML (wrong MIME types for JS modules), and a resampler cross-check that compared incompatible data paths. The test was never in the package.json test suite, so it was never detected as broken. Fixed by using the shared `startServer()` helper and current UI selectors.
+
+6. **The < 10 s target is now achievable without dual-pool concurrency.** At ~7 s with the default single-pool runner, the fixture optimisation alone gets us under 10 s. Dual-pool concurrency (slice 03) would push this even lower.
 
 ## What the next agent needs
 

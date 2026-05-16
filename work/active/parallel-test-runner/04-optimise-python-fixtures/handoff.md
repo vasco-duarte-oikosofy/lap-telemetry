@@ -13,12 +13,15 @@
 - `dev/scripts/test_width_profile_confidence.js` — replaced 3 `buildParquet()` + removed Test 12 (re-ran export test)
 - `dev/scripts/test_width_profile_smoothing.js` — replaced 2–3 `buildParquet()` + removed Test 9 (re-ran export + confidence tests)
 - `dev/scripts/test_center_path_export.js` — replaced 10 `buildParquet()` calls with batched approach
+- `dev/scripts/test_m4.js` — complete rewrite: fixed broken HTTP server, outdated selectors, broken resampler cross-check
+- `package.json` — added `test_m4.js` to test suite (was missing)
 
 ## What's on disk now
 
-- Full suite: **ALL PASS — 828 assertions across 36 test scripts in ~7 s**
-- Parquet fixture module: `dev/scripts/parquet-fixture.js`
-- Removed 5 redundant assertions (833 → 828), all re-runs of other test files
+- Full suite: **ALL PASS — 842 assertions across 37 test scripts in ~7 s**
+- test_m4.js was silently broken (wrong selectors, broken HTTP server) — now fixed with 14 passing assertions
+- Package.json: added test_m4.js to suite (was missing)
+- Net change: 833 → 842 (gained 14 from fixing m4, lost 5 from removing redundant re-runs)
 - Build: `npm run build` succeeds
 
 ## Performance improvement
@@ -39,5 +42,4 @@
 
 - Slice 03 (dual-pool concurrency for Node/Playwright) still pending
 - Slice 05 (runner self-test) still pending
-- Consider: the 4 remaining Python-invoking tests (m4/m5/m6/m6_extras) still call `spawnSync('python3')` inline but are fast enough not to bottleneck (each <3 s)
-- Consider: `test_m4.js` still fails with 0 assertions (pre-existing issue, not related to this slice)
+- Consider: the remaining Python-invoking tests (m5/m6/m6_extras) still call `spawnSync('python3')` inline but are fast enough not to bottleneck
