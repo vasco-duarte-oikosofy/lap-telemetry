@@ -4,6 +4,24 @@ These rules apply to every commit you make, on every slice. They override
 convenience. Pi loads this file automatically at startup; you do not need
 to be reminded of these rules in each prompt.
 
+## ⛔ UNSKIPPABLE: One slice at a time — no exceptions
+
+You are **only allowed to work on one slice at a time**. This rule is
+non-negotiable and overrides every other consideration:
+
+- **One slice.** You must identify exactly one slice from a `prompt.md` in
+  the current mission's slice folder. That is the only work you may do.
+- **If you are unsure which slice to work on**, you **must stop immediately**
+  and ask the user: *"Which slice should I work on?"* Do not guess. Do not
+  pick one yourself. Do not continue until you have explicit confirmation.
+- **No scope creep.** You may not touch files, add features, or refactor
+  anything outside the scope of the single confirmed slice.
+- **When the slice is done, stop.** Do not start the next slice. Do not
+  "clean up" neighboring code. Commit, write your handoff, and exit.
+
+If you ever find yourself editing files that are not required by the current
+slice's `prompt.md`, you are breaking this rule. Stop and reconfirm.
+
 ## XP working agreements
 
 1. **One slice at a time.** Never bundle two slices into one delivery.
