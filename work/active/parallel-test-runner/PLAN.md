@@ -14,8 +14,9 @@
 |---|---|---|
 | `01-annotate-tests` | ✅ Complete | Every test script has a `// @parallel` header; sequential suite still passes |
 | `02-parallel-runner-node` | ✅ Complete | Runner executes all @parallel true tests concurrently; output contract matches; single-test rerun works; 3 silently-broken tests fixed |
-| `03-parallel-runner-playwright` | 🔲 Not started | Dual-pool concurrency (Node unlimited, PW bounded); ~15 s wall-time; spec updated with realistic target |
-| `04-runner-self-test` | 🔲 Not started | Self-test verifies runner output format and exit-code behaviour with tiny fixture scripts |
+| `03-parallel-runner-playwright` | 🔲 Not started | Dual-pool concurrency (Node unlimited, PW bounded); spec updated to document realistic target and bottleneck |
+| `04-optimise-python-fixtures` | ✅ Complete | Batch Parquet fixture creation; remove redundant re-run tests; full suite ≈ 7 s (< 10 s target achieved) |
+| `05-runner-self-test` | 🔲 Not started | Self-test verifies runner output format and exit-code behaviour with tiny fixture scripts |
 
 ---
 
@@ -25,3 +26,8 @@
 - All Playwright tests are already isolated (random port, separate report dirs)
 - Dev machine has 14 cores
 - Current runner: `dev/scripts/test-summary.sh` (sequential bash loop)
+- 4 Python-invoking Node tests are the wall-time bottleneck (2.6–7.6 s each)
+  - Each calls `spawnSync('python3', ...)` up to 9 times to create synthetic Parquet fixtures
+  - 10 sequential Python spawns take ~3 s; 1 batched spawn takes ~0.3 s (10× speedup)
+  - 3 tests re-invoke other test scripts via `spawnSync('node', [...])`, adding redundant overhead
+- Spec target remains < 10 s; achieving it requires both dual-pool concurrency AND Python fixture optimisation
