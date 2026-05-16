@@ -4,6 +4,48 @@ Read this file before writing a new test or debugging a failing one.
 
 ---
 
+## L0. Every assertion must print `[PASS]` or `[FAIL]`
+
+**Rule.** Every test script must print a `[PASS]` or `[FAIL]` line for each
+assertion. This is the protocol that `run-tests-parallel.js` uses to count
+assertions and detect failures. Tests that crash silently (exit non-zero with
+no `[PASS]`/`[FAIL]` output) are invisible to the runner and **will be missed**.
+
+```javascript
+// ✗ Wrong — silent assertions, invisible to the runner
+assert.deepStrictEqual(SPA_STATIC_OUTLINE, source);
+assert.equal(parsed.schema_version, 0);
+assert(svg.includes('left_boundary'), 'left boundary');
+console.log('test passed');
+
+// ✓ Right — every assertion reports itself
+function ok(condition, label) {
+  if (condition) { pass++; console.log(`  [PASS] ${label}`); }
+  else           { fail++; console.log(`  [FAIL] ${label}`); }
+}
+ok(SPA_STATIC_OUTLINE != null, 'SPA_STATIC_OUTLINE is exported');
+ok(parsed.schema_version === 0, `schema_version is 0 → ${parsed.schema_version}`);
+```
+
+**Exit code.** Every test must `process.exit(1)` on failure. The parallel
+runner detects failures by both `[FAIL]` lines **and** non-zero exit codes.
+A test that prints errors but exits 0 is a silent failure — the runner will
+not catch it.
+
+**Summary line.** Print a summary at the end:
+```javascript
+const total = pass + fail;
+console.log(`\n  ${pass}/${total} assertions passed`);
+if (fail > 0) { process.exit(1); }
+```
+
+**Why this matters.** The parallel runner (`run-tests-parallel.js`) counts
+`[PASS]` lines to produce `ALL PASS — N assertions across M test scripts`.
+It detects failures by `[FAIL]` lines or non-zero exit codes. Without these
+patterns, a broken test looks like it passed.
+
+---
+
 ## L1. Use `.hover()` with relative positions, not `mouse.move()` with absolute coordinates
 
 **Problem.** `page.mouse.move(box.x + box.width/2, box.y + box.height/2)` uses
