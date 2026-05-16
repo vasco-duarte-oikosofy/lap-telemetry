@@ -34,12 +34,12 @@ current tests are safe to run in parallel with bounded concurrency.
 
 ## Expected benefit
 
-| Metric                        | Before | After (target) |
-|-------------------------------|-------:|:---------------|
-| Full-suite wall-time          | ~42 s  | < 10 s         |
-| Output contract               | same   | unchanged      |
-| Single-test rerun             | works  | unchanged      |
-| New-test opt-in               | none   | `// @parallel true` comment |
+| Metric                        | Before | After (target) | After (achieved) |
+|-------------------------------|-------:|:---------------|:----------------- |
+| Full-suite wall-time          | ~42 s  | < 10 s         | ~7 s             |
+| Output contract               | same   | unchanged      | unchanged        |
+| Single-test rerun             | works  | unchanged      | unchanged        |
+| New-test opt-in               | none   | `// @parallel true` comment | `// @parallel true` comment |
 
 With 14 cores available and a concurrency limit of 6 Playwright processes, 18
 Playwright tests complete in 3 batches × ~2.5 s ≈ 7.5 s. The 18 Node tests
