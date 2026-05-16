@@ -16,7 +16,7 @@
 | `02-compute-segment-bounds` | ✅ Completed | `computeSegmentBounds()` returns bounding box for visible range; Node unit tests for edge cases |
 | `03-auto-zoom-transform` | ✅ Completed | Map auto-zooms to segment when flag + highlight are on, resets on zoom clear |
 | `04-playwright-acceptance-test` | ✅ Completed | Playwright test verifies auto-zoom behaviour; exercises known bugs 5–9 from BUGS.md |
-| `04.2-playwright-performance-test-improvements` | 🔧 In progress | Batch `page.evaluate()` calls, replace `waitForTimeout()` with `waitForFunction()`, combine readiness checks |
+| `04.2-playwright-performance-test-improvements` | ✅ Completed | Batch `page.evaluate()` calls, replace `waitForTimeout()` with `waitForFunction()`, combine readiness checks; 3.8s total savings |
 
 ---
 
