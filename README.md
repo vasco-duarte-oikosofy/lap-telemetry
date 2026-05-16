@@ -7,7 +7,7 @@ Reads the same shared memory that [TinyPedal](https://github.com/s-victor/TinyPe
 - **Recorder**: long-running CLI daemon, 50 Hz, captures `speed`, `throttle`, `brake`, `RPM`, `gear`, `steering`, `slip angle` (per axle), `ABS/TC` activity (LMU), per-frame position and lap distance.
 - **Comparison app**: a browser app under `product/web/`, bundled to `product/dist/compare.html` for standalone `file://` use. Drop in two parquet files (or a recording vs a TinyPedal `deltabest.csv`) and you get 8 panels + circuit map with synced cursor, drag-zoom, sector markers, and a smooth Δt trace.
 
-See [`docs/DESIGN.md`](docs/DESIGN.md) for the full spec and rationale.
+See [`docs/DESIGN.md`](docs/DESIGN.md) for the full spec and rationale. Planned follow-up work lives in [`docs/NEXT_STEPS.md`](docs/NEXT_STEPS.md).
 
 ## Status
 

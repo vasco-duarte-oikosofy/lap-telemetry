@@ -9,6 +9,7 @@ Key documents:
 - [`ARCHITECTURE.md`](ARCHITECTURE.md) — high-level system overview.
 - [`DESIGN.md`](DESIGN.md) — product/spec rationale and design decisions.
 - [`HOW_TO_START_A_NEW_FEATURE.md`](HOW_TO_START_A_NEW_FEATURE.md) — step-by-step process for starting a new feature.
+- [`NEXT_STEPS.md`](NEXT_STEPS.md) — prioritized backlog and deferred improvements.
 - [`RENDER_DESIGN.md`](RENDER_DESIGN.md) — browser rendering architecture.
 - [`SETUP.md`](SETUP.md) — setup walkthrough.
 - [`TESTING_LESSONS.md`](TESTING_LESSONS.md) — required test-writing guidance.

@@ -28,6 +28,7 @@ const stableDocs = [
   'SETUP.md',
   'TESTING_LESSONS.md',
   'TEST_FIX_STATUS.md',
+  'NEXT_STEPS.md',
   'track-heatmap-spec.md',
   'specs/MULTI_TRACK_TUMFTM_OUTLINE_PIPELINE.md',
   'specs/TRACK_OUTLINE_APEX_DISTANCE.md',

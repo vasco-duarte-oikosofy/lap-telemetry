@@ -16,7 +16,7 @@ See: [`dev/README.md`](dev/README.md)
 
 ## `docs/`
 
-Stable project documentation and specs that should outlive a single implementation mission.
+Stable project documentation, specs, and the prioritized backlog that should outlive a single implementation mission.
 
 See: [`docs/README.md`](docs/README.md)
 
