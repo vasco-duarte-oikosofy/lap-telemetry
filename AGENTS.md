@@ -50,6 +50,9 @@ convention documented in [`work/README.md`](work/README.md): each mission has a
 `PLAN.md`, and each vertical slice has `prompt.md`, `artifacts/`, `handoff.md`,
 and `learnings.md`.
 
+For the full step-by-step process of starting a new feature, see
+[`docs/HOW_TO_START_A_NEW_FEATURE.md`](docs/HOW_TO_START_A_NEW_FEATURE.md).
+
 ## Build instructions
 
 To build the distribution bundle:
