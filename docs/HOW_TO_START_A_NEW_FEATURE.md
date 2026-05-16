@@ -56,11 +56,12 @@ Within a slice, follow this cycle:
 
 When acceptance passes:
 
-1. Update `handoff.md` — what's on disk, feature flags, helpers, deferred TODOs
-2. Update `learnings.md` — what surprised you, context for the next agent
-3. Update the slice status in `PLAN.md` (✅ Complete)
-4. Ensure all required artifacts exist (see [AGENTS.md](../AGENTS.md))
-5. Commit and **stop** — do not start the next slice
+1. Ensure `bash scripts/test-summary.sh` exits 0 — **no failing tests may remain**. If a test was passing before your slice and is now failing, you must fix it before finishing. You may not leave failing tests "for the next slice" or skip them.
+2. Update `handoff.md` — what's on disk, feature flags, helpers, deferred TODOs
+3. Update `learnings.md` — what surprised you, context for the next agent
+4. Update the slice status in `PLAN.md` (✅ Complete)
+5. Ensure all required artifacts exist (see [AGENTS.md](../AGENTS.md))
+6. Commit and **stop** — do not start the next slice
 
 ## 7. Proceed to the next slice
 
@@ -72,4 +73,5 @@ Create the next slice folder (`02-<next-slice>/`) with its own `prompt.md`, `art
 - **YAGNI.** Only build what the current slice needs.
 - **200-line default ceiling, 437-line hard ceiling** per file. One file, one job.
 - **Read three nearby files** before adding a new one, to follow existing patterns.
+- **No failing tests left behind.** At the end of every slice, the full test suite must pass. You may not leave failing tests "for the next slice" or skip them.
 - **When in doubt, stop and ask.** If anything is ambiguous, STOP and ask.
