@@ -7,8 +7,8 @@ This plan is intentionally gated by a quick visual spike. Do not build runtime a
 | 00_quick_and_dirty_alignment_try | Build a standalone local HTML alignment tool to manually overlay TUMFTM outline geometry on one Spa simulator trajectory, export aligned outline JSON, and visually compare against current learned-boundary output | ✅ DONE — visual gate passed |
 | 01_static_outline_contract | Promote the accepted Spa alignment to a production schema v1 static artifact at `data/track-outlines/spa-francorchamps.json`; include source/alignment metadata, simulator coordinate-system notes, explicit track-name mapping metadata, and caveats that TUMFTM widths are approximate/non-official | ✅ DONE |
 | 02_runtime_static_outline_rendering | Load one explicit static outline artifact and render it behind existing trajectories in the compare UI; no manifest, aliases, editor, or runtime TUMFTM math yet | ✅ DONE |
-| 03_offline_conversion_workflow | Harden the offline CSV/trajectory preparation workflow so future accepted alignments can be reproduced; keep it outside normal app runtime | ⬜ PLANNED |
-| 04_manifest_and_aliases | Add explicit track/layout manifest and conservative aliases only after the static Spa artifact and one-outline rendering are accepted | ⬜ PLANNED |
+| 03_offline_conversion_workflow | Harden the offline CSV/trajectory preparation workflow so future accepted alignments can be reproduced; keep it outside normal app runtime | ✅ DONE — register_outline.py automates ES module generation + manifest registration + rebuild |
+| 04_manifest_and_aliases | Add explicit track/layout manifest and conservative aliases only after the static Spa artifact and one-outline rendering are accepted | ✅ DONE — register_outline.py adds accepted_sim_track_names + slugified LMU names |
 
 ## Gate after Phase 00
 
