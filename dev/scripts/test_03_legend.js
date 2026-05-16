@@ -3,6 +3,7 @@
  *
  * Run: node scripts/test_03_legend.js
  */
+// @parallel true
 
 'use strict';
 

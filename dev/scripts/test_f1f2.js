@@ -5,6 +5,7 @@
  *
  * Produces f1f2-test-report/ with screenshots, console log, REPORT.md.
  */
+// @parallel true
 
 'use strict';
 

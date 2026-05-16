@@ -3,6 +3,7 @@
  *
  * Run: node scripts/test_boundary_width_inference.js
  */
+// @parallel true
 
 'use strict';
 

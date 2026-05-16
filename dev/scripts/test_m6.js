@@ -1,3 +1,4 @@
+// @parallel true
 // M6 AFK test suite — Playwright headless test for the three M6 features:
 //   F1: lap colour customisation (CSS var change, persistence, reset)
 //   F2: ABS / TC active strips on brake / throttle panels

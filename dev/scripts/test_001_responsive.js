@@ -12,6 +12,7 @@
  *
  * Produces 001-test-report/ with screenshots and REPORT.md.
  */
+// @parallel true
 
 'use strict';
 

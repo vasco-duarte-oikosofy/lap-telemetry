@@ -3,6 +3,7 @@
  *
  * Run: node scripts/test_04_hover.js
  */
+// @parallel true
 
 'use strict';
 

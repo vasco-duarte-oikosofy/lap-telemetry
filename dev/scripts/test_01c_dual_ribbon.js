@@ -3,6 +3,7 @@
  *
  * Run: node scripts/test_01c_dual_ribbon.js
  */
+// @parallel true
 
 'use strict';
 

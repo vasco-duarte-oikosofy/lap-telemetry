@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 'use strict';
+// @parallel true
 
 const assert = require('assert');
 const { execFileSync } = require('child_process');

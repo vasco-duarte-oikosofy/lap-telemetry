@@ -3,6 +3,7 @@
  *
  * Run: node scripts/test_track_outline_recorder_channels.js
  */
+// @parallel true
 
 'use strict';
 

@@ -3,6 +3,7 @@
  *
  * Run: node scripts/test_width_profile_export.js
  */
+// @parallel true
 
 'use strict';
 

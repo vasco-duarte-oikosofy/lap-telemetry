@@ -3,6 +3,7 @@
  *
  * Run: node scripts/test_apex_metrics_surface_terrain.js
  */
+// @parallel true
 
 'use strict';
 

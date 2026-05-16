@@ -3,6 +3,7 @@
  *
  * Run: node scripts/test_boundary_smoothing.js
  */
+// @parallel true
 
 'use strict';
 

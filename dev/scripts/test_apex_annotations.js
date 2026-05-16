@@ -3,6 +3,7 @@
  *
  * Run: node scripts/test_apex_annotations.js
  */
+// @parallel true
 
 'use strict';
 

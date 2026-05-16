@@ -3,6 +3,7 @@
  *
  * Run: node scripts/test_track_outline_loader_channels.js
  */
+// @parallel true
 
 'use strict';
 

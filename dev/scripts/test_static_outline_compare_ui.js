@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 'use strict';
+// @parallel true
 
 const { chromium } = require('playwright');
 const path = require('path');

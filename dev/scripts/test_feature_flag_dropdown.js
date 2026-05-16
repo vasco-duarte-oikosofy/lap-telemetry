@@ -3,6 +3,7 @@
  *
  * Run: node scripts/test_feature_flag_dropdown.js
  */
+// @parallel true
 
 'use strict';
 

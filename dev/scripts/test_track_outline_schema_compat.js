@@ -3,6 +3,7 @@
  *
  * Run: node scripts/test_track_outline_schema_compat.js
  */
+// @parallel true
 
 'use strict';
 

@@ -3,6 +3,7 @@
  *
  * Run: node scripts/test_02_zoom_pan.js
  */
+// @parallel true
 
 'use strict';
 

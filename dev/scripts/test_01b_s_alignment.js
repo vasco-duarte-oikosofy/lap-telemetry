@@ -3,6 +3,7 @@
  *
  * Run: node scripts/test_01b_s_alignment.js
  */
+// @parallel true
 
 'use strict';
 

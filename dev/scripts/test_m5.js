@@ -5,6 +5,7 @@
  *
  * Produces m5-test-report/ with screenshots, console log, Δt diff, REPORT.md.
  */
+// @parallel true
 
 'use strict';
 

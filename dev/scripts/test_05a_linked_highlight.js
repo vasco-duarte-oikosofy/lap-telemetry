@@ -3,6 +3,7 @@
  *
  * Run: node scripts/test_05a_linked_highlight.js
  */
+// @parallel true
 
 'use strict';
 

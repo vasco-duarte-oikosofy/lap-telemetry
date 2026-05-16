@@ -3,6 +3,7 @@
  *
  * Run: node scripts/test_compute_boundaries.js
  */
+// @parallel true
 
 'use strict';
 

@@ -1,3 +1,4 @@
+// @parallel true
 // Smoke test for the four post-F4 additions:
 //   - persistent zoom (localStorage roundtrip)
 //   - sidecar metadata (parquet+json multi-load, picker labels include vehicle)

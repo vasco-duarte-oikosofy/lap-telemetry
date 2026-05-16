@@ -3,6 +3,7 @@
  *
  * Run: node scripts/test_01a_heatmap_single_lap.js
  */
+// @parallel true
 
 'use strict';
 
