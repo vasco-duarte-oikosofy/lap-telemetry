@@ -84,11 +84,12 @@ When the range is cleared, the map resets.
   - Reset `mapInteraction.setState({ scale: 1, tx: 0, ty: 0 })`.
 - When `mapAutoZoom` is off: do nothing (existing behaviour preserved).
 
-### Slice 04 — Playwright acceptance test
+### Slice 04 — Playwright acceptance test using optimised patterns
 
 **Outcome.** An automated test verifies that enabling `mapAutoZoom` with a
 zoomed chart view causes the map to zoom in on the corresponding track
-segment.
+segment. This slice also serves as a trial run of future Playwright
+optimisation ideas (see below).
 
 - Load a session, enable `mapLinkedHighlight` and `mapAutoZoom`.
 - Use the chart zoom interaction to select a distance range.
@@ -96,6 +97,39 @@ segment.
   (the map has zoomed in).
 - Reset chart zoom (double-click or Esc simulation).
 - Verify `scale === 1` (the map has reset to full-track).
+
+#### Playwright optimisation experiment
+
+The full suite runs ~7s with 19 Playwright tests (each ~3–5s). Slice 04
+is an opportunity to trial two optimisation patterns that could be adopted
+across all future PW tests if they prove reliable:
+
+1. **Replace `networkidle` with `domcontentloaded` + readiness signal.**
+   The new test uses `page.goto(url, { waitUntil: 'domcontentloaded' })`
+   followed by `page.waitForFunction(() => window.__features !== undefined)`
+   instead of the default `networkidle` wait. This saves ~0.5s per test
+   (measured: ~0.6s page load vs ~1.1s with networkidle). If this proves
+   reliable, we can update existing tests to the same pattern.
+
+2. **Batch `page.evaluate()` calls.** Instead of multiple round-trips like
+   `const scale = await page.evaluate(() => window.__mapZoomPanState.scale)`
+   and separate assertions, the test batches reads into a single
+   `page.evaluate()` that returns all needed values in one object:
+   ```js
+   const { scale, hasHighlight } = await page.evaluate(() => ({
+     scale: window.__mapZoomPanState?.scale ?? 1,
+     hasHighlight: !!document.getElementById('track-heatmap-canvas'),
+   }));
+   ```
+   This cuts IPC overhead from ~20ms per call to ~5ms. If reliable,
+   we can systematically reduce round-trips in existing tests.
+
+Both patterns are documented as future improvements in
+`work/active/parallel-test-runner/FUTURE_IMPROVEMENT_IDEAS.md`. Slice 04
+validates them in practice before adopting them broadly.
+
+If either pattern causes flakiness, the test falls back to the established
+pattern (`networkidle` + individual evaluates) with a comment explaining why.
 
 ## Architecture notes
 
