@@ -22,8 +22,7 @@ export const PANEL_DEFS = [
       { col: 'throttle_norm', trace: 'session', color: 'var(--session)', dash: false },
       { col: 'throttle_norm', trace: 'ref', color: 'var(--ref)', dash: true },
     ],
-    yFixed: [0, 1], yStep: 0.5, zeroline: false,
-    activityStrip: { col: 'tc_active', color: 'var(--throttle)' } },
+    yFixed: [0, 1], yStep: 0.5, zeroline: false },
 
   { id: 'tc', label: 'TC active', height: 50,
     channels: [
