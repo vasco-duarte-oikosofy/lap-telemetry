@@ -27,6 +27,43 @@ function toModuleNames(fileName) {
   };
 }
 
+async function findManifestImportName(moduleName) {
+  const manifestPath = path.join('product', 'web', 'js', 'trackOutlineManifest.js');
+  try {
+    const manifest = await fs.readFile(manifestPath, 'utf8');
+    const moduleFile = `./${moduleName}.js`.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const importRe = new RegExp(`import\\s*\\{\\s*([A-Za-z0-9_]+)\\s*\\}\\s*from\\s*['\"]${moduleFile}['\"]`);
+    return manifest.match(importRe)?.[1] || null;
+  } catch (err) {
+    if (err.code === 'ENOENT') return null;
+    throw err;
+  }
+}
+
+async function findExistingExportName(outPath) {
+  try {
+    const text = await fs.readFile(outPath, 'utf8');
+    return text.match(/export\s+const\s+([A-Za-z0-9_]+)\s*=/)?.[1] || null;
+  } catch (err) {
+    if (err.code === 'ENOENT') return null;
+    throw err;
+  }
+}
+
+async function resolveModuleNames(jsonPath) {
+  const names = toModuleNames(jsonPath);
+  const outPath = path.join('product', 'web', 'js', `${names.moduleName}.js`);
+  const manifestExportName = await findManifestImportName(names.moduleName);
+  const existingExportName = await findExistingExportName(outPath);
+  return {
+    ...names,
+    exportName: manifestExportName || existingExportName || names.exportName,
+    outPath,
+    manifestExportName,
+    existingExportName,
+  };
+}
+
 async function main(argv) {
   const jsonPath = argv[0];
   if (!jsonPath) {
@@ -34,7 +71,7 @@ async function main(argv) {
   }
 
   const outline = JSON.parse(await fs.readFile(jsonPath, 'utf8'));
-  const { moduleName, exportName } = toModuleNames(jsonPath);
+  const { exportName, outPath, manifestExportName } = await resolveModuleNames(jsonPath);
 
   const lines = [
     `// Generated runtime copy of ${jsonPath}.`,
@@ -44,9 +81,13 @@ async function main(argv) {
     ``
   ].join('\n');
 
-  const outPath = path.join('product', 'web', 'js', `${moduleName}.js`);
   await fs.mkdir(path.dirname(outPath), { recursive: true });
   await fs.writeFile(outPath, lines);
+
+  if (manifestExportName && manifestExportName !== exportName) {
+    throw new Error(`internal error: generated ${exportName}, but manifest imports ${manifestExportName}`);
+  }
+
   console.log(`Wrote ${outPath} (${(lines.length / 1024).toFixed(0)} KB, export: ${exportName})`);
 }
 

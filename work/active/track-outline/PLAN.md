@@ -17,20 +17,45 @@ Tracks are ordered by data quality: TUMFTM first (real widths), then trajectory-
 | Slice | Track | Data source | Type | Status |
 |---|---|---|---|---|
 | `01-spa` | Circuit de Spa-Francorchamps | TUMFTM `Spa.csv` | Real | ✅ Done |
-| `02-spa-endurance` | Circuit de Spa-Francorchamps Endurance | Same Spa outline (alias) | Real (alias) | ✅ Done |
-| `03-bahrain` | Bahrain International Circuit | TUMFTM `Sakhir.csv` | Real | ✅ Done |
-| `04-barcelona` | Circuit de Barcelona-Catalunya | ❌ No TUMFTM (wrong layout) | Clean trajectory | 🔲 Not started |
-| `05-monza` | Autodromo Nazionale Monza | TUMFTM `Monza.csv` | Real | 🔲 Not started |
+| `02-spa-endurance` | Spa Endurance Layout (62-car) | Same Spa outline (alias) | Real (alias) | ✅ Done |
+| `03-bahrain-gp` | Bahrain International Circuit (GP) | TUMFTM `Sakhir.csv` | Real | ✅ Done |
+| `04-barcelona` | Circuit de Barcelona-Catalunya | Trajectory | Clean trajectory | ✅ Done |
+| `05-monza` | Monza (with chicanes) | TUMFTM `Monza.csv` | Real | 🔲 Not started |
 | `06-interlagos` | Autódromo José Carlos Pace | TUMFTM `SaoPaulo.csv` | Real | 🔲 Not started |
-| `07-cota` | Circuit of the Americas | TUMFTM `Austin.csv` | Real | 🔲 Not started |
-| `08-imola` | Autodromo Enzo e Dino Ferrari | ❌ No TUMFTM | Clean trajectory | 🔲 Not started |
-| `09-fuji` | Fuji Speedway | ❌ No TUMFTM | Clean trajectory | 🔲 Not started |
+| `07-cota-gp` | Circuit of the Americas (GP) | TUMFTM `Austin.csv` | Real | 🔲 Not started |
+| `08-imola` | Autodromo Enzo e Dino Ferrari | No TUMFTM | Clean trajectory | ✅ Done (trajectory) |
+| `09-fuji` | Fuji International Speedway | No TUMFTM | Clean trajectory | ✅ Done |
+| `10-bahrain-endurance` | Bahrain International Endurance Circuit | No TUMFTM | Clean trajectory | 🔲 Not started |
+| `11-bahrain-outer` | Bahrain International Outer Circuit | No TUMFTM | Clean trajectory | 🔲 Not started |
+| `12-bahrain-paddock` | Bahrain International Paddock Circuit | No TUMFTM | Clean trajectory | 🔲 Not started |
+| `13-monza-curva-grande` | Monza Curva Grande Layout | No TUMFTM | Clean trajectory | 🔲 Not started |
+| `14-cota-national` | COTA National | No TUMFTM | Clean trajectory | 🔲 Not started |
+| `15-le-mans` | Circuit de la Sarthe | No TUMFTM | Clean trajectory | 🔲 Not started |
+| `16-le-mans-no-chicanes` | Circuit de la Sarthe Mulsanne No Chicanes | No TUMFTM | Clean trajectory | 🔲 Not started |
+| `17-algarve` | Algarve International Circuit (Portimão) | No TUMFTM | Clean trajectory | 🔲 Not started |
+| `18-algarve-elms` | Algarve International Circuit ELMS | Verify alias of Algarve base | ? | 🔲 Not started |
+| `19-lusail` | Lusail International Circuit | No TUMFTM | Clean trajectory | 🔲 Not started |
+| `20-lusail-short` | Lusail International Circuit Short | No TUMFTM | Clean trajectory | 🔲 Not started |
+| `21-sebring` | Sebring International Raceway | No TUMFTM | Clean trajectory | 🔲 Not started |
+| `22-sebring-school` | Sebring School Circuit | No TUMFTM | Clean trajectory | 🔲 Not started |
+| `23-paul-ricard` | Circuit Paul Ricard (ELMS) | No TUMFTM | Clean trajectory | 🔲 Not started |
+| `24-paul-ricard-1a` | Paul Ricard 1a | No TUMFTM | Clean trajectory | 🔲 Not started |
+| `25-paul-ricard-1av2` | Paul Ricard 1av2 | No TUMFTM | Clean trajectory | 🔲 Not started |
+| `26-paul-ricard-1av2-short` | Paul Ricard 1av2-short | No TUMFTM | Clean trajectory | 🔲 Not started |
+| `27-paul-ricard-3a` | Paul Ricard 3a | No TUMFTM | Clean trajectory | 🔲 Not started |
+| `28-silverstone-elms` | Silverstone (ELMS Pack 1) | TUMFTM `Silverstone.csv` | Real | 🔲 Not started |
+| `29-silverstone-national` | Silverstone National | No TUMFTM | Clean trajectory | 🔲 Not started |
+| `30-silverstone-international` | Silverstone International | No TUMFTM | Clean trajectory | 🔲 Not started |
+| `31-silverstone-gp-wec` | Silverstone GP (WEC) | No TUMFTM (verify vs base) | ? | 🔲 Not started |
+| `32-fuji-classic` | Fuji Classic Layout (No Chicane) | No TUMFTM | Clean trajectory | 🔲 Not started |
+| `33-imola-elms` | Imola ELMS | Verify alias of Imola base | ? | 🔲 Not started |
 
-Spa and Bahrain are done. 04–07 use TUMFTM real data. 08–09 are trajectory-only.
+**Completed:** Spa (base + endurance), Bahrain GP, Barcelona, Imola, Fuji International Speedway.
+**Remaining:** 29 outlines needed (some may be aliases).
 
 ### Barcelona note
 
-TUMFTM `Catalunya.csv` is the old F1 layout (pre-2007 chicane). LMU uses the MotoGP/chicane layout. The auto-alignment pipeline will attempt ICP against this CSV — visual QA in slice 2 will determine if the layout mismatch is acceptable. If not, we fall back to a clean trajectory outline.
+TUMFTM `Catalunya.csv` is the old F1 layout (pre-2007 chicane). LMU uses the MotoGP/chicane layout. Visual QA confirmed the mismatch — Barcelona uses a trajectory outline instead.
 
 ---
 
@@ -76,75 +101,140 @@ TUMFTM `Catalunya.csv` is the old F1 layout (pre-2007 chicane). LMU uses the Mot
 
 ## Track details
 
-### 01-spa ✅ Done
-- TUMFTM `Spa.csv` → real outline with varying widths
-- Manifest entries: `circuit-de-spa-francorchamps`, `circuit-de-spa-francorchamps-endurance`, `spa-francorchamps`
-
-### 02-spa-endurance ✅ Done
-- Alias of Spa outline (same coordinate system, verified)
-
-### 03-bahrain ✅ Done
-- TUMFTM `Sakhir.csv` → real outline with varying widths
-- Manifest entries: `bahrain-international-circuit`, `bahrain`
-
-### 04-barcelona
-- **No TUMFTM data.** TUMFTM `Catalunya.csv` is the old F1 layout (no chicane), which doesn't match the LMU MotoGP/chicane layout. Source will be `clean trajectory`.
-- **Session data:** `circuit-de-barcelona` (multiple sessions exist)
-- **Current state:** Has a trajectory outline (`circuit-de-barcelona.json` sourced from "Median trajectory from 5 fastest laps") — upgrade to a clean trajectory outline with consistent source labeling.
-- **Manifest entries:** `circuit-de-barcelona`, `barcelona-catalunya`, `catalunya`
-
-### 05-monza
-- **TUMFTM CSV:** `Monza.csv` (243 points)
-- **Session data:** Not yet available — user will create sessions
-- **Manifest entries:** `autodromo-nazionale-monza`, `monza`
-
-### 06-interlagos
-- **TUMFTM CSV:** `SaoPaulo.csv`
-- **Session data:** Not yet available — user will create sessions
-- **Manifest entries:** `autodromo-jose-carlos-pace`, `interlagos`
-
-### 07-cota
-- **TUMFTM CSV:** `Austin.csv`
-- **Session data:** Not yet available — user will create sessions
-- **Manifest entries:** `circuit-of-the-americas`, `cota`
-
-### 08-imola
-- **No TUMFTM data.** Source will be `clean trajectory` (constant-width shell around the driving line).
-- **Session data:** `autodromo-enzo-e-dino-ferrari` (multiple sessions exist)
-- **Current state:** No outline file exists at all.
-- **Manifest entries:** `autodromo-enzo-e-dino-ferrari`, `imola`
-
-### 09-fuji
-- **No TUMFTM data.** Source will be `clean trajectory`.
-- **Session data:** `fuji-speedway` (1 session exists)
-- **Current state:** Has a trajectory outline (`fuji-speedway_outline.json`, single lap lap 7, constant 3m each side).
-- **Manifest entries:** `fuji-speedway`, `fuji`
+Canonical track list source: Le Mans Ultimate full track + layout catalogue.
+Each layout needs its own outline unless it's a confirmed alias (same physical track, same coordinate system).
 
 ---
 
-## Future LMU tracks (not yet sliced — add sessions first)
+### ✅ Completed outlines
 
-These tracks appear in LMU but have no session data yet. They'll get slices once sessions are recorded.
+#### Spa-Francorchamps ✅ Done
+- **Layouts:** Spa-Francorchamps (base), Spa Endurance Layout (62-car support)
+- **TUMFTM CSV:** `Spa.csv` → real outline with varying widths
+- **Endurance is an alias** — same coordinate system, same outline, different name
+- **Manifest entries:** `circuit-de-spa-francorchamps`, `circuit-de-spa-francorchamps-endurance`, `spa-francorchamps`
 
-| Track | TUMFTM CSV | Expected source |
-|---|---|---|
-| Autódromo Internacional do Algarve (Portimão) | ❌ | Clean trajectory |
-| Circuit de la Sarthe (Le Mans) | ❌ | Clean trajectory |
-| Lusail International Circuit | ❌ | Clean trajectory |
-| Sebring International Raceway | ❌ | Clean trajectory |
-| Hockenheimring | `Hockenheim.csv` ✅ | TUMFTM real |
-| Silverstone | `Silverstone.csv` ✅ | TUMFTM real |
-| Zandvoort | `Zandvoort.csv` ✅ | TUMFTM real |
-| Spielberg (Red Bull Ring) | `Spielberg.csv` ✅ | TUMFTM real |
-| Suzuka | `Suzuka.csv` ✅ | TUMFTM real |
-| Shanghai | `Shanghai.csv` ✅ | TUMFTM real |
-| Melbourne | `Melbourne.csv` ✅ | TUMFTM real |
-| Budapest (Hungaroring) | `Budapest.csv` ✅ | TUMFTM real |
-| Mexico City | `MexicoCity.csv` ✅ | TUMFTM real |
-| Montreal | `Montreal.csv` ✅ | TUMFTM real |
-| Yas Marina | `YasMarina.csv` ✅ | TUMFTM real |
-| Sepang | `Sepang.csv` ✅ | TUMFTM real |
-| Sochi | `Sochi.csv` ✅ | TUMFTM real |
+#### Bahrain International Circuit ✅ Done (GP layout only)
+- **Layout done:** Bahrain International Circuit (GP layout)
+- **TUMFTM CSV:** `Sakhir.csv` → real outline with varying widths
+- **Manifest entries:** `bahrain-international-circuit`, `bahrain`
+- **Remaining layouts** (separate outlines needed):
+  - Bahrain International Endurance Circuit 🔲
+  - Bahrain International Outer Circuit 🔲
+  - Bahrain International Paddock Circuit 🔲
+
+#### Circuit de Barcelona-Catalunya ✅ Done (trajectory)
+- **No TUMFTM data.** TUMFTM `Catalunya.csv` is the old F1 layout (no chicane), which doesn't match the LMU MotoGP/chicane layout. Source: clean trajectory.
+- **Session data:** `circuit-de-barcelona` (multiple sessions exist)
+- **Outline:** `circuit-de-barcelona.json` — median trajectory from 2 exported laps, 500-point centerline, ±5m constant-width boundaries.
+- **Manifest entries:** `circuit-de-barcelona`, `barcelona-catalunya`, `catalunya`
+- **ES module:** `staticCircuitBarcelonaOutlineData.js`
+
+#### Autodromo Enzo e Dino Ferrari (Imola) ✅ Done (trajectory)
+- **No TUMFTM data.** Source: clean trajectory
+- **Session data:** `autodromo-enzo-e-dino-ferrari` (5 sessions exist)
+- **Outline:** `autodromo-enzo-e-dino-ferrari.json` — median trajectory from 2 copies of lap 11 (101.42s), 500-point centerline, ±5m constant-width boundaries
+- **Manifest entries:** `autodromo-enzo-e-dino-ferrari`, `imola`
+- **ES module:** `staticAutodromoDinoFerrariOutlineData.js`
+- **Remaining layout** (separate outline needed):
+  - Imola ELMS 🔲 (may be alias of base — verify with session data)
+
+#### Fuji International Speedway ✅ Done (trajectory)
+- **No TUMFTM data.** Source: clean trajectory (constant-width shell around the driving line).
+- **Session data:** `fuji-speedway` (1 session exists)
+- **Outline:** `fuji-speedway_outline.json` — single-lap trajectory outline (lap 7), constant 3m each side.
+- **Manifest entries:** `fuji-speedway`, `fuji`
+- **Remaining layout** (separate outline needed):
+  - Fuji Classic Layout (No Chicane) 🔲
+
+---
+
+### 🔲 Remaining LMU tracks and layouts
+
+#### Monza 🔲
+- **Layouts needing outlines:**
+  - Monza (base, with chicanes) — TUMFTM `Monza.csv` available
+  - Monza Curva Grande Layout — ❌ no TUMFTM separate CSV (different layout)
+- **Session data:** Not yet available
+- **Manifest entries:** `monza`, ?
+
+#### Autódromo José Carlos Pace (Interlagos) 🔲
+- **Layouts:** base only
+- **TUMFTM CSV:** `SaoPaulo.csv`
+- **Session data:** Not yet available (2024 Pack 3 DLC)
+- **Manifest entries:** `autodromo-jose-carlos-pace`, `interlagos`
+
+#### Circuit of the Americas 🔲
+- **Layouts needing outlines:**
+  - Circuit of the Americas (GP) — TUMFTM `Austin.csv` available
+  - COTA National — ❌ no TUMFTM separate CSV (different layout)
+- **Session data:** Not yet available (2024 Pack 2 DLC)
+- **Manifest entries:** `circuit-of-the-americas`, `cota`, ?
+
+#### Autodromo Internazionale Enzo e Dino Ferrari (Imola) ✅ Done (trajectory)
+- See completed section above
+
+#### Circuit de la Sarthe (Le Mans) 🔲
+- **Layouts:** base + Mulsanne No Chicanes
+- **No TUMFTM data.** Source: clean trajectory
+- **Session data:** Not yet available
+- **Manifest entries:** `circuit-de-la-sarthe`, ?
+
+#### Algarve International Circuit (Portimão) 🔲
+- **Layouts:** base + ELMS (may be same physical layout — verify)
+- **No TUMFTM data.** Source: clean trajectory
+- **Session data:** Not yet available
+- **Manifest entries:** `algarve-international-circuit`, `portimao`, ?
+
+#### Lusail International Circuit 🔲
+- **Layouts:** base + Short
+- **No TUMFTM data.** Source: clean trajectory
+- **Session data:** Not yet available (2024 Pack 5 DLC)
+- **Manifest entries:** `lusail-international-circuit`, ?
+
+#### Sebring 🔲
+- **Layouts:** base + School Circuit
+- **No TUMFTM data.** Source: clean trajectory
+- **Session data:** Not yet available
+- **Manifest entries:** `sebring`, ?
+
+#### Circuit Paul Ricard 🔲
+- **Layouts:** base (ELMS) + 1a + 1av2 + 1av2-short + 3a
+- **No TUMFTM data.** Source: clean trajectory
+- **Session data:** Not yet available (ELMS Pack 2 DLC)
+- **Manifest entries:** `circuit-paul-ricard`, ?
+
+#### Silverstone 🔲
+- **Layouts:** base (ELMS Pack 1) + National + International + GP (WEC)
+- **TUMFTM CSV:** `Silverstone.csv` (likely GP layout only)
+- **Session data:** Not yet available
+- **Manifest entries:** `silverstone`, ?
+
+---
+
+### 📋 Layout alias rules
+
+Some LMU "extra layouts" share the same physical track geometry and can reuse the same outline as an alias:
+
+| Layout | Alias of | Reason |
+|--------|----------|--------|
+| Spa Endurance Layout (62-car support) | Spa-Francorchamps | Same track, same coords, verified |
+| Autodromo Enzo e Dino Ferrari ELMS | Imola base | Likely same layout — **verify with session data** |
+| Algarve ELMS | Algarve base | Likely same layout — **verify with session data** |
+
+Other "extra layouts" are **genuinely different track configurations** and need separate outlines:
+
+| Layout | Why different |
+|--------|-------------|
+| Bahrain Endurance / Outer / Paddock | Shorter/different loop configurations |
+| Monza Curva Grande Layout | No chicane on main straight — different outline |
+| COTA National | Shorter layout — different outline |
+| Fuji Classic Layout (No Chicane) | No chicane — different outline |
+| Le Mans Mulsanne No Chicanes | No chicanes on Mulsanne straight — different outline |
+| Lusail Short | Shorter layout — different outline |
+| Sebring School Circuit | Shorter layout — different outline |
+| Silverstone National / International / GP (WEC) | Different configurations |
+| Paul Ricard 1a / 1av2 / 1av2-short / 3a | Different configurations |
 
 ---
 
@@ -155,3 +245,5 @@ These tracks appear in LMU but have no session data yet. They'll get slices once
 - **OSM centerline extraction** — not used. Trajectory outlines from driving data are simpler and equally useful when TUMFTM is unavailable.
 - **bacinger/f1-circuits** — explicitly excluded. WGS84 lon/lat requires coordinate transform, and no width data means it's no better than a trajectory outline.
 - **Apex proximity analysis** for trajectory outlines — by definition not possible (constant offset).
+- **Non-LMU tracks** — only tracks that appear in Le Mans Ultimate are in scope.
+- **DLC tracks not yet released** — will be added as they become available.

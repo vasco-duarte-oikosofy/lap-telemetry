@@ -87,7 +87,7 @@ Splitting it would create artificial boundaries and hurt clarity more than help.
 
 ## Future Fixes - UX Backlog (from DESIGN.md §13)
 
-### U2. Circuit map needs more pixels for brake/throttle overlays
+### U2. Circuit map needs more pixels for brake/throttle overlays ✅ Done
 
 **Symptom.** The sidebar map is fixed at 250 px. When the user toggles brake or throttle overlay, the colour-coded track ribbon is too small to read individual braking zones.
 
@@ -192,7 +192,7 @@ Add regression test confirming channel colour/dash for Speed, Throttle, Brake, S
 
 ## Future Features - Not Yet Scheduled
 
-### F12. Persistent lap selection
+### F12. Persistent lap selection — Obsolete
 
 **What.** Persist the selected lap pair (`session-picker` + `ref-picker` values) in `localStorage` so reloading the page restores the previous comparison.
 
@@ -308,8 +308,10 @@ Playwright test guidelines. Read that file before writing or fixing any test.
 3. **U3c** — Fix TC active panel to show both laps in session/ref colours (missing ref trace)
 4. **U5** — Audit all panels for consistent colour/line-style
 5. **U4** — Colour tooltip speed values by lap identity
-6. **U2** — Enlarge circuit map for overlay readability
+6. **U2** — Enlarge circuit map for overlay readability — ✅ **Done**
 7. **F16** — Auto-zoom map canvas to selected track segment — ✅ **Done**
+
+**Track outline progress:** 5 outlines complete (Spa, Bahrain GP, Barcelona, Imola, Fuji), 28 remaining (need session data for new tracks, need LMU layout sessions for extra layouts).
 
 **Optional further refactoring:**
 - Extract debug hooks to `debug.js` if test-only globals need stronger isolation.

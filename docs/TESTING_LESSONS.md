@@ -215,3 +215,33 @@ const size = await page.evaluate(() => {
 });
 assert(size > 0, 'map renderer has visible width');
 ```
+
+---
+
+## L10. Regenerate static outline modules through the pipeline, not ad hoc scripts
+
+**Problem.** Static outline modules are imported by name from
+`trackOutlineManifest.js`. If an outline JSON is copied into a runtime module
+with a different export name, many unrelated UI tests fail at bundle time with:
+
+```text
+No matching export in "...staticBahrainInternationalCircuitOutlineData.js"
+for import "BAHRAIN_INTERNATIONAL_CIRCUIT_STATIC_OUTLINE"
+```
+
+That failure is not a rendering regression; it means the generated module and
+manifest disagree before the app can load.
+
+**Solution.** Always regenerate runtime outline modules with:
+
+```bash
+node dev/scripts/generate_outline_module.js product/data/track-outlines/<slug>.json
+```
+
+Do not hand-write `export const ...` names. The generator preserves the export
+name already imported by `product/web/js/trackOutlineManifest.js` when the
+module is registered, preventing manifest/module drift.
+
+**Fast diagnosis.** If many browser tests fail after changing only a track
+outline, run one failing script directly and look for esbuild import/export
+errors before investigating Playwright behavior or reverting geometry data.
