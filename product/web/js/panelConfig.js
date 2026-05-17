@@ -27,7 +27,8 @@ export const PANEL_DEFS = [
 
   { id: 'tc', label: 'TC active', height: 50,
     channels: [
-      { col: 'tc_active', trace: 'session', color: 'var(--throttle)', dash: false, step: true },
+      { col: 'tc_active', trace: 'session', color: 'var(--session)', dash: false, step: true },
+      { col: 'tc_active', trace: 'ref', color: 'var(--ref)', dash: true, step: true },
     ],
     yFixed: [0, 1], yStep: 1, midline: 0.5, zeroline: false },
 
