@@ -1,0 +1,14 @@
+{
+  "schema_version": "2",
+  "recorder_version": "0.1.0a1",
+  "started_utc": "2026-05-17T07:43:45Z",
+  "ended_utc": "2026-05-17T08:00:59Z",
+  "sim": "lmu",
+  "track": "Circuit de Barcelona",
+  "vehicle_name": "DKR Engineering #4:ELMS25",
+  "setup_file_guess": "LMP3_Ginetta_HDF_Barcelona_p2fspring_m1rspring.svm",
+  "sample_rate_hz": 50.0,
+  "row_count": 51382,
+  "lap_count": 10,
+  "in_progress": false
+}
