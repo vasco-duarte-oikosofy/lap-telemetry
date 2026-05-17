@@ -1,0 +1,5 @@
+# Learnings — U3 slip angle panel colours
+
+- The slip panel is the only panel with **two distinct channels** (FL and FR) per lap. Switching to lap-identity colours means FL and FR of the same lap are visually identical. This is acceptable because: (1) FL and FR slip angles usually differ in shape, (2) the tooltip identifies each channel, (3) the primary comparison task (session vs ref) now matches the rest of the app.
+- `var(--slip-fl)` and `var(--slip-fr)` CSS variables remain in `styles.css` even though `panelConfig.js` no longer references them. They could be removed in a future tidy-up or repurposed if a per-wheel colour mode is ever desired.
+- The ABS panel (`id: 'abs'`) still uses `var(--brake)` instead of `var(--session)`/`var(--ref)` — same pattern as the old TC panel, likely needs the same treatment in a future slice.
