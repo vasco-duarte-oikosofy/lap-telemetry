@@ -629,6 +629,8 @@ var init_appState = __esm({
       // Phase 05a - linked highlight band from trace charts
       mapAutoZoom: false,
       // F16 - auto-zoom map to highlighted segment
+      mapLinkedHover: false,
+      // Drive map hover UI from chart cursor
       apexAnnotations: false,
       // Track outline Phase 03 - apex annotation loading
       apexMetrics: false,
@@ -2042,16 +2044,65 @@ function createMapHover(canvas, getLapData, onUpdate) {
   let rafId = null;
   let pendingEvent = null;
   let isDragging = false;
+  let directPointerActive = false;
+  let linkedDistance = null;
   let grid = null;
   let readoutEl = null;
   function build() {
     const { lapA } = getLapData();
     grid = buildGrid(lapA?.raw);
   }
+  function makeHoverState(nearest, sx, sy, lapA, lapB) {
+    const s = nearest.s;
+    return {
+      s,
+      screenX: sx,
+      screenY: sy,
+      lapASample: sLookup(lapA.raw, s),
+      lapBSample: lapB?.raw ? sLookup(lapB.raw, s) : null,
+      nearest
+    };
+  }
+  function hideHover() {
+    const wasActive = hoverState !== null || readoutEl && readoutEl.style.display !== "none";
+    hoverState = null;
+    if (readoutEl) readoutEl.style.display = "none";
+    if (wasActive) onUpdate?.(null);
+  }
+  function applyHoverState(nextState) {
+    if (!nextState) {
+      hideHover();
+      return;
+    }
+    const { lapA, lapB } = getLapData();
+    if (!lapA || !lapB) {
+      hideHover();
+      return;
+    }
+    hoverState = nextState;
+    const rect = canvas.getBoundingClientRect();
+    readoutEl = ensureReadout(canvas.parentElement);
+    updateReadout(readoutEl, hoverState, lapA, lapB);
+    positionReadout(readoutEl, hoverState.screenX, hoverState.screenY, rect.width, rect.height);
+    onUpdate?.(hoverState);
+  }
+  function buildLinkedHoverState() {
+    if (linkedDistance == null) return null;
+    const { lapA, lapB, transform } = getLapData();
+    if (!lapA?.raw || !transform) return null;
+    const nearest = sLookup(lapA.raw, linkedDistance);
+    if (!nearest || !isFinite(nearest.x) || !isFinite(nearest.z)) return null;
+    const sx = transform.toScreenX(nearest.x);
+    const sy = transform.toScreenY(nearest.z);
+    return makeHoverState(nearest, sx, sy, lapA, lapB);
+  }
+  function applyLinkedHoverIfIdle() {
+    if (directPointerActive || isDragging) return;
+    applyHoverState(buildLinkedHoverState());
+  }
   function doUpdate() {
     if (!pendingEvent || isDragging) {
-      hoverState = null;
-      onUpdate?.(null);
+      hideHover();
       return;
     }
     const rect = canvas.getBoundingClientRect();
@@ -2059,38 +2110,21 @@ function createMapHover(canvas, getLapData, onUpdate) {
     const sy = pendingEvent.clientY - rect.top;
     const { lapA, lapB, transform } = getLapData();
     if (!lapA || !transform) {
-      hoverState = null;
-      onUpdate?.(null);
+      hideHover();
       return;
     }
     const world = worldFromScreen(sx, sy, transform);
     const nearest = findNearest(grid, world.x, world.z);
     if (!nearest) {
-      hoverState = null;
-      onUpdate?.(null);
+      hideHover();
       return;
     }
-    const s = nearest.s;
-    const lapASample = sLookup(lapA.raw, s);
-    const lapBSample = lapB?.raw ? sLookup(lapB.raw, s) : null;
-    hoverState = {
-      s,
-      screenX: sx,
-      screenY: sy,
-      lapASample,
-      lapBSample,
-      nearest
-    };
-    const panel = canvas.parentElement;
-    readoutEl = ensureReadout(panel);
-    updateReadout(readoutEl, hoverState, lapA, lapB);
-    positionReadout(readoutEl, sx, sy, rect.width, rect.height);
-    onUpdate?.(hoverState);
+    applyHoverState(makeHoverState(nearest, sx, sy, lapA, lapB));
   }
   function onPointerMove(e) {
+    directPointerActive = true;
     if (isDragging) {
-      hoverState = null;
-      onUpdate?.(null);
+      hideHover();
       return;
     }
     pendingEvent = e;
@@ -2102,28 +2136,34 @@ function createMapHover(canvas, getLapData, onUpdate) {
     }
   }
   function onPointerLeave() {
+    directPointerActive = false;
     pendingEvent = null;
     if (rafId) {
       cancelAnimationFrame(rafId);
       rafId = null;
     }
-    hoverState = null;
-    if (readoutEl) readoutEl.style.display = "none";
-    onUpdate?.(null);
+    applyLinkedHoverIfIdle();
   }
   function onPointerDown() {
     isDragging = true;
+    directPointerActive = true;
     pendingEvent = null;
     if (rafId) {
       cancelAnimationFrame(rafId);
       rafId = null;
     }
-    hoverState = null;
-    if (readoutEl) readoutEl.style.display = "none";
-    onUpdate?.(null);
+    hideHover();
   }
   function onPointerUp() {
     isDragging = false;
+  }
+  function setLinkedDistance(s) {
+    linkedDistance = s;
+    applyLinkedHoverIfIdle();
+  }
+  function clearLinkedDistance() {
+    linkedDistance = null;
+    if (!directPointerActive) hideHover();
   }
   canvas.addEventListener("pointermove", onPointerMove);
   canvas.addEventListener("pointerleave", onPointerLeave);
@@ -2133,6 +2173,8 @@ function createMapHover(canvas, getLapData, onUpdate) {
   return {
     getState: () => hoverState,
     rebuild: build,
+    setLinkedDistance,
+    clearLinkedDistance,
     destroy: () => {
       canvas.removeEventListener("pointermove", onPointerMove);
       canvas.removeEventListener("pointerleave", onPointerLeave);
@@ -2327,11 +2369,20 @@ function createTrackHeatmapController(getMapState2, resetChartZoom2 = null) {
       rendering = false;
     }
   }
+  function setChartHoverDistance(s) {
+    if (s != null && !mapHover) render();
+    if (!mapHover) return;
+    if (s == null || !features.mapHover || !features.mapLinkedHover) {
+      mapHover.clearLinkedDistance();
+      return;
+    }
+    mapHover.setLinkedDistance(s);
+  }
   function _render() {
     const canvas = document.getElementById("track-heatmap-canvas");
     const svg = document.getElementById("circuit-map-svg");
     if (!canvas || !svg) return;
-    const anyMapFeature = features.mapWalkingSkeleton || features.mapHeatmapSingleLap || features.mapSAlignment || features.mapDualRibbon || features.mapZoomPan || features.mapLegend || features.mapHover || features.mapLinkedHighlight || true;
+    const anyMapFeature = features.mapWalkingSkeleton || features.mapHeatmapSingleLap || features.mapSAlignment || features.mapDualRibbon || features.mapZoomPan || features.mapLegend || features.mapHover || features.mapLinkedHighlight || features.mapLinkedHover || true;
     if (!anyMapFeature) {
       canvas.style.display = "none";
       svg.style.display = "";
@@ -2368,6 +2419,7 @@ function createTrackHeatmapController(getMapState2, resetChartZoom2 = null) {
         };
       }, () => render());
     }
+    if (mapHover && !features.mapLinkedHover) mapHover.clearLinkedDistance();
     const { currentTrackX: currentTrackX2, currentTrackZ: currentTrackZ2, currentRefTrackX: currentRefTrackX2, currentRefTrackZ: currentRefTrackZ2 } = getMapState2();
     if (!currentTrackX2 || !currentTrackZ2 || !currentRefTrackX2 || !currentRefTrackZ2) return;
     const sessionColor = getCssColor("--session", "#4fc3f7");
@@ -2436,6 +2488,7 @@ function createTrackHeatmapController(getMapState2, resetChartZoom2 = null) {
   }
   return {
     render,
+    setChartHoverDistance,
     getMapInteractionState: () => mapInteraction?.getState() ?? null,
     getMapHoverState: () => mapHover?.getState() ?? null
   };
@@ -2651,10 +2704,19 @@ function renderDtPanel(def, dtBins, maxDist, sectorDists, zoomRange, overlapRang
 
 // product/web/js/cursor.js
 init_appState();
-function initCursorAndZoom(renderAll2, getRenderState2) {
+function initCursorAndZoom(renderAll2, getRenderState2, onChartHoverDistance) {
   const plotArea = document.getElementById("plot-area");
   const cursorLine = document.getElementById("cursor-line");
   const tooltip = document.getElementById("tooltip");
+  let lastChartHoverDist = null;
+  function reportChartHoverDistance(dist) {
+    if (dist === lastChartHoverDist) return;
+    lastChartHoverDist = dist;
+    onChartHoverDistance?.(dist);
+  }
+  function clearLinkedHover() {
+    reportChartHoverDistance(null);
+  }
   function updateCursorDot(binIdx) {
     const { currentTrackX: currentTrackX2, currentTrackZ: currentTrackZ2, trackTransform: trackTransform2 } = getRenderState2();
     const cursorDot = document.getElementById("cursor-dot");
@@ -2688,6 +2750,7 @@ function initCursorAndZoom(renderAll2, getRenderState2) {
       cursorLine.style.transform = "translateX(-9999px)";
       tooltip.style.display = "none";
       updateCursorDot(null);
+      clearLinkedHover();
       return;
     }
     cursorLine.style.transform = `translateX(${mx}px)`;
@@ -2696,6 +2759,7 @@ function initCursorAndZoom(renderAll2, getRenderState2) {
     const dist = currentZoomRange2.start + fracX * zRange;
     const binIdx = Math.max(0, Math.min(Math.round(dist), state.maxDist));
     updateCursorDot(binIdx);
+    reportChartHoverDistance(binIdx);
     const sSpeed = currentSessionBins2.speed_kph?.[binIdx];
     const rSpeed = currentRefBins2.speed_kph?.[binIdx];
     const inOverlap = currentOverlapRange2 && binIdx >= Math.ceil(currentOverlapRange2.start) && binIdx <= Math.floor(currentOverlapRange2.end);
@@ -2747,6 +2811,7 @@ function initCursorAndZoom(renderAll2, getRenderState2) {
     state.dragging = true;
     state.dragStartX = e.clientX - geo.rect.left;
     state.dragStartDist = distFromMx(state.dragStartX, geo.plotLeft, geo.plotRight, currentZoomRange2);
+    clearLinkedHover();
   });
   plotArea.addEventListener("mousemove", (e) => {
     const { currentSessionBins: currentSessionBins2, currentZoomRange: currentZoomRange2 } = getRenderState2();
@@ -2802,6 +2867,7 @@ function initCursorAndZoom(renderAll2, getRenderState2) {
       cursorLine.style.transform = "translateX(-9999px)";
       tooltip.style.display = "none";
       updateCursorDot(null);
+      clearLinkedHover();
     }
   });
   document.addEventListener("keydown", (e) => {
@@ -3468,7 +3534,7 @@ function installDebugHooks(deps) {
   window.__setFeatureFlag = (name, value) => {
     setFeatureFlag2(name, value);
     syncFeatureFlagMenuLabels(features2);
-    if (name === "mapWalkingSkeleton" || name === "mapHeatmapSingleLap" || name === "mapSAlignment" || name === "mapDualRibbon" || name === "mapZoomPan" || name === "mapLegend" || name === "mapHover" || name === "mapLinkedHighlight" || name === "mapAutoZoom") {
+    if (name === "mapWalkingSkeleton" || name === "mapHeatmapSingleLap" || name === "mapSAlignment" || name === "mapDualRibbon" || name === "mapZoomPan" || name === "mapLegend" || name === "mapHover" || name === "mapLinkedHighlight" || name === "mapAutoZoom" || name === "mapLinkedHover") {
       renderTrackHeatmapMap2();
     }
   };
@@ -3787,7 +3853,8 @@ var PANEL_DEFS = [
     label: "TC active",
     height: 50,
     channels: [
-      { col: "tc_active", trace: "session", color: "var(--throttle)", dash: false, step: true }
+      { col: "tc_active", trace: "session", color: "var(--session)", dash: false, step: true },
+      { col: "tc_active", trace: "ref", color: "var(--ref)", dash: true, step: true }
     ],
     yFixed: [0, 1],
     yStep: 1,
@@ -3861,10 +3928,10 @@ var PANEL_DEFS = [
     label: "Slip angle FL / FR (deg)",
     height: 80,
     channels: [
-      { col: "slip_angle_fl_deg", trace: "session", color: "var(--slip-fl)", dash: false },
-      { col: "slip_angle_fl_deg", trace: "ref", color: "var(--slip-fl)", dash: true },
-      { col: "slip_angle_fr_deg", trace: "session", color: "var(--slip-fr)", dash: false },
-      { col: "slip_angle_fr_deg", trace: "ref", color: "var(--slip-fr)", dash: true }
+      { col: "slip_angle_fl_deg", trace: "session", color: "var(--session)", dash: false },
+      { col: "slip_angle_fl_deg", trace: "ref", color: "var(--ref)", dash: true },
+      { col: "slip_angle_fr_deg", trace: "session", color: "var(--session)", dash: false },
+      { col: "slip_angle_fr_deg", trace: "ref", color: "var(--ref)", dash: true }
     ],
     yFixed: null,
     yStep: 2,
@@ -4130,7 +4197,7 @@ function getRenderState() {
   };
 }
 initUI(renderAll);
-initCursorAndZoom(renderAll, getRenderState);
+initCursorAndZoom(renderAll, getRenderState, trackHeatmapController.setChartHoverDistance);
 installDebugHooks({
   store,
   features,

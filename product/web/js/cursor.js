@@ -1,6 +1,6 @@
 // ── Cursor, tooltip, and zoom interaction ─────────────────────────────────────
 
-import { state, features, getCurrentMapMode, setCurrentMapMode } from './appState.js';
+import { state, getCurrentMapMode, setCurrentMapMode } from './appState.js';
 import { PAD, SVG_W, PLOT_W } from './constants.js';
 import { renderCircuitMap } from './circuitMap.js';
 import { persistZoom } from './utils.js';
@@ -13,20 +13,22 @@ import { persistZoom } from './utils.js';
  * @param {Function} getRenderState — callback returning current render state:
  *   { currentSessionBins, currentRefBins, currentZoomRange, currentOverlapRange,
  *     currentTrackX, currentTrackZ, trackTransform, currentDtBins, maxDist }
+ * @param {Function} onChartHoverDistance — called with chart cursor distance, or null to clear
  */
-export function initCursorAndZoom(renderAll, getRenderState, renderMap) {
+export function initCursorAndZoom(renderAll, getRenderState, onChartHoverDistance) {
   const plotArea = document.getElementById('plot-area');
   const cursorLine = document.getElementById('cursor-line');
   const tooltip = document.getElementById('tooltip');
-  let linkedHoverRafId = null;
-  let lastLinkedHoverDist = null;
+  let lastChartHoverDist = null;
+
+  function reportChartHoverDistance(dist) {
+    if (dist === lastChartHoverDist) return;
+    lastChartHoverDist = dist;
+    onChartHoverDistance?.(dist);
+  }
 
   function clearLinkedHover() {
-    if (state.linkedHoverDist !== null) {
-      state.linkedHoverDist = null;
-      lastLinkedHoverDist = null;
-      if (renderMap) renderMap();
-    }
+    reportChartHoverDistance(null);
   }
 
   function updateCursorDot(binIdx) {
@@ -82,17 +84,8 @@ export function initCursorAndZoom(renderAll, getRenderState, renderMap) {
     // Update cursor dot on circuit map
     updateCursorDot(binIdx);
 
-    // Linked hover: update map tick at chart cursor distance
-    if (features.mapHover && features.mapLinkedHover && binIdx !== lastLinkedHoverDist) {
-      state.linkedHoverDist = binIdx;
-      lastLinkedHoverDist = binIdx;
-      if (!linkedHoverRafId && renderMap) {
-        linkedHoverRafId = requestAnimationFrame(() => {
-          linkedHoverRafId = null;
-          renderMap();
-        });
-      }
-    }
+    // Linked hover: report chart cursor distance; mapHover owns the map UI.
+    reportChartHoverDistance(binIdx);
 
     // Tooltip
     const sSpeed = currentSessionBins.speed_kph?.[binIdx];

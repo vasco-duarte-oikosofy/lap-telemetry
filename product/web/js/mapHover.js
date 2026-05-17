@@ -138,6 +138,8 @@ export function createMapHover(canvas, getLapData, onUpdate) {
   let rafId = null;
   let pendingEvent = null;
   let isDragging = false;
+  let directPointerActive = false;
+  let linkedDistance = null;
   let grid = null;
   let readoutEl = null;
 
@@ -146,10 +148,66 @@ export function createMapHover(canvas, getLapData, onUpdate) {
     grid = buildGrid(lapA?.raw);
   }
 
+  function makeHoverState(nearest, sx, sy, lapA, lapB) {
+    const s = nearest.s;
+    return {
+      s,
+      screenX: sx,
+      screenY: sy,
+      lapASample: sLookup(lapA.raw, s),
+      lapBSample: lapB?.raw ? sLookup(lapB.raw, s) : null,
+      nearest,
+    };
+  }
+
+  function hideHover() {
+    const wasActive = hoverState !== null || (readoutEl && readoutEl.style.display !== 'none');
+    hoverState = null;
+    if (readoutEl) readoutEl.style.display = 'none';
+    if (wasActive) onUpdate?.(null);
+  }
+
+  function applyHoverState(nextState) {
+    if (!nextState) {
+      hideHover();
+      return;
+    }
+
+    const { lapA, lapB } = getLapData();
+    if (!lapA || !lapB) {
+      hideHover();
+      return;
+    }
+
+    hoverState = nextState;
+    const rect = canvas.getBoundingClientRect();
+    readoutEl = ensureReadout(canvas.parentElement);
+    updateReadout(readoutEl, hoverState, lapA, lapB);
+    positionReadout(readoutEl, hoverState.screenX, hoverState.screenY, rect.width, rect.height);
+    onUpdate?.(hoverState);
+  }
+
+  function buildLinkedHoverState() {
+    if (linkedDistance == null) return null;
+    const { lapA, lapB, transform } = getLapData();
+    if (!lapA?.raw || !transform) return null;
+
+    const nearest = sLookup(lapA.raw, linkedDistance);
+    if (!nearest || !isFinite(nearest.x) || !isFinite(nearest.z)) return null;
+
+    const sx = transform.toScreenX(nearest.x);
+    const sy = transform.toScreenY(nearest.z);
+    return makeHoverState(nearest, sx, sy, lapA, lapB);
+  }
+
+  function applyLinkedHoverIfIdle() {
+    if (directPointerActive || isDragging) return;
+    applyHoverState(buildLinkedHoverState());
+  }
+
   function doUpdate() {
     if (!pendingEvent || isDragging) {
-      hoverState = null;
-      onUpdate?.(null);
+      hideHover();
       return;
     }
     const rect = canvas.getBoundingClientRect();
@@ -158,45 +216,24 @@ export function createMapHover(canvas, getLapData, onUpdate) {
 
     const { lapA, lapB, transform } = getLapData();
     if (!lapA || !transform) {
-      hoverState = null;
-      onUpdate?.(null);
+      hideHover();
       return;
     }
 
     const world = worldFromScreen(sx, sy, transform);
     const nearest = findNearest(grid, world.x, world.z);
     if (!nearest) {
-      hoverState = null;
-      onUpdate?.(null);
+      hideHover();
       return;
     }
 
-    const s = nearest.s;
-    const lapASample = sLookup(lapA.raw, s);
-    const lapBSample = lapB?.raw ? sLookup(lapB.raw, s) : null;
-
-    hoverState = {
-      s,
-      screenX: sx,
-      screenY: sy,
-      lapASample,
-      lapBSample,
-      nearest,
-    };
-
-    // Update readout DOM
-    const panel = canvas.parentElement;
-    readoutEl = ensureReadout(panel);
-    updateReadout(readoutEl, hoverState, lapA, lapB);
-    positionReadout(readoutEl, sx, sy, rect.width, rect.height);
-
-    onUpdate?.(hoverState);
+    applyHoverState(makeHoverState(nearest, sx, sy, lapA, lapB));
   }
 
   function onPointerMove(e) {
+    directPointerActive = true;
     if (isDragging) {
-      hoverState = null;
-      onUpdate?.(null);
+      hideHover();
       return;
     }
     pendingEvent = e;
@@ -209,30 +246,38 @@ export function createMapHover(canvas, getLapData, onUpdate) {
   }
 
   function onPointerLeave() {
+    directPointerActive = false;
     pendingEvent = null;
     if (rafId) {
       cancelAnimationFrame(rafId);
       rafId = null;
     }
-    hoverState = null;
-    if (readoutEl) readoutEl.style.display = 'none';
-    onUpdate?.(null);
+    applyLinkedHoverIfIdle();
   }
 
   function onPointerDown() {
     isDragging = true;
+    directPointerActive = true;
     pendingEvent = null;
     if (rafId) {
       cancelAnimationFrame(rafId);
       rafId = null;
     }
-    hoverState = null;
-    if (readoutEl) readoutEl.style.display = 'none';
-    onUpdate?.(null);
+    hideHover();
   }
 
   function onPointerUp() {
     isDragging = false;
+  }
+
+  function setLinkedDistance(s) {
+    linkedDistance = s;
+    applyLinkedHoverIfIdle();
+  }
+
+  function clearLinkedDistance() {
+    linkedDistance = null;
+    if (!directPointerActive) hideHover();
   }
 
   canvas.addEventListener('pointermove', onPointerMove);
@@ -244,6 +289,8 @@ export function createMapHover(canvas, getLapData, onUpdate) {
   return {
     getState: () => hoverState,
     rebuild: build,
+    setLinkedDistance,
+    clearLinkedDistance,
     destroy: () => {
       canvas.removeEventListener('pointermove', onPointerMove);
       canvas.removeEventListener('pointerleave', onPointerLeave);

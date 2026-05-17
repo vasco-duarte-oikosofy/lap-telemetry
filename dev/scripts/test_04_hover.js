@@ -166,6 +166,56 @@ async function runTests() {
     assert(readoutText.includes('Throttle 0%'), 'readout shows throttle 0%');
     assert(readoutText.includes('Brake 0%'), 'readout shows brake 0%');
 
+    console.log('\n════ SCENARIO 2b: linked chart hover reuses mapHover readout ════');
+    const linkedHover = await page.evaluate(({ x, y }) => {
+      const canvas = document.getElementById('phase-04-hover-canvas');
+      const mapHover = window.__testMapHover;
+      const hasApi = !!mapHover?.setLinkedDistance && !!mapHover?.clearLinkedDistance;
+      if (!hasApi) return { hasApi };
+
+      // While direct pointer hover is active at s=100, linked hover must not replace it.
+      mapHover.setLinkedDistance(150);
+      let text = document.getElementById('map-hover-readout')?.textContent || '';
+      const directStillWins = text.includes('Distance: 100 m');
+
+      // Once the pointer leaves the map, the stored linked distance should drive
+      // the same readout UI at s=150.
+      canvas.dispatchEvent(new PointerEvent('pointerleave', {
+        clientX: x, clientY: y, bubbles: true, pointerType: 'mouse'
+      }));
+      text = document.getElementById('map-hover-readout')?.textContent || '';
+      const state = mapHover.getState();
+
+      mapHover.clearLinkedDistance();
+      const hiddenAfterClear = getComputedStyle(document.getElementById('map-hover-readout')).display === 'none';
+
+      return {
+        hasApi,
+        directStillWins,
+        linkedText: text,
+        linkedDistance: Math.round(state?.s ?? -1),
+        hiddenAfterClear,
+      };
+    }, { x: hoverX, y: hoverY });
+
+    assert(linkedHover.hasApi, 'mapHover exposes linked-distance API');
+    assert(linkedHover.directStillWins, 'direct map hover wins over linked hover');
+    console.log(`  linked readout text: ${linkedHover.linkedText}`);
+    assert(linkedHover.linkedDistance === 150, 'linked hover state uses chart distance', `${linkedHover.linkedDistance} m`);
+    assert(linkedHover.linkedText.includes('Distance: 150 m'), 'linked hover readout shows chart distance');
+    assert(linkedHover.linkedText.includes('Throttle 100%'), 'linked hover readout uses same Lap A throttle UI');
+    assert(linkedHover.linkedText.includes('Brake 100%'), 'linked hover readout uses same Lap B brake UI');
+    assert(linkedHover.hiddenAfterClear, 'linked hover clear hides readout');
+
+    // Restore direct hover for the tick geometry assertions.
+    await page.evaluate(({ x, y }) => {
+      const canvas = document.getElementById('phase-04-hover-canvas');
+      canvas.dispatchEvent(new PointerEvent('pointermove', {
+        clientX: x, clientY: y, bubbles: true, pointerType: 'mouse'
+      }));
+    }, { x: hoverX, y: hoverY });
+    await page.waitForTimeout(50);
+
     console.log('\n════ SCENARIO 3: perpendicular tick geometry ════');
     const tickPixels = await page.evaluate(() => {
       const canvas = document.getElementById('phase-04-hover-canvas');

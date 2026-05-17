@@ -403,7 +403,7 @@ function getRenderState() {
 initUI(renderAll);
 
 // Initialize cursor, tooltip, and zoom handlers
-initCursorAndZoom(renderAll, getRenderState, renderTrackHeatmapMap);
+initCursorAndZoom(renderAll, getRenderState, trackHeatmapController.setChartHoverDistance);
 
 installDebugHooks({
   store,

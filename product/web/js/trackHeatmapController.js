@@ -1,9 +1,8 @@
-import { features, devFeatures, state } from './appState.js';
+import { features, devFeatures } from './appState.js';
 import { computeTrackBounds } from './pipeline.js';
 import { createMapHover } from './mapHover.js';
 import { createMapInteraction, setBaseTransform } from './mapInteraction.js';
 import { renderWalkingSkeleton, initTrackHeatmapResize, fitToView, getLastTransform, computeSegmentBounds } from './trackHeatmapMap.js';
-import { sLookup } from './sLookup.js';
 
 
 export function createTrackHeatmapController(getMapState, resetChartZoom = null) {
@@ -45,22 +44,10 @@ export function createTrackHeatmapController(getMapState, resetChartZoom = null)
   }
 
   function buildOpts({ respectZoomFlag = true, includeMapSAlignment = true, autoZoomBounds = null } = {}) {
-    const { currentZoomRange, currentTrackName, currentLapARaw } = getMapState();
+    const { currentZoomRange, currentTrackName } = getMapState();
     const s = (!respectZoomFlag || features.mapZoomPan) && mapInteraction
       ? mapInteraction.getState()
       : { scale: 1, tx: 0, ty: 0 };
-
-    // Linked hover: synthescise a hover state from chart cursor distance.
-    // Only active when mapHover and mapLinkedHover flags are both on,
-    // and the user is not directly hovering the map (mapHover.getState() is null).
-    let linkedHoverState = null;
-    const directHover = mapHover ? mapHover.getState() : null;
-    if (features.mapLinkedHover && directHover === null && state.linkedHoverDist != null && currentLapARaw) {
-      const pt = sLookup(currentLapARaw, state.linkedHoverDist);
-      if (pt && isFinite(pt.x) && isFinite(pt.z)) {
-        linkedHoverState = { nearest: pt, s: pt.s };
-      }
-    }
 
     return {
       showHeatmapSingleLap: !!features.mapHeatmapSingleLap,
@@ -68,9 +55,7 @@ export function createTrackHeatmapController(getMapState, resetChartZoom = null)
       showDualRibbon: !!features.mapDualRibbon,
       showLegend: !!features.mapLegend,
       showHover: !!features.mapHover,
-      hoverState: directHover,
-      showLinkedHover: !!features.mapLinkedHover && !!features.mapHover,
-      linkedHoverState,
+      hoverState: mapHover ? mapHover.getState() : null,
       showLinkedHighlight: !!features.mapLinkedHighlight,
       visibleRange: currentZoomRange,
       ribbonWidthPx: 8,
@@ -92,6 +77,18 @@ export function createTrackHeatmapController(getMapState, resetChartZoom = null)
     } finally {
       rendering = false;
     }
+  }
+
+  function setChartHoverDistance(s) {
+    if (s != null && !mapHover) render();
+    if (!mapHover) return;
+
+    if (s == null || !features.mapHover || !features.mapLinkedHover) {
+      mapHover.clearLinkedDistance();
+      return;
+    }
+
+    mapHover.setLinkedDistance(s);
   }
 
   function _render() {
@@ -141,6 +138,7 @@ export function createTrackHeatmapController(getMapState, resetChartZoom = null)
         };
       }, () => render());
     }
+    if (mapHover && !features.mapLinkedHover) mapHover.clearLinkedDistance();
 
     const { currentTrackX, currentTrackZ, currentRefTrackX, currentRefTrackZ } = getMapState();
     if (!currentTrackX || !currentTrackZ || !currentRefTrackX || !currentRefTrackZ) return;
@@ -235,6 +233,7 @@ export function createTrackHeatmapController(getMapState, resetChartZoom = null)
 
   return {
     render,
+    setChartHoverDistance,
     getMapInteractionState: () => mapInteraction?.getState() ?? null,
     getMapHoverState: () => mapHover?.getState() ?? null,
   };
