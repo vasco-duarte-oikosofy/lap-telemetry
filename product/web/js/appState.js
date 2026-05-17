@@ -55,6 +55,7 @@ export const state = {
   dragStartDist: 0,
   dragId: null,
   currentRenderParams: null, // [sEntry, sSegIdx, rEntry, rSegIdx] for re-render after zoom
+  linkedHoverDist: null,      // Track distance (m) from chart cursor; null when not hovering
 };
 
 // ── Circuit map state ─────────────────────────────────────────────────────────
@@ -75,6 +76,7 @@ export const features = {
   mapHover: false,                // Phase 04 - hover crosshair and per-lap readout
   mapLinkedHighlight: false,       // Phase 05a - linked highlight band from trace charts
   mapAutoZoom: false,             // F16 - auto-zoom map to highlighted segment
+  mapLinkedHover: false,           // Show map hover tick when hovering charts
   apexAnnotations: false,          // Track outline Phase 03 - apex annotation loading
   apexMetrics: false,              // Track outline Phase 04 - in-memory apex metrics
   apexMetricsUi: false,            // Track outline Phase 05 - text-only apex metrics UI

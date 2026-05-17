@@ -1,6 +1,6 @@
 // ── Cursor, tooltip, and zoom interaction ─────────────────────────────────────
 
-import { state, getCurrentMapMode, setCurrentMapMode } from './appState.js';
+import { state, features, getCurrentMapMode, setCurrentMapMode } from './appState.js';
 import { PAD, SVG_W, PLOT_W } from './constants.js';
 import { renderCircuitMap } from './circuitMap.js';
 import { persistZoom } from './utils.js';
@@ -14,10 +14,20 @@ import { persistZoom } from './utils.js';
  *   { currentSessionBins, currentRefBins, currentZoomRange, currentOverlapRange,
  *     currentTrackX, currentTrackZ, trackTransform, currentDtBins, maxDist }
  */
-export function initCursorAndZoom(renderAll, getRenderState) {
+export function initCursorAndZoom(renderAll, getRenderState, renderMap) {
   const plotArea = document.getElementById('plot-area');
   const cursorLine = document.getElementById('cursor-line');
   const tooltip = document.getElementById('tooltip');
+  let linkedHoverRafId = null;
+  let lastLinkedHoverDist = null;
+
+  function clearLinkedHover() {
+    if (state.linkedHoverDist !== null) {
+      state.linkedHoverDist = null;
+      lastLinkedHoverDist = null;
+      if (renderMap) renderMap();
+    }
+  }
 
   function updateCursorDot(binIdx) {
     const { currentTrackX, currentTrackZ, trackTransform } = getRenderState();
@@ -58,6 +68,7 @@ export function initCursorAndZoom(renderAll, getRenderState) {
       cursorLine.style.transform = 'translateX(-9999px)';
       tooltip.style.display = 'none';
       updateCursorDot(null);
+      clearLinkedHover();
       return;
     }
 
@@ -70,6 +81,18 @@ export function initCursorAndZoom(renderAll, getRenderState) {
 
     // Update cursor dot on circuit map
     updateCursorDot(binIdx);
+
+    // Linked hover: update map tick at chart cursor distance
+    if (features.mapHover && features.mapLinkedHover && binIdx !== lastLinkedHoverDist) {
+      state.linkedHoverDist = binIdx;
+      lastLinkedHoverDist = binIdx;
+      if (!linkedHoverRafId && renderMap) {
+        linkedHoverRafId = requestAnimationFrame(() => {
+          linkedHoverRafId = null;
+          renderMap();
+        });
+      }
+    }
 
     // Tooltip
     const sSpeed = currentSessionBins.speed_kph?.[binIdx];
@@ -136,6 +159,7 @@ export function initCursorAndZoom(renderAll, getRenderState) {
     state.dragging = true;
     state.dragStartX = e.clientX - geo.rect.left;
     state.dragStartDist = distFromMx(state.dragStartX, geo.plotLeft, geo.plotRight, currentZoomRange);
+    clearLinkedHover();
   });
 
   // Mousemove — update selection rect or cursor
@@ -207,6 +231,7 @@ export function initCursorAndZoom(renderAll, getRenderState) {
       cursorLine.style.transform = 'translateX(-9999px)';
       tooltip.style.display = 'none';
       updateCursorDot(null);
+      clearLinkedHover();
     }
   });
 

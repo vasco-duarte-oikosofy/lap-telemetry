@@ -194,6 +194,11 @@ export function renderWalkingSkeleton(canvas, lapA, lapB, options = {}) {
     drawHoverTick(ctx, options.hoverState, transform, ribbonWidthPx, ribbonGapPx);
   }
 
+  // Linked hover: draw tick from chart cursor position
+  if (options.showLinkedHover && options.linkedHoverState) {
+    drawHoverTick(ctx, options.linkedHoverState, transform, ribbonWidthPx, ribbonGapPx);
+  }
+
   // Phase 05a: draw linked highlight band
   if (options.showLinkedHighlight && options.visibleRange) {
     drawLinkedHighlight(ctx, lapA, transform, options.visibleRange, ribbonWidthPx, ribbonGapPx);
