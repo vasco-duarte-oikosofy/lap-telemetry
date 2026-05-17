@@ -13,6 +13,7 @@ import { SPA_STATIC_OUTLINE } from './staticSpaOutlineData.js';
 import { BAHRAIN_INTERNATIONAL_CIRCUIT_STATIC_OUTLINE } from './staticBahrainInternationalCircuitOutlineData.js';
 import { FUJI_SPEEDWAY_OUTLINE_STATIC_OUTLINE } from './staticFujiSpeedway_outlineOutlineData.js';
 import { CIRCUIT_BARCELONA_STATIC_OUTLINE } from './staticCircuitBarcelonaOutlineData.js';
+import { AUTODROMO_DINO_FERRARI_STATIC_OUTLINE } from './staticAutodromoDinoFerrariOutlineData.js';
 
 // slug normalization: lowercase, collapse whitespace to single dash, strip non-alnum/dash
 function slugify(name) {
@@ -34,6 +35,9 @@ const OUTLINES = new Map([
   ['circuit-de-barcelona', CIRCUIT_BARCELONA_STATIC_OUTLINE],
   ['barcelona-catalunya', CIRCUIT_BARCELONA_STATIC_OUTLINE],
   ['catalunya', CIRCUIT_BARCELONA_STATIC_OUTLINE],
+  // Autodromo Enzo e Dino Ferrari (Imola)
+  ['autodromo-enzo-e-dino-ferrari', AUTODROMO_DINO_FERRARI_STATIC_OUTLINE],
+  ['imola', AUTODROMO_DINO_FERRARI_STATIC_OUTLINE],
 ]);
 
 /**
