@@ -69,10 +69,10 @@ export const PANEL_DEFS = [
 
   { id: 'slip', label: 'Slip angle FL / FR (deg)', height: 80,
     channels: [
-      { col: 'slip_angle_fl_deg', trace: 'session', color: 'var(--slip-fl)', dash: false },
-      { col: 'slip_angle_fl_deg', trace: 'ref', color: 'var(--slip-fl)', dash: true },
-      { col: 'slip_angle_fr_deg', trace: 'session', color: 'var(--slip-fr)', dash: false },
-      { col: 'slip_angle_fr_deg', trace: 'ref', color: 'var(--slip-fr)', dash: true },
+      { col: 'slip_angle_fl_deg', trace: 'session', color: 'var(--session)', dash: false },
+      { col: 'slip_angle_fl_deg', trace: 'ref', color: 'var(--ref)', dash: true },
+      { col: 'slip_angle_fr_deg', trace: 'session', color: 'var(--session)', dash: false },
+      { col: 'slip_angle_fr_deg', trace: 'ref', color: 'var(--ref)', dash: true },
     ],
     yFixed: null, yStep: 2, zeroline: false, niceSteps: [0.5, 1, 2, 5] },
 
