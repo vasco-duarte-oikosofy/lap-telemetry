@@ -43,7 +43,8 @@ def _build_segments(lap_col: list[int]) -> list[tuple[int, int, int]]:
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("session", type=Path, help="Session parquet file")
-    parser.add_argument("--segment", type=int, required=True, help="1-indexed chronological segment to extract")
+    parser.add_argument("--segment", type=int, default=None, help="1-indexed chronological segment to extract")
+    parser.add_argument("--lap", type=int, default=None, help="Lap number to extract (matches lap_number column)")
     parser.add_argument("--out", type=Path, default=None, help="Output path (default: auto-named next to session)")
     args = parser.parse_args()
 
@@ -63,12 +64,35 @@ def main() -> int:
         m, s = divmod(duration, 60)
         print(f"  Segment {i+1}: lap_number={lap_num}, frames={end-start}, duration={int(m)}:{s:06.3f}")
 
-    n = args.segment
-    if n < 1 or n > len(segments):
-        print(f"error: --segment {n} out of range (1..{len(segments)})", file=sys.stderr)
+    if args.segment is None and args.lap is None:
+        print("error: --segment or --lap is required", file=sys.stderr)
+        return 1
+    if args.segment is not None and args.lap is not None:
+        print("error: specify --segment or --lap, not both", file=sys.stderr)
         return 1
 
-    lap_num, start, end = segments[n - 1]
+    if args.lap is not None:
+        # Find the segment(s) matching this lap number; pick the fastest one
+        matching = [(i, seg) for i, seg in enumerate(segments) if seg[0] == args.lap]
+        if not matching:
+            print(f"error: lap_number {args.lap} not found in session", file=sys.stderr)
+            return 1
+        # Pick the segment with the shortest lap time (handles multi-stint sessions)
+        best_i, _ = min(
+            matching,
+            key=lambda x: max(t.column('lap_time_s').to_pylist()[x[1][1]:x[1][2]])
+        )
+        n = best_i + 1
+        lap_num, start, end = segments[best_i]
+        duration = max(t.column('lap_time_s').to_pylist()[start:end])
+        m, s = divmod(duration, 60)
+        print(f"Using segment {n} for lap_number={lap_num} ({end - start} rows, {int(m)}:{s:06.3f})")
+    else:
+        n = args.segment
+        if n < 1 or n > len(segments):
+            print(f"error: --segment {n} out of range (1..{len(segments)})", file=sys.stderr)
+            return 1
+        lap_num, start, end = segments[n - 1]
     slice_table = t.slice(start, end - start)
 
     out_path = args.out

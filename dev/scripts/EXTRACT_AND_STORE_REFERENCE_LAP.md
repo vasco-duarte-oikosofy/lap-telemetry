@@ -15,29 +15,31 @@ When a new fastest time is found, **replace the old file** (delete it) and creat
 
 ## Procedure
 
-### 1. Survey laps in the session
+### 1. Survey laps across all sessions for the circuit
+
+Run `explore_and_export_laps.py` on **every** session file for the target circuit. The fastest lap must come from the fastest lap across **all** sessions, not just one — a suboptimal session will produce a suboptimal reference.
 
 ```bash
-python3 dev/scripts/extract_reference_lap.py \
-    dev/sessions/<session-file>.parquet --segment 1
+python3 dev/scripts/explore_and_export_laps.py \
+    dev/sessions/<session-file>.parquet
 ```
 
-This prints every segment with its lap number, row count, and duration. Scan the output and identify the fastest complete lap (lowest duration, typically ≥60 s with ≥4 800 rows).
+This prints a table of every lap with its lap number, time, point count, distance, and completeness status. The script also identifies the fastest complete lap automatically.
 
-### 2. Find the segment number for that lap
+Compare the fastest-lap times from each session and pick the overall fastest lap number and its source session file.
 
-Segments are 1-indexed in the order they appear in the file. Note the segment number of the fastest lap from the output above.
-
-### 3. Extract the lap
+### 2. Extract the lap
 
 ```bash
 python3 dev/scripts/extract_reference_lap.py \
     dev/sessions/<session-file>.parquet \
-    --segment <N> \
+    --lap <lap-number> \
     --out /tmp/ref_lap_extract.parquet
 ```
 
-### 4. Verify the extracted lap time
+Use the `--lap` flag with the lap number from step 1. If the same lap number appears in multiple stints, the script automatically picks the segment with the shortest lap time.
+
+### 3. Verify the extracted lap time
 
 ```bash
 python3 -c "
@@ -51,7 +53,7 @@ print(f'{int(m)}:{s:06.3f}')
 
 Confirm the time matches your expectation.
 
-### 5. Replace the old reference-lap file
+### 4. Replace the old reference-lap file
 
 ```bash
 rm product/data/reference-laps/<track-slug>_time_<old-time>.parquet
@@ -59,13 +61,13 @@ cp /tmp/ref_lap_extract.parquet \
    product/data/reference-laps/<track-slug>_time_<new-time>.parquet
 ```
 
-### 6. Clean up
+### 5. Clean up
 
 ```bash
 rm /tmp/ref_lap_extract.parquet
 ```
 
-### 7. Commit
+### 6. Commit
 
 Commit the deletion of the old file and addition of the new one. The commit message should include the track, old time, and new time:
 
