@@ -109,3 +109,7 @@ makes it hard to spot failures.
 - Start only the slice named in your current prompt.
 - Ask before modifying `AGENTS.md` or `track-heatmap-spec.md`.
 - Start with a specific and focused implementation, refactor only as needed to respect SOLID rules and YAGNI.
+
+## Reference-lap extraction and storage
+
+To extract the fastest lap from a session file and store it as the reference lap for a circuit, follow the procedure in [`dev/scripts/EXTRACT_AND_STORE_REFERENCE_LAP.md`](dev/scripts/EXTRACT_AND_STORE_REFERENCE_LAP.md).
