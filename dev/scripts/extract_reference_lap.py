@@ -94,6 +94,8 @@ def main() -> int:
             return 1
         lap_num, start, end = segments[n - 1]
     slice_table = t.slice(start, end - start)
+    extracted_duration = max(t.column('lap_time_s').to_pylist()[start:end])
+    mins, secs = divmod(extracted_duration, 60)
 
     out_path = args.out
     if out_path is None:
@@ -102,6 +104,7 @@ def main() -> int:
 
     pq.write_table(slice_table, out_path, compression="snappy")
     print(f"\nExtracted segment {n} (lap_number={lap_num}, {end-start} rows) -> {out_path}")
+    print(f"Lap time: {int(mins)}:{secs:06.3f}")
     return 0
 
 

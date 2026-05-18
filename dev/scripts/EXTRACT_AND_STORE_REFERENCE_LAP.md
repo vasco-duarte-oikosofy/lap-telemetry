@@ -67,6 +67,14 @@ Use the `--lap` flag with the lap number from step 1. If the same lap number app
 
 ### 3. Verify the extracted lap time
 
+The script prints a `Lap time:` line at the end, e.g.:
+
+```
+Lap time: 1:36.456
+```
+
+Confirm this matches your expectation and is realistic for the circuit. If you want to double-check independently:
+
 ```bash
 python3 -c "
 import pyarrow.parquet as pq
@@ -76,8 +84,6 @@ m, s = divmod(duration, 60)
 print(f'{int(m)}:{s:06.3f}')
 "
 ```
-
-Confirm the time matches your expectation and is realistic for the circuit.
 
 ### 4. Replace the old reference-lap file
 
