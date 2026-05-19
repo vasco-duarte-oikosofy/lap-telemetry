@@ -3,9 +3,10 @@
 Find the fastest complete lap per track across all session directories
 and export each as a reference-lap parquet file.
 
-Output: product/data/reference-laps/<track-slug>_time_<mm>.<ss>.<xxx>.parquet
+Output: product/data/reference-laps/<track-slug>_<vehicle-slug>_time_<mm>.<ss>.<xxx>.parquet
 """
 
+import json
 import sys
 import re
 from pathlib import Path
@@ -38,6 +39,22 @@ def format_lap_time(seconds: float) -> str:
 def track_slug_from_path(p: Path) -> str:
     m = re.match(r"session_\d{8}T\d{6}Z_(.+)_lmu\.parquet", p.name)
     return m.group(1) if m else p.stem
+
+
+def vehicle_slug(vehicle_name: str) -> str:
+    s = vehicle_name.lower()
+    s = re.sub(r"#", "", s)
+    s = re.sub(r"[:/]", "-", s)
+    s = re.sub(r"\s+", "-", s)
+    s = re.sub(r"-+", "-", s)
+    return s.strip("-")
+
+
+def read_vehicle_name(session_parquet: Path) -> str:
+    sidecar = session_parquet.with_suffix(".json")
+    if sidecar.exists():
+        return json.loads(sidecar.read_text()).get("vehicle_name", "")
+    return ""
 
 
 def find_complete_laps(table: pa.Table) -> list[tuple[int, float]]:
@@ -125,14 +142,16 @@ def main():
             print(f"  No complete laps found, skipping.\n")
             continue
 
+        vehicle_name = read_vehicle_name(best_session)
+        vslug = vehicle_slug(vehicle_name) if vehicle_name else "unknown"
         time_str = format_lap_time(best_time)
-        out_path = OUTPUT_DIR / f"{slug}_time_{time_str}.parquet"
+        out_path = OUTPUT_DIR / f"{slug}_{vslug}_time_{time_str}.parquet"
 
         mask = pc.equal(best_table.column("lap_number"), best_lap_num)
         lap_table = best_table.filter(mask)
         pq.write_table(lap_table, out_path)
 
-        print(f"  Fastest: lap {best_lap_num} in {best_session.name} -> {best_time:.3f}s")
+        print(f"  Fastest: lap {best_lap_num} in {best_session.name} ({vehicle_name}) -> {best_time:.3f}s")
         print(f"  Exported {lap_table.num_rows} rows -> {out_path}\n")
 
     print("Done.")
