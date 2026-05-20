@@ -25,6 +25,7 @@ function runPythonRecorderCheck() {
 import json, math, sys, tempfile
 from pathlib import Path
 sys.path.insert(0, r'''${path.join(ROOT, 'product', 'python')}''')
+sys.path.insert(0, r'''${path.join(ROOT, 'vendor')}''')
 from lap_telemetry.recorder.writer import SessionWriter, _SCHEMA
 from lap_telemetry.recorder.connect import Frame
 from pyLMUSharedMemory import lmu_data

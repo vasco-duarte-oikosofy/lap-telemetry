@@ -49,6 +49,29 @@ def _build_parser() -> argparse.ArgumentParser:
     summ = sub.add_parser("summary", help="Print per-lap overview of a recorded session.")
     summ.add_argument("file", type=Path, help="Path to a .parquet session file.")
 
+    compare = sub.add_parser(
+        "compare-laps",
+        help="Compare a current lap against a reference lap and print coaching facts.",
+    )
+    compare.add_argument(
+        "--current-lap",
+        type=Path,
+        required=True,
+        help="Path to current lap Parquet file.",
+    )
+    compare.add_argument(
+        "--reference-lap",
+        type=Path,
+        required=True,
+        help="Path to reference lap Parquet file.",
+    )
+    compare.add_argument(
+        "--track-model",
+        type=Path,
+        required=True,
+        help="Path to track coaching model JSON.",
+    )
+
     return parser
 
 
@@ -66,6 +89,9 @@ def main(argv: Sequence[str] | None = None) -> int:
     if args.cmd == "summary":
         from .summary import run as summary_run
         return summary_run(args.file)
+    if args.cmd == "compare-laps":
+        from .coach.cli import run as compare_run
+        return compare_run(args.current_lap, args.reference_lap, args.track_model)
     parser.error(f"unknown command: {args.cmd}")
     return 2  # unreachable
 

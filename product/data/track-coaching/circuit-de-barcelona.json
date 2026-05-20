@@ -1,0 +1,142 @@
+{
+  "schema_version": "1",
+  "track_id": "circuit-de-barcelona",
+  "layout_id": "lmu-default",
+  "lap_length_m": 4657.0,
+  "corners": [
+    {
+      "id": "t1",
+      "name": "turn 1",
+      "s_start_m": 680.0,
+      "apex_s_m": 750.0,
+      "s_end_m": 820.0,
+      "apex_side": "right"
+    },
+    {
+      "id": "t2",
+      "name": "turn 2",
+      "s_start_m": 820.0,
+      "apex_s_m": 845.0,
+      "s_end_m": 870.0,
+      "apex_side": "right"
+    },
+    {
+      "id": "t3",
+      "name": "turn 3",
+      "s_start_m": 910.0,
+      "apex_s_m": 940.0,
+      "s_end_m": 960.0,
+      "apex_side": "left"
+    },
+    {
+      "id": "t4",
+      "name": "turn 4",
+      "s_start_m": 1590.0,
+      "apex_s_m": 1650.0,
+      "s_end_m": 1720.0,
+      "apex_side": "right"
+    },
+    {
+      "id": "t5",
+      "name": "turn 5",
+      "s_start_m": 2000.0,
+      "apex_s_m": 2050.0,
+      "s_end_m": 2120.0,
+      "apex_side": "left"
+    },
+    {
+      "id": "t6",
+      "name": "turn 6",
+      "s_start_m": 2120.0,
+      "apex_s_m": 2145.0,
+      "s_end_m": 2165.0,
+      "apex_side": "left"
+    },
+    {
+      "id": "t7",
+      "name": "turn 7",
+      "s_start_m": 2440.0,
+      "apex_s_m": 2480.0,
+      "s_end_m": 2520.0,
+      "apex_side": "left"
+    },
+    {
+      "id": "t8",
+      "name": "turn 8",
+      "s_start_m": 3350.0,
+      "apex_s_m": 3430.0,
+      "s_end_m": 3530.0,
+      "apex_side": "left"
+    },
+    {
+      "id": "t9",
+      "name": "turn 9",
+      "s_start_m": 3680.0,
+      "apex_s_m": 3710.0,
+      "s_end_m": 3740.0,
+      "apex_side": "right"
+    },
+    {
+      "id": "t10",
+      "name": "turn 10",
+      "s_start_m": 3740.0,
+      "apex_s_m": 3780.0,
+      "s_end_m": 3820.0,
+      "apex_side": "right"
+    },
+    {
+      "id": "t11",
+      "name": "turn 11",
+      "s_start_m": 3820.0,
+      "apex_s_m": 3870.0,
+      "s_end_m": 3920.0,
+      "apex_side": "right"
+    },
+    {
+      "id": "t12",
+      "name": "turn 12",
+      "s_start_m": 3920.0,
+      "apex_s_m": 3980.0,
+      "s_end_m": 4050.0,
+      "apex_side": "left"
+    },
+    {
+      "id": "t13",
+      "name": "turn 13",
+      "s_start_m": 4050.0,
+      "apex_s_m": 4120.0,
+      "s_end_m": 4200.0,
+      "apex_side": "left"
+    },
+    {
+      "id": "t14",
+      "name": "turn 14",
+      "s_start_m": 4200.0,
+      "apex_s_m": 4280.0,
+      "s_end_m": 4350.0,
+      "apex_side": "right"
+    },
+    {
+      "id": "t15",
+      "name": "turn 15",
+      "s_start_m": 4350.0,
+      "apex_s_m": 4420.0,
+      "s_end_m": 4500.0,
+      "apex_side": "right"
+    },
+    {
+      "id": "t16",
+      "name": "turn 16",
+      "s_start_m": 4500.0,
+      "apex_s_m": 4580.0,
+      "s_end_m": 4657.0,
+      "apex_side": "left"
+    }
+  ],
+  "straight_zones": [
+    { "id": "start-finish", "s_start_m": 0.0, "s_end_m": 680.0 },
+    { "id": "after-t3", "s_start_m": 960.0, "s_end_m": 1590.0 },
+    { "id": "after-t7", "s_start_m": 2520.0, "s_end_m": 3350.0 },
+    { "id": "after-t11", "s_start_m": 3920.0, "s_end_m": 4050.0 }
+  ]
+}
