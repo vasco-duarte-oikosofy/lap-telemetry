@@ -18,6 +18,7 @@
   - `resample_column()` — distance-based linear interpolation to 1m grid
   - `compare_laps()` — compares current vs reference lap, returns `LapComparisonFacts`
   - `CornerLoss` and `LapComparisonFacts` dataclasses
+  - `CornerLoss.apex_distance_m` is populated from each track model corner's `apex_s_m` and serialized immediately after `corner_name`
 - `product/python/lap_telemetry/coach/cli.py` — CLI entry point for `compare-laps` command
 - `product/python/lap_telemetry/__main__.py` — Module entry point for `python -m lap_telemetry`
 - `product/python/lap_telemetry/cli.py` — Updated with `compare-laps` subcommand
@@ -73,7 +74,7 @@ Returns structured `LapComparisonFacts` with:
 - Top 3 corner gains
 - Constraints for LLM (max_words, style)
 
-Output is JSON-serializable via `.to_dict()`.
+Output is JSON-serializable via `.to_dict()`. Each `top_losses`/`top_gains` item includes `apex_distance_m` for quick track-location lookup.
 
 ### Track coaching JSON schema
 
@@ -110,8 +111,10 @@ Output is JSON-serializable via `.to_dict()`.
 
 ## Test results
 
+- `bash scripts/test-summary.sh dev/scripts/test_coach_lap_comparison.js`: ✅
+- `cd product/python && python3 demo_coach_slice01.py`: ✅ shows `"apex_distance_m": 3430.0` for turn 8
 - `bash scripts/test-summary.sh`: ✅ 1084 assertions across 46 scripts
-- `npm run build`: ✅ (no JS changes in this slice)
+- `npm run build`: ✅ rebuilt `product/dist/compare.html`
 
 ## Known issues
 

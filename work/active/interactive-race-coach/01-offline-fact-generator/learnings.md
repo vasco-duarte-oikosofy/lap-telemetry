@@ -10,6 +10,8 @@
 
 4. **Track model authoring is manual** — Hand-authoring 16 corners for Barcelona took ~20 minutes using trajectory analysis (braking + steering heuristics). For 30+ tracks, we'll need automated generation tools. The validation layer catches mistakes early.
 
+5. **Apex distance belongs in the facts layer** — The track model already has `apex_s_m`, so no schema change was needed. The comparator should carry that value into every `CornerLoss` and `to_dict()` preserves key order so `apex_distance_m` appears immediately after `corner_name` in JSON output.
+
 ## Context for the next agent
 
 ### File locations

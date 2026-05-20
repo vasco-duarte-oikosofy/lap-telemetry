@@ -107,6 +107,11 @@ def test_lap_comparison():
     output = facts.to_dict()
     assert "top_losses" in output
     assert "top_gains" in output
+    if output["top_losses"]:
+        first_loss = output["top_losses"][0]
+        corner = next(c for c in model.corners if c.id == first_loss["corner_id"])
+        assert first_loss["apex_distance_m"] == corner.apex_s_m
+        assert list(first_loss.keys())[2] == "apex_distance_m"
     print(f'  lap_comparison: OK (lap delta: {facts.lap_time_delta_s:.3f}s)')
 
 def test_cli_command():
@@ -133,6 +138,8 @@ def test_cli_command():
     output = json.loads(result.stdout)
     assert output["type"] == "lap_coaching_summary"
     assert output["track_id"] == "circuit-de-barcelona"
+    if output["top_losses"]:
+        assert "apex_distance_m" in output["top_losses"][0]
     print('  cli_command: OK')
 
 test_resample_column()

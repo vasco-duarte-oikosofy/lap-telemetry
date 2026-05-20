@@ -15,6 +15,7 @@ class CornerLoss:
     """Loss/gain analysis for a single corner."""
     corner_id: str
     corner_name: str
+    apex_distance_m: float
     phase: str  # "minimum_speed" | "entry" | "exit"
     loss_s: float  # positive = lost time, negative = gained
     driver_value: float
@@ -48,6 +49,7 @@ class LapComparisonFacts:
                 {
                     "corner_id": c.corner_id,
                     "corner_name": c.corner_name,
+                    "apex_distance_m": c.apex_distance_m,
                     "phase": c.phase,
                     "loss_s": round(c.loss_s, 3),
                     "driver_value": round(c.driver_value, 1),
@@ -61,6 +63,7 @@ class LapComparisonFacts:
                 {
                     "corner_id": c.corner_id,
                     "corner_name": c.corner_name,
+                    "apex_distance_m": c.apex_distance_m,
                     "phase": c.phase,
                     "loss_s": round(c.loss_s, 3),
                     "driver_value": round(c.driver_value, 1),
@@ -258,6 +261,7 @@ def compare_laps(
             corner_losses.append(CornerLoss(
                 corner_id=corner.id,
                 corner_name=corner.name,
+                apex_distance_m=corner.apex_s_m,
                 phase="minimum_speed",
                 loss_s=speed_delta / 100.0,  # Rough conversion to time
                 driver_value=driver_min,
@@ -275,6 +279,7 @@ def compare_laps(
             corner_losses.append(CornerLoss(
                 corner_id=corner.id,
                 corner_name=corner.name,
+                apex_distance_m=corner.apex_s_m,
                 phase="entry",
                 loss_s=entry_delta / 100.0,
                 driver_value=driver_entry,
@@ -292,6 +297,7 @@ def compare_laps(
             corner_losses.append(CornerLoss(
                 corner_id=corner.id,
                 corner_name=corner.name,
+                apex_distance_m=corner.apex_s_m,
                 phase="exit",
                 loss_s=exit_delta / 100.0,
                 driver_value=driver_exit,
