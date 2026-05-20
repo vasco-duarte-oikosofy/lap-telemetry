@@ -99,7 +99,7 @@ def test_invalid_track_model():
 
 def test_lap_comparison():
     """Test lap comparison with fixture data."""
-    current_lap = ROOT / "dev" / "fixtures" / "coach" / "barcelona_lap2_current.parquet"
+    current_lap = ROOT / "dev" / "fixtures" / "coach" / "barcelona_lap15_current.parquet"
     reference_lap = ROOT / "product" / "data" / "reference-laps" / "circuit-de-barcelona_dkr-engineering-4-elms25_time_01.36.456.parquet"
     track_model = ROOT / "product" / "data" / "track-coaching" / "circuit-de-barcelona.json"
 
@@ -127,7 +127,7 @@ def test_cli_command():
     """Test the compare-laps CLI command."""
     import subprocess
 
-    current_lap = ROOT / "dev" / "fixtures" / "coach" / "barcelona_lap2_current.parquet"
+    current_lap = ROOT / "dev" / "fixtures" / "coach" / "barcelona_lap15_current.parquet"
     reference_lap = ROOT / "product" / "data" / "reference-laps" / "circuit-de-barcelona_dkr-engineering-4-elms25_time_01.36.456.parquet"
     track_model = ROOT / "product" / "data" / "track-coaching" / "circuit-de-barcelona.json"
 

@@ -41,8 +41,8 @@ def main():
     parser.add_argument(
         "--current-lap",
         type=Path,
-        default=SCRIPT_DIR.parent.parent / "dev" / "fixtures" / "coach" / "barcelona_lap2_current.parquet",
-        help="Path to current lap Parquet file (default: dev/fixtures/coach/barcelona_lap2_current.parquet)",
+        default=SCRIPT_DIR.parent.parent / "dev" / "fixtures" / "coach" / "barcelona_lap15_current.parquet",
+        help="Path to current lap Parquet file (default: dev/fixtures/coach/barcelona_lap15_current.parquet)",
     )
     parser.add_argument(
         "--reference-lap",
