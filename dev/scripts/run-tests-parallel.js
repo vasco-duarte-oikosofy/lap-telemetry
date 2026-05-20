@@ -49,7 +49,7 @@ function getTestScripts() {
 
 function runTest(script) {
   return new Promise(resolve => {
-    const child = spawn('node', [script], { cwd: ROOT, stdio: ['ignore', 'pipe', 'pipe'] });
+    const child = spawn('node', [script], { cwd: ROOT, stdio: ['ignore', 'pipe', 'pipe'], env: { ...process.env } });
     let output = '';
     child.stdout.on('data', d => { output += d; });
     child.stderr.on('data', d => { output += d; });

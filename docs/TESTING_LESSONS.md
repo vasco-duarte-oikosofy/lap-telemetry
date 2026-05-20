@@ -46,7 +46,50 @@ patterns, a broken test looks like it passed.
 
 ---
 
-## L1. Use `.hover()` with relative positions, not `mouse.move()` with absolute coordinates
+## L1. Pass environment variables explicitly to subprocess spawns
+
+**Problem.** When the test runner spawns child processes (e.g., Node.js tests that spawn Python via `spawnSync` or `spawn`), environment variables like `PYTHONPATH` are not automatically inherited. This causes intermittent failures where Python modules can't be found, even though the parent shell has `PYTHONPATH` set correctly.
+
+**Symptom.** Tests fail with `ModuleNotFoundError: No module named 'lap_telemetry'` when run via the parallel runner, but pass when run directly with `PYTHONPATH` exported in the shell.
+
+**Root cause.** Node.js `child_process.spawn()` does not inherit the parent's environment by default on all platforms. The `PYTHONPATH` set in `test-summary.sh` via `export` is lost when spawning child Node.js processes.
+
+**Solution.** Always pass `env: { ...process.env }` in spawn options:
+
+```javascript
+// ✗ Wrong — environment variables may be lost
+const child = spawn('node', [script], { cwd: ROOT, stdio: ['ignore', 'pipe', 'pipe'] });
+
+// ✓ Right — explicitly inherit all environment variables
+const child = spawn('node', [script], { cwd: ROOT, stdio: ['ignore', 'pipe', 'pipe'], env: { ...process.env } });
+```
+
+**For Python subprocesses spawned from Node.js tests:**
+
+```javascript
+// ✗ Wrong — PYTHONPATH may not be inherited
+const res = spawnSync('python3', ['-c', code], { encoding: 'utf8', timeout: 30000 });
+
+// ✓ Right — explicitly pass PYTHONPATH
+const res = spawnSync('python3', ['-c', code], {
+  encoding: 'utf8',
+  timeout: 30000,
+  env: { ...process.env, PYTHONPATH: path.join(ROOT, 'product', 'python') }
+});
+```
+
+**Why this matters.** The parallel test runner spawns many Node.js processes in parallel. If `PYTHONPATH` isn't inherited, Python-dependent tests will fail intermittently or timeout waiting for module imports. This is especially critical on CI where environment setup may differ from local development.
+
+**Platform note.** This issue is more common on macOS and Windows than Linux. Linux often inherits environment variables by default, but relying on this is fragile. Always be explicit.
+
+**Fast diagnosis.** If a Python-dependent test passes when run directly but fails in the parallel runner:
+1. Check if the test spawns Python subprocesses
+2. Verify `PYTHONPATH` is passed in spawn options
+3. Add `env: { ...process.env }` to the spawn call
+
+---
+
+## L2. Use `.hover()` with relative positions, not `mouse.move()` with absolute coordinates
 
 **Problem.** `page.mouse.move(box.x + box.width/2, box.y + box.height/2)` uses
 absolute viewport coordinates. If the target element is below the viewport fold
@@ -67,7 +110,7 @@ await panelSvg.hover({ position: { x: box.width / 2, y: box.height / 2 } });
 
 ---
 
-## L2. Re-acquire elements after any re-render
+## L3. Re-acquire elements after any re-render
 
 **Problem.** `renderAll()` rebuilds the DOM via `panelsDiv.innerHTML = ''`.
 Any element handle grabbed before a re-render (zoom, reset, lap change) is
@@ -86,7 +129,7 @@ const box = await freshPanel.boundingBox();
 
 ---
 
-## L3. Each test must own its scroll position
+## L4. Each test must own its scroll position
 
 **Problem.** Tests that use `.hover()` (which scrolls) create a hidden
 dependency: later tests pass only because an earlier test scrolled the page
@@ -106,7 +149,7 @@ await page.mouse.move(box.x + box.width * 0.2, ...); // safe
 
 ---
 
-## L4. Wait for data state, not just DOM elements
+## L5. Wait for data state, not just DOM elements
 
 **Problem.** Waiting for a `<polyline>` to appear doesn't guarantee
 `currentSessionBins` is populated. The element exists but the data
@@ -122,7 +165,7 @@ await page.waitForFunction(() => {
 
 ---
 
-## L5. Module-scoped variables aren't accessible in `page.evaluate()`
+## L6. Module-scoped variables aren't accessible in `page.evaluate()`
 
 **Problem.** `currentSessionBins` is a `let` at module scope in `main.js`.
 `page.evaluate(() => currentSessionBins)` throws `ReferenceError` because
@@ -140,7 +183,7 @@ const state = await page.evaluate(() => window.__debugGetBins());
 
 ---
 
-## L6. Add debug logging before asserting
+## L7. Add debug logging before asserting
 
 **Problem.** When a test fails, "FAIL: tooltip displayed" doesn't tell you
 whether the tooltip was invisible, empty, or had wrong content.
@@ -159,7 +202,7 @@ string", which points directly at the root cause.
 
 ---
 
-## L7. Screenshots are artifacts unless compared or asserted
+## L8. Screenshots are artifacts unless compared or asserted
 
 **Problem.** Saving a screenshot can look like coverage, but it does not fail
 the test unless the file is compared or at least checked. A scenario named
@@ -177,7 +220,7 @@ assert(size > 0, 'screenshot artifact written', `${size} bytes`);
 
 ---
 
-## L8. Be explicit about viewport width vs content/container width
+## L9. Be explicit about viewport width vs content/container width
 
 **Problem.** A responsive test may say it is testing a 320px container while
 actually setting a 420px viewport and relying on body padding/margins. That can
@@ -197,7 +240,7 @@ await page.setViewportSize({ width: targetContentWidth + paddingX, height: 1200 
 
 ---
 
-## L9. Assert the visible renderer, not a hard-coded implementation element
+## L10. Assert the visible renderer, not a hard-coded implementation element
 
 **Problem.** A feature can switch between SVG and canvas rendering. Asserting
 that `#circuit-map-svg` has a non-zero box fails when the canvas renderer is
@@ -218,7 +261,7 @@ assert(size > 0, 'map renderer has visible width');
 
 ---
 
-## L10. Regenerate static outline modules through the pipeline, not ad hoc scripts
+## L11. Regenerate static outline modules through the pipeline, not ad hoc scripts
 
 **Problem.** Static outline modules are imported by name from
 `trackOutlineManifest.js`. If an outline JSON is copied into a runtime module
