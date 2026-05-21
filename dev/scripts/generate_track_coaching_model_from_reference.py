@@ -15,8 +15,6 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
-import pyarrow.parquet as pq
-
 ROOT = Path(__file__).resolve().parent.parent.parent
 sys.path.insert(0, str(ROOT / "product" / "python"))
 
@@ -319,6 +317,8 @@ def diagnostics_text(candidates: list[Candidate]) -> str:
 def main() -> int:
     args = parse_args()
     try:
+        import pyarrow.parquet as pq
+
         table = pq.read_table(args.reference_lap)
         required = ["lap_distance_m", "speed_kph", "lap_time_s", "lap_number"]
         missing = [column for column in required if column not in table.column_names]

@@ -39,6 +39,7 @@ class CornerLoss:
     phase_distance_m: float | None = None  # distance where phase was measured; None = apex
     driver_apex_distance_m: float | None = None  # for minimum_speed: where driver hit min speed
     reference_apex_distance_m: float | None = None  # for minimum_speed: where reference hit min speed
+    apex_offset_m: float | None = None  # for minimum_speed: ref_apex - driver_apex; positive = driver earlier
 
 
 @dataclass
@@ -75,6 +76,8 @@ class LapComparisonFacts:
                 d["driver_apex_distance_m"] = round(c.driver_apex_distance_m, 1)
             if c.reference_apex_distance_m is not None:
                 d["reference_apex_distance_m"] = round(c.reference_apex_distance_m, 1)
+            if c.apex_offset_m is not None:
+                d["apex_offset_m"] = round(c.apex_offset_m, 1)
             return d
 
         return {
@@ -164,6 +167,64 @@ def compute_minimum_speed_per_corner(
     ref_apex_m = float(start_idx + ref_min_offset)
 
     return driver_min, ref_min, ref_min - driver_min, driver_apex_m, ref_apex_m
+
+
+# ---------------------------------------------------------------------------
+# Delta-time trace
+# ---------------------------------------------------------------------------
+
+def compute_delta_time_trace(
+    driver_speed: list[float],
+    ref_speed: list[float],
+    track_length: int,
+) -> list[float]:
+    """Compute cumulative time delta at each meter.
+
+    delta_t[s] = driver_cumtime[s] - ref_cumtime[s]
+    Positive = driver behind (slower cumulative time to this point).
+    Negative = driver ahead (faster cumulative time to this point).
+
+    Speeds are clamped to 1.0 kph minimum to avoid division by zero.
+    """
+    dt_driver = 0.0
+    dt_ref = 0.0
+    delta_t = [0.0] * track_length
+
+    for s in range(track_length):
+        # Time to traverse 1 m at this speed: 1m / (speed_kph / 3.6)
+        driver_speed_ms = max(driver_speed[s], 1.0) / 3.6
+        ref_speed_ms = max(ref_speed[s], 1.0) / 3.6
+        dt_driver += 1.0 / driver_speed_ms
+        dt_ref += 1.0 / ref_speed_ms
+        delta_t[s] = dt_driver - dt_ref
+
+    return delta_t
+
+
+def find_straight_end_after_corner(
+    corner_index: int,
+    corners: list[Corner],
+    driver_speed: list[float],
+    driver_throttle: list[float] | None,
+    driver_brake: list[float] | None,
+    thresholds: PhaseDetectionThresholds = PhaseDetectionThresholds(),
+    track_length: int = 0,
+) -> int:
+    """Find the distance where the straight after corner_index ends.
+
+    This is the entry point of the next corner (throttle lift or brake onset).
+    For the last corner, returns track_length - 1 (end of lap).
+    """
+    if corner_index >= len(corners) - 1:
+        # Last corner: measure to end of lap
+        return track_length - 1 if track_length > 0 else 0
+
+    next_corner = corners[corner_index + 1]
+    entry_idx, _method = find_entry_point(
+        driver_speed, driver_throttle, driver_brake,
+        next_corner, thresholds,
+    )
+    return entry_idx
 
 
 # ---------------------------------------------------------------------------
@@ -427,30 +488,51 @@ def compare_laps(
     ref_lap_time = max(t for t in ref_lap_times if t is not None and t > 0)
     lap_time_delta = driver_lap_time - ref_lap_time
 
+    # Compute delta-time trace for gain measurement
+    delta_t = compute_delta_time_trace(driver_speed, ref_speed_grid, track_length)
+
     # Get lap number
     lap_numbers = current_table.column("lap_number").to_pylist()
     lap_number = max(lap_numbers) if lap_numbers else 0
 
     # Analyze each corner
     corner_losses: list[CornerLoss] = []
-    for corner in track_model.corners:
+    for corner_idx, corner in enumerate(track_model.corners):
         # --- Minimum speed ---
         driver_min, ref_min, speed_delta, driver_apex_m, ref_apex_m = compute_minimum_speed_per_corner(
             driver_speed, ref_speed_grid, corner
         )
-        if speed_delta > 0.5:
+        if abs(speed_delta) > 0.5:
+            if speed_delta > 0:
+                # LOSS — unchanged heuristic
+                loss_s = speed_delta / 100.0
+            else:
+                # GAIN — real integrated time from apex to end of straight
+                apex_idx = int(driver_apex_m)
+                straight_end = find_straight_end_after_corner(
+                    corner_idx, track_model.corners,
+                    driver_speed, driver_throttle_grid, driver_brake_grid,
+                    thresholds, track_length,
+                )
+                if 0 <= apex_idx < len(delta_t) and 0 <= straight_end < len(delta_t):
+                    loss_s = delta_t[straight_end] - delta_t[apex_idx]
+                else:
+                    # Fallback to heuristic if delta-t indices are out of range
+                    loss_s = speed_delta / 100.0
+
             corner_losses.append(CornerLoss(
                 corner_id=corner.id,
                 corner_name=corner.name,
                 apex_distance_m=corner.apex_s_m,
                 phase="minimum_speed",
-                loss_s=speed_delta / 100.0,
+                loss_s=loss_s,
                 driver_value=driver_min,
                 reference_value=ref_min,
                 unit="km/h",
-                confidence="high" if speed_delta > 2.0 else "medium",
+                confidence="high" if abs(speed_delta) > 2.0 else "medium",
                 driver_apex_distance_m=driver_apex_m,
                 reference_apex_distance_m=ref_apex_m,
+                apex_offset_m=ref_apex_m - driver_apex_m,
             ))
 
         # --- Entry phase (algorithm-driven) ---

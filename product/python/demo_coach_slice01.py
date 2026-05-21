@@ -4,7 +4,15 @@ Demo script for Interactive Race Coach — Slice 01: Offline Fact Generator
 
 This script demonstrates the lap comparison CLI without requiring manual
 PYTHONPATH setup. It compares a current lap against a reference lap and
-outputs structured coaching facts.
+outputs structured coaching facts. Defaults use the car-specific Barcelona
+track model generated from the bundled reference lap, while still exercising
+only production comparison code.
+
+Analysis algorithm: uses the deterministic analysis engine defined in
+§5 "Deterministic analysis engine" of docs/specs/interactive-race-coach-and-engineer.md.
+Key properties — per-corner per-phase output (a corner can appear up to three
+times: minimum_speed, entry, exit), top-3 cap on losses/gains, and loss_s
+as speed_delta_kph/100 (a ranking heuristic, not true integrated time loss).
 
 Usage:
     python3 demo_coach_slice01.py
@@ -53,8 +61,8 @@ def main():
     parser.add_argument(
         "--track-model",
         type=Path,
-        default=SCRIPT_DIR.parent / "data" / "track-coaching" / "circuit-de-barcelona.json",
-        help="Path to track coaching model JSON (default: product/data/track-coaching/...)",
+        default=SCRIPT_DIR.parent / "data" / "track-coaching" / "circuit-de-barcelona_dkr-engineering-4-elms25.json",
+        help="Path to track coaching model JSON (default: car-specific Barcelona reference-lap-derived model)",
     )
     parser.add_argument(
         "--verbose",

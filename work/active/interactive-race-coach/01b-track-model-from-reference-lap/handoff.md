@@ -14,6 +14,12 @@
 - `dev/scripts/test_generate_track_coaching_model_from_reference.js`
   - Synthetic tests for one/two V-shaped corners, duplicate-minimum merging, and car identity failure/override.
   - Barcelona reference-lap smoke test asserts candidates near 829m, 941m, 1162m, and 1730m.
+- `product/data/track-coaching/circuit-de-barcelona_dkr-engineering-4-elms25.json`
+  - Reviewable car-specific generated model promoted into product data for demo/default smoke use.
+- `product/python/demo_coach_slice01.py`
+  - Defaults to the car-specific generated Barcelona model while still calling production `load_track_coaching_model()` and `compare_laps()`.
+- `product/python/README.md`
+  - Documents the demo maintenance rule so future coach fact/model changes keep the human smoke script and example output current.
 - `package.json`
   - Full suite now includes the new generator test.
 - `work/active/interactive-race-coach/PLAN.md`
@@ -66,6 +72,6 @@ Apex side is not inferred. The generated JSON uses `--default-apex-side right` b
 ## Deferred TODOs
 
 1. Derive or review `apex_side` instead of using the provisional default.
-2. Decide whether to promote the generated Barcelona model into `product/data/track-coaching/` after visual review.
+2. Replace or rename the older hand-authored Barcelona model only after explicit visual review.
 3. Improve zone start/end estimation using brake/throttle/steering once the loss algorithm uses true delta-time.
 4. Handle multi-apex and flat-out complexes with richer signals than speed minima alone.

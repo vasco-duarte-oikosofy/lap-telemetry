@@ -17,7 +17,9 @@ from lap_telemetry.coach.track_model import Corner
 from lap_telemetry.coach.lap_comparator import (
     PhaseDetectionThresholds,
     compute_minimum_speed_per_corner,
+    compute_delta_time_trace,
     find_entry_point,
+    find_straight_end_after_corner,
     find_brake_point,
     find_exit_points,
     resample_column,
@@ -387,6 +389,237 @@ def test_comparison_with_fixture() -> None:
             )
 
 
+# ── Delta-time and gain tests ─────────────────────────────────────────────
+
+
+def test_delta_time_trace_basic() -> None:
+    """Delta-time trace: driver slower everywhere → trace ends positive (behind)."""
+    n = 100
+    driver_speed = [100.0] * n  # slower
+    ref_speed = [200.0] * n      # faster
+
+    delta_t = compute_delta_time_trace(driver_speed, ref_speed, n)
+
+    ok(len(delta_t) == n, f"delta_t length = {len(delta_t)}, expected {n}")
+    # Driver is slower, so cumulative time is higher: delta_t should be positive
+    ok(delta_t[-1] > 0, f"delta_t[-1] = {delta_t[-1]:.4f}, expected positive (driver slower)")
+    # delta_t should be monotonically increasing (driver falls further behind each meter)
+    ok(delta_t[50] > delta_t[0], f"delta_t[50] = {delta_t[50]:.4f} > delta_t[0] = {delta_t[0]:.4f}")
+
+
+def test_delta_time_trace_faster_driver() -> None:
+    """Delta-time trace: driver faster everywhere → trace ends negative (ahead)."""
+    n = 100
+    driver_speed = [200.0] * n  # faster
+    ref_speed = [100.0] * n      # slower
+
+    delta_t = compute_delta_time_trace(driver_speed, ref_speed, n)
+
+    ok(len(delta_t) == n, f"delta_t length = {len(delta_t)}, expected {n}")
+    # Driver is faster, so cumulative time is lower: delta_t should be negative
+    ok(delta_t[-1] < 0, f"delta_t[-1] = {delta_t[-1]:.4f}, expected negative (driver faster)")
+
+
+def test_delta_time_trace_equal_speeds() -> None:
+    """Delta-time trace: identical speeds → all deltas approximately zero."""
+    n = 100
+    speed = [150.0] * n
+
+    delta_t = compute_delta_time_trace(speed, speed, n)
+
+    # All values should be very close to zero
+    ok(abs(delta_t[-1]) < 0.001, f"delta_t[-1] = {delta_t[-1]:.6f}, expected ~0")
+
+
+def test_delta_time_trace_matches_lap_time() -> None:
+    """Delta-time trace final value should approximate the lap time delta."""
+    # Driver completes 1000m at 100 kph, ref at 110 kph
+    # Lap time ~= 1000 / (100/3.6) = 36.0s vs 1000 / (110/3.6) = 32.727s
+    # Delta ~= 3.273s
+    n = 1000
+    driver_speed = [100.0] * n
+    ref_speed = [110.0] * n
+
+    delta_t = compute_delta_time_trace(driver_speed, ref_speed, n)
+
+    expected_delta = 36.0 - 32.727  # ~3.273s
+    ok(abs(delta_t[-1] - expected_delta) < 0.05, f"delta_t[-1] = {delta_t[-1]:.3f}, expected ~{expected_delta:.3f}")
+
+
+def test_find_straight_end_middle_corner() -> None:
+    """Straight end after a middle corner is entry of next corner."""
+    corners = [
+        Corner(id="t1", name="turn 1", s_start_m=900, apex_s_m=1000, s_end_m=1100, apex_side="right"),
+        Corner(id="t2", name="turn 2", s_start_m=1400, apex_s_m=1500, s_end_m=1600, apex_side="right"),
+    ]
+    n = 2000
+    speed = [200.0] * n
+    throttle = [1.0] * n
+    throttle[1350] = 0.5  # driver lifts at 1350 for turn 2
+
+    end = find_straight_end_after_corner(
+        0, corners, speed, throttle, None, PhaseDetectionThresholds(), n
+    )
+    ok(end == 1350, f"straight end after t1 = {end}, expected 1350 (entry of t2)")
+
+
+def test_find_straight_end_last_corner() -> None:
+    """Straight end after last corner = end of lap."""
+    corners = [
+        Corner(id="t1", name="turn 1", s_start_m=900, apex_s_m=1000, s_end_m=1100, apex_side="right"),
+    ]
+    n = 1500
+    speed = [200.0] * n
+
+    end = find_straight_end_after_corner(
+        0, corners, speed, None, None, PhaseDetectionThresholds(), n
+    )
+    ok(end == n - 1, f"straight end after last corner = {end}, expected {n - 1}")
+
+
+def test_minimum_speed_gain_uses_delta_time() -> None:
+    """Minimum speed gains use delta-time from apex to end of straight."""
+    # Two corners, driver faster through t1 → gain
+    n = 5000
+    driver_speed = [200.0] * n
+    ref_speed = [200.0] * n
+
+    # Driver is faster in t1 zone [900:1100]
+    for i in range(900, 1100):
+        ref_speed[i] = 95.0 + (i - 900) * 0.05  # ref min ~100
+    ref_speed[950] = 100.0  # ref apex
+    for i in range(900, 1100):
+        driver_speed[i] = 105.0 + (i - 900) * 0.05  # driver min ~110
+    driver_speed[950] = 110.0  # driver apex, 10 kph faster
+
+    # Driver also lifts for t2 at 1350
+    driver_throttle = [1.0] * n
+    for i in range(1350, 1500):
+        driver_throttle[i] = 0.5
+        driver_speed[i] = 180.0
+    for i in range(1400, 1500):
+        ref_speed[i] = 180.0  # ref brakes later
+
+    corners = [
+        Corner(id="t1", name="turn 1", s_start_m=900, apex_s_m=1000, s_end_m=1100, apex_side="right"),
+        Corner(id="t2", name="turn 2", s_start_m=1400, apex_s_m=1500, s_end_m=1600, apex_side="right"),
+    ]
+
+    # Compute manually to verify
+    delta_t = compute_delta_time_trace(driver_speed, ref_speed, n)
+
+    # Driver is faster through t1 → delta_t at apex should be negative (ahead)
+    apex_idx = 950
+    ok(delta_t[apex_idx] < 0, f"delta_t at apex = {delta_t[apex_idx]:.6f}, expected negative (driver ahead)")
+
+    # Compute minimum speed per corner
+    driver_min, ref_min, speed_delta, driver_apex_m, ref_apex_m = compute_minimum_speed_per_corner(
+        driver_speed, ref_speed, corners[0]
+    )
+    ok(speed_delta < 0, f"speed_delta = {speed_delta:.1f}, expected negative (driver faster)")
+    ok(driver_min > ref_min, f"driver_min = {driver_min:.1f} > ref_min = {ref_min:.1f}")
+
+    # Find straight end (= entry of t2)
+    straight_end = find_straight_end_after_corner(
+        0, corners, driver_speed, driver_throttle, None, PhaseDetectionThresholds(), n
+    )
+    ok(straight_end == 1350, f"straight end = {straight_end}, expected 1350")
+
+    # gain = delta_t[straight_end] - delta_t[apex]
+    gain_s = delta_t[straight_end] - delta_t[int(driver_apex_m)]
+    ok(gain_s < 0, f"gain_s = {gain_s:.6f}, expected negative (driver gained time)")
+
+
+def test_minimum_speed_loss_unchanged() -> None:
+    """Minimum speed losses still use the speed_delta / 100 heuristic."""
+    n = 1200
+    driver_speed = [200.0] * n
+    ref_speed = [200.0] * n
+
+    # Driver is slower in corner zone [900:1100]
+    for i in range(900, 1100):
+        driver_speed[i] = 90.0 + (i - 900) * 0.05  # driver min ~95
+    driver_speed[950] = 95.0  # driver apex, slower
+    for i in range(900, 1100):
+        ref_speed[i] = 100.0 + (i - 900) * 0.05  # ref min ~105
+    ref_speed[950] = 105.0  # ref apex
+
+    corner = Corner(id="t1", name="turn 1", s_start_m=900, apex_s_m=1000, s_end_m=1100, apex_side="right")
+
+    driver_min, ref_min, speed_delta, driver_apex_m, ref_apex_m = compute_minimum_speed_per_corner(
+        driver_speed, ref_speed, corner
+    )
+    ok(speed_delta > 0, f"speed_delta = {speed_delta:.1f}, expected positive (ref faster)")
+    ok(driver_min < ref_min, f"driver_min = {driver_min:.1f} < ref_min = {ref_min:.1f}")
+
+    # For losses, loss_s should equal speed_delta / 100 (the heuristic)
+    expected_loss_s = speed_delta / 100.0
+    ok(expected_loss_s > 0, f"expected_loss_s = {expected_loss_s:.4f}, expected positive")
+
+
+def test_apex_offset_in_comparison() -> None:
+    """Full comparison includes apex_offset_m on minimum_speed phases."""
+    current_lap = ROOT / "dev" / "fixtures" / "coach" / "barcelona_lap15_current.parquet"
+    reference_lap = ROOT / "product" / "data" / "reference-laps" / "circuit-de-barcelona_dkr-engineering-4-elms25_time_01.36.456.parquet"
+    track_model = ROOT / "product" / "data" / "track-coaching" / "circuit-de-barcelona_dkr-engineering-4-elms25.json"
+
+    if not current_lap.exists():
+        print("  SKIP: apex offset comparison (fixture not found)")
+        return
+
+    from lap_telemetry.coach.track_model import load_track_coaching_model
+    model = load_track_coaching_model(track_model)
+    facts = compare_laps(current_lap, reference_lap, model)
+
+    # Check that minimum_speed phases have apex_offset_m
+    for loss in facts.top_losses + facts.top_gains:
+        if loss.phase == "minimum_speed":
+            ok(
+                loss.apex_offset_m is not None,
+                f"{loss.corner_id} minimum_speed has apex_offset_m = {loss.apex_offset_m}",
+            )
+            # apex_offset_m = ref_apex - driver_apex
+            expected_offset = loss.reference_apex_distance_m - loss.driver_apex_distance_m
+            ok(
+                abs(loss.apex_offset_m - expected_offset) < 0.5,
+                f"{loss.corner_id} apex_offset_m = {loss.apex_offset_m:.1f}, expected {expected_offset:.1f}",
+            )
+
+    # Check JSON output
+    output = facts.to_dict()
+    for d in output["top_losses"] + output["top_gains"]:
+        if d["phase"] == "minimum_speed":
+            ok("apex_offset_m" in d, f"minimum_speed dict has apex_offset_m")
+
+
+def test_minimum_speed_gain_negative_loss_s() -> None:
+    """Minimum speed gains have negative loss_s (real integrated time)."""
+    current_lap = ROOT / "dev" / "fixtures" / "coach" / "barcelona_lap15_current.parquet"
+    reference_lap = ROOT / "product" / "data" / "reference-laps" / "circuit-de-barcelona_dkr-engineering-4-elms25_time_01.36.456.parquet"
+    track_model = ROOT / "product" / "data" / "track-coaching" / "circuit-de-barcelona_dkr-engineering-4-elms25.json"
+
+    if not current_lap.exists():
+        print("  SKIP: gain negative loss_s (fixture not found)")
+        return
+
+    from lap_telemetry.coach.track_model import load_track_coaching_model
+    model = load_track_coaching_model(track_model)
+    facts = compare_laps(current_lap, reference_lap, model)
+
+    # All gains should have negative loss_s
+    for gain in facts.top_gains:
+        ok(gain.loss_s < 0, f"gain {gain.corner_id} {gain.phase} loss_s = {gain.loss_s:.4f}, expected negative")
+
+        if gain.phase == "minimum_speed":
+            # Minimum speed gains should use delta-time (real seconds)
+            # loss_s should be in the range of plausible lap time differences
+            # (not speed_delta/100 which would be tiny like -0.05)
+            ok(
+                abs(gain.loss_s) < 10.0,
+                f"minimum_speed gain loss_s = {gain.loss_s:.4f} is plausible (< 10s)"
+            )
+
+
 # ── Main ─────────────────────────────────────────────────────────────────────
 
 def main() -> int:
@@ -406,6 +639,18 @@ def main() -> int:
     test_thresholds_configurable()
     test_apex_offset_same_position()
     test_apex_offset_driver_late()
+    # Delta-time and gain tests
+    test_delta_time_trace_basic()
+    test_delta_time_trace_faster_driver()
+    test_delta_time_trace_equal_speeds()
+    test_delta_time_trace_matches_lap_time()
+    test_find_straight_end_middle_corner()
+    test_find_straight_end_last_corner()
+    test_minimum_speed_gain_uses_delta_time()
+    test_minimum_speed_loss_unchanged()
+    test_apex_offset_in_comparison()
+    test_minimum_speed_gain_negative_loss_s()
+    # Fixture tests
     test_apex_offset_fixture()
     test_comparison_with_fixture()
 

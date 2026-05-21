@@ -315,3 +315,42 @@ Playwright test guidelines. Read that file before writing or fixing any test.
 
 **Optional further refactoring:**
 - Extract debug hooks to `debug.js` if test-only globals need stronger isolation.
+
+---
+
+## Test Suite Timing Investigation (2026-05-20)
+
+**Context.** After adding `test_generate_track_coaching_model_from_reference.js` for slice 01b, the full suite appeared to take 26–30 s (well above the 10 s budget). Investigation revealed the new test itself runs in ~0.4 s and is **not** the cause.
+
+**Root cause: Playwright cold-start variance.** The suite runs 24 Playwright tests at concurrency 8 (3 batches of browser launches). On a cold start (first run after reboot, or after a long idle), Chromium binary compilation/caching causes wall-clock times of 25–30 s. On warm runs (2nd+ invocation), the suite reliably completes in 9–12 s.
+
+**Key findings:**
+
+| Metric | Value |
+|--------|------:|
+| New test in isolation | ~0.4 s |
+| `test_feature_flag_dropdown.js` (Playwright) in isolation | ~0.4 s |
+| Same test during cold parallel run | 30 s (resource contention) |
+| Full suite, cold start | 25–30 s |
+| Full suite, warm start | 9–12 s |
+| Playwright tests in suite | 24 |
+| PW concurrency limit | `Math.min(cpus - 2, 8)` = 8 |
+| Non-PW (Node) tests | 22 (run in parallel, unlimited) |
+
+**Why `test_feature_flag_dropdown.js` looked guilty.** When individual tests were timed sequentially, this Playwright test alone took 30 s — but only because it ran during the same session as other cold Chromium launches. In isolation it completes in 0.4 s. The 30 s was entirely resource contention, not the test's own work.
+
+**Orphan test not in package.json.** `test_f8f9f10f11.js` exists on disk but is **not** listed in `package.json`'s test script. Running it directly produces a `TimeoutError`. It should either be removed or re-added and fixed.
+
+**Actionable improvements:**
+
+1. **Warm-up playwright on CI.** Before the test suite, run a trivial Playwright script to force Chromium binary compilation, eliminating cold-start penalty from the measured time.
+
+2. **Reduce PW concurrency.** On machines with ≤ 8 cores, 8 concurrent Chromium instances starve each other. Reducing `DEFAULT_PW_CONCURRENCY` to 4 (or `Math.min(cpus - 2, 4)`) trades batch count for reduced contention; total wall-clock may improve on smaller machines.
+
+3. **Share browser across tests.** Each PW test currently calls `chromium.launch()` then `browser.close()`. Launching a shared browser once (or using Playwright's built-in `test()` runner with `browser` fixture) would eliminate per-test browser startup. This requires structural changes to each test.
+
+4. **Remove or fix `test_f8f9f10f11.js`.** It's not in the suite, times out, and is dead code.
+
+5. **Add suite timing guard.** Consider a CI step that fails if the full suite exceeds a threshold (e.g. 20 s on warm), catching regressions before they become invisible.
+
+**No code changes were made** — this is a documentation-only investigation.

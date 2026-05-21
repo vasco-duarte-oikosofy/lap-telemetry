@@ -17,7 +17,7 @@ cd product/python
 python3 demo_coach_slice01.py
 ```
 
-This compares a test lap against the reference and outputs structured coaching facts as JSON.
+This compares a test lap against the reference and outputs structured coaching facts as JSON. By default it uses the car-specific Barcelona coaching model generated from the bundled `dkr-engineering-4-elms25` reference lap.
 
 **With verbose output:**
 ```bash
@@ -52,6 +52,10 @@ product/python/
 ├── demo_coach_slice01.py   # Demo script (no PYTHONPATH needed)
 └── README.md
 ```
+
+### Demo maintenance rule
+
+`demo_coach_slice01.py` is the human smoke test for the offline coach. When coach facts, default reference laps, or default track-coaching models change, keep this script and the example output below current. The script must call production code (`load_track_coaching_model()` and `compare_laps()`), not test-only or slice artifact code.
 
 ---
 
@@ -131,16 +135,17 @@ python3 demo_coach_slice01.py --verbose
 {
   "type": "lap_coaching_summary",
   "track_id": "circuit-de-barcelona",
-  "lap_number": 2,
-  "lap_time_delta_s": -38.516,
+  "lap_number": 15,
+  "lap_time_delta_s": 1.155,
   "top_losses": [
     {
-      "corner_id": "t4",
-      "corner_name": "turn 4",
-      "phase": "minimum_speed",
-      "loss_s": 0.045,
-      "driver_value": 104.2,
-      "reference_value": 108.7,
+      "corner_id": "t7",
+      "corner_name": "turn 7",
+      "apex_distance_m": 2923.0,
+      "phase": "entry",
+      "loss_s": 0.123,
+      "driver_value": 155.9,
+      "reference_value": 168.2,
       "unit": "km/h",
       "confidence": "medium"
     }
