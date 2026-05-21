@@ -14,6 +14,7 @@ import { BAHRAIN_INTERNATIONAL_CIRCUIT_STATIC_OUTLINE } from './staticBahrainInt
 import { FUJI_SPEEDWAY_OUTLINE_STATIC_OUTLINE } from './staticFujiSpeedway_outlineOutlineData.js';
 import { CIRCUIT_BARCELONA_STATIC_OUTLINE } from './staticCircuitBarcelonaOutlineData.js';
 import { AUTODROMO_DINO_FERRARI_STATIC_OUTLINE } from './staticAutodromoDinoFerrariOutlineData.js';
+import { AUTODROMO_NAZIONALE_MONZA_STATIC_OUTLINE } from './staticAutodromoNazionaleMonzaOutlineData.js';
 
 // slug normalization: lowercase, collapse whitespace to single dash, strip non-alnum/dash
 function slugify(name) {
@@ -38,6 +39,8 @@ const OUTLINES = new Map([
   // Autodromo Enzo e Dino Ferrari (Imola)
   ['autodromo-enzo-e-dino-ferrari', AUTODROMO_DINO_FERRARI_STATIC_OUTLINE],
   ['imola', AUTODROMO_DINO_FERRARI_STATIC_OUTLINE],
+  // Autodromo Nazionale Monza
+  ['autodromo-nazionale-monza', AUTODROMO_NAZIONALE_MONZA_STATIC_OUTLINE],
 ]);
 
 /**
