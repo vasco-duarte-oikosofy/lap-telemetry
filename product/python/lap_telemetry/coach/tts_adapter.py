@@ -2,7 +2,6 @@
 
 Provides abstract base class and concrete implementations:
 - KokoroAdapter: local ONNX TTS with natural intonation (primary engine)
-- PiperAdapter: calls Piper binary via subprocess (secondary engine)
 - Pyttsx3Adapter: uses pyttsx3/SAPI as zero-install fallback (Windows-only)
 - FileAdapter: writes text to a file (for testing without speakers)
 """
@@ -10,8 +9,9 @@ from __future__ import annotations
 
 import logging
 import os
-import shlex
+import struct
 import subprocess
+import tempfile
 import wave
 from abc import ABC, abstractmethod
 from pathlib import Path
@@ -102,10 +102,6 @@ class KokoroAdapter(TTSAdapter):
             log.debug("sounddevice not available, trying WAV fallback")
 
         # Fallback: write WAV and play with platform player
-        import tempfile
-        import wave
-        import struct
-
         with tempfile.NamedTemporaryFile(suffix=".wav", delete=False) as tmp:
             wav_path = Path(tmp.name)
 
@@ -137,123 +133,6 @@ class KokoroAdapter(TTSAdapter):
                 check=True, timeout=30,
             )
         elif system == "Linux":
-            subprocess.run(["aplay", str(wav_path)], check=True, timeout=30)
-        else:
-            log.warning("No audio playback available on %s", system)
-
-
-class PiperAdapter(TTSAdapter):
-    """TTS adapter that calls the Piper binary via subprocess.
-
-    Piper synthesizes text to a WAV file, which is then played
-    using sounddevice (preferred) or a platform audio player.
-    """
-
-    def __init__(self, config: TTSConfig) -> None:
-        self._binary = config.piper_binary
-        self._model = config.piper_model
-
-    def speak(self, text: str) -> None:
-        """Synthesize text with Piper and play the resulting audio."""
-        import tempfile
-
-        with tempfile.NamedTemporaryFile(suffix=".wav", delete=False) as tmp:
-            wav_path = Path(tmp.name)
-
-        try:
-            self._synthesize(text, wav_path)
-            self._play_wav(wav_path)
-        finally:
-            if wav_path.exists():
-                wav_path.unlink()
-
-    def _synthesize(self, text: str, wav_path: Path) -> None:
-        """Run Piper to synthesize text to a WAV file.
-
-        Supports two invocation modes:
-        - Standalone binary: piper --model ... --output_file ...
-        - Python module: python3 -m piper --model ... --output_file ...
-
-        The piper_binary config field can be either "piper" (binary),
-        "python3 -m piper" (module), or a full path to either.
-        """
-        if not self._model:
-            raise RuntimeError(
-                "Piper model path not configured. "
-                "Set piper_model in [tts] config or COACH_PIPER_MODEL env var."
-            )
-
-        # Build the command — may be a bare binary or "python3 -m piper"
-        binary_parts = shlex.split(self._binary)
-        cmd = binary_parts + ["--model", str(self._model), "--output_file", str(wav_path)]
-        log.debug("Piper command: %s", cmd)
-
-        result = subprocess.run(
-            cmd,
-            input=text,
-            capture_output=True,
-            text=True,
-            timeout=30,
-        )
-
-        if result.returncode != 0:
-            raise RuntimeError(
-                f"Piper failed (exit {result.returncode}): {result.stderr}"
-            )
-
-        if not wav_path.exists():
-            raise RuntimeError(f"Piper did not create output file: {wav_path}")
-
-        log.info("Piper synthesized %d chars to %s", len(text), wav_path)
-
-    def _play_wav(self, wav_path: Path) -> None:
-        """Play a WAV file using sounddevice or platform fallback."""
-        try:
-            import sounddevice as sd  # type: ignore[import-untyped]
-            import numpy as np
-
-            with wave.open(str(wav_path), "rb") as wf:
-                channels = wf.getnchannels()
-                sample_width = wf.getsampwidth()
-                framerate = wf.getframerate()
-                frames = wf.readframes(wf.getnframes())
-
-            # Convert to numpy array
-            dtype = {1: np.int8, 2: np.int16, 4: np.int32}.get(sample_width, np.int16)
-            audio = np.frombuffer(frames, dtype=dtype)
-
-            # Reshape for multi-channel
-            if channels > 1:
-                audio = audio.reshape(-1, channels)
-
-            sd.play(audio, framerate)
-            sd.wait()  # Block until playback finishes
-            log.debug("Playback finished via sounddevice")
-            return
-        except ImportError:
-            log.debug("sounddevice not available, trying platform player")
-
-        self._play_wav_fallback(wav_path)
-
-    def _play_wav_fallback(self, wav_path: Path) -> None:
-        """Play a WAV file using the platform's built-in audio player."""
-        import platform
-
-        system = platform.system()
-        if system == "Darwin":
-            subprocess.run(["afplay", str(wav_path)], check=True, timeout=30)
-        elif system == "Windows":
-            # Use PowerShell SoundPlayer
-            ps_cmd = (
-                f'(New-Object Media.SoundPlayer "{wav_path}").PlaySync()'
-            )
-            subprocess.run(
-                ["powershell", "-Command", ps_cmd],
-                check=True,
-                timeout=30,
-            )
-        elif system == "Linux":
-            # Try aplay (ALSA) as a common fallback
             subprocess.run(["aplay", str(wav_path)], check=True, timeout=30)
         else:
             log.warning("No audio playback available on %s", system)
@@ -311,8 +190,6 @@ def create_adapter(config: TTSConfig) -> TTSAdapter:
 
     if engine == "kokoro":
         return KokoroAdapter(config)
-    elif engine == "piper":
-        return PiperAdapter(config)
     elif engine == "pyttsx3":
         return Pyttsx3Adapter()
     elif engine == "file":

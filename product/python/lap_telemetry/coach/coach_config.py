@@ -37,8 +37,6 @@ class LLMConfig:
 class TTSConfig:
     """TTS engine configuration."""
     engine: str = "kokoro"
-    piper_binary: str = "python3 -m piper"   # pip-installed; or path to standalone binary
-    piper_model: str | None = None
     kokoro_model: str = "product/data/tts-voices/kokoro-v1.0.int8.onnx"
     kokoro_voices: str = "product/data/tts-voices/kokoro-voices-v1.0.bin"
     kokoro_voice: str = "bm_daniel"               # default voice
@@ -62,8 +60,6 @@ def load_tts_config(config_path: Path | None = None) -> TTSConfig:
 
     cfg = TTSConfig(
         engine=tts.get("engine", TTSConfig.engine),
-        piper_binary=tts.get("piper_binary", TTSConfig.piper_binary),
-        piper_model=tts.get("piper_model") or None,
         kokoro_model=tts.get("kokoro_model", TTSConfig.kokoro_model),
         kokoro_voices=tts.get("kokoro_voices", TTSConfig.kokoro_voices),
         kokoro_voice=tts.get("kokoro_voice", TTSConfig.kokoro_voice),
@@ -74,10 +70,6 @@ def load_tts_config(config_path: Path | None = None) -> TTSConfig:
     # Env var overrides take precedence
     if os.environ.get("COACH_TTS_ENGINE"):
         cfg.engine = os.environ["COACH_TTS_ENGINE"]
-    if os.environ.get("COACH_PIPER_BINARY"):
-        cfg.piper_binary = os.environ["COACH_PIPER_BINARY"]
-    if os.environ.get("COACH_PIPER_MODEL"):
-        cfg.piper_model = os.environ["COACH_PIPER_MODEL"]
     if os.environ.get("COACH_KOKORO_MODEL"):
         cfg.kokoro_model = os.environ["COACH_KOKORO_MODEL"]
     if os.environ.get("COACH_KOKORO_VOICES"):

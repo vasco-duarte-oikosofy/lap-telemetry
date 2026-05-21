@@ -1,8 +1,7 @@
 # TTS Setup Guide
 
 The race coach uses **Kokoro** as the primary TTS engine (natural
-intonation). Piper is available as a secondary engine. Both run on
-CPU alongside LMU without stealing GPU resources.
+intonation). It runs on CPU alongside LMU without stealing GPU resources.
 
 ## Quick start
 
@@ -24,25 +23,13 @@ python3 -m lap_telemetry.coach.speak \
 
 If you hear a British male voice say the phrase, you're set up correctly.
 
-## Engine comparison
-
-| Engine | Natural? | Offline? | Latency (≤35 words) | Install size |
-|--------|----------|----------|---------------------|-------------|
-| **Kokoro** ⭐ | Good | ✅ Yes | ~100–300ms | ~115 MB |
-| **Piper** | Flat, robotic | ✅ Yes | ~50–200ms | ~60 MB |
-| **Edge TTS** | Good | ❌ Internet | ~200–500ms | None |
-| **pyttsx3** | Very robotic | ✅ Yes | Instant | Small |
-
-⭐ = recommended default
-
-## Kokoro (primary engine)
+## Kokoro
 
 ### Why Kokoro?
 
-Piper produces flat, monotone output with zero prosody — it sounds
-robotic and lacks the assertive-yet-patient tone of an F1 race engineer.
 Kokoro uses a StyleTTS2-derived architecture that models pitch, rhythm,
-and emphasis, producing noticeably more natural speech.
+and emphasis, producing natural-sounding speech — dramatically better
+than flat monotone engines.
 
 ### Install
 
@@ -112,35 +99,6 @@ adapter architecture makes it easy to swap engines without changing
 the coach pipeline — just change `engine` and related config in
 `coach_config.toml`.
 
-## Piper (secondary engine — flat, robotic output)
-
-Piper is a fast offline engine but produces monotone speech. It's kept
-as a secondary option for environments where Kokoro can't be installed.
-
-### Install
-
-```bash
-pip3 install piper-tts
-```
-
-### Download voice model
-
-```bash
-curl -SL "https://huggingface.co/rhasspy/piper-voices/resolve/v1.0.0/en/en_US/lessac/medium/en_US-lessac-medium.onnx" \
-  -o product/data/tts-voices/en_US-lessac-medium.onnx
-
-curl -SL "https://huggingface.co/rhasspy/piper-voices/resolve/v1.0.0/en/en_US/lessac/medium/en_US-lessac-medium.onnx.json" \
-  -o product/data/tts-voices/en_US-lessac-medium.onnx.json
-```
-
-### Use Piper
-
-```bash
-python3 -m lap_telemetry.coach.speak \
-  --engine piper \
-  --text "Lost time in turn 3 exit"
-```
-
 ## Testing without speakers (CI)
 
 Use the `file` adapter to skip audio playback entirely:
@@ -163,7 +121,6 @@ python3 -m lap_telemetry.coach.speak --text "Box this lap, box this lap."
 
 # Choose engine
 python3 -m lap_telemetry.coach.speak --engine kokoro --text "..."
-python3 -m lap_telemetry.coach.speak --engine piper --text "..."
 python3 -m lap_telemetry.coach.speak --engine file --text "..."
 
 # Choose voice (kokoro only)
@@ -185,17 +142,13 @@ All TTS settings live in `coach_config.toml` under `[tts]`:
 
 ```toml
 [tts]
-engine = "kokoro"                   # kokoro | piper | pyttsx3 | file
+engine = "kokoro"                   # kokoro | pyttsx3 | file
 
 # Kokoro settings
 kokoro_model = "product/data/tts-voices/kokoro-v1.0.int8.onnx"
 kokoro_voices = "product/data/tts-voices/kokoro-voices-v1.0.bin"
 kokoro_voice = "bm_daniel"          # British male, race engineer feel
 kokoro_speed = 1.05                 # slightly faster than default
-
-# Piper settings (secondary engine)
-# piper_binary = "python3 -m piper"
-# piper_model = "product/data/tts-voices/en_US-lessac-medium.onnx"
 
 # File adapter
 # output_file = "coach_output.wav"
@@ -210,8 +163,6 @@ kokoro_speed = 1.05                 # slightly faster than default
 | `COACH_KOKORO_VOICES` | `kokoro_voices` |
 | `COACH_KOKORO_VOICE` | `kokoro_voice` |
 | `COACH_KOKORO_SPEED` | `kokoro_speed` |
-| `COACH_PIPER_BINARY` | `piper_binary` |
-| `COACH_PIPER_MODEL` | `piper_model` |
 | `COACH_TTS_OUTPUT_FILE` | `output_file` |
 
 ## Troubleshooting

@@ -175,7 +175,7 @@ export OPENAI_API_KEY=your-key        # for OpenAI
 
 ## Coach TTS setup (slice 04+)
 
-The coach TTS adapter requires Kokoro (primary) and optionally Piper (secondary). On a new machine:
+The coach TTS adapter requires Kokoro. On a new machine:
 
 ```bash
 pip3 install kokoro-onnx sounddevice

@@ -33,32 +33,22 @@
    is intentional — it validates the pipeline without needing actual
    TTS synthesis.
 
-7. **Piper installed via pip, not standalone binary.** The standalone
-   Piper binary for macOS doesn't include shared libraries (dylibs),
-   so it fails with `Library not loaded`. Using `pip install piper-tts`
-   works out of the box. PiperAdapter uses `shlex.split()` on
-   `piper_binary` so both `"piper"` and `"python3 -m piper"` work.
-
-8. **Voice model is 60+ MB, not committed to git.** Added
-   `product/data/.gitignore` to exclude `tts-voices/*.onnx`,
-   `tts-voices/*.bin`, and `tts-bin/`. Install instructions in
-   `docs/TTS_SETUP.md`.
-
-9. **Kokoro is the primary engine.** Piper sounds robotic and flat with
-   zero natural intonation. Kokoro (kokoro-onnx) with bm_daniel voice
-   produces noticeably better output. It's now the default engine.
+7. **Kokoro is the primary engine.** Piper (and similar flat
+   phoneme-level engines) sounds robotic with zero natural intonation.
+   Kokoro (kokoro-onnx) with bm_daniel voice produces noticeably
+   better output. It's now the default engine.
    Voice quality is still not perfect — sub-slice 04b.1 continues
    evaluation of ChatTTS, Qwen3-TTS, and XTTS-v2.
 
-10. **Kokoro model loads lazily.** KokoroAdapter loads the model on
-    first `speak()` call, not at construction time. This avoids the
-    ~1s model load time at startup until it's actually needed.
+8. **Kokoro model loads lazily.** KokoroAdapter loads the model on
+   first `speak()` call, not at construction time. This avoids the
+   ~1s model load time at startup until it's actually needed.
 
-11. **Edge TTS reads SSML tags as literal text.** Microsoft's Edge
-    Read Aloud API does not support SSML. Tags like `<prosody>` are
-    spoken verbatim.
+9. **Edge TTS reads SSML tags as literal text.** Microsoft's Edge
+   Read Aloud API does not support SSML. Tags like `<prosody>` are
+   spoken verbatim.
 
-12. **"m" abbreviation problem.** LLM-generated utterances use
+10. **"m" abbreviation problem.** LLM-generated utterances use
     abbreviations like "4m later" which TTS engines read as "four em
     later" instead of "four meters later". Text preprocessing will
     be needed in a future slice.

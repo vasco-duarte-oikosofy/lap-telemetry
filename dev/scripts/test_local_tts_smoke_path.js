@@ -29,7 +29,7 @@ from pathlib import Path
 sys.path.insert(0, r"""${path.join(ROOT, 'product', 'python')}""")
 
 from lap_telemetry.coach.coach_config import TTSConfig, load_tts_config, _read_toml
-from lap_telemetry.coach.tts_adapter import TTSAdapter, FileAdapter, PiperAdapter, KokoroAdapter
+from lap_telemetry.coach.tts_adapter import TTSAdapter, FileAdapter, KokoroAdapter
 from lap_telemetry.coach.speech_queue import SpeechQueue
 
 # ─── TTSConfig tests ───
@@ -37,8 +37,6 @@ from lap_telemetry.coach.speech_queue import SpeechQueue
 def test_tts_config_defaults():
     cfg = TTSConfig()
     assert cfg.engine == "kokoro", f"Expected kokoro, got {cfg.engine}"
-    assert cfg.piper_binary == "python3 -m piper", f"Expected python3 -m piper, got {cfg.piper_binary}"
-    assert cfg.piper_model is None, f"Expected None, got {cfg.piper_model}"
     assert cfg.output_file == "coach_output.wav", f"Got {cfg.output_file}"
     assert cfg.kokoro_voice == "bm_daniel", f"Expected bm_daniel, got {cfg.kokoro_voice}"
     assert cfg.kokoro_speed == 1.05, f"Expected 1.05, got {cfg.kokoro_speed}"
@@ -46,21 +44,21 @@ def test_tts_config_defaults():
 
 def test_tts_config_env_overrides():
     env_backup = {}
-    for key in ["COACH_TTS_ENGINE", "COACH_PIPER_BINARY", "COACH_PIPER_MODEL", "COACH_CONFIG"]:
+    for key in ["COACH_TTS_ENGINE", "COACH_KOKORO_VOICE", "COACH_KOKORO_MODEL", "COACH_CONFIG"]:
         env_backup[key] = os.environ.pop(key, None)
     try:
         os.environ["COACH_TTS_ENGINE"] = "file"
-        os.environ["COACH_PIPER_BINARY"] = "/custom/piper"
-        os.environ["COACH_PIPER_MODEL"] = "/custom/voice.onnx"
+        os.environ["COACH_KOKORO_VOICE"] = "am_adam"
+        os.environ["COACH_KOKORO_MODEL"] = "/custom/kokoro.onnx"
         with tempfile.TemporaryDirectory() as tmpdir:
             cfg_path = Path(tmpdir) / "config.toml"
-            cfg_path.write_text('[tts]\\nengine = "piper"\\n')
+            cfg_path.write_text('[tts]\\nengine = "kokoro"\\n')
             cfg = load_tts_config(cfg_path)
         assert cfg.engine == "file", f"Expected file, got {cfg.engine}"
-        assert cfg.piper_binary == "/custom/piper", f"Got {cfg.piper_binary}"
-        assert cfg.piper_model == "/custom/voice.onnx", f"Got {cfg.piper_model}"
+        assert cfg.kokoro_voice == "am_adam", f"Got {cfg.kokoro_voice}"
+        assert cfg.kokoro_model == "/custom/kokoro.onnx", f"Got {cfg.kokoro_model}"
     finally:
-        for key in ["COACH_TTS_ENGINE", "COACH_PIPER_BINARY", "COACH_PIPER_MODEL"]:
+        for key in ["COACH_TTS_ENGINE", "COACH_KOKORO_VOICE", "COACH_KOKORO_MODEL"]:
             os.environ.pop(key, None)
         for k, v in env_backup.items():
             if v is not None:
@@ -69,7 +67,7 @@ def test_tts_config_env_overrides():
 
 def test_load_tts_config_from_toml():
     env_backup = {}
-    for key in ["COACH_TTS_ENGINE", "COACH_PIPER_BINARY", "COACH_PIPER_MODEL", "COACH_CONFIG"]:
+    for key in ["COACH_TTS_ENGINE", "COACH_KOKORO_VOICE", "COACH_KOKORO_MODEL", "COACH_CONFIG"]:
         env_backup[key] = os.environ.pop(key, None)
     try:
         with tempfile.NamedTemporaryFile(mode="w", suffix=".toml", delete=False) as f:
@@ -86,11 +84,11 @@ def test_load_tts_config_from_toml():
 
 def test_load_tts_config_env_overrides_toml():
     env_backup = {}
-    for key in ["COACH_TTS_ENGINE", "COACH_PIPER_BINARY", "COACH_PIPER_MODEL", "COACH_CONFIG"]:
+    for key in ["COACH_TTS_ENGINE", "COACH_KOKORO_VOICE", "COACH_KOKORO_MODEL", "COACH_CONFIG"]:
         env_backup[key] = os.environ.pop(key, None)
     try:
         with tempfile.NamedTemporaryFile(mode="w", suffix=".toml", delete=False) as f:
-            f.write('[tts]\\nengine = "piper"\\n')
+            f.write('[tts]\\nengine = "kokoro"\\n')
             f.flush()
         os.environ["COACH_TTS_ENGINE"] = "file"
         cfg = load_tts_config(Path(f.name))
@@ -128,12 +126,6 @@ def test_file_adapter_contains_text():
         content = out.read_text(encoding="utf-8")
         assert "Lost time in turn 3" in content, f"Text not in output"
     print("  file_adapter_contains_text: OK")
-
-def test_piper_adapter_instantiation():
-    cfg = TTSConfig(piper_binary="piper", piper_model="/fake/voice.onnx")
-    adapter = PiperAdapter(config=cfg)
-    assert adapter is not None
-    print("  piper_adapter_instantiation: OK")
 
 def test_kokoro_adapter_instantiation():
     cfg = TTSConfig()
@@ -220,8 +212,8 @@ def test_speak_cli_with_file_adapter():
         out = Path(tmpdir) / "cli_test.wav"
         env = os.environ.copy()
         env["PYTHONPATH"] = r"""${path.join(ROOT, 'product', 'python')}"""
-        for key in ["COACH_CONFIG", "COACH_TTS_ENGINE", "COACH_PIPER_BINARY",
-                     "COACH_PIPER_MODEL", "COACH_TTS_OUTPUT_FILE"]:
+        for key in ["COACH_CONFIG", "COACH_TTS_ENGINE", "COACH_KOKORO_MODEL",
+                     "COACH_KOKORO_VOICE", "COACH_TTS_OUTPUT_FILE"]:
             env.pop(key, None)
         result = subprocess.run(
             [sys.executable, "-m", "lap_telemetry.coach.speak",
@@ -254,7 +246,6 @@ test_load_tts_config_env_overrides_toml()
 test_tts_adapter_is_abstract()
 test_file_adapter_writes_file()
 test_file_adapter_contains_text()
-test_piper_adapter_instantiation()
 test_kokoro_adapter_instantiation()
 test_speech_queue_enqueue_flush()
 test_speech_queue_stale_drop()

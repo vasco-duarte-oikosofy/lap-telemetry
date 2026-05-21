@@ -16,7 +16,8 @@ With file adapter (no speakers needed):
 
 Requirements:
     - Python 3.10+
-    - Piper (optional, for primary engine): piper binary + voice model
+    - Kokoro (for TTS): pip install kokoro-onnx
+    - sounddevice (for audio playback): pip install sounddevice
     - pyttsx3 (optional, Windows fallback): pip install pyttsx3
     - sounddevice (optional, for audio playback): pip install sounddevice
 """
@@ -55,7 +56,7 @@ def main():
     parser.add_argument(
         "--engine",
         type=str,
-        choices=["piper", "pyttsx3", "file"],
+        choices=["kokoro", "pyttsx3", "file"],
         default=None,
         help="Override TTS engine from config.",
     )
