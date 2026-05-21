@@ -1,6 +1,8 @@
 # Voice models and binaries are installed locally, not committed
-# Follow docs/PIPER_INSTALL.md to set up Piper
-# Follow docs/PIPER_INSTALL.md section on Kokoro to set up Kokoro
+# Follow docs/TTS_SETUP.md to set up
+# Kokoro models (*.onnx, *.bin) and Piper models (*.onnx, *.onnx.json) are downloaded
+# separately — see docs/TTS_SETUP.md
+# Only metadata JSON for Piper voices is committed (small files).
 tts-voices/*.onnx
 tts-voices/*.bin
 tts-bin/

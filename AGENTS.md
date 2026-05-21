@@ -173,6 +173,26 @@ export ANTHROPIC_API_KEY=your-key     # for Anthropic
 export OPENAI_API_KEY=your-key        # for OpenAI
 ```
 
+## Coach TTS setup (slice 04+)
+
+The coach TTS adapter requires Kokoro (primary) and optionally Piper (secondary). On a new machine:
+
+```bash
+pip3 install kokoro-onnx sounddevice
+```
+
+Then download the Kokoro model and voices (~115 MB total):
+
+```bash
+mkdir -p product/data/tts-voices
+curl -SL "https://github.com/thewh1teagle/kokoro-onnx/releases/download/model-files-v1.0/kokoro-v1.0.int8.onnx" \
+  -o product/data/tts-voices/kokoro-v1.0.int8.onnx
+curl -SL "https://github.com/thewh1teagle/kokoro-onnx/releases/download/model-files-v1.0/voices-v1.0.bin" \
+  -o product/data/tts-voices/kokoro-voices-v1.0.bin
+```
+
+Full setup guide: [`docs/TTS_SETUP.md`](docs/TTS_SETUP.md).
+
 The CLI must be run from the **project root** (so `coach_config.toml` is found), or set `COACH_CONFIG` to the config file path:
 
 ```bash

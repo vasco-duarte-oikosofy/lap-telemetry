@@ -42,7 +42,7 @@
 8. **Voice model is 60+ MB, not committed to git.** Added
    `product/data/.gitignore` to exclude `tts-voices/*.onnx`,
    `tts-voices/*.bin`, and `tts-bin/`. Install instructions in
-   `docs/PIPER_INSTALL.md`.
+   `docs/TTS_SETUP.md`.
 
 9. **Kokoro is the primary engine.** Piper sounds robotic and flat with
    zero natural intonation. Kokoro (kokoro-onnx) with bm_daniel voice

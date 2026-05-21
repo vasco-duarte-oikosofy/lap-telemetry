@@ -8,7 +8,7 @@
 - `product/python/lap_telemetry/coach/speak.py` — CLI entry point (`python -m lap_telemetry.coach.speak --text "..."`)
 - `product/python/demo_coach_slice04.py` — Demo script for end-to-end TTS
 - `dev/scripts/test_local_tts_smoke_path.js` — 16 unit + CLI tests
-- `docs/PIPER_INSTALL.md` — Install instructions for Kokoro (primary) and Piper (secondary)
+- `docs/TTS_SETUP.md` — Install instructions for Kokoro (primary) and Piper (secondary)
 - `product/data/tts-voices/` — Kokoro model + voices, Piper voices (gitignored)
 - `work/active/interactive-race-coach/04-local-tts-smoke-path/04b.1-find-model-that-speaks-naturally/` — Sub-slice for voice quality evaluation
 

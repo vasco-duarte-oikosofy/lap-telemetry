@@ -66,12 +66,12 @@ class KokoroAdapter(TTSAdapter):
         if not model.exists():
             raise RuntimeError(
                 f"Kokoro model not found: {model}. "
-                "Follow docs/PIPER_INSTALL.md to set up TTS voices."
+                "Follow docs/TTS_SETUP.md to set up TTS voices."
             )
         if not voices.exists():
             raise RuntimeError(
                 f"Kokoro voices file not found: {voices}. "
-                "Follow docs/PIPER_INSTALL.md to set up TTS voices."
+                "Follow docs/TTS_SETUP.md to set up TTS voices."
             )
 
         log.info("Loading Kokoro model: %s", model)
