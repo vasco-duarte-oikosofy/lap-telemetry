@@ -1,54 +1,48 @@
-# Handoff — Sub-slice 01c.2: Apex Minimum-Speed Gain Algorithm
+# Handoff — Sub-slice 01c.2: Delta-Time Gains for Minimum-Speed and Exit Phases
 
 ## What is on disk now
 
 ### Modified files
 - **`product/python/lap_telemetry/coach/lap_comparator.py`** — Main algorithm file. Changes:
-  - `compute_delta_time_trace()` — new function that builds a cumulative time delta trace at 1 m resolution. `delta_t[s] = driver_cumtime[s] - ref_cumtime[s]`. Positive = driver behind, negative = driver ahead.
-  - `find_straight_end_after_corner()` — new function that finds the end of the straight after a given corner (entry of next corner, or end of lap for last corner).
-  - `CornerLoss.apex_offset_m` — new field: `ref_apex_m - driver_apex_m`. Positive = driver apexed earlier. Populated for all minimum_speed phases (both losses and gains).
-  - `compare_laps()` — now computes `delta_t` trace and uses it for minimum_speed gains. For gains (`speed_delta < 0`), `loss_s = delta_t[straight_end] - delta_t[apex]` (real integrated time). For losses (`speed_delta > 0`), `loss_s = speed_delta / 100.0` unchanged. Passes `corner_idx` to the loop for `find_straight_end_after_corner()`.
+  - `compute_delta_time_trace()` — builds cumulative time delta trace at 1 m resolution. `delta_t[s] = driver_cumtime[s] - ref_cumtime[s]`. Positive = driver behind, negative = driver ahead.
+  - `find_straight_end_after_corner()` — finds the end of the straight after a given corner (entry of next corner, or end of lap for last corner).
+  - `CornerLoss.apex_offset_m` — new field: `ref_apex_m - driver_apex_m`. Positive = driver apexed earlier. Populated for all minimum_speed phases.
+  - `compare_laps()` — now uses delta-time for **minimum-speed and exit gains**. For gains (`speed_delta < 0`), `loss_s = delta_t[straight_end] - delta_t[phase_point]` (real integrated time). For losses (`speed_delta > 0`), `loss_s = speed_delta / 100.0` unchanged. `straight_end` is computed once per corner at the top of the loop.
   - `LapComparisonFacts.to_dict()` — includes `apex_offset_m` when present.
 
+### Barcelona output (t5 exit gain)
+- Before: `loss_s: -0.01` (heuristic: `(91-92)/100`)
+- After: `loss_s: -0.065` (real time: delta_t[2439] - delta_t[2158] = 0.364 - 0.429 = -0.065s)
+- The driver recovered 65ms from the t5 exit to the next braking zone.
+
 ### Updated files
-- **`dev/scripts/test_phase_detection.py`** — Added 10 new test functions:
-  - `test_delta_time_trace_basic` — slower driver → positive trace
-  - `test_delta_time_trace_faster_driver` — faster driver → negative trace
-  - `test_delta_time_trace_equal_speeds` — equal speeds → near-zero trace
-  - `test_delta_time_trace_matches_lap_time` — final value ≈ lap time delta
-  - `test_find_straight_end_middle_corner` — end of straight = next corner's entry
-  - `test_find_straight_end_last_corner` — end of straight = end of lap for last corner
-  - `test_minimum_speed_gain_uses_delta_time` — synthetic gain scenario with delta-time verification
-  - `test_minimum_speed_loss_unchanged` — loss still uses heuristic
-  - `test_apex_offset_in_comparison` — Barcelona fixture has `apex_offset_m` on minimum_speed phases
-  - `test_minimum_speed_gain_negative_loss_s` — all gains have negative `loss_s`
+- **`dev/scripts/test_phase_detection.py`** — 10 new test functions covering delta-time trace, straight-end detection, gain calculation with delta-time, and fixture verification.
 
 ### Spec files
-- `work/active/interactive-race-coach/01c-determine-entry-exit-phase-algorithm/01c.2_exit_gains_improvements/apex_min_speed_gain_algorithm.md` — full spec
-- `work/active/interactive-race-coach/01c-determine-entry-exit-phase-algorithm/01c.2_exit_gains_improvements/entry_gain_algorithm.md` — spec (not yet implemented)
-- `work/active/interactive-race-coach/01c-determine-entry-exit-phase-algorithm/01c.2_exit_gains_improvements/exit_gain_algorithm.md` — spec (not yet implemented)
-- `work/active/interactive-race-coach/01c-determine-entry-exit-phase-algorithm/top_gain_exit_bug.md` — bug description covering all three aspects
-- `work/active/interactive-race-coach/01c-determine-entry-exit-phase-algorithm/01c.3_losses_gains_algorithm_review/prompt.md` — future review slice for losses algorithm
+- `01c.2_exit_gains_improvements/apex_min_speed_gain_algorithm.md` — implemented
+- `01c.2_exit_gains_improvements/entry_gain_algorithm.md` — spec (not yet implemented; entry gains need a different algorithm)
+- `01c.2_exit_gains_improvements/exit_gain_algorithm.md` — partially implemented (delta-time gain, but not yet reference exit detection or distance deltas)
+- `01c.3_losses_gains_algorithm_review/prompt.md` — future review for losses algorithm and entry gains
 
 ## Key design decisions
 
-1. **Losses unchanged**: Minimum-speed losses still use `loss_s = speed_delta / 100.0`. Only gains use real delta-time.
-2. **Gain formula**: `loss_s = delta_t[straight_end] - delta_t[apex]`. Negative = driver gained time (further ahead at end of straight than at apex).
-3. **End of straight**: Entry of next corner (throttle lift < 0.9 or brake > 0.05), or `track_length - 1` for the last corner.
-4. **Delta-time trace**: Computed once per lap, reused for all corners. `delta_t[s] = driver_cumtime - ref_cumtime`. Speeds clamped to 1.0 kph minimum to avoid division by zero.
-5. **`apex_offset_m`**: Added to all minimum_speed phases (losses and gains). `ref_apex - driver_apex`. Positive = driver apexed earlier.
-6. **Mixed units**: Minimum-speed gains are now in real seconds. All other phases (entry, exit) still use the heuristic. This is documented in the spec as a known inconsistency, to be resolved in the review slice (01c.3).
+1. **Losses unchanged for all phases**: Both minimum-speed and exit losses still use `loss_s = speed_delta / 100.0`. Only gains use real delta-time.
+2. **Gain formula (same for minimum_speed and exit)**: `loss_s = delta_t[straight_end] - delta_t[phase_point]`. Negative = driver gained time.
+3. **End of straight**: Computed once per corner via `find_straight_end_after_corner()`. Uses driver's throttle/brake traces to find the next corner's entry point. For the last corner, returns `track_length - 1`.
+4. **Delta-time trace**: Computed once per lap, reused for all corners. Speeds clamped to 1.0 kph minimum.
+5. **`apex_offset_m`**: On all minimum_speed phases. `ref_apex - driver_apex`. Positive = driver apexed earlier.
+6. **Entry gains still use heuristic**: Entry gain algorithm is different (needs reference entry detection) and is deferred to a future sub-slice.
 
 ## How to verify
 ```bash
 cd product/python && python3 demo_coach_slice01.py --verbose
-```
-```bash
 python3 dev/scripts/test_phase_detection.py
+bash scripts/test-summary.sh
+npm run build
 ```
 
 ## Deferred TODOs
-- Entry gain algorithm (reference entry detection, `entry_distance_delta_m`, delta-time for entry gains)
-- Exit gain algorithm (reference exit detection, `exit_distance_delta_m`, delta-time for exit gains)
-- Losses algorithm review (01c.3) — evaluate whether losses should also use delta-time
-- Mixed units resolution — once all phases use delta-time, the `loss_s` semantics will be consistent
+- **Entry gains**: Different algorithm needed — delta-time from entry point to end of straight, plus reference entry detection for distance deltas.
+- **Exit reference detection**: `exit_distance_delta_m` comparing driver vs reference exit points (spec exists but not yet implemented).
+- **Losses algorithm review (01c.3)**: Evaluate whether losses should also use delta-time, and address entry gain algorithm.
+- **Mixed units**: Minimum-speed and exit gains are in real seconds; entry gains and all losses still use the heuristic.

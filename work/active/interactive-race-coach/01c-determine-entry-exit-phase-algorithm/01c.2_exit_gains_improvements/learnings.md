@@ -1,26 +1,33 @@
-# Learnings — Sub-slice 01c.2: Apex Minimum-Speed Gain Algorithm
+# Learnings — Sub-slice 01c.2: Delta-Time Gains for Minimum-Speed and Exit Phases
 
 ## What surprised us
 
-1. **Gain time compounds down the straight.** A speed advantage at the apex doesn't just measure at the apex — it compounds until the driver lifts off for the next corner. The delta-time trace (`delta_t[straight_end] - delta_t[apex]`) captures this correctly: if the driver is 0.15s ahead at the apex and 0.25s ahead at the next braking zone, the gain from apex to end of straight is 0.10s.
+1. **Gain time compounds down the straight.** A speed advantage at the apex or exit compounds until the driver lifts off for the next corner. The delta-time trace captures this: if the driver is 429ms behind at the exit but only 364ms behind at the next braking zone, they recovered 65ms on that straight. The heuristic `(ref_speed - driver_speed) / 100` would give only 10ms for our Barcelona t5 example — off by 6.5x.
 
-2. **End of straight = next corner's entry, not next corner's zone start.** The `s_start_m` zone boundary would be 50-100m off for many corners (the same look-back issue from entry detection). Using `find_entry_point()` on the next corner gives the actual lift-off point. For the last corner, measure to the finish line.
+2. **End of straight = next corner's entry, not next corner's zone start.** The `s_start_m` zone boundary would be wrong because braking zones regularly start 50-100m before the formal zone boundary (same look-back issue from entry detection). Using `find_entry_point()` on the next corner gives the actual lift-off point. For the last corner, measure to the finish line.
 
-3. **Losses and gains now use different units for minimum_speed.** Gains are in real integrated seconds; losses are in heuristic `speed_delta/100` "seconds." This is intentional and documented. The 01c.3 review slice should evaluate unifying them.
+3. **The delta-time formula is the same for all phases.** `loss_s = delta_t[straight_end] - delta_t[phase_point]` works for minimum_speed gains, exit gains, and will work for entry gains too. The only difference is which `phase_point` to use (apex, exit distance, or entry distance).
 
-4. **`apex_offset_m` sign convention.** `ref_apex - driver_apex`: positive means driver apexed earlier (their minimum is at a shorter distance). Negative means driver apexed later. For Barcelona t3, the driver apexed at 1170m while the reference was at 1161m → offset = -9.0 (driver is 9m late). This matches the coaching message: "you apexed 9m late in turn 3."
+4. **`straight_end` computed once per corner, shared across phases.** Originally computed inside the minimum_speed block and again in the exit block. Refactored to compute once at the top of the loop. This is correct because all phases within the same corner share the same "end of the straight" — it's where the next braking zone starts, which is the same regardless of which phase within the current corner you're measuring from.
 
-5. **Delta-time trace final value approximates `lap_time_delta_s`.** With Barcelona data, `delta_t[-1]` should be close to the actual lap time delta. This provides a natural sanity check for the trace computation.
+5. **`apex_offset_m` sign convention**: `ref_apex - driver_apex`. Positive = driver apexed earlier. For Barcelona t3, driver at 1170m vs reference at 1161m → offset = -9.0 (driver apexed 9m later). This is intuitive: "you apexed late in turn 3."
 
-6. **Speed clamping matters.** The delta-time trace clamps speeds to 1.0 kph minimum. Without this, a zero-speed sample (stopped car, pit lane) would cause division by zero. The clamp adds a negligible time error at very low speeds.
+6. **Delta-time trace final value ≈ `lap_time_delta_s`.** With Barcelona data, `delta_t[-1]` should be close to the actual lap time delta. This provides a natural sanity check.
+
+7. **Speed clamping matters.** Speeds clamped to 1.0 kph in `compute_delta_time_trace()` to avoid division by zero for stopped car / pit lane samples.
 
 ## Edge cases handled
 
 - **Last corner on track**: `find_straight_end_after_corner()` returns `track_length - 1` when there's no next corner.
-- **Delta-time index out of range**: If `driver_apex_m` or `straight_end` is outside the grid, falls back to the heuristic `speed_delta / 100.0`.
-- **Zero speed**: Clamped to 1.0 kph in `compute_delta_time_trace()`.
+- **Delta-time index out of range**: If `phase_point` or `straight_end` is outside the grid, falls back to the heuristic.
+- **Entry gains still use heuristic**: Entry gains need a different algorithm (reference entry detection + distance delta). Not yet implemented.
 
-## Dependencies for future slices
+## What's still heuristic
 
-- `compute_delta_time_trace()` and `find_straight_end_after_corner()` are shared infrastructure that entry and exit gain algorithms will reuse.
-- The delta-time trace should eventually be used for all phase gains (entry, exit, minimum_speed), not just minimum_speed.
+| Phase | Loss | Gain |
+|-------|------|------|
+| minimum_speed | `speed_delta / 100.0` | delta-time ✅ |
+| exit | `speed_delta / 100.0` | delta-time ✅ |
+| entry | `speed_delta / 100.0` | `speed_delta / 100.0` ❌ |
+
+Entry gains need their own algorithm (reference entry detection + delta-time). Losses for all phases need review in 01c.3.

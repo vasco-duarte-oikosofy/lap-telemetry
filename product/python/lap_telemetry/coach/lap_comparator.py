@@ -498,6 +498,13 @@ def compare_laps(
     # Analyze each corner
     corner_losses: list[CornerLoss] = []
     for corner_idx, corner in enumerate(track_model.corners):
+        # Pre-compute straight end for this corner (used for gain measurement)
+        straight_end = find_straight_end_after_corner(
+            corner_idx, track_model.corners,
+            driver_speed, driver_throttle_grid, driver_brake_grid,
+            thresholds, track_length,
+        )
+
         # --- Minimum speed ---
         driver_min, ref_min, speed_delta, driver_apex_m, ref_apex_m = compute_minimum_speed_per_corner(
             driver_speed, ref_speed_grid, corner
@@ -509,11 +516,6 @@ def compare_laps(
             else:
                 # GAIN — real integrated time from apex to end of straight
                 apex_idx = int(driver_apex_m)
-                straight_end = find_straight_end_after_corner(
-                    corner_idx, track_model.corners,
-                    driver_speed, driver_throttle_grid, driver_brake_grid,
-                    thresholds, track_length,
-                )
                 if 0 <= apex_idx < len(delta_t) and 0 <= straight_end < len(delta_t):
                     loss_s = delta_t[straight_end] - delta_t[apex_idx]
                 else:
@@ -569,12 +571,23 @@ def compare_laps(
                 ref_exit_speed = ref_speed_grid[exit_idx]
                 exit_delta = ref_exit_speed - driver_exit_speed
                 if abs(exit_delta) > 1.0:
+                    if exit_delta > 0:
+                        # LOSS — unchanged heuristic
+                        loss_s = exit_delta / 100.0
+                    else:
+                        # GAIN — real integrated time from exit to end of straight
+                        if 0 <= exit_idx < len(delta_t) and 0 <= straight_end < len(delta_t):
+                            loss_s = delta_t[straight_end] - delta_t[exit_idx]
+                        else:
+                            # Fallback to heuristic if delta-t indices are out of range
+                            loss_s = exit_delta / 100.0
+
                     corner_losses.append(CornerLoss(
                         corner_id=corner.id,
                         corner_name=corner.name,
                         apex_distance_m=corner.apex_s_m,
                         phase=phase_name,
-                        loss_s=exit_delta / 100.0,
+                        loss_s=loss_s,
                         driver_value=driver_exit_speed,
                         reference_value=ref_exit_speed,
                         unit="km/h",

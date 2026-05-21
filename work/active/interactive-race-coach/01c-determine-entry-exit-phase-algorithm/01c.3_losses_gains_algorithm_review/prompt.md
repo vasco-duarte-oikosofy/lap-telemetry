@@ -2,30 +2,46 @@
 
 ## Context
 
-Slice 01c introduced algorithm-driven entry/exit phase detection (throttle lift, brake release, full throttle). Slice 01c.2 defines gain improvements: delta-time traces for measuring real time gained from a phase point to the end of the straight, and distance deltas (apex offset, entry delta, exit delta) comparing driver vs reference phase transitions.
+Slice 01c introduced algorithm-driven entry/exit phase detection. Slice 01c.2 implemented delta-time gains for minimum_speed and exit phases:
 
-Gains now use real integrated time: `loss_s = delta_t[straight_end] - delta_t[phase_point]`, negative for gains. But **losses still use the heuristic** `loss_s = speed_delta / 100.0`.
+| Phase | Loss | Gain |
+|-------|------|------|
+| minimum_speed | `speed_delta / 100.0` (heuristic) | `delta_t[straight_end] - delta_t[apex]` (real time) ✅ |
+| exit | `speed_delta / 100.0` (heuristic) | `delta_t[straight_end] - delta_t[exit_point]` (real time) ✅ |
+| entry | `speed_delta / 100.0` (heuristic) | `speed_delta / 100.0` (heuristic) ❌ |
 
-## Need
+## Three items to address
 
-We must evaluate how to calculate **losses** so that we properly account for the full lap picture — both the gain algorithm and the loss algorithm working together consistently. Specific questions:
+### 1. Entry gains
 
-1. **Should losses also use delta-time?** A loss at the apex means the driver was slower. The time cost of that loss doesn't stop at the apex — it compounds down the straight (just like a gain). If we measure `loss_s = delta_t[straight_end] - delta_t[apex]` for losses the same way we do for gains, the semantics become consistent: every phase is measured in real seconds, and the sum across all phases should approximate the total lap time delta.
+Entry gains currently use the heuristic. They should use delta-time like minimum_speed and exit gains:
 
-2. **Double-counting across phases.** If we measure the time from each phase point to the end of the straight, adjacent corners will overlap — the straight from corner N's apex to corner N+1's entry is counted in both corner N's measurement and corner N+1's entry. We need to decide whether phases should partition the lap (no overlap, no gaps) or whether overlap is acceptable for coaching purposes.
+```
+loss_s = delta_t[straight_end] - delta_t[entry_point]
+```
 
-3. **Heuristic vs. real time mixing.** Currently minimum-speed gains use real seconds while minimum-speed losses use heuristic "seconds," and entry/exit phases use the heuristic in both directions. The ranking across phases (`corner_losses.sort(key=lambda x: x.loss_s)`) mixes units. Is this tolerable, or should we unify before shipping?
+Additionally, entry gains should report a **distance delta** comparing the driver's entry point to the reference's entry point ("you lifted 8m later than reference"). This requires detecting the reference's throttle-lift / speed-peak point, which isn't currently implemented. See `entry_gain_algorithm.md` for the full spec.
 
-4. **Losses that don't compound to the end of the straight.** Some losses are "paid" entirely within the corner (e.g., late apex where the driver is slower through the corner but catches up on exit). A naive delta-time measurement from apex to end of straight would show a small loss or even a gain, even though the driver was slower at the apex. We need to decide whether to measure the loss at the point (speed delta) or over the segment (delta-time).
+### 2. Losses — review and confirm or change
 
-5. **Whole-lap accounting.** The sum of all phase `loss_s` values should approximate the total `lap_time_delta_s` for the lap. Currently it doesn't (heuristic `speed_delta / 100.0` has no relationship to real time). If we move to delta-time for all phases, the sum should converge — but we need to verify this with real data and address the overlap issue.
+Losses currently use `speed_delta / 100.0` for all phases. The questions:
+
+- **Should losses also use delta-time?** A loss at the apex means the driver was slower. The time cost compounds down the straight (just like a gain). If we measure `loss_s = delta_t[straight_end] - delta_t[phase_point]` for losses too, the semantics become consistent: every phase is measured in real seconds.
+- **Double-counting across phases.** The straight from corner N's apex to corner N+1's entry is counted in both corner N's measurement and corner N+1's entry. Is overlap acceptable for coaching purposes, or should phases partition the lap?
+- **Losses that "self-correct."** A late apex where the driver is slower through the corner but catches up on exit would show a small delta-time loss (or even a gain) at the end of the straight, even though the driver was clearly slower at the apex. Speed delta measures the point-in-time difference; delta-time measures the segment difference. Which is more coaching-useful for losses?
+- **Whole-lap accounting.** If all phases use delta-time, the sum of all `loss_s` values should approximate `lap_time_delta_s`. Does it? This needs verification with real data.
+
+### 3. Heuristic vs. real time mixing
+
+Currently the ranking across phases mixes units — real seconds for minimum_speed and exit gains, heuristic "seconds" for everything else. Is this tolerable, or should we unify? If losses also move to delta-time, the only remaining heuristic would be entry gains (until we implement reference entry detection).
 
 ## Deliverable
 
 A decision document specifying:
-- Which `loss_s` formula to use for each phase (heuristic, delta-time, or hybrid).
-- How to handle overlap between adjacent phases.
-- Whether to unify the units before shipping or tolerate mixed units as a stepping stone.
+- Whether to extend delta-time to entry gains now.
+- Whether to extend delta-time to losses for all phases.
+- How to handle overlap between adjacent phases (if losses use delta-time).
+- Whether `speed_delta / 100.0` is acceptable for losses, or whether delta-time is required for consistency.
 - Any changes to the `CornerLoss` schema needed for consistency.
 
-This is a **review and decision** slice, not an implementation slice. The output is a spec that the subsequent implementation slices will follow.
+This is a **review and decision** slice, not an implementation slice.

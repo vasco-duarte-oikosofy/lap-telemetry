@@ -3,40 +3,40 @@
 ## What is on disk now
 
 ### Modified files
-- **`product/python/lap_telemetry/coach/lap_comparator.py`** — Main algorithm file. Contains:
-  - `PhaseDetectionThresholds` dataclass with all configurable thresholds including `look_back_m`
-  - `CornerLoss.phase_distance_m` — field for the actual distance where a phase was measured
-  - `CornerLoss.driver_apex_distance_m` / `reference_apex_distance_m` — for `minimum_speed` phase
-  - `find_entry_point(speed, throttle, brake, corner, thresholds, look_back_m=200)` — detects entry via throttle lift (preferred) or speed peak (fallback); searches 200m before `s_start_m` by default
-  - `find_brake_point(brake, corner, thresholds, look_back_m=200)` — also uses look-back
-  - `find_exit_points(brake, throttle, corner, thresholds)` — detects brake-off and/or full-throttle exit points
-  - `compute_minimum_speed_per_corner()` — now returns 5 values: `(driver_min, ref_min, delta, driver_apex_m, ref_apex_m)`
-  - `compare_laps()` — accepts optional `thresholds` param; loads throttle/brake; uses algorithm-driven entry/exit; populates apex offset fields
+- **`product/python/lap_telemetry/coach/lap_comparator.py`** — Main algorithm file. Changes from 01c + 01c.2:
+  - `PhaseDetectionThresholds` dataclass with configurable thresholds
+  - `CornerLoss.apex_offset_m` — new field for minimum_speed phases
+  - `compute_delta_time_trace()` — cumulative time delta at 1 m resolution
+  - `find_straight_end_after_corner()` — end of straight = next corner entry or end of lap
+  - `find_entry_point()`, `find_brake_point()`, `find_exit_points()` — algorithm-driven phase detection
+  - `compare_laps()` — uses delta-time for minimum_speed and exit gains, heuristic for all losses and entry gains
+  - `LapComparisonFacts.to_dict()` — includes `apex_offset_m` when present
 
-### New files
-- **`dev/scripts/test_phase_detection.py`** — Unit tests (14 test functions, 55 assertions)
+### Key sub-slices
 
-### Spec updates
-- `docs/specs/interactive-race-coach-and-engineer.md` — Updated entry/exit detection (done); added apex offset open question with Imola reference
+#### 01c.2 — Delta-time gains (implemented)
+- Minimum-speed gains: `loss_s = delta_t[straight_end] - delta_t[apex]` (real seconds)
+- Exit gains: `loss_s = delta_t[straight_end] - delta_t[exit_point]` (real seconds)
+- `apex_offset_m` field on all minimum_speed phases
+- Losses unchanged (still use `speed_delta / 100.0`)
+- Entry gains still use heuristic
 
-## Key algorithm detail: look-back
+#### 01c.3 — Losses and gains algorithm review (future)
+- Decide whether losses should also use delta-time
+- Decide on entry gain algorithm (reference entry detection + distance delta)
+- Address heuristic vs. real time mixing across phases
 
-Throttle lift and braking for corners often start 50-100m before the formal `s_start_m` zone boundary. The `find_entry_point` and `find_brake_point` functions now accept `look_back_m` (default 200m) and search from `max(0, s_start_m - look_back_m)` toward the apex. This fixed a bug where Turn 6 at Barcelona produced a spurious "gain" because the throttle lift at 2438m was 64m before the zone starting at 2502m, causing the algorithm to fall back to `speed_peak` at the zone boundary (147 kph mid-corner instead of 204 kph entry speed).
+## Barcelona output
+
+```
+t3 minimum_speed loss: loss_s=0.106  (heuristic: 10.6/100) apex_offset_m=-9.0
+t5 exit gain: loss_s=-0.065  (delta-time: 0.364 - 0.429 = -0.065s)
+```
 
 ## How to verify
 ```bash
 cd product/python && python3 demo_coach_slice01.py --verbose
+python3 dev/scripts/test_phase_detection.py
+bash scripts/test-summary.sh
+npm run build
 ```
-- Entry distances are detected at the actual throttle lift or speed peak, NOT at `s_start_m`
-- Exit distances are detected at brake-off / full-throttle, NOT at `apex + 30`
-- `minimum_speed` phases include `driver_apex_distance_m` and `reference_apex_distance_m`
-- Barcelona turn 3: driver apexes 9m late (1170m vs 1161m reference)
-- Barcelona turn 6 entry: now detected at throttle lift (~2439m), not zone boundary (2502m)
-
-## Deferred TODOs
-- Multi-apex corner support (test with Imola chicanes)
-- Replace `loss_s = speed_delta / 100.0` with integrated time loss
-- Entry distance comparison between driver and reference (both detected independently)
-- Straight-zone time-loss analysis
-- Reference lap brake/throttle phase detection for "you lifted later than reference" coaching
-- Decide whether `apex_offset_m` should become a convenience computed field
