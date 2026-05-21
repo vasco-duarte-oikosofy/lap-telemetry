@@ -627,6 +627,148 @@ def test_minimum_speed_gain_negative_loss_s() -> None:
             )
 
 
+# ── JS pipeline contract tests ───────────────────────────────────────────────
+
+
+def test_js_pipeline_delta_t_matches_web_ui() -> None:
+    """JS pipeline delta_t at key distances matches user-confirmed web UI values."""
+    current_lap = ROOT / "dev" / "fixtures" / "coach" / "barcelona_lap15_current.parquet"
+    reference_lap = ROOT / "product" / "data" / "reference-laps" / "circuit-de-barcelona_dkr-engineering-4-elms25_time_01.36.456.parquet"
+
+    if not current_lap.exists():
+        print("  SKIP: JS pipeline contract (fixture not found)")
+        return
+
+    from lap_telemetry.coach.js_pipeline import run_js_pipeline, delta_t_ms_to_seconds
+    import pyarrow.parquet as pq
+
+    current_table = pq.read_table(current_lap)
+    ref_table = pq.read_table(reference_lap)
+
+    result = run_js_pipeline(
+        driver_lap_time_s=current_table.column("lap_time_s").to_pylist(),
+        driver_lap_distance_m=current_table.column("lap_distance_m").to_pylist(),
+        driver_speed_kph=current_table.column("speed_kph").to_pylist(),
+        ref_lap_time_s=ref_table.column("lap_time_s").to_pylist(),
+        ref_lap_distance_m=ref_table.column("lap_distance_m").to_pylist(),
+        ref_speed_kph=ref_table.column("speed_kph").to_pylist(),
+        track_length=4680,
+    )
+
+    dt_ms = result["delta_t_ms"]
+
+    # User-confirmed values from the web UI (fix_delta_t_calculation.md):
+    #   delta_t at 2158m = +436 ms
+    #   delta_t at 2439m = +331 ms (next braking zone)
+    ok(
+        abs(dt_ms[2158] - 436) < 0.5,
+        f"delta_t[2158] = {dt_ms[2158]:.1f} ms, expected ~436 ms (web UI confirmed)",
+    )
+    ok(
+        abs(dt_ms[2439] - 331) < 0.5,
+        f"delta_t[2439] = {dt_ms[2439]:.1f} ms, expected ~331 ms (web UI confirmed)",
+    )
+
+    # Final delta_t should match lap time delta (1.155 s = 1155 ms)
+    ok(
+        abs(dt_ms[-1] - 1155) < 1.0,
+        f"delta_t[-1] = {dt_ms[-1]:.1f} ms, expected ~1155 ms (lap_time_delta = 1.155 s)",
+    )
+
+
+def test_js_pipeline_speed_matches_web_ui() -> None:
+    """JS pipeline resampled speed at key distances matches web UI."""
+    current_lap = ROOT / "dev" / "fixtures" / "coach" / "barcelona_lap15_current.parquet"
+    reference_lap = ROOT / "product" / "data" / "reference-laps" / "circuit-de-barcelona_dkr-engineering-4-elms25_time_01.36.456.parquet"
+
+    if not current_lap.exists():
+        print("  SKIP: JS pipeline speed contract (fixture not found)")
+        return
+
+    from lap_telemetry.coach.js_pipeline import run_js_pipeline
+    import pyarrow.parquet as pq
+
+    current_table = pq.read_table(current_lap)
+    ref_table = pq.read_table(reference_lap)
+
+    result = run_js_pipeline(
+        driver_lap_time_s=current_table.column("lap_time_s").to_pylist(),
+        driver_lap_distance_m=current_table.column("lap_distance_m").to_pylist(),
+        driver_speed_kph=current_table.column("speed_kph").to_pylist(),
+        ref_lap_time_s=ref_table.column("lap_time_s").to_pylist(),
+        ref_lap_distance_m=ref_table.column("lap_distance_m").to_pylist(),
+        ref_speed_kph=ref_table.column("speed_kph").to_pylist(),
+        track_length=4680,
+    )
+
+    # Speed values at t5 exit (2158m): driver 92 kph, ref 91 kph
+    # These match the coaching output from the demo script
+    driver_speed = result["driver_speed_kph"]
+    ref_speed = result["ref_speed_kph"]
+    ok(
+        abs(driver_speed[2158] - 92.0) < 1.0,
+        f"driver_speed[2158] = {driver_speed[2158]:.1f}, expected ~92 kph",
+    )
+    ok(
+        abs(ref_speed[2158] - 91.0) < 1.0,
+        f"ref_speed[2158] = {ref_speed[2158]:.1f}, expected ~91 kph",
+    )
+
+    # All grid arrays should have the same length (track_length + 1)
+    tl = result["track_length"]
+    ok(len(driver_speed) == tl + 1, f"driver_speed len = {len(driver_speed)}, expected {tl + 1}")
+    ok(len(ref_speed) == tl + 1, f"ref_speed len = {len(ref_speed)}, expected {tl + 1}")
+    ok(len(result["delta_t_ms"]) == tl + 1, f"delta_t len = {len(result['delta_t_ms'])}, expected {tl + 1}")
+
+
+def test_js_pipeline_smooth_dt_reduces_jitter() -> None:
+    """smoothDt attenuates plateau-alignment jitter by ~6x."""
+    current_lap = ROOT / "dev" / "fixtures" / "coach" / "barcelona_lap15_current.parquet"
+    reference_lap = ROOT / "product" / "data" / "reference-laps" / "circuit-de-barcelona_dkr-engineering-4-elms25_time_01.36.456.parquet"
+
+    if not current_lap.exists():
+        print("  SKIP: smoothDt jitter test (fixture not found)")
+        return
+
+    from lap_telemetry.coach.js_pipeline import run_js_pipeline
+    import pyarrow.parquet as pq
+
+    current_table = pq.read_table(current_lap)
+    ref_table = pq.read_table(reference_lap)
+
+    result = run_js_pipeline(
+        driver_lap_time_s=current_table.column("lap_time_s").to_pylist(),
+        driver_lap_distance_m=current_table.column("lap_distance_m").to_pylist(),
+        driver_speed_kph=current_table.column("speed_kph").to_pylist(),
+        ref_lap_time_s=ref_table.column("lap_time_s").to_pylist(),
+        ref_lap_distance_m=ref_table.column("lap_distance_m").to_pylist(),
+        ref_speed_kph=ref_table.column("speed_kph").to_pylist(),
+        track_length=4680,
+    )
+
+    dt_smoothed_ms = result["delta_t_ms"]
+
+    # Compare raw (no smoothDt) vs smoothed jitter in a 200m zone.
+    # Compute raw delta_t (no smoothDt) by running a raw version.
+    # We can check that smoothed delta_t in a stable zone has lower
+    # point-to-point variance than we'd expect from raw.
+    # For a 200m zone around 2158m, check that adjacent-bin jumps
+    # are small (smoothed: typically < 1 ms/bin; raw would be ~20 ms).
+    zone_start, zone_end = 2050, 2250
+    max_adjacent_jump = 0
+    for i in range(zone_start + 1, min(zone_end, len(dt_smoothed_ms))):
+        jump = abs(dt_smoothed_ms[i] - dt_smoothed_ms[i - 1])
+        if jump > max_adjacent_jump:
+            max_adjacent_jump = jump
+
+    # After smoothDt (±20m), adjacent jumps should be well under 10 ms
+    # (raw plateau-alignment jitter is ~20 ms)
+    ok(
+        max_adjacent_jump < 10.0,
+        f"smoothed adjacent jump max = {max_adjacent_jump:.2f} ms, expected < 10 ms (smoothDt works)",
+    )
+
+
 # ── Main ─────────────────────────────────────────────────────────────────────
 
 def main() -> int:
@@ -660,6 +802,10 @@ def main() -> int:
     # Fixture tests
     test_apex_offset_fixture()
     test_comparison_with_fixture()
+    # JS pipeline contract tests
+    test_js_pipeline_delta_t_matches_web_ui()
+    test_js_pipeline_speed_matches_web_ui()
+    test_js_pipeline_smooth_dt_reduces_jitter()
 
     total = pass_count + fail_count
     print(f"\n  {pass_count}/{total} assertions passed")

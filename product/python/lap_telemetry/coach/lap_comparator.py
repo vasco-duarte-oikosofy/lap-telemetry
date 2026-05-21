@@ -7,6 +7,7 @@ from typing import Any
 
 import pyarrow.parquet as pq
 
+from .js_pipeline import run_js_pipeline, delta_t_ms_to_seconds
 from .track_model import TrackCoachingModel, Corner
 
 
@@ -463,43 +464,42 @@ def compare_laps(
     # Reference pedal channels are not used for phase detection but
     # could be in a future slice; resample them for consistency.
 
-    # Determine track length and resample
+    # Determine track length (used by computeKeepIndices in JS pipeline)
     max_dist = int(max(max(current_dist), max(ref_dist)))
     track_length = min(max_dist, int(track_model.lap_length_m))
 
-    # Resample onto common 1 m grid
-    driver_speed = resample_column(current_dist, current_speed, track_length)
-    ref_speed_grid = resample_column(ref_dist, ref_speed, track_length)
+    # Run the JS telemetry pipeline (single source of truth).
+    # ALL channels go through the same 6-step pipeline as the web UI:
+    #   1. computeKeepIndices — drop boundary-artifact frames
+    #   2. smoothLapTime — interpolate scoring-rate plateaus (lap_time_s only)
+    #   3. resample — onto 1 m grid (ALL channels including speed/throttle/brake)
+    #   4. forward-clamp — non-decreasing (lap_time_s only)
+    #   5. computeDeltaT — session - reference
+    #   6. smoothDt — spatial moving average (±20 m)
+    # This guarantees every resampled grid matches the web UI exactly.
+    js_result = run_js_pipeline(
+        driver_lap_time_s=current_lap_times,
+        driver_lap_distance_m=current_dist,
+        driver_speed_kph=current_speed,
+        ref_lap_time_s=ref_lap_times,
+        ref_lap_distance_m=ref_dist,
+        ref_speed_kph=ref_speed,
+        track_length=track_length,
+        driver_throttle_norm=driver_throttle,
+        driver_brake_norm=driver_brake,
+    )
 
-    driver_throttle_grid: list[float] | None = None
-    driver_brake_grid: list[float] | None = None
-    if driver_throttle is not None:
-        driver_throttle_grid = resample_column(current_dist, driver_throttle, track_length)
-    if driver_brake is not None:
-        driver_brake_grid = resample_column(current_dist, driver_brake, track_length)
-
-    # Resample lap_time_s onto 1 m grid for delta-t computation
-    # (matches web JS: product/web/js/pipeline.js computeDeltaT)
-    driver_lap_time_grid = resample_column(current_dist, current_lap_times, track_length)
-    ref_lap_time_grid = resample_column(ref_dist, ref_lap_times, track_length)
-
-    # Forward-clamp: make lap_time_s non-decreasing in distance.
-    # LMU's mCurrentET updates at ~5 Hz (200 ms quantum), so a 50 Hz recorder
-    # sees plateaus of identical lap_time_s values. Forward-clamp ensures the
-    # resampled grid doesn't introduce backward steps from interpolation artifacts.
-    for i in range(1, track_length):
-        if driver_lap_time_grid[i] < driver_lap_time_grid[i - 1]:
-            driver_lap_time_grid[i] = driver_lap_time_grid[i - 1]
-        if ref_lap_time_grid[i] < ref_lap_time_grid[i - 1]:
-            ref_lap_time_grid[i] = ref_lap_time_grid[i - 1]
+    delta_t = delta_t_ms_to_seconds(js_result["delta_t_ms"])
+    driver_speed = js_result["driver_speed_kph"]
+    ref_speed_grid = js_result["ref_speed_kph"]
+    driver_throttle_grid = js_result["driver_throttle_norm"]
+    driver_brake_grid = js_result["driver_brake_norm"]
+    track_length = js_result["track_length"]
 
     # Compute lap time delta
     driver_lap_time = max(t for t in current_lap_times if t is not None and t > 0)
     ref_lap_time = max(t for t in ref_lap_times if t is not None and t > 0)
     lap_time_delta = driver_lap_time - ref_lap_time
-
-    # Compute delta-time trace for gain measurement (using lap_time_s directly)
-    delta_t = compute_delta_time_trace(driver_lap_time_grid, ref_lap_time_grid, track_length)
 
     # Get lap number
     lap_numbers = current_table.column("lap_number").to_pylist()
