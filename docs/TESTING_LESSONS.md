@@ -288,3 +288,73 @@ module is registered, preventing manifest/module drift.
 **Fast diagnosis.** If many browser tests fail after changing only a track
 outline, run one failing script directly and look for esbuild import/export
 errors before investigating Playwright behavior or reverting geometry data.
+
+---
+
+## L12. Python test scripts need a Node.js wrapper to join the parallel runner
+
+**Problem.** `test-summary.sh` delegates to `run-tests-parallel.js`, which
+ Discovers test scripts from `package.json` `scripts.test` and runs each with
+`node`. A standalone Python test (`python3 dev/scripts/test_foo.py`) is
+invisible to the runner — it will never be discovered or executed.
+
+**Solution.** Create a thin Node.js wrapper that spawns the Python script and
+follows the `[PASS]`/`[FAIL]` protocol:
+
+```javascript
+// @parallel true
+'use strict';
+
+const { spawnSync } = require('child_process');
+const path = require('path');
+
+const ROOT = path.resolve(__dirname, '..', '..');
+const PYTHONPATH = path.join(ROOT, 'product', 'python');
+const script = path.join(ROOT, 'dev', 'scripts', 'test_foo.py');
+
+let pass = 0, fail = 0;
+function ok(condition, label) {
+  if (condition) { pass++; console.log(`  [PASS] ${label}`); }
+  else           { fail++; console.log(`  [FAIL] ${label}`); }
+}
+
+const res = spawnSync('python3', [script], {
+  encoding: 'utf8',
+  timeout: 60000,
+  env: { ...process.env, PYTHONPATH },
+});
+
+process.stdout.write(res.stdout);
+process.stderr.write(res.stderr);
+ok(res.status === 0, `${path.basename(script)} exited 0`);
+
+const total = pass + fail;
+console.log(`\n  ${pass}/${total} assertions passed`);
+if (fail > 0) { process.exit(1); }
+```
+
+Then add `node dev/scripts/test_foo.js` to `package.json` `scripts.test`.
+
+**Why three things matter:**
+
+1. **`// @parallel true`** — tells the runner this script can run in the
+   parallel pool (no ordering dependency).
+
+2. **`env: { ...process.env, PYTHONPATH }`** — `spawnSync` does not inherit
+   the parent's environment by default. Without explicit `PYTHONPATH`, Python
+   will fail with `ModuleNotFoundError`. (See L1 for the general rule.)
+
+3. **The wrapper must contain `[PASS]`/`[FAIL]` in its source text.**
+   `test_protocol_enforcement.js` does static analysis on `.js` source files —
+   it checks that each registered test script contains those patterns.
+   A wrapper that merely forwards Python output has no such patterns and
+   will fail the protocol check. The `ok()` call + template literals that
+   include `[PASS]` and `[FAIL]` satisfy the check.
+
+**Standalone use.** The Python script can still be run directly:
+
+```bash
+python3 dev/scripts/test_foo.py
+```
+
+The wrapper only exists so the parallel runner can discover and execute it.
