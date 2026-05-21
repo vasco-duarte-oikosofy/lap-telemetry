@@ -14,7 +14,7 @@
 |---|---|---|
 | `01-offline-fact-generator` | ✅ Complete | CLI compares one recorded lap to a reference and prints top corner minimum-speed losses from a hand-authored track model |
 | `01b-track-model-from-reference-lap` | ✅ Complete | Generate a reviewable car-specific track coaching model from a valid reference lap using telemetry-derived apex proxies |
-| `01c-determine-entry-exit-phase-algorithm` | 🔲 Not started | Replace fixed 30 m entry/exit offsets with brake, throttle, and speed-trace detection to determine where corner entry begins and exit ends |
+| `01c-determine-entry-exit-phase-algorithm` | ✅ Complete | Replace fixed 30 m entry/exit offsets with brake, throttle, and speed-trace detection to determine where corner entry begins and exit ends |
 | `02-track-coaching-model-loader` | 🔲 Not started | Validate/load one Barcelona LMU coaching JSON and map corner names/zones to telemetry distance |
 | `03-llm-text-adapter` | 🔲 Not started | CLI sends sample facts to configured model and records the returned utterance |
 | `04-local-tts-smoke-path` | 🔲 Not started | CLI speaks a supplied text string through the local TTS adapter with queue semantics |
