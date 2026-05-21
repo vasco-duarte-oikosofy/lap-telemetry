@@ -241,6 +241,7 @@ def compare_laps(
     reference_lap_path: Path | str,
     track_model: TrackCoachingModel,
     thresholds: PhaseDetectionThresholds | None = None,
+    top_n: int = 3,
 ) -> LapComparisonFacts:
     """Compare a current lap against a reference lap.
 
@@ -421,8 +422,8 @@ def compare_laps(
     losses = [c for c in corner_losses if c.loss_s > 0]
     gains = [c for c in corner_losses if c.loss_s < 0]
 
-    top_losses = losses[:3]
-    top_gains = sorted(gains, key=lambda x: x.loss_s)[:3]
+    top_losses = losses[:top_n]
+    top_gains = sorted(gains, key=lambda x: x.loss_s)[:top_n]
 
     return LapComparisonFacts(
         type="lap_coaching_summary",
