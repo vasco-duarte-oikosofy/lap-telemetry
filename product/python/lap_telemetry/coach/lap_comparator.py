@@ -145,14 +145,12 @@ def compare_laps(
             compute_minimum_speed_per_corner(driver_speed, ref_speed_grid, corner)
         )
         if abs(speed_delta) > 0.5:
-            if speed_delta > 0:
-                loss_s = speed_delta / 100.0
+            apex_idx = int(driver_apex_m)
+            if (0 <= apex_idx < len(delta_t)
+                    and 0 <= straight_end < len(delta_t)):
+                loss_s = delta_t[straight_end] - delta_t[apex_idx]
             else:
-                apex_idx = int(driver_apex_m)
-                if 0 <= apex_idx < len(delta_t) and 0 <= straight_end < len(delta_t):
-                    loss_s = delta_t[straight_end] - delta_t[apex_idx]
-                else:
-                    loss_s = speed_delta / 100.0
+                loss_s = speed_delta / 100.0
 
             corner_losses.append(CornerLoss(
                 corner_id=corner.id, corner_name=corner.name,
@@ -163,7 +161,7 @@ def compare_laps(
                 driver_apex_distance_m=driver_apex_m,
                 reference_apex_distance_m=ref_apex_m,
                 apex_offset_m=ref_apex_m - driver_apex_m,
-                gain_end_distance_m=float(straight_end) if speed_delta < 0 else None,
+                gain_end_distance_m=float(straight_end),
             ))
 
         # --- Entry phase ---
@@ -177,13 +175,10 @@ def compare_laps(
             entry_delta = ref_entry_speed - driver_entry_speed
             if abs(entry_delta) > 1.0:
                 apex_idx = int(corner.apex_s_m)
-                if entry_delta < 0:
-                    if (0 <= entry_idx < len(delta_t)
-                            and 0 <= apex_idx < len(delta_t)
-                            and entry_idx < apex_idx):
-                        loss_s = delta_t[apex_idx] - delta_t[entry_idx]
-                    else:
-                        loss_s = entry_delta / 100.0
+                if (0 <= entry_idx < len(delta_t)
+                        and 0 <= apex_idx < len(delta_t)
+                        and entry_idx < apex_idx):
+                    loss_s = delta_t[apex_idx] - delta_t[entry_idx]
                 else:
                     loss_s = entry_delta / 100.0
 
@@ -194,7 +189,7 @@ def compare_laps(
                     reference_value=ref_entry_speed, unit="km/h",
                     confidence="medium",
                     phase_distance_m=float(entry_idx),
-                    gain_end_distance_m=float(apex_idx) if entry_delta < 0 else None,
+                    gain_end_distance_m=float(apex_idx),
                 ))
 
         # --- Exit phase(s) ---
@@ -207,14 +202,11 @@ def compare_laps(
                 ref_exit_speed = ref_speed_grid[exit_idx]
                 exit_delta = ref_exit_speed - driver_exit_speed
                 if abs(exit_delta) > 1.0:
-                    if exit_delta > 0:
-                        loss_s = exit_delta / 100.0
+                    if (0 <= exit_idx < len(delta_t)
+                            and 0 <= straight_end < len(delta_t)):
+                        loss_s = delta_t[straight_end] - delta_t[exit_idx]
                     else:
-                        if (0 <= exit_idx < len(delta_t)
-                                and 0 <= straight_end < len(delta_t)):
-                            loss_s = delta_t[straight_end] - delta_t[exit_idx]
-                        else:
-                            loss_s = exit_delta / 100.0
+                        loss_s = exit_delta / 100.0
 
                     corner_losses.append(CornerLoss(
                         corner_id=corner.id, corner_name=corner.name,
@@ -223,7 +215,7 @@ def compare_laps(
                         reference_value=ref_exit_speed, unit="km/h",
                         confidence="medium",
                         phase_distance_m=float(exit_idx),
-                        gain_end_distance_m=float(straight_end) if exit_delta < 0 else None,
+                        gain_end_distance_m=float(straight_end),
                     ))
 
     corner_losses.sort(key=lambda x: x.loss_s, reverse=True)
