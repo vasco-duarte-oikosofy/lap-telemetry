@@ -1,7 +1,8 @@
 """TTS adapter for the race coach.
 
 Provides abstract base class and concrete implementations:
-- PiperAdapter: calls Piper binary via subprocess (primary engine)
+- KokoroAdapter: local ONNX TTS with natural intonation (primary engine)
+- PiperAdapter: calls Piper binary via subprocess (secondary engine)
 - Pyttsx3Adapter: uses pyttsx3/SAPI as zero-install fallback (Windows-only)
 - FileAdapter: writes text to a file (for testing without speakers)
 """
@@ -32,6 +33,113 @@ class TTSAdapter(ABC):
         Args:
             text: The text to speak.
         """
+
+
+class KokoroAdapter(TTSAdapter):
+    """TTS adapter using Kokoro ONNX engine.
+
+    Kokoro produces natural-sounding speech with proper intonation.
+    This is the primary TTS engine for the race coach.
+    """
+
+    def __init__(self, config: TTSConfig) -> None:
+        self._model_path = config.kokoro_model
+        self._voices_path = config.kokoro_voices
+        self._voice = config.kokoro_voice
+        self._speed = config.kokoro_speed
+        self._kokoro = None  # Lazy-loaded
+
+    def _ensure_loaded(self) -> None:
+        """Lazy-load the Kokoro model on first use."""
+        if self._kokoro is not None:
+            return
+        try:
+            from kokoro_onnx import Kokoro  # type: ignore[import-untyped]
+        except ImportError as e:
+            raise RuntimeError(
+                "kokoro-onnx is not installed. "
+                "Install it with: pip install kokoro-onnx"
+            ) from e
+
+        model = Path(self._model_path)
+        voices = Path(self._voices_path)
+        if not model.exists():
+            raise RuntimeError(
+                f"Kokoro model not found: {model}. "
+                "Follow docs/PIPER_INSTALL.md to set up TTS voices."
+            )
+        if not voices.exists():
+            raise RuntimeError(
+                f"Kokoro voices file not found: {voices}. "
+                "Follow docs/PIPER_INSTALL.md to set up TTS voices."
+            )
+
+        log.info("Loading Kokoro model: %s", model)
+        self._kokoro = Kokoro(str(model), str(voices))
+        log.info("Kokoro model loaded, voice=%s, speed=%.2f", self._voice, self._speed)
+
+    def speak(self, text: str) -> None:
+        """Synthesize text with Kokoro and play the resulting audio."""
+        self._ensure_loaded()
+        samples, sample_rate = self._kokoro.create(
+            text, voice=self._voice, speed=self._speed
+        )
+        log.info("Kokoro synthesized %d chars (%d samples)", len(text), len(samples))
+        self._play_audio(samples, sample_rate)
+
+    def _play_audio(self, samples: list[float], sample_rate: int) -> None:
+        """Play audio samples through sounddevice or platform fallback."""
+        import numpy as np
+
+        try:
+            import sounddevice as sd  # type: ignore[import-untyped]
+            audio = np.array(samples, dtype=np.float32)
+            sd.play(audio, sample_rate)
+            sd.wait()
+            log.debug("Playback finished via sounddevice")
+            return
+        except ImportError:
+            log.debug("sounddevice not available, trying WAV fallback")
+
+        # Fallback: write WAV and play with platform player
+        import tempfile
+        import wave
+        import struct
+
+        with tempfile.NamedTemporaryFile(suffix=".wav", delete=False) as tmp:
+            wav_path = Path(tmp.name)
+
+        try:
+            # Convert float samples to 16-bit PCM
+            pcm = [int(max(-1.0, min(1.0, s)) * 32767) for s in samples]
+            with wave.open(str(wav_path), "wb") as wf:
+                wf.setnchannels(1)
+                wf.setsampwidth(2)
+                wf.setframerate(sample_rate)
+                wf.writeframes(struct.pack(f"<{len(pcm)}h", *pcm))
+
+            self._play_wav_fallback(wav_path)
+        finally:
+            if wav_path.exists():
+                wav_path.unlink()
+
+    def _play_wav_fallback(self, wav_path: Path) -> None:
+        """Play a WAV file using the platform's built-in audio player."""
+        import platform
+
+        system = platform.system()
+        if system == "Darwin":
+            subprocess.run(["afplay", str(wav_path)], check=True, timeout=30)
+        elif system == "Windows":
+            ps_cmd = f'(New-Object Media.SoundPlayer "{wav_path}").PlaySync()'
+            subprocess.run(
+                ["powershell", "-Command", ps_cmd],
+                check=True, timeout=30,
+            )
+        elif system == "Linux":
+            subprocess.run(["aplay", str(wav_path)], check=True, timeout=30)
+        else:
+            log.warning("No audio playback available on %s", system)
 
 
 class PiperAdapter(TTSAdapter):
@@ -201,7 +309,9 @@ def create_adapter(config: TTSConfig) -> TTSAdapter:
     """
     engine = config.engine.lower()
 
-    if engine == "piper":
+    if engine == "kokoro":
+        return KokoroAdapter(config)
+    elif engine == "piper":
         return PiperAdapter(config)
     elif engine == "pyttsx3":
         return Pyttsx3Adapter()

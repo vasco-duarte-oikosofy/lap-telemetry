@@ -36,7 +36,7 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument(
         "--engine",
         type=str,
-        choices=["piper", "pyttsx3", "file"],
+        choices=["kokoro", "piper", "pyttsx3", "file"],
         default=None,
         help="Override TTS engine from config.",
     )

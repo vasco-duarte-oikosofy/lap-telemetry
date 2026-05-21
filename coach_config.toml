@@ -7,7 +7,12 @@ max_tokens = 4096
 base_url = "http://localhost:11434/v1"
 
 [tts]
-engine = "piper"                                                # piper, pyttsx3, file
-piper_binary = "python3 -m piper"                              # pip-installed piper (or path to binary)
-piper_model = "product/data/tts-voices/en_US-lessac-medium.onnx"
+engine = "kokoro"                                                # kokoro, piper, pyttsx3, file
+kokoro_model = "product/data/tts-voices/kokoro-v1.0.int8.onnx"
+kokoro_voices = "product/data/tts-voices/kokoro-voices-v1.0.bin"
+kokoro_voice = "bm_daniel"                                     # British male, race engineer feel
+kokoro_speed = 1.05                                            # slightly faster than default
+# Piper config (secondary engine)
+# piper_binary = "python3 -m piper"
+# piper_model = "product/data/tts-voices/en_US-lessac-medium.onnx"
 # output_file = "coach_output.wav"                             # for file adapter

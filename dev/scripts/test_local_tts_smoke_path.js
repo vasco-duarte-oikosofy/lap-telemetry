@@ -29,17 +29,19 @@ from pathlib import Path
 sys.path.insert(0, r"""${path.join(ROOT, 'product', 'python')}""")
 
 from lap_telemetry.coach.coach_config import TTSConfig, load_tts_config, _read_toml
-from lap_telemetry.coach.tts_adapter import TTSAdapter, FileAdapter, PiperAdapter
+from lap_telemetry.coach.tts_adapter import TTSAdapter, FileAdapter, PiperAdapter, KokoroAdapter
 from lap_telemetry.coach.speech_queue import SpeechQueue
 
 # ─── TTSConfig tests ───
 
 def test_tts_config_defaults():
     cfg = TTSConfig()
-    assert cfg.engine == "piper", f"Expected piper, got {cfg.engine}"
+    assert cfg.engine == "kokoro", f"Expected kokoro, got {cfg.engine}"
     assert cfg.piper_binary == "python3 -m piper", f"Expected python3 -m piper, got {cfg.piper_binary}"
     assert cfg.piper_model is None, f"Expected None, got {cfg.piper_model}"
     assert cfg.output_file == "coach_output.wav", f"Got {cfg.output_file}"
+    assert cfg.kokoro_voice == "bm_daniel", f"Expected bm_daniel, got {cfg.kokoro_voice}"
+    assert cfg.kokoro_speed == 1.05, f"Expected 1.05, got {cfg.kokoro_speed}"
     print("  tts_config_defaults: OK")
 
 def test_tts_config_env_overrides():
@@ -132,6 +134,15 @@ def test_piper_adapter_instantiation():
     adapter = PiperAdapter(config=cfg)
     assert adapter is not None
     print("  piper_adapter_instantiation: OK")
+
+def test_kokoro_adapter_instantiation():
+    cfg = TTSConfig()
+    adapter = KokoroAdapter(config=cfg)
+    # Don't call speak() — just verify construction
+    assert adapter is not None
+    assert adapter._voice == "bm_daniel"
+    assert adapter._speed == 1.05
+    print("  kokoro_adapter_instantiation: OK")
 
 # ─── SpeechQueue tests ───
 
@@ -244,6 +255,7 @@ test_tts_adapter_is_abstract()
 test_file_adapter_writes_file()
 test_file_adapter_contains_text()
 test_piper_adapter_instantiation()
+test_kokoro_adapter_instantiation()
 test_speech_queue_enqueue_flush()
 test_speech_queue_stale_drop()
 test_speech_queue_flush_waits()
