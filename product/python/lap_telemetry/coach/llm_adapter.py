@@ -68,10 +68,16 @@ def generate_utterance(
 
 
 def _call_llm(config: LLMConfig, messages: list[dict[str, str]]) -> str:
-    """Call the LLM provider via litellm.
+    """Call the LLM provider.
 
-    Falls back to the openai SDK if litellm is not installed.
+    For providers with an OpenAI-compatible API (ollama, deepseek, google),
+    use the openai SDK with the provider's base_url.
+    For providers natively supported by litellm (anthropic, openai), use litellm.
     """
+    # Providers that use OpenAI-compatible endpoints
+    openai_compat = {"ollama", "deepseek", "google"}
+    if config.provider in openai_compat or config.base_url:
+        return _call_via_openai(config, messages)
     try:
         return _call_via_litellm(config, messages)
     except ImportError:
@@ -158,5 +164,6 @@ def _provider_base_url(provider: str) -> str | None:
     urls: dict[str, str] = {
         "deepseek": "https://api.deepseek.com",
         "google": "https://generativelanguage.googleapis.com/v1beta/openai",
+        "ollama": "https://api.ollama.com/v1",
     }
     return urls.get(provider)

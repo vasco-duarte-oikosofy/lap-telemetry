@@ -154,6 +154,36 @@ mission must have a feature test suite before the first slice begins.
 - Ask before modifying `AGENTS.md` or `track-heatmap-spec.md`.
 - Start with a specific and focused implementation, refactor only as needed to respect SOLID rules and YAGNI.
 
+## Coach LLM setup (slice 03+)
+
+The coach LLM adapter requires Python packages not installed by default. On a new machine:
+
+```bash
+pip3 install openai litellm
+```
+
+- `openai` — required for all providers; used directly for Ollama, DeepSeek, Google, and as fallback.
+- `litellm` — optional but recommended; provides a unified interface for Anthropic/OpenAI-native endpoints.
+
+Provider and model are configured in `coach_config.toml` (project root). API keys are **never** stored in files — set them as environment variables:
+
+```bash
+export OLLAMA_API_KEY=your-key        # for Ollama cloud
+export ANTHROPIC_API_KEY=your-key     # for Anthropic
+export OPENAI_API_KEY=your-key        # for OpenAI
+```
+
+The CLI must be run from the **project root** (so `coach_config.toml` is found), or set `COACH_CONFIG` to the config file path:
+
+```bash
+# From project root
+cd /path/to/lap-telemetry
+python3 -m lap_telemetry.coach.generate_utterance --facts dev/fixtures/coach/barcelona_lap15_facts.json
+
+# Or from anywhere with COACH_CONFIG
+export COACH_CONFIG=/path/to/lap-telemetry/coach_config.toml
+```
+
 ## Reference-lap extraction and storage
 
 To extract the fastest lap from a session file and store it as the reference lap for a circuit, follow the procedure in [`dev/scripts/EXTRACT_AND_STORE_REFERENCE_LAP.md`](dev/scripts/EXTRACT_AND_STORE_REFERENCE_LAP.md).
