@@ -1,120 +1,135 @@
-# Entry gain algorithm
+# Entry gain algorithm — revised
 
-## Current behavior
+## What changed since the previous spec
 
-`find_entry_point()` uses **only the driver's** throttle/brake/speed traces:
+The original `entry_gain_algorithm.md` specified that entry gains
+would use the same `speed_delta / 100.0` heuristic as losses, plus a
+distance delta (`entry_distance_delta_m`) from detecting the
+reference's entry point. This document **replaces** that approach for
+gains with a delta-time measurement, matching what we already do for
+`minimum_speed` and `exit` gains.
 
-1. Walk forward from `(s_start_m - look_back_m)` toward `apex_s_m`.
-2. Find the first throttle drop below 0.9 after sustained ≥ 0.9 → `driver_entry_m`.
-3. Compare: `driver_speed[driver_entry_m]` vs `ref_speed[driver_entry_m]`.
-4. If `entry_delta = ref_speed - driver_speed > 1.0` → loss; `< -1.0` → gain.
+## Lessons from Barcelona fixture (swapped)
 
-For a **loss**, this is coaching-meaningful: "at the point where you lifted, you were 4 kph slower than reference."
+Using `--swap` on the Barcelona fixture (faster reference lap as
+"driver"), the current heuristic vs real delta-time for every entry
+gain:
 
-For a **gain**, it's incomplete: it tells us the driver was faster at their own lift point, but not *how* they were faster. The most actionable entry-gain fact is a **distance delta**: "you lifted 8 m later than reference" — meaning the driver carried speed deeper into the braking zone.
+| corner | entry_m | apex_m | heuristic | entry→apex Δt | heuristic / Δt |
+|--------|--------:|-------:|----------:|--------------:|----------------:|
+| t7     | 2820    | 2923   | −104 ms   | −155 ms       | 67 %            |
+| t1     | 680     | 841    | −85 ms    | −156 ms       | 54 %            |
+| t8     | 3352    | 3507   | −46 ms    | −58 ms        | 79 %            |
+| t11    | 4226    | 4343   | −34 ms    | −67 ms        | 50 %            |
+| t4     | 1596    | 1731   | −33 ms    | −81 ms        | 41 %            |
+| t10    | 3989    | 4033   | −21 ms    | −29 ms        | 72 %            |
+| t9     | 3680    | 3785   | −15 ms    | −52 ms        | 29 %            |
+| t3     | 909     | 1161   | −17 ms    | +37 ms ⚠     | wrong sign      |
 
-## What's needed
+The heuristic under-reports every gain, typically by 30–60%. The t3
+case is even worse: it **flips the sign** because the driver lifted at
+the same point as for t2 (a connected chicane), and the delta_t got
+*worse* from entry to apex (driver gained on entry but gave some back
+in the chicane), yet the heuristic says "gain" because the driver was
+traveling faster at the entry point.
 
-### Detect the reference's entry point
+## Decision: entry gains use Δt entry→apex
 
-Run the same `find_entry_point()` algorithm on the **reference lap's** resampled throttle/brake/speed traces. This produces `reference_entry_m` — the distance where the reference driver lifted off throttle (or hit speed peak).
+### Rationale
 
-### New fields on `CornerLoss` for entry gains
+Each phase measures the delta-time gain **within its own phase
+boundary**:
 
-```python
-@dataclass
-class CornerLoss:
-    # ... existing fields ...
-    entry_distance_delta_m: float | None = None  # reference_entry - driver_entry; positive = driver lifted later
-    reference_phase_distance_m: float | None = None  # distance where reference's phase was detected
-```
+| Phase | Gain window | Why |
+|-------|------------|-----|
+| entry | entry_point → apex | Entry ends at apex. After that, minimum_speed takes over. |
+| minimum_speed | apex → apex (speed comparison) + apex → straight_end (Δt) | The apex is the boundary between entry and exit. |
+| exit | exit_point → straight_end | Exit advantage compounds down the straight. |
 
-For entry phases:
-- `entry_distance_delta_m = reference_entry_m - driver_entry_m`
-  - Positive → driver lifted later (further from apex), i.e. driver braked later = carried more speed = gain.
-  - Negative → driver lifted earlier (closer to apex), i.e. driver braked earlier = potential loss or hesitation.
-- `reference_phase_distance_m = reference_entry_m` — so the LLM can say "reference lifted at 420 m."
+Measuring entry→apex isolates the entry-phase contribution. If the
+driver gained 156 ms from entry to apex but then lost 20 ms from apex
+to minimum-speed, the two facts are separate:
+- entry gain: −156 ms
+- minimum_speed loss: +20 ms
 
-### Speed comparison for entry gains
+Summing both gives the net corner effect, and the LLM can present them
+as distinct coaching points — "you carried great speed into the corner
+but sacrificed mid-corner speed."
 
-For gains, report the speed comparison at the **reference's** entry distance, not just the driver's:
+### Why NOT entry→straight_end
 
-- `driver_value` = `driver_speed[driver_entry_m]` (speed at driver's lift point)
-- `reference_value` = `ref_speed[driver_entry_m]` (reference's speed at driver's lift point — current behavior)
-- `loss_s = (reference_value - driver_value) / 100.0` (negative for gains)
-- The `phase_distance_m` remains `driver_entry_m` (the driver's entry distance)
+The exit phase already measures the advantage from exit_point to
+straight_end. If entry gains also measured to straight_end, the entry
+and exit gains would overlap, and the same advantage could be reported
+twice for one corner. Keeping each phase within its own boundaries
+avoids double-counting.
 
-The reference's entry distance is available via `reference_phase_distance_m` for distance-delta coaching, but the primary speed comparison stays at the driver's entry distance for consistency with losses.
+## Algorithm
 
-### Why not compare at reference distance instead?
-
-For losses, we compare at the driver's entry distance because the driver's action is what's being corrected. For gains, comparing at the driver's lift point is also fine — the driver was simply faster there. But the **additional** insight ("you lifted 8 m later") is only available if we also detect the reference's entry.
-
-We choose to keep `driver_value` and `reference_value` comparing at `phase_distance_m` (= driver's entry), and add `entry_distance_delta_m` as the new actionable fact. This avoids changing the interpretation of existing fields.
-
-## Algorithm changes
-
-### 1. Resample reference throttle and brake
-
-In `compare_laps()`, after resampling `ref_speed`, also resample:
-
-```python
-ref_throttle = _try_column(ref_table, "throttle_norm")
-ref_brake = _try_column(ref_table, "brake_norm")
-
-ref_throttle_grid = resample_column(ref_dist, ref_throttle, track_length) if ref_throttle else None
-ref_brake_grid = resample_column(ref_dist, ref_brake, track_length) if ref_brake else None
-```
-
-These grids are currently not computed. The driver's pedal traces are resampled but the reference's are not.
-
-### 2. Detect reference entry point
-
-```python
-ref_entry_idx, ref_entry_method = find_entry_point(
-    ref_speed_grid, ref_throttle_grid, ref_brake_grid,
-    corner, thresholds,
-)
-```
-
-### 3. Populate new fields on entry CornerLoss
+For entry **gains** only (`entry_delta < 0`, i.e. driver was faster at
+the entry point):
 
 ```python
-entry_delta = ref_entry_speed - driver_entry_speed
-if abs(entry_delta) > 1.0:
-    corner_losses.append(CornerLoss(
-        ...,
-        phase_distance_m=float(entry_idx),
-        reference_phase_distance_m=float(ref_entry_idx),
-        entry_distance_delta_m=float(ref_entry_idx - entry_idx),
-    ))
+if entry_delta < 0:
+    # GAIN — real delta-time from entry to apex
+    apex_idx = int(corner.apex_s_m)
+    if 0 <= entry_idx < len(delta_t) and 0 <= apex_idx < len(delta_t):
+        loss_s = delta_t[apex_idx] - delta_t[entry_idx]
+    else:
+        loss_s = entry_delta / 100.0  # fallback heuristic
 ```
 
-### 4. Include new fields in `to_dict()`
+For entry **losses** (`entry_delta > 0`): unchanged — still uses
+`entry_delta / 100.0` heuristic.
 
-```python
-if c.reference_phase_distance_m is not None:
-    d["reference_phase_distance_m"] = round(c.reference_phase_distance_m, 1)
-if c.entry_distance_delta_m is not None:
-    d["entry_distance_delta_m"] = round(c.entry_distance_delta_m, 1)
-```
+### Sign convention
 
-## What the LLM prompt should do with entry gains
+`delta_t[i]` = driver cumulative time − reference cumulative time.
+Positive = behind. Negative = ahead.
 
-For entry gains (`loss_s < 0` and `phase == "entry"`):
-- If `entry_distance_delta_m > 0`: "You lifted {entry_distance_delta_m:.0f} m later than reference into {corner_name}, carrying {speed_delta:.0f} kph more speed."
-- If `entry_distance_delta_m ≤ 0` (rare: driver lifted earlier but still faster): "You carried {speed_delta:.0f} kph more into {corner_name} despite lifting earlier."
+`loss_s = delta_t[apex] − delta_t[entry]`
 
-## Fallback behavior
+| Scenario | delta_t trend | loss_s | Meaning |
+|----------|-------------|-------|--------|
+| Driver gains from entry to apex | gets more negative | negative | "you gained X ms entering this corner" |
+| Driver loses from entry to apex | gets more positive | positive | "you lost X ms entering this corner" |
+| No change | flat | ~0 | No entry-phase effect |
 
-If reference throttle/brake are not available, `ref_entry_idx` falls back to `speed_peak` or `zone_start` detection on `ref_speed_grid`. The `entry_distance_delta_m` is still computed but may be less precise. If the reference also has no speed peak in the search range, `reference_phase_distance_m` and `entry_distance_delta_m` are set to `None`.
+This matches the existing convention: `loss_s < 0` = gain, `loss_s > 0`
+= loss.
+
+### Edge case: t2/t3 chicane (shared entry point)
+
+When two connected corners share an entry lift point (the driver lifts
+once for a chicane), `find_entry_point()` may return the same distance
+for both. The entry→apex delta_t will then measure different windows:
+- t2 entry (909m) → t2 apex (940m): short window, may show a loss
+- t3 entry (909m) → t3 apex (1161m): long window, likely shows a gain
+
+This is **correct behaviour** — each corner's entry gain is measured
+over its own zone. The LLM can present them separately:
+- "You were slightly slower in the t2 chicane entry"
+- "But you carried excellent speed through to the t3 apex"
+
+### Edge case: entry_detected > apex
+
+If `entry_idx >= apex_idx` (shouldn't happen with 200 m look-back but
+defensive), fall back to the heuristic.
+
+## Still deferred: `entry_distance_delta_m`
+
+The original spec also called for detecting the reference's entry
+point and reporting `entry_distance_delta_m` ("you lifted 8 m later
+than reference"). This is still valuable but **orthogonal** to the
+delta-time fix. It will be implemented in a later slice alongside
+`exit_distance_delta_m`, since both require resampling the reference
+lap's pedal channels.
 
 ## Acceptance criteria
 
-- Reference throttle and brake are resampled onto the 1 m grid.
-- `find_entry_point()` is called on reference traces, producing `reference_entry_m`.
-- `CornerLoss` gains `entry_distance_delta_m` and `reference_phase_distance_m` fields.
-- `to_dict()` includes new fields when present.
-- For entry losses (`loss_s > 0`), behavior is unchanged (new fields are populated but not required for coaching).
-- For entry gains (`loss_s < 0`), `entry_distance_delta_m` tells the LLM how much later/earlier the driver lifted.
-- Existing tests pass; new tests cover reference entry detection and distance-delta calculation.
+- Entry gains use `delta_t[apex] - delta_t[entry]` instead of
+  `speed_delta / 100.0`.
+- Entry losses still use `speed_delta / 100.0` (unchanged).
+- t1 entry gain on Barcelona (swapped) ≈ −156 ms (was −84 ms).
+- All existing tests pass.
+- New test covers entry→apex delta-time gain with synthetic data.
