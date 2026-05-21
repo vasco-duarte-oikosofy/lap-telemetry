@@ -89,6 +89,41 @@ The target runtime is the same Windows machine that runs LMU. Every implementati
      - throttle pickup delay and exit speed delta as secondary facts.
    - Output should be structured JSON, not prose.
 
+   **Current implementation details** (slice 01, `lap_comparator.py`):
+
+   The `compare_laps()` function in `lap_telemetry.coach.lap_comparator` produces `LapComparisonFacts`. Key design decisions:
+
+   - **Per-corner, per-phase analysis.** Each corner is analyzed for three phases: `minimum_speed` (slowest speed in the corner zone), `entry` (speed 30 m before apex), and `exit` (speed 30 m after apex). Each phase that exceeds its threshold produces a separate `CornerLoss` item. A single corner can therefore appear up to three times in the output — once per phase.
+   - **Capped output.** Only the top 3 losses and top 3 gains are reported (`losses[:3]` / `gains[:3]`), aligned with the LLM contract's `max_words: 35` constraint.
+   - **Rough time proxy.** `loss_s` is computed as `speed_delta_kph / 100.0`, **not** from integrating actual time along the speed trace. This means the sum of reported `loss_s` values can be much smaller than the actual `lap_time_delta_s`. The field is a ranking heuristic, not a true time-loss calculation.
+   - **Corners only, no straights.** Time lost on straights (e.g. lower top speed, later throttle application) is not reported because the analysis iterates only over `track_model.corners`.
+   - **Confidence levels.** `minimum_speed` phase gets `"high"` confidence when `speed_delta > 2.0 kph`, otherwise `"medium"`. `entry` and `exit` phases always get `"medium"`.
+   - **Thresholds.** `minimum_speed` losses are reported when `speed_delta > 0.5 kph`; `entry`/`exit` losses when `speed_delta > 1.0 kph`.
+
+   **Known simplifications to address in later slices:**
+   - **Entry/exit phase detection (slice 01c — done):** Fixed 30 m offsets are no longer used. Entry is detected at the throttle lift point (or speed local maximum as fallback). Exit has two sub-phases: `exit_brake` (brake fully released) and `exit_throttle` (back to full throttle); when within 3 m of each other they are merged into a single `exit` phase. Speed local maximum is not used for exit. All thresholds are configurable via `PhaseDetectionThresholds`. The `minimum_speed` phase now reports both `driver_apex_distance_m` and `reference_apex_distance_m` so the LLM can surface apex offsets (late/early apex). Multi-apex corners remain an open question.
+   - **Multi-apex corners:** Need definition. A single `Corner` zone with multiple local speed minima (e.g. a chicane or double-apex sweeper) is currently treated as one corner with one apex. The entry/exit detection algorithm may misidentify the throttle/brake transitions in these cases. A later slice should define whether multi-apex corners are split into separate zones, merged with a dominant apex, or handled with a sub-phase structure. Imola's Variante Alta / Variante Bassa are good test cases.
+   - **Apex offset (open question):** The `minimum_speed` phase now reports `driver_apex_distance_m` and `reference_apex_distance_m` — the distances at which each lap hits its minimum speed within the corner zone. When these differ, the driver apexed early or late. A large offset (e.g. 9 m late) is coaching-meaningful on its own ("you missed the apex"). Whether to surface this as a separate `apex_offset` phase, as metadata on `minimum_speed`, or leave it for the LLM prompt to interpret is still open. The current implementation (slice 01c) delivers both raw distances on `minimum_speed`; the LLM prompt contract decides how to present it. On multi-apex corners (chicanes), both driver and reference minima may be ambiguous — testing with Imola is needed before committing to a final design.
+   - Replace `speed_delta / 100.0` with actual integrated time loss derived from the speed trace.
+   - Decide whether each corner should appear at most once (picking worst phase) or keep the current per-phase detail.
+   - Add straight-zone time-loss analysis.
+   - Add throttle/brake/gear delta facts.
+
+**Future coaching fact candidates** (available Parquet channels not yet used for coaching, prioritized by coaching value):
+
+| Priority | Fact | Why it matters | Required data |
+|----------|------|----------------|---------------|
+| 🔴 Highest | Integrated time loss per phase | Replace the `speed_delta / 100.0` heuristic; sum across phases should approximate the real lap time delta | `speed_kph`, `lap_distance_m` |
+| 🔴 Highest | Brake point distance comparison | Most actionable coaching input: "you braked 20 m later than reference into turn 3" | `brake_norm`, `lap_distance_m` |
+| 🟡 High | Throttle lift / full-throttle distance comparison | "you lifted 15 m later" / "you got back on power 25 m later" — comparing driver vs reference at the same phase transitions | `throttle_norm`, `lap_distance_m` |
+| 🟡 High | Cumulative carry-over flag | Slow exit from turn 3 causes slow entry into turn 4; coach should say "carry-over from turn 3" rather than blaming turn 4 | `speed_kph` (cross-corner dependency) |
+| 🟢 Medium | Gear selection at apex | "You were in 3rd where the reference used 2nd" — wrong gear = slower exit or less engine braking | `gear` |
+| 🟢 Medium | Peak brake intensity | Distinguish late-but-hard braking from early-but-soft braking; area under brake curve between entry and apex | `brake_norm` |
+| 🟢 Medium | Trail braking depth | How far past the apex brake pressure persists; directly relates to car balance and exit speed | `brake_norm` |
+| 🔵 Lower | Track position / racing line | Compare driver's line through a corner vs reference using lateral path data | `path_lateral_m` |
+| 🔵 Lower | Steering smoothness | Oscillation or mid-corner corrections suggest understeer/oversteer | `steering_norm` |
+| 🔵 Lower | Slip angle / TC / ABS activation | Oversteer indication, traction control interventions, ABS triggering | `slip_angle_*`, `tc_active`, `abs_active` |
+
 6. **LLM coach adapter**
    - Takes structured facts plus a strict prompt contract and returns one concise utterance.
    - Provider/model configured locally, similar in spirit to pi: e.g. config file/env vars with provider, model, base URL, API key source, temperature, max tokens.
@@ -99,6 +134,42 @@ The target runtime is the same Windows machine that runs LMU. Every implementati
    - MVP can call a Windows-compatible installed engine or run a small local HTTP service, but the repo should own the adapter and queueing policy.
    - External process calls must use `subprocess` with argument arrays and timeouts, not shell-specific command strings.
    - Requirements: non-blocking, interrupt/skip stale utterances, volume/output-device configurable later.
+
+   **TTS engine research and selection:**
+
+   The TTS adapter must run locally on the same Windows machine running LMU, without internet, without contending for CPU/GPU with the sim. Engine selection must support cross-platform development (macOS) and production deployment (Windows) with identical voice output.
+
+   | Engine | Type | Latency (short utterance) | Voice quality | macOS | Windows | Same voice same output | Notes |
+   |--------|------|---------------------------|---------------|-------|---------|----------------------|-------|
+   | **Piper** | Neural VITS (ONNX) | ~100-200 ms | Good, natural | ✅ | ✅ | ✅ bit-identical | Pre-built binary, ~30 MB per voice, runs on CPU. Used by Home Assistant, Rhasspy, Wyoming ecosystem. |
+   | **Sherpa-ONNX** | Neural runtime (loads Piper models + others) | ~50-100 ms first chunk | Good | ✅ | ✅ | ✅ | Python + C++, can load Piper `.onnx` models. More setup than standalone Piper. |
+   | **Kokoro TTS** | StyleTTS variant | ~200 ms GPU, slower CPU | Very good | ✅ | ✅ | ✅ | Small model (~80 MB), gaining community traction. Slower than Piper on CPU. |
+   | **F5-TTS** | Flow-matching | ~300 ms GPU | Near-human | ✅ | ✅ | ✅ | Excellent voice cloning from 5-second clip. Needs GPU for real-time. |
+   | **Coqui TTS / XTTSv2** | VITS, multi-arch | ~1-2 s CPU | Very good | ✅ | ✅ | ✅ | Heavy ML stack (torch), GPU preferred. Voice cloning from 3 s clip. |
+   | **pyttsx3 / SAPI** | Windows system voice | ~10 ms | Robotic | ⚠️ uses `say` | ✅ uses SAPI | ❌ different voices | Zero-install fallback only. macOS voice != Windows voice. |
+   | **Edge TTS** | Cloud (Microsoft) | ~200 ms | Excellent | ✅ | ✅ | ✅ | Requires internet. Fragile during race sessions. |
+   | **OpenAI TTS API** | Cloud | ~500 ms | Excellent | ✅ | ✅ | N/A | Paid, requires internet + API key per utterance. |
+
+   **Primary: Piper.** Rationale:
+   - Runs entirely offline on CPU alongside LMU without stealing resources.
+   - Same `.onnx` voice model produces identical audio on macOS and Windows — dev on Mac, ship on Windows, same result.
+   - ~30+ pre-trained English voices in the Piper voice catalog; pick one, download the model file, point config at it.
+   - Sub-200 ms latency for ≤35 word utterances, fast enough to speak during a straight.
+   - Home Assistant chose Piper specifically because it runs on a Raspberry Pi alongside other work — our constraint (gaming PC running LMU) is less demanding.
+   - Simple invocation: `echo "text" | piper --model voice.onnx --output_file out.wav`
+
+   **Fallback: pyttsx3/SAPI.** Zero-install Windows fallback if Piper is not installed. Sounds robotic but will always produce audio. Only used on Windows (macOS uses a different engine). Not suitable for cross-platform dev/test.
+
+   **Future upgrade path: Kokoro or F5-TTS.** The adapter interface should abstract the engine so Kokoro (for better quality on GPU machines) or F5-TTS (for voice cloning from a real race engineer) can be swapped in later. The adapter owns the synthesis call; the engine is a plugin, not the core.
+
+   **Voice catalog workflow:**
+   1. Browse voices at [piper.voice.vvoice](https://piper.voice.vvoice/).
+   2. Pick a calm, clear English voice (e.g., `en_US-lessac-medium`).
+   3. Download the `.onnx` + `.json` model files to `product/data/tts-voices/`.
+   4. Point config at the model file path.
+   5. Switch voices by changing the config path — no code changes.
+
+   **Voice cloning consideration:** F5-TTS and Coqui XTTSv2 can clone a voice from a 3-5 second reference clip. This would allow recording a real race engineer and using their voice. Requires GPU for real-time and is deferred to a later slice.
 
 8. **Coach orchestrator CLI**
    - New command such as `lap-telemetry coach --out-dir sessions --reference-dir product/data/reference-laps`.

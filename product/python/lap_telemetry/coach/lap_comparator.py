@@ -37,6 +37,8 @@ class CornerLoss:
     unit: str
     confidence: str  # "high" | "medium" | "low"
     phase_distance_m: float | None = None  # distance where phase was measured; None = apex
+    driver_apex_distance_m: float | None = None  # for minimum_speed: where driver hit min speed
+    reference_apex_distance_m: float | None = None  # for minimum_speed: where reference hit min speed
 
 
 @dataclass
@@ -69,6 +71,10 @@ class LapComparisonFacts:
             }
             if c.phase_distance_m is not None:
                 d["phase_distance_m"] = round(c.phase_distance_m, 1)
+            if c.driver_apex_distance_m is not None:
+                d["driver_apex_distance_m"] = round(c.driver_apex_distance_m, 1)
+            if c.reference_apex_distance_m is not None:
+                d["reference_apex_distance_m"] = round(c.reference_apex_distance_m, 1)
             return d
 
         return {
@@ -132,22 +138,32 @@ def compute_minimum_speed_per_corner(
     driver_speed: list[float],
     ref_speed: list[float],
     corner: Corner,
-) -> tuple[float, float, float]:
-    """Compute minimum speed and delta for a corner.
+) -> tuple[float, float, float, float, float]:
+    """Compute minimum speed, delta, and apex positions for a corner.
 
-    Returns (driver_min_speed, ref_min_speed, speed_delta_kph).
-    Positive delta means driver was slower.
+    Returns (driver_min_speed, ref_min_speed, speed_delta_kph,
+             driver_apex_distance_m, reference_apex_distance_m).
+    Positive speed_delta means driver was slower.
+    Apex distances are the lap-distance positions where each lap
+    reaches its minimum speed within the corner zone.
     """
     start_idx = int(corner.s_start_m)
     end_idx = min(int(corner.s_end_m) + 1, len(driver_speed))
 
     if start_idx >= len(driver_speed) or end_idx <= start_idx:
-        return 0.0, 0.0, 0.0
+        return 0.0, 0.0, 0.0, float(start_idx), float(start_idx)
 
-    driver_min = min(driver_speed[start_idx:end_idx])
-    ref_min = min(ref_speed[start_idx:end_idx])
+    driver_zone = driver_speed[start_idx:end_idx]
+    driver_min = min(driver_zone)
+    driver_min_offset = driver_zone.index(driver_min)
+    driver_apex_m = float(start_idx + driver_min_offset)
 
-    return driver_min, ref_min, ref_min - driver_min
+    ref_zone = ref_speed[start_idx:end_idx]
+    ref_min = min(ref_zone)
+    ref_min_offset = ref_zone.index(ref_min)
+    ref_apex_m = float(start_idx + ref_min_offset)
+
+    return driver_min, ref_min, ref_min - driver_min, driver_apex_m, ref_apex_m
 
 
 # ---------------------------------------------------------------------------
@@ -411,8 +427,8 @@ def compare_laps(
     # Analyze each corner
     corner_losses: list[CornerLoss] = []
     for corner in track_model.corners:
-        # --- Minimum speed (unchanged) ---
-        driver_min, ref_min, speed_delta = compute_minimum_speed_per_corner(
+        # --- Minimum speed ---
+        driver_min, ref_min, speed_delta, driver_apex_m, ref_apex_m = compute_minimum_speed_per_corner(
             driver_speed, ref_speed_grid, corner
         )
         if speed_delta > 0.5:
@@ -426,6 +442,8 @@ def compare_laps(
                 reference_value=ref_min,
                 unit="km/h",
                 confidence="high" if speed_delta > 2.0 else "medium",
+                driver_apex_distance_m=driver_apex_m,
+                reference_apex_distance_m=ref_apex_m,
             ))
 
         # --- Entry phase (algorithm-driven) ---

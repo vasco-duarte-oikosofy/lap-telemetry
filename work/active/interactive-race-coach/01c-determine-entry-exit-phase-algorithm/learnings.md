@@ -12,6 +12,10 @@
 
 5. **Gains that the old fixed-offset missed now appear.** With the algorithm detecting the actual entry/exit point, the speed comparison at the correct phase distance reveals gains the old apex±30 sampling couldn't. Turn 6 entry now shows the driver was 6.1 kph faster than reference.
 
+6. **Apex offset is coaching-meaningful.** The `minimum_speed` phase now reports `driver_apex_distance_m` and `reference_apex_distance_m`. On Barcelona turn 3, the driver apexes 9m later than the reference (1170m vs 1161m). This is immediately actionable: "you apexed late in turn 3, missing the ideal apex." Option D (deliver both raw distances, let the prompt interpret) was chosen because it preserves directionality implicitly and adds minimal schema change.
+
+7. **Apex offset raises multi-apex questions.** On a chicane, both driver and reference might have different double-minimum traces. The current single-minimum-per-corner approach would pick the global minimum, which may not be the coaching-meaningful one. Imola's Variante Alta/Bassa are good test cases. Deferred to a later slice.
+
 ## Edge cases & limitations
 
 - **Multi-apex corners**: The algorithm treats each corner as a single-apex zone. Chicanas/double-apex sweepers will likely produce misleading phase distances. Deferred to a future slice.
@@ -28,3 +32,12 @@
 | `brake_off` | 0.01 (1%) | Brake fully released; near-zero to avoid noise floor |
 | `throttle_full` | 0.95 (95%) | Back to full power; allows slight pedal imprecision |
 | `exit_merge_tolerance_m` | 3.0 m | If brake-off and full-throttle within 3 m, merge |
+
+## Apex offset design decision
+
+We chose **Option D** (deliver `driver_apex_distance_m` and `reference_apex_distance_m` as additional fields on the `minimum_speed` phase). Rationale:
+- The offset is coupled to `minimum_speed` — it's the same event at a different position.
+- No need to invent a `loss_s` metric for spatial offset (meters don't rank like speed deltas).
+- Directionality is implicit in the data: `driver_apex_distance_m > reference_apex_distance_m` means "late apex."
+- The LLM prompt can say "you apexed 9m late in turn 3" by computing the offset.
+- Adding two fields to an existing phase is minimal schema change vs. a new phase type.

@@ -16,6 +16,7 @@ sys.path.insert(0, str(ROOT / "product" / "python"))
 from lap_telemetry.coach.track_model import Corner
 from lap_telemetry.coach.lap_comparator import (
     PhaseDetectionThresholds,
+    compute_minimum_speed_per_corner,
     find_entry_point,
     find_brake_point,
     find_exit_points,
@@ -224,6 +225,92 @@ def test_thresholds_configurable() -> None:
     ok(method2 == "speed_peak", f"custom threshold: method = {method2} (throttle 0.85 > 0.7)")
 
 
+def test_apex_offset_same_position() -> None:
+    """When driver and reference hit min speed at the same distance, both distances match."""
+    corner = make_corner(s_start=900, apex=1000, s_end=1100)
+    # Both traces min at 1000 m (index 1000)
+    n = 1200
+    driver_speed = [200.0] * n
+    ref_speed = [200.0] * n
+    driver_speed[1000] = 100.0  # driver min at 1000
+    ref_speed[1000] = 105.0     # ref min at 1000
+
+    driver_min, ref_min, delta, driver_apex, ref_apex = compute_minimum_speed_per_corner(
+        driver_speed, ref_speed, corner
+    )
+    ok(driver_min == 100.0, f"driver min = {driver_min}, expected 100.0")
+    ok(ref_min == 105.0, f"ref min = {ref_min}, expected 105.0")
+    ok(driver_apex == 1000.0, f"driver apex distance = {driver_apex}, expected 1000")
+    ok(ref_apex == 1000.0, f"ref apex distance = {ref_apex}, expected 1000")
+    ok(driver_apex == ref_apex, "driver and reference apex at same position")
+
+
+def test_apex_offset_driver_late() -> None:
+    """When driver apexes 9 m later than reference, the distances reflect that."""
+    corner = make_corner(s_start=900, apex=1000, s_end=1100)
+    n = 1200
+    driver_speed = [200.0] * n
+    ref_speed = [200.0] * n
+    # Reference apex at 995 m
+    for i in range(990, 1001):
+        ref_speed[i] = 110.0 + (1001 - i) * 2  # descending to minimum
+    ref_speed[995] = 100.0  # ref min at 995
+    # Driver apex at 1004 m (9 m late)
+    for i in range(999, 1010):
+        driver_speed[i] = 115.0 + (1010 - i) * 2
+    driver_speed[1004] = 95.0  # driver min at 1004
+
+    driver_min, ref_min, delta, driver_apex, ref_apex = compute_minimum_speed_per_corner(
+        driver_speed, ref_speed, corner
+    )
+    ok(driver_apex == 1004.0, f"driver apex = {driver_apex}, expected 1004")
+    ok(ref_apex == 995.0, f"ref apex = {ref_apex}, expected 995")
+    offset = driver_apex - ref_apex
+    ok(offset == 9.0, f"apex offset = {offset}, expected 9.0 (driver late)")
+
+
+def test_apex_offset_fixture() -> None:
+    """Barcelona fixture comparison includes driver_apex_distance_m and reference_apex_distance_m on minimum_speed phases."""
+    current_lap = ROOT / "dev" / "fixtures" / "coach" / "barcelona_lap15_current.parquet"
+    reference_lap = ROOT / "product" / "data" / "reference-laps" / "circuit-de-barcelona_dkr-engineering-4-elms25_time_01.36.456.parquet"
+    track_model = ROOT / "product" / "data" / "track-coaching" / "circuit-de-barcelona_dkr-engineering-4-elms25.json"
+
+    if not current_lap.exists():
+        print("  SKIP: apex offset fixture (fixture not found)")
+        return
+
+    from lap_telemetry.coach.track_model import load_track_coaching_model
+    model = load_track_coaching_model(track_model)
+    facts = compare_laps(current_lap, reference_lap, model)
+
+    min_speed_losses = [c for c in facts.top_losses if c.phase == "minimum_speed"]
+    if not min_speed_losses:
+        print("  SKIP: apex offset fixture (no minimum_speed losses)")
+        return
+
+    for loss in min_speed_losses:
+        ok(
+            loss.driver_apex_distance_m is not None,
+            f"{loss.corner_id} minimum_speed has driver_apex_distance_m = {loss.driver_apex_distance_m}",
+        )
+        ok(
+            loss.reference_apex_distance_m is not None,
+            f"{loss.corner_id} minimum_speed has reference_apex_distance_m = {loss.reference_apex_distance_m}",
+        )
+        # The model apex_distance_m is the track model's defined apex
+        ok(
+            loss.apex_distance_m != loss.driver_apex_distance_m or loss.apex_distance_m != loss.reference_apex_distance_m,
+            f"{loss.corner_id} apex positions are not both identical to track model apex (driver={loss.driver_apex_distance_m}, ref={loss.reference_apex_distance_m}, model={loss.apex_distance_m})",
+        )
+
+    # Also verify the JSON output contains the new fields
+    output = facts.to_dict()
+    min_speed_dicts = [d for d in output["top_losses"] if d["phase"] == "minimum_speed"]
+    for d in min_speed_dicts:
+        ok("driver_apex_distance_m" in d, f"minimum_speed dict has driver_apex_distance_m")
+        ok("reference_apex_distance_m" in d, f"minimum_speed dict has reference_apex_distance_m")
+
+
 def test_comparison_with_fixture() -> None:
     """Full comparison with Barcelona fixture produces valid output."""
     current_lap = ROOT / "dev" / "fixtures" / "coach" / "barcelona_lap15_current.parquet"
@@ -288,6 +375,9 @@ def main() -> int:
     test_missing_channels_graceful()
     test_brake_point_secondary()
     test_thresholds_configurable()
+    test_apex_offset_same_position()
+    test_apex_offset_driver_late()
+    test_apex_offset_fixture()
     test_comparison_with_fixture()
 
     total = pass_count + fail_count
