@@ -3,9 +3,9 @@
 # Set the actual key in your shell: export ANTHROPIC_API_KEY=sk-...
 
 [llm]
-provider = "ollama"                          
-model = "llama3"                              # your Ollama cloud model name
-api_key_env = "OLLAMA_API_KEY"              # env var name (NOT the key itself)
+provider = "ollama"
+model = "glm-5.1:cloud"
+api_key_env = "OLLAMA_API_KEY"              # local Ollama doesn't validate this
 temperature = 0.3
-max_tokens = 100
-base_url = "https://api.ollama.com/v1"     # Ollama cloud OpenAI-compatible endpoint
+max_tokens = 4096
+base_url = "http://localhost:11434/v1"

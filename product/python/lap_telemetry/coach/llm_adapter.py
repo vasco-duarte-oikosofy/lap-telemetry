@@ -149,7 +149,48 @@ def _call_via_openai(config: LLMConfig, messages: list[dict[str, str]]) -> str:
         max_tokens=config.max_tokens,
     )
 
-    content = response.choices[0].message.content
+    log.debug("Raw response: %s", response)
+
+    choice = response.choices[0]
+    content = choice.message.content
+
+    # Reasoning models (e.g. deepseek-r1, glm) put chain-of-thought in
+    # the 'reasoning' field and content may be empty if the model ran
+    # out of tokens during the thinking phase.
+    if not content:
+        reasoning = getattr(choice.message, 'reasoning', None)
+        if reasoning:
+            # Try to extract the last quoted utterance from reasoning.
+            # Reasoning models often draft the answer in quotes.
+            import re
+            # Match the last occurrence of quoted text (single or double quotes)
+            quotes = re.findall(r'[""\']([^""\']{10,})[""\']', reasoning)
+            if quotes:
+                content = quotes[-1].strip()
+                log.info(
+                    "Extracted utterance from reasoning field (%d chars reasoning, %d chars extracted)",
+                    len(reasoning), len(content),
+                )
+            else:
+                # Fall back to the last sentence of the reasoning
+                sentences = [s.strip() for s in reasoning.replace('\n', ' ').split('.') if len(s.strip()) > 15]
+                if sentences:
+                    content = sentences[-1].rstrip('.') + '.'
+                    log.info(
+                        "Extracted last sentence from reasoning field (%d chars reasoning, %d chars extracted)",
+                        len(reasoning), len(content),
+                    )
+
+                if not content:
+                    log.warning(
+                        "LLM returned empty content with reasoning (%d chars). "
+                        "Consider increasing max_tokens (currently %d).",
+                        len(reasoning), config.max_tokens,
+                    )
+                    raise LLMAdapterError(
+                        "LLM returned empty content. The model may need more max_tokens "
+                        "to complete its reasoning (currently: %d)." % config.max_tokens
+                    )
     if content is None:
         raise LLMAdapterError("LLM returned empty content")
 
