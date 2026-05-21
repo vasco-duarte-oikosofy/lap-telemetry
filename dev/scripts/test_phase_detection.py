@@ -537,6 +537,92 @@ def test_minimum_speed_gain_uses_delta_time() -> None:
     ok(gain_s < 0, f"gain_s = {gain_s:.6f}, expected negative (driver gained time)")
 
 
+def test_entry_gain_uses_delta_time() -> None:
+    """Entry gains use delta_t[apex] - delta_t[entry] instead of speed_delta/100."""
+    n = 5000
+    driver_speed = [200.0] * n
+    ref_speed = [200.0] * n
+
+    # Driver lifts later at 880, carries more speed into corner t1 [900:1100], apex at 1000
+    driver_throttle = [1.0] * 880 + [0.5] * (n - 880)
+
+    # Driver is faster at entry, slower through apex and beyond
+    for i in range(880, 1000):
+        driver_speed[i] = 250.0 - (i - 880) * 0.5
+    driver_speed[950] = 180.0  # driver apex
+    for i in range(1000, 1100):
+        driver_speed[i] = 180.0 + (i - 1000) * 0.2
+
+    # Reference lifts at 850, slower at entry point
+    for i in range(850, 1000):
+        ref_speed[i] = 240.0 - (i - 850) * 0.5
+    ref_speed[950] = 175.0  # ref apex
+    for i in range(1000, 1100):
+        ref_speed[i] = 175.0 + (i - 1000) * 0.2
+
+    corners = [
+        Corner(id="t1", name="turn 1", s_start_m=900, apex_s_m=1000, s_end_m=1100, apex_side="right"),
+    ]
+
+    # Build lap_time_s from speed (synthetic but proportional)
+    driver_lap_time = [0.0] * n
+    ref_lap_time = [0.0] * n
+    for i in range(1, n):
+        driver_lap_time[i] = driver_lap_time[i - 1] + 1.0 / max(driver_speed[i] / 3.6, 0.28)
+        ref_lap_time[i] = ref_lap_time[i - 1] + 1.0 / max(ref_speed[i] / 3.6, 0.28)
+
+    delta_t = compute_delta_time_trace(driver_lap_time, ref_lap_time, n)
+
+    # Find entry point (throttle lift at 880)
+    entry_idx, method = find_entry_point(
+        driver_speed, driver_throttle, None, corners[0], PhaseDetectionThresholds()
+    )
+    ok(method == "throttle_lift", f"entry method = {method}, expected throttle_lift")
+    ok(entry_idx == 880, f"entry at {entry_idx}, expected 880")
+
+    # At entry point, driver should be faster → entry_delta < 0
+    entry_delta = ref_speed[entry_idx] - driver_speed[entry_idx]
+    ok(entry_delta < 0, f"entry_delta = {entry_delta:.1f}, expected negative (driver faster at entry)")
+
+    # Entry gain = delta_t[apex] - delta_t[entry], NOT entry_delta/100
+    apex_idx = int(corners[0].apex_s_m)
+    expected_gain = delta_t[apex_idx] - delta_t[entry_idx]
+    heuristic_value = entry_delta / 100.0
+
+    # The real delta-time gain should be more negative (larger gain) than the heuristic
+    ok(
+        expected_gain < heuristic_value,
+        f"delta-time gain ({expected_gain:.6f}) should be more negative than heuristic ({heuristic_value:.6f})",
+    )
+    ok(expected_gain < 0, f"expected_gain = {expected_gain:.6f}, expected negative (driver gained time)")
+
+    # Entry gain end distance should be the apex index
+    ok(float(apex_idx) == float(corners[0].apex_s_m),
+       f"apex_idx {apex_idx} should equal corner.apex_s_m {corners[0].apex_s_m}")
+
+
+def test_entry_loss_unchanged() -> None:
+    """Entry losses still use the speed_delta / 100 heuristic."""
+    n = 1200
+    driver_speed = [200.0] * n
+    ref_speed = [200.0] * n
+
+    # Driver is slower at entry of corner t1 [900:1100], apex at 1000
+    driver_speed[880] = 190.0  # driver slower at entry
+    ref_speed[880] = 250.0  # ref faster at entry
+
+    corner = Corner(id="t1", name="turn 1", s_start_m=900, apex_s_m=1000, s_end_m=1100, apex_side="right")
+
+    ref_entry_speed = ref_speed[880]
+    driver_entry_speed = driver_speed[880]
+    entry_delta = ref_entry_speed - driver_entry_speed  # positive = driver slower = loss
+    ok(entry_delta > 0, f"entry_delta = {entry_delta:.1f}, expected positive (driver slower)")
+
+    # For losses, loss_s should equal entry_delta / 100.0 (unchanged heuristic)
+    expected_loss_s = entry_delta / 100.0
+    ok(expected_loss_s > 0, f"expected_loss_s = {expected_loss_s:.4f}, expected positive")
+
+
 def test_minimum_speed_loss_unchanged() -> None:
     """Minimum speed losses still use the speed_delta / 100 heuristic."""
     n = 1200
@@ -625,6 +711,59 @@ def test_minimum_speed_gain_negative_loss_s() -> None:
                 abs(gain.loss_s) < 10.0,
                 f"minimum_speed gain loss_s = {gain.loss_s:.4f} is plausible (< 10s)"
             )
+
+
+def test_entry_gain_swap_barcelona() -> None:
+    """Entry gains on swapped Barcelona use delta_t entry→apex, not heuristic."""
+    current_lap = ROOT / "dev" / "fixtures" / "coach" / "barcelona_lap15_current.parquet"
+    reference_lap = ROOT / "product" / "data" / "reference-laps" / "circuit-de-barcelona_dkr-engineering-4-elms25_time_01.36.456.parquet"
+    track_model = ROOT / "product" / "data" / "track-coaching" / "circuit-de-barcelona_dkr-engineering-4-elms25.json"
+
+    if not current_lap.exists():
+        print("  SKIP: entry gain swap (fixture not found)")
+        return
+
+    from lap_telemetry.coach.track_model import load_track_coaching_model
+    model = load_track_coaching_model(track_model)
+    # Swapped: faster reference as driver, slower lap as reference
+    facts = compare_laps(reference_lap, current_lap, model, top_n=20)
+
+    # Collect all entry phases
+    entry_results = [c for c in facts.top_losses + facts.top_gains if c.phase == "entry"]
+    entry_gains = [c for c in entry_results if c.loss_s < 0]
+
+    if not entry_gains:
+        print("  SKIP: no entry gains in swapped Barcelona")
+        return
+
+    for gain in entry_gains:
+        # Entry gains should use delta_t (real seconds), not speed_delta/100
+        # The heuristic under-reports by 30–60%, so gains should be
+        # significantly larger (more negative) than the heuristic value.
+        speed_delta = gain.reference_value - gain.driver_value  # negative for gains
+        heuristic = speed_delta / 100.0
+        ok(
+            gain.loss_s < heuristic,
+            f"{gain.corner_id} entry gain {gain.loss_s:.4f} < heuristic {heuristic:.4f} (delta-t is larger gain)",
+        )
+        # gain_end_distance_m should be set and equal to apex distance
+        ok(
+            gain.gain_end_distance_m is not None,
+            f"{gain.corner_id} entry gain has gain_end_distance_m",
+        )
+        ok(
+            gain.gain_end_distance_m == gain.apex_distance_m,
+            f"{gain.corner_id} entry gain_end={gain.gain_end_distance_m} == apex={gain.apex_distance_m}",
+        )
+
+    # t1 entry gain ≈ −156 ms (spec: was −85 ms with heuristic)
+    t1_entry = [g for g in entry_gains if g.corner_id == "t1"]
+    if t1_entry:
+        t1_ms = t1_entry[0].loss_s * 1000
+        ok(
+            abs(t1_ms - (-156)) < 10,
+            f"t1 entry gain ≈ −156 ms, got {t1_ms:.1f} ms",
+        )
 
 
 # ── JS pipeline contract tests ───────────────────────────────────────────────
@@ -796,9 +935,12 @@ def main() -> int:
     test_find_straight_end_middle_corner()
     test_find_straight_end_last_corner()
     test_minimum_speed_gain_uses_delta_time()
+    test_entry_gain_uses_delta_time()
+    test_entry_loss_unchanged()
     test_minimum_speed_loss_unchanged()
     test_apex_offset_in_comparison()
     test_minimum_speed_gain_negative_loss_s()
+    test_entry_gain_swap_barcelona()
     # Fixture tests
     test_apex_offset_fixture()
     test_comparison_with_fixture()

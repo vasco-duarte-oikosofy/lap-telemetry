@@ -10,7 +10,6 @@ from .js_pipeline import run_js_pipeline, delta_t_ms_to_seconds
 from .resample import resample_column, compute_delta_time_trace
 from .track_model import TrackCoachingModel, Corner
 
-
 # Minimum speed
 # ---------------------------------------------------------------------------
 
@@ -45,9 +44,6 @@ def compute_minimum_speed_per_corner(
 
     return driver_min, ref_min, ref_min - driver_min, driver_apex_m, ref_apex_m
 
-
-
-
 def find_straight_end_after_corner(
     corner_index: int,
     corners: list[Corner],
@@ -72,7 +68,6 @@ def find_straight_end_after_corner(
         next_corner, thresholds,
     )
     return entry_idx
-
 
 # Entry phase detection
 
@@ -125,7 +120,6 @@ def find_entry_point(
 
     return max(0, int(corner.s_start_m)), "zone_start"
 
-
 def find_brake_point(
     brake: list[float] | None,
     corner: Corner,
@@ -152,7 +146,6 @@ def find_brake_point(
             return i
 
     return None
-
 
 # Exit phase detection
 
@@ -216,9 +209,6 @@ def find_exit_points(
     # Neither channel detected → fall back to zone boundary
     return [("exit", int(corner.s_end_m))]
 
-
-
-
 # ---------------------------------------------------------------------------
 # Column extraction helper
 # ---------------------------------------------------------------------------
@@ -230,7 +220,6 @@ def _try_column(table, name: str) -> list[float] | None:
         return [v if v is not None else 0.0 for v in raw]
     except (KeyError, AttributeError):
         return None
-
 
 # ---------------------------------------------------------------------------
 # Main comparison
@@ -366,17 +355,29 @@ def compare_laps(
             ref_entry_speed = ref_speed_grid[entry_idx]
             entry_delta = ref_entry_speed - driver_entry_speed
             if abs(entry_delta) > 1.0:
+                apex_idx = int(corner.apex_s_m)
+                if entry_delta < 0:
+                    # GAIN — real delta-time from entry to apex
+                    if 0 <= entry_idx < len(delta_t) and 0 <= apex_idx < len(delta_t) and entry_idx < apex_idx:
+                        loss_s = delta_t[apex_idx] - delta_t[entry_idx]
+                    else:
+                        loss_s = entry_delta / 100.0  # fallback heuristic
+                else:
+                    # LOSS — unchanged heuristic
+                    loss_s = entry_delta / 100.0
+
                 corner_losses.append(CornerLoss(
                     corner_id=corner.id,
                     corner_name=corner.name,
                     apex_distance_m=corner.apex_s_m,
                     phase="entry",
-                    loss_s=entry_delta / 100.0,
+                    loss_s=loss_s,
                     driver_value=driver_entry_speed,
                     reference_value=ref_entry_speed,
                     unit="km/h",
                     confidence="medium",
                     phase_distance_m=float(entry_idx),
+                    gain_end_distance_m=float(apex_idx) if entry_delta < 0 else None,
                 ))
 
         # --- Exit phase(s) (algorithm-driven) ---
