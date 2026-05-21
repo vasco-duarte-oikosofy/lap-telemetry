@@ -376,3 +376,66 @@ At the end of slice 6, a driver can run one command before an LMU practice sessi
 - How should generated track coaching models be reviewed and promoted into `product/data/`?
 - What exact LMU shared-memory fields are available for fuel, tire, weather, and gaps?
 - Should post-session review use the same facts JSON as live coaching, or a richer report schema?
+
+## Same-corner overlapping phases — prompt-layer deduplication
+
+When the same corner produces both a `minimum_speed` and an `exit` gain (or loss), the
+data layer reports two separate `CornerLoss` entries. Their measurement windows overlap:
+`minimum_speed` measures apex → straight_end, while `exit` measures exit_point → straight_end.
+Since exit_point is *after* the apex, the exit window is a sub-segment of the
+minimum_speed window. The same segment of track is counted in both.
+
+The carrying of minimum speed through the apex is part of the *exit story* — it's
+upstream of the exit measurement. The coach should say **one thing about the exit of
+that corner**, not two separate items.
+
+### Example: Barcelona turn 5 gains
+
+```json
+"top_gains": [
+  {
+    "corner_id": "t5",
+    "phase": "minimum_speed",
+    "loss_s": -0.118,
+    "driver_value": 81.8,
+    "reference_value": 85.0,
+    "driver_apex_distance_m": 2137.0,
+    "gain_end_distance_m": 2439.0
+  },
+  {
+    "corner_id": "t5",
+    "phase": "exit",
+    "loss_s": -0.105,
+    "driver_value": 92.0,
+    "reference_value": 91.0,
+    "phase_distance_m": 2158.0,
+    "gain_end_distance_m": 2439.0
+  }
+]
+```
+
+Both reference the same corner. Both measure delta-time to the same `gain_end_distance_m`
+(2439 m). The minimum_speed window (2137→2439) fully contains the exit window
+(2158→2439). Reporting both as separate coaching items would say the same thing
+twice: "you gained in turn 5" / "also in turn 5 exit."
+
+### Problem
+
+- The data layer produces honest, per-phase entries. It should stay honest.
+- The coaching prompt must not repeat the same corner. One utterance about the exit
+  of turn 5, incorporating the upstream minimum-speed fact if relevant.
+- The prompt layer is the right place to merge these because the phrasing depends on
+  context (is it the #1 gain or #3? is the apex offset coaching-meaningful?) that the
+data layer shouldn't decide.
+
+### Decision deferred to the prompt-contract slice
+
+When building the LLM prompt contract, the prompt designer must:
+1. Detect when two entries share the same `corner_id` and direction (both gains or both losses).
+2. Merge them into a single coaching reference about that corner's exit.
+3. Prefer the `minimum_speed` phase as the upstream/root cause and the `exit` phase as
+   supporting detail (or omit if the minimum_speed already explains the gain).
+4. For losses, the same logic applies: a slow apex that causes a slow exit should be
+   coached as one problem with one root cause, not two separate items.
+5. Decide whether to suppress the non-dominant entry from `top_gains`/`top_losses` or
+   just instruct the LLM to merge in the prompt.
