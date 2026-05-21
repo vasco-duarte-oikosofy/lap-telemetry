@@ -53,27 +53,15 @@ When a corner produces both a `minimum_speed` gain and an `exit` gain (e.g. turn
 
 ### Entry/exit distance deltas (deferred)
 
-`entry_distance_delta_m` and `exit_distance_delta_m` — comparing driver vs reference phase-transition distances ("you lifted 8 m later"). Requires resampling reference pedal traces and running phase detection on them. Algorithm specs exist from 01c.2; implementation deferred.
+`entry_distance_delta_m` and `exit_distance_delta_m` — comparing where the *driver's* phase transition happened vs where the *reference's* did ("you lifted 8 m later than reference" / "you got back to full throttle 12 m earlier"). Currently we only detect phases on the driver's traces, not the reference's. `apex_offset_m` exists for minimum_speed but there is no equivalent for entry or exit phases. Algorithm specs were written in 01c.2 (`exit_gain_algorithm.md`) but implementation requires resampling the reference lap's throttle/brake and running phase detection on reference traces. Deferred.
 
 ### gain_end_distance_m naming
 
 Field is slightly misleading for losses. `measurement_end_distance_m` would be clearer but requires web UI changes. Low priority.
 
-### Whole-lap accounting validation
 
-Sum of all `loss_s` values should approximate `lap_time_delta_s`. Add as a sanity check in a future slice.
-
-### Multi-apex corners / chicanes
-
-Still an open question. Connected corners sharing a throttle-lift point need investigation. Imola chicanes are good test cases.
-
-### Connected corners / chicane entry sharing
-
-Two corners that share a single throttle-lift point (e.g. t2/t3 at Barcelona) currently get the same entry distance. The entry→apex delta_t windows differ, potentially giving opposite signs. Needs a design decision: merge connected corners or report separately.
 
 ## Future slices needed
 
 1. **Same-corner deduplication** — decide how to present overlapping phases per corner
-2. **Entry/exit distance deltas** — resample reference pedal traces, detect reference phases
-3. **Whole-lap accounting check** — validate sum of losses ≈ lap_time_delta_s
-4. **Multi-apex / chicane handling**
+2. **Entry/exit distance deltas** — resample reference pedal traces, detect reference phases, report "you lifted X m later" / "you got back to throttle X m earlier"
