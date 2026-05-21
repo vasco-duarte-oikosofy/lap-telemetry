@@ -102,6 +102,8 @@ def compare_laps(
 
     driver_throttle = _try_column(current_table, "throttle_norm")
     driver_brake = _try_column(current_table, "brake_norm")
+    ref_throttle = _try_column(ref_table, "throttle_norm")
+    ref_brake = _try_column(ref_table, "brake_norm")
 
     max_dist = int(max(max(current_dist), max(ref_dist)))
     track_length = min(max_dist, int(track_model.lap_length_m))
@@ -116,6 +118,8 @@ def compare_laps(
         track_length=track_length,
         driver_throttle_norm=driver_throttle,
         driver_brake_norm=driver_brake,
+        ref_throttle_norm=ref_throttle,
+        ref_brake_norm=ref_brake,
     )
 
     delta_t = delta_t_ms_to_seconds(js_result["delta_t_ms"])
@@ -123,6 +127,8 @@ def compare_laps(
     ref_speed_grid = js_result["ref_speed_kph"]
     driver_throttle_grid = js_result["driver_throttle_norm"]
     driver_brake_grid = js_result["driver_brake_norm"]
+    ref_throttle_grid = js_result.get("ref_throttle_norm")
+    ref_brake_grid = js_result.get("ref_brake_norm")
     track_length = js_result["track_length"]
 
     driver_lap_time = max(t for t in current_lap_times if t is not None and t > 0)
@@ -169,6 +175,20 @@ def compare_laps(
             driver_speed, driver_throttle_grid, driver_brake_grid,
             corner, thresholds,
         )
+        # Detect reference entry point for distance delta
+        ref_entry_idx = None
+        entry_distance_delta_m = None
+        reference_phase_distance_m = None
+        if ref_throttle_grid is not None or ref_brake_grid is not None:
+            ref_entry_idx_raw, _ = find_entry_point(
+                ref_speed_grid, ref_throttle_grid, ref_brake_grid,
+                corner, thresholds,
+            )
+            if 0 <= ref_entry_idx_raw < len(ref_speed_grid):
+                ref_entry_idx = ref_entry_idx_raw
+                entry_distance_delta_m = float(ref_entry_idx - entry_idx)
+                reference_phase_distance_m = float(ref_entry_idx)
+
         if 0 <= entry_idx < len(driver_speed):
             driver_entry_speed = driver_speed[entry_idx]
             ref_entry_speed = ref_speed_grid[entry_idx]
@@ -190,13 +210,39 @@ def compare_laps(
                     confidence="medium",
                     phase_distance_m=float(entry_idx),
                     gain_end_distance_m=float(apex_idx),
+                    entry_distance_delta_m=entry_distance_delta_m,
+                    reference_phase_distance_m=reference_phase_distance_m,
                 ))
 
         # --- Exit phase(s) ---
         exit_points = find_exit_points(
             driver_brake_grid, driver_throttle_grid, corner, thresholds,
         )
+        # Detect reference exit points for distance delta
+        ref_exit_by_phase: dict[str, int] = {}
+        if ref_brake_grid is not None or ref_throttle_grid is not None:
+            ref_exit_points = find_exit_points(
+                ref_brake_grid, ref_throttle_grid, corner, thresholds,
+            )
+            ref_exit_by_phase = {phase: dist for phase, dist in ref_exit_points}
+
         for phase_name, exit_idx in exit_points:
+            exit_distance_delta_m = None
+            ref_phase_distance_m = None
+            if ref_exit_by_phase:
+                ref_exit_idx = ref_exit_by_phase.get(phase_name)
+                # Fallback: driver has merged "exit" but ref has split phases
+                if ref_exit_idx is None and phase_name == "exit":
+                    ref_dists = list(ref_exit_by_phase.values())
+                    ref_exit_idx = min(ref_dists, key=lambda d: abs(d - exit_idx))
+                # Fallback: driver has split phase but ref has merged "exit"
+                if ref_exit_idx is None and phase_name in ("exit_brake", "exit_throttle") \
+                        and "exit" in ref_exit_by_phase:
+                    ref_exit_idx = ref_exit_by_phase["exit"]
+                if ref_exit_idx is not None:
+                    exit_distance_delta_m = float(ref_exit_idx - exit_idx)
+                    ref_phase_distance_m = float(ref_exit_idx)
+
             if 0 <= exit_idx < len(driver_speed):
                 driver_exit_speed = driver_speed[exit_idx]
                 ref_exit_speed = ref_speed_grid[exit_idx]
@@ -216,6 +262,8 @@ def compare_laps(
                         confidence="medium",
                         phase_distance_m=float(exit_idx),
                         gain_end_distance_m=float(straight_end),
+                        exit_distance_delta_m=exit_distance_delta_m,
+                        reference_phase_distance_m=ref_phase_distance_m,
                     ))
 
     corner_losses.sort(key=lambda x: x.loss_s, reverse=True)

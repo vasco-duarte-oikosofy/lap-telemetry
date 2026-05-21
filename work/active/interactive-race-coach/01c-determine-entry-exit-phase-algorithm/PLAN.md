@@ -51,9 +51,9 @@ When a corner produces both a `minimum_speed` gain and an `exit` gain (e.g. turn
 
 **Decision needed** before constructing the coaching prompt contract. Document in `docs/specs/interactive-race-coach-and-engineer.md`.
 
-### Entry/exit distance deltas (deferred)
+### Entry/exit distance deltas ✅ DONE
 
-`entry_distance_delta_m` and `exit_distance_delta_m` — comparing where the *driver's* phase transition happened vs where the *reference's* did ("you lifted 8 m later than reference" / "you got back to full throttle 12 m earlier"). Currently we only detect phases on the driver's traces, not the reference's. `apex_offset_m` exists for minimum_speed but there is no equivalent for entry or exit phases. Algorithm specs were written in 01c.2 (`exit_gain_algorithm.md`) but implementation requires resampling the reference lap's throttle/brake and running phase detection on reference traces. Deferred.
+`entry_distance_delta_m` and `exit_distance_delta_m` — comparing where the *driver's* phase transition happened vs where the *reference's* did ("you lifted 8 m later than reference" / "you got back to full throttle 12 m earlier"). Spec: `delta_loss_gain_delta_break_throttle.md`.
 
 ### gain_end_distance_m naming
 
@@ -64,4 +64,3 @@ Field is slightly misleading for losses. `measurement_end_distance_m` would be c
 ## Future slices needed
 
 1. **Same-corner deduplication** — decide how to present overlapping phases per corner
-2. **Entry/exit distance deltas** — resample reference pedal traces, detect reference phases, report "you lifted X m later" / "you got back to throttle X m earlier"

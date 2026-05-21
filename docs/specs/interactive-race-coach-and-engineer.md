@@ -118,11 +118,8 @@ The target runtime is the same Windows machine that runs LMU. Every implementati
 
      Key design principle: **each phase measures within its own boundary.** Entry ends at apex (minimum_speed takes over). Exit ends at the straight end (next corner's entry). This prevents the same advantage from being counted in two phases.
 
-   - **Gain distance deltas (slice 01c.2 — partially done):** `minimum_speed` and `exit` gains now report `gain_end_distance_m` (the straight-end distance where the gain measurement stops). **Still deferred:** `entry_distance_delta_m` and `exit_distance_delta_m` (comparing driver vs reference phase distances) require resampling the reference lap's pedal channels and running phase detection on them. Three spec documents define the algorithms:
-     - [`[work folder]/interactive-race-coach/01c-determine-entry-exit-phase-algorithm/01c.2_exit_gains_improvements/apex_min_speed_gain_algorithm.md`](apex_min_speed_gain_algorithm.md) — `apex_offset_m`, delta-time gains for minimum_speed + exit, `gain_end_distance_m`. **Done.**
-     - [`[work folder]/interactive-race-coach/01c-determine-entry-exit-phase-algorithm/01c.2_exit_gains_improvements/entry_gain_algorithm.md`](entry_gain_algorithm.md) — entry gains now use `delta_t[apex] - delta_t[entry]` (revised). `entry_distance_delta_m` still deferred.
-     - [`[work folder]/interactive-race-coach/01c-determine-entry-exit-phase-algorithm/01c.2_exit_gains_improvements/exit_gain_algorithm.md`](exit_gain_algorithm.md) — `exit_distance_delta_m` (deferred).
-   - Replace `speed_delta / 100.0` with actual integrated time loss (gains are done; losses still use heuristic).
+   - **Gain distance deltas (slice 01c.2 → 01c.4):** `minimum_speed` and `exit` gains/losses now report `gain_end_distance_m`. **`entry_distance_delta_m` and `exit_distance_delta_m`** (comparing driver vs reference phase distances: "you lifted 8 m later", "you got back to full throttle 12 m earlier") are implemented in slice 01c.4. Spec: [`delta_loss_gain_delta_break_throttle.md`](../../../work/active/interactive-race-coach/01c-determine-entry-exit-phase-algorithm/01c.4_losses_gains_algorithm_review/delta_loss_gain_delta_break_throttle.md).
+   - ~~Replace `speed_delta / 100.0` with actual integrated time loss~~ **Done (slice 01c.4):** losses now use delta-time for all phases.
    - **Connected corners / chicanes:** Two corners that share a single throttle-lift point (e.g. t2/t3 at Barcelona) need investigation. The entry detection currently finds the same entry distance for both, which is correct (one lift for a chicane), but the entry→apex delta_t can give opposite signs for each corner because the delta_t window is different. Imola's Variante Alta / Variante Bassa are good test cases for deciding whether to merge connected corners or report them separately.
    - Decide whether each corner should appear at most once (picking worst phase) or keep the current per-phase detail.
    - Add straight-zone time-loss analysis.
@@ -133,8 +130,8 @@ The target runtime is the same Windows machine that runs LMU. Every implementati
 | Priority | Fact | Why it matters | Required data |
 |----------|------|----------------|---------------|
 | 🔴 Highest | Integrated time loss per phase | Replace the `speed_delta / 100.0` heuristic; sum across phases should approximate the real lap time delta | `speed_kph`, `lap_distance_m` |
-| 🔴 Highest | Brake point distance comparison | Most actionable coaching input: "you braked 20 m later than reference into turn 3" | `brake_norm`, `lap_distance_m` |
-| 🟡 High | Throttle lift / full-throttle distance comparison | "you lifted 15 m later" / "you got back on power 25 m later" — comparing driver vs reference at the same phase transitions. **In progress (slice 01c.2):** `entry_distance_delta_m` and `exit_distance_delta_m` will provide this for gains; losses will follow the same pattern. | `throttle_norm`, `lap_distance_m` |
+| 🔴 Highest | ~~Brake point distance comparison~~ **Done (01c.4)** | "you braked 20 m later than reference into turn 3" | `brake_norm`, `lap_distance_m` |
+| 🟡 High | ~~Throttle lift / full-throttle distance comparison~~ **Done (01c.4)** | "you lifted 8 m later" / "you got back on power 12 m earlier" | `throttle_norm`, `lap_distance_m` |
 | 🟡 High | Cumulative carry-over flag | Slow exit from turn 3 causes slow entry into turn 4; coach should say "carry-over from turn 3" rather than blaming turn 4 | `speed_kph` (cross-corner dependency) |
 | 🟢 Medium | Gear selection at apex | "You were in 3rd where the reference used 2nd" — wrong gear = slower exit or less engine braking | `gear` |
 | 🟢 Medium | Peak brake intensity | Distinguish late-but-hard braking from early-but-soft braking; area under brake curve between entry and apex | `brake_norm` |

@@ -35,7 +35,10 @@ class CornerLoss:
     driver_apex_distance_m: float | None = None  # for minimum_speed: where driver hit min speed
     reference_apex_distance_m: float | None = None  # for minimum_speed: where reference hit min speed
     apex_offset_m: float | None = None  # for minimum_speed: ref_apex - driver_apex; positive = driver earlier
-    gain_end_distance_m: float | None = None  # for gains: distance where gain measurement stops (end of straight)
+    gain_end_distance_m: float | None = None  # distance where measurement window stops (end of straight)
+    entry_distance_delta_m: float | None = None  # for entry: ref_entry - driver_entry; positive = driver lifted later
+    exit_distance_delta_m: float | None = None  # for exit: ref_exit - driver_exit; negative = driver exited earlier
+    reference_phase_distance_m: float | None = None  # reference's corresponding phase distance
 
 
 @dataclass
@@ -76,6 +79,12 @@ class LapComparisonFacts:
                 d["apex_offset_m"] = round(c.apex_offset_m, 1)
             if c.gain_end_distance_m is not None:
                 d["gain_end_distance_m"] = round(c.gain_end_distance_m, 1)
+            if c.entry_distance_delta_m is not None:
+                d["entry_distance_delta_m"] = round(c.entry_distance_delta_m, 1)
+            if c.exit_distance_delta_m is not None:
+                d["exit_distance_delta_m"] = round(c.exit_distance_delta_m, 1)
+            if c.reference_phase_distance_m is not None:
+                d["reference_phase_distance_m"] = round(c.reference_phase_distance_m, 1)
             return d
 
         return {

@@ -104,6 +104,80 @@ def test_gain_end_distance_in_dict() -> None:
            f"{entry['corner_id']}/{entry['phase']} dict has gain_end_distance_m")
 
 
+def test_entry_distance_delta_populated() -> None:
+    """Entry phases have entry_distance_delta_m when reference pedal data available."""
+    facts = _load_fixture()
+    if facts is None:
+        print("  SKIP: entry distance delta (fixture not found)")
+        return
+
+    for c in facts.top_losses + facts.top_gains:
+        if c.phase == "entry":
+            ok(c.entry_distance_delta_m is not None,
+               f"{c.corner_id}/entry has entry_distance_delta_m={c.entry_distance_delta_m}")
+            ok(c.reference_phase_distance_m is not None,
+               f"{c.corner_id}/entry has reference_phase_distance_m={c.reference_phase_distance_m}")
+
+
+def test_exit_distance_delta_populated() -> None:
+    """Exit phases have exit_distance_delta_m when reference pedal data available."""
+    facts = _load_fixture()
+    if facts is None:
+        print("  SKIP: exit distance delta (fixture not found)")
+        return
+
+    for c in facts.top_losses + facts.top_gains:
+        if c.phase in ("exit", "exit_brake", "exit_throttle"):
+            ok(c.exit_distance_delta_m is not None,
+               f"{c.corner_id}/{c.phase} has exit_distance_delta_m={c.exit_distance_delta_m}")
+            ok(c.reference_phase_distance_m is not None,
+               f"{c.corner_id}/{c.phase} has reference_phase_distance_m={c.reference_phase_distance_m}")
+
+
+def test_exit_distance_delta_sign_convention() -> None:
+    """Exit distance delta: positive = driver exited earlier (better)."""
+    facts = _load_fixture()
+    if facts is None:
+        print("  SKIP: exit delta sign (fixture not found)")
+        return
+
+    # t5 exit is a gain: driver exited earlier = positive delta
+    for c in facts.top_gains:
+        if c.phase == "exit" and c.corner_id == "t5":
+            ok(c.exit_distance_delta_m is not None and c.exit_distance_delta_m > 0,
+               f"t5/exit gain: delta={c.exit_distance_delta_m} > 0 (driver earlier)")
+            ok(c.reference_phase_distance_m is not None,
+               f"t5/exit has reference_phase_distance_m={c.reference_phase_distance_m}")
+
+    # t3 exit losses: driver exited later = negative delta
+    for c in facts.top_losses:
+        if c.phase in ("exit", "exit_brake", "exit_throttle") and c.corner_id == "t3":
+            ok(c.exit_distance_delta_m is not None and c.exit_distance_delta_m < 0,
+               f"t3/{c.phase} loss: delta={c.exit_distance_delta_m} < 0 (driver later)")
+
+
+def test_distance_deltas_in_dict() -> None:
+    """entry/exit_distance_delta_m and reference_phase_distance_m in dict."""
+    facts = _load_fixture()
+    if facts is None:
+        print("  SKIP: delta dict (fixture not found)")
+        return
+
+    output = facts.to_dict()
+    for entry in output["top_losses"] + output["top_gains"]:
+        phase = entry["phase"]
+        if phase == "entry":
+            ok("entry_distance_delta_m" in entry,
+               f"{entry['corner_id']}/entry dict has entry_distance_delta_m")
+            ok("reference_phase_distance_m" in entry,
+               f"{entry['corner_id']}/entry dict has reference_phase_distance_m")
+        if phase in ("exit", "exit_brake", "exit_throttle"):
+            ok("exit_distance_delta_m" in entry,
+               f"{entry['corner_id']}/{phase} dict has exit_distance_delta_m")
+            ok("reference_phase_distance_m" in entry,
+               f"{entry['corner_id']}/{phase} dict has reference_phase_distance_m")
+
+
 def main() -> int:
     print("═══ Losses Delta-Time Tests ═══\n")
 
@@ -111,6 +185,10 @@ def main() -> int:
     test_gain_end_distance_always_populated()
     test_losses_positive_gains_negative()
     test_gain_end_distance_in_dict()
+    test_entry_distance_delta_populated()
+    test_exit_distance_delta_populated()
+    test_exit_distance_delta_sign_convention()
+    test_distance_deltas_in_dict()
 
     total = pass_count + fail_count
     print(f"\n  {pass_count}/{total} assertions passed")

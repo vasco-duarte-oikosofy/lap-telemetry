@@ -30,13 +30,16 @@ def run_js_pipeline(
     track_length: int,
     driver_throttle_norm: list[float] | None = None,
     driver_brake_norm: list[float] | None = None,
+    ref_throttle_norm: list[float] | None = None,
+    ref_brake_norm: list[float] | None = None,
 ) -> dict:
     """Run the full JS telemetry pipeline and return all resampled grids.
 
     Calls the Node.js script which implements the identical 6-step
     pipeline as the web UI. Returns a dict with keys:
       delta_t_ms, driver_speed_kph, ref_speed_kph,
-      driver_throttle_norm, driver_brake_norm, track_length.
+      driver_throttle_norm, driver_brake_norm,
+      ref_throttle_norm, ref_brake_norm, track_length.
 
     Args:
         driver_lap_time_s: Raw lap_time_s column from driver parquet.
@@ -48,6 +51,8 @@ def run_js_pipeline(
         track_length: Track length for computeKeepIndices.
         driver_throttle_norm: Optional raw throttle_norm from driver.
         driver_brake_norm: Optional raw brake_norm from driver.
+        ref_throttle_norm: Optional raw throttle_norm from reference.
+        ref_brake_norm: Optional raw brake_norm from reference.
 
     Returns:
         Dict with all resampled grids and delta-t.
@@ -74,6 +79,8 @@ def run_js_pipeline(
             "lap_time_s": ref_lap_time_s,
             "lap_distance_m": ref_lap_distance_m,
             "speed_kph": ref_speed_kph,
+            "throttle_norm": ref_throttle_norm,
+            "brake_norm": ref_brake_norm,
         },
         "trackLength": track_length,
     }

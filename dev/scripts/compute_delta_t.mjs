@@ -25,7 +25,9 @@
  *     },
  *     "reference": {
  *       "lap_time_s": [...], "lap_distance_m": [...],
- *       "speed_kph": [...]
+ *       "speed_kph": [...],
+ *       "throttle_norm": [...] | null,
+ *       "brake_norm": [...] | null
  *     },
  *     "trackLength": 4680
  *   }
@@ -37,6 +39,8 @@
  *     "ref_speed_kph": [...],
  *     "driver_throttle_norm": [...] | null,
  *     "driver_brake_norm": [...] | null,
+ *     "ref_throttle_norm": [...] | null,
+ *     "ref_brake_norm": [...] | null,
  *     "track_length": <int>
  *   }
  *
@@ -109,6 +113,14 @@ const sBrakeBins = isFiniteArray(driver.brake_norm)
   ? resample(sDistRaw, sKeep.map(i => driver.brake_norm[i]), maxDist)
   : null;
 
+// Reference pedal channels (optional)
+const rThrottleBins = isFiniteArray(reference.throttle_norm)
+  ? resample(rDistRaw, rKeep.map(i => reference.throttle_norm[i]), maxDist)
+  : null;
+const rBrakeBins = isFiniteArray(reference.brake_norm)
+  ? resample(rDistRaw, rKeep.map(i => reference.brake_norm[i]), maxDist)
+  : null;
+
 // ── Step 4: forward-clamp (lap_time_s only) ───────────────────────────────────
 
 for (let d = 1; d < sLapTimeBins.length; d++) {
@@ -134,6 +146,8 @@ const output = {
   ref_speed_kph: Array.from(rSpeedBins),
   driver_throttle_norm: sThrottleBins ? Array.from(sThrottleBins) : null,
   driver_brake_norm: sBrakeBins ? Array.from(sBrakeBins) : null,
+  ref_throttle_norm: rThrottleBins ? Array.from(rThrottleBins) : null,
+  ref_brake_norm: rBrakeBins ? Array.from(rBrakeBins) : null,
   track_length: maxDist,
 };
 process.stdout.write(JSON.stringify(output) + '\n');
