@@ -1,0 +1,4 @@
+# Voice models and binaries are installed locally, not committed
+# Follow docs/PIPER_INSTALL.md to set them up
+tts-voices/*.onnx
+tts-bin/

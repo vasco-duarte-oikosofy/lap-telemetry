@@ -37,7 +37,7 @@ class LLMConfig:
 class TTSConfig:
     """TTS engine configuration."""
     engine: str = "piper"
-    piper_binary: str = "piper"
+    piper_binary: str = "python3 -m piper"   # pip-installed; or path to standalone binary
     piper_model: str | None = None
     output_file: str = "coach_output.wav"
 

@@ -37,7 +37,7 @@ from lap_telemetry.coach.speech_queue import SpeechQueue
 def test_tts_config_defaults():
     cfg = TTSConfig()
     assert cfg.engine == "piper", f"Expected piper, got {cfg.engine}"
-    assert cfg.piper_binary == "piper", f"Expected piper, got {cfg.piper_binary}"
+    assert cfg.piper_binary == "python3 -m piper", f"Expected python3 -m piper, got {cfg.piper_binary}"
     assert cfg.piper_model is None, f"Expected None, got {cfg.piper_model}"
     assert cfg.output_file == "coach_output.wav", f"Got {cfg.output_file}"
     print("  tts_config_defaults: OK")

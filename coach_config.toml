@@ -7,7 +7,7 @@ max_tokens = 4096
 base_url = "http://localhost:11434/v1"
 
 [tts]
-engine = "piper"                           # piper, pyttsx3, file
-# piper_binary = "piper"                  # path to piper executable
-# piper_model = "product/data/tts-voices/en_US-lessac-medium.onnx"
-# output_file = "coach_output.wav"         # for file adapter
+engine = "piper"                                                # piper, pyttsx3, file
+piper_binary = "python3 -m piper"                              # pip-installed piper (or path to binary)
+piper_model = "product/data/tts-voices/en_US-lessac-medium.onnx"
+# output_file = "coach_output.wav"                             # for file adapter

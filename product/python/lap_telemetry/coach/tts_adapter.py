@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import logging
 import os
+import shlex
 import subprocess
 import wave
 from abc import ABC, abstractmethod
@@ -59,14 +60,24 @@ class PiperAdapter(TTSAdapter):
                 wav_path.unlink()
 
     def _synthesize(self, text: str, wav_path: Path) -> None:
-        """Run Piper to synthesize text to a WAV file."""
+        """Run Piper to synthesize text to a WAV file.
+
+        Supports two invocation modes:
+        - Standalone binary: piper --model ... --output_file ...
+        - Python module: python3 -m piper --model ... --output_file ...
+
+        The piper_binary config field can be either "piper" (binary),
+        "python3 -m piper" (module), or a full path to either.
+        """
         if not self._model:
             raise RuntimeError(
                 "Piper model path not configured. "
                 "Set piper_model in [tts] config or COACH_PIPER_MODEL env var."
             )
 
-        cmd = [self._binary, "--model", str(self._model), "--output_file", str(wav_path)]
+        # Build the command — may be a bare binary or "python3 -m piper"
+        binary_parts = shlex.split(self._binary)
+        cmd = binary_parts + ["--model", str(self._model), "--output_file", str(wav_path)]
         log.debug("Piper command: %s", cmd)
 
         result = subprocess.run(
