@@ -17,7 +17,7 @@
 | `01c-determine-entry-exit-phase-algorithm` | ✅ Complete | Replace fixed 30 m entry/exit offsets with brake, throttle, and speed-trace detection to determine where corner entry begins and exit ends |
 | `02-track-coaching-model-loader` | 🔲 Not started | Validate/load one Barcelona LMU coaching JSON and map corner names/zones to telemetry distance |
 | `03-llm-text-adapter` | ✅ Complete | CLI sends sample facts to configured model and records the returned utterance |
-| `04-local-tts-smoke-path` | 🔲 Not started | CLI speaks a supplied text string through the local TTS adapter with queue semantics |
+| `04-local-tts-smoke-path` | ✅ Complete | CLI speaks a supplied text string through the local TTS adapter with queue semantics |
 | `05-live-bus-tap` | 🔲 Not started | Recorder runs normally and a coach tap receives frames, detects lap boundaries, and writes debug events |
 | `06-live-after-lap-spoken-summary` | 🔲 Not started | At lap end, analyze completed lap, generate one LLM utterance, and speak it on the next straight |
 | `07-corner-exit-coaching` | 🔲 Not started | Speak one targeted note after selected corner exits when a safe straight is available |
