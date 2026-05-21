@@ -32,9 +32,7 @@
 
 ## Deferred TODOs
 
-- Piper is not installed on this machine — PiperAdapter._synthesize() and _play_wav() are untested with real Piper. Manual smoke test needed after installing Piper + voice model.
 - pyttsx3 is not installed — Pyttsx3Adapter not tested on this machine (Windows-only)
-- sounddevice is not installed — PiperAdapter falls back to platform audio player
 - Volume/output-device configuration (out of scope)
 - Voice selection beyond one default voice (out of scope)
 

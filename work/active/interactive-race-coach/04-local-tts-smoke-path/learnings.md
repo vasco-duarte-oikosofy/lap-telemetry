@@ -34,6 +34,17 @@
    TTS synthesis. A real audio-producing FileAdapter would need Piper
    installed.
 
+7. **Piper installed via pip, not standalone binary.** The standalone
+   Piper binary for macOS doesn't include shared libraries (dylibs),
+   so it fails with `Library not loaded`. Using `pip install piper-tts`
+   works out of the box. PiperAdapter uses `shlex.split()` on
+   `piper_binary` so both `"piper"` (standalone) and `"python3 -m piper"`
+   (pip-installed) work. Default changed to `"python3 -m piper"`.
+
+8. **Voice model is 60 MB, not committed to git.** Added
+   `product/data/.gitignore` to exclude `tts-voices/*.onnx` and
+   `tts-bin/`. Install instructions in `docs/PIPER_INSTALL.md`.
+
 ## For the next agent
 
 - `speech_queue.py` uses `threading.Event` + a single `_pending` slot.
@@ -41,8 +52,10 @@
   items queued during playback are not missed.
 - `create_adapter(config)` is the factory — always use it to create
   adapters from config rather than constructing directly.
-- Piper is not installed on this machine. The PiperAdapter path is
-  tested only for instantiation, not actual synthesis. Manual smoke
-  testing with Piper requires installing Piper + a voice model.
-- The `sounddevice` package is not installed. PiperAdapter's playback
-  will fall back to the platform audio player (afplay on macOS).
+- `sounddevice` is now installed for audio playback. PiperAdapter plays
+  via sounddevice with platform fallback (afplay on macOS).
+- Piper installed via `pip install piper-tts`. Voice model downloaded to
+  `product/data/tts-voices/en_US-lessac-medium.onnx`. See
+  `docs/PIPER_INSTALL.md` for full install instructions.
+- The `piper` standalone binary (from GitHub releases) doesn't work on
+  macOS due to missing dylibs. Use `python3 -m piper` instead.
