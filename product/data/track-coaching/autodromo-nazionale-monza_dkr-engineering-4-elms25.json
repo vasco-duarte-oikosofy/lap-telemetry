@@ -1,0 +1,69 @@
+{
+  "schema_version": "1",
+  "track_id": "autodromo-nazionale-monza",
+  "layout_id": "lmu-default",
+  "reference_lap": {
+    "path": "product\\data\\reference-laps\\autodromo-nazionale-monza_dkr-engineering-4-elms25_time_01.47.024.parquet",
+    "car_id": "dkr-engineering-4-elms25",
+    "lap_time_s": 107.024,
+    "detection_method": "speed_local_minimum_v1"
+  },
+  "lap_length_m": 5778.5,
+  "corners": [
+    {
+      "id": "t1",
+      "name": "turn 1",
+      "s_start_m": 915.0,
+      "apex_s_m": 975.0,
+      "s_end_m": 1094.0,
+      "apex_side": "right",
+      "apex_side_source": "default_cli_option"
+    },
+    {
+      "id": "t2",
+      "name": "turn 2",
+      "s_start_m": 2122.0,
+      "apex_s_m": 2159.0,
+      "s_end_m": 2278.0,
+      "apex_side": "right",
+      "apex_side_source": "default_cli_option"
+    },
+    {
+      "id": "t3",
+      "name": "turn 3",
+      "s_start_m": 2461.0,
+      "apex_s_m": 2549.0,
+      "s_end_m": 2668.0,
+      "apex_side": "right",
+      "apex_side_source": "default_cli_option"
+    },
+    {
+      "id": "t4",
+      "name": "turn 4",
+      "s_start_m": 2817.0,
+      "apex_s_m": 2876.0,
+      "s_end_m": 2995.0,
+      "apex_side": "right",
+      "apex_side_source": "default_cli_option"
+    },
+    {
+      "id": "t5",
+      "name": "turn 5",
+      "s_start_m": 3890.0,
+      "apex_s_m": 3965.0,
+      "s_end_m": 4084.0,
+      "apex_side": "right",
+      "apex_side_source": "default_cli_option"
+    },
+    {
+      "id": "t6",
+      "name": "turn 6",
+      "s_start_m": 5099.0,
+      "apex_s_m": 5181.0,
+      "s_end_m": 5300.0,
+      "apex_side": "right",
+      "apex_side_source": "default_cli_option"
+    }
+  ],
+  "straight_zones": []
+}

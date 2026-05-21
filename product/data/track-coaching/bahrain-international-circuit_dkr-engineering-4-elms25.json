@@ -1,0 +1,105 @@
+{
+  "schema_version": "1",
+  "track_id": "bahrain-international-circuit",
+  "layout_id": "lmu-default",
+  "reference_lap": {
+    "path": "product\\data\\reference-laps\\bahrain-international-circuit_dkr-engineering-4-elms25_time_01.56.661.parquet",
+    "car_id": "dkr-engineering-4-elms25",
+    "lap_time_s": 116.661,
+    "detection_method": "speed_local_minimum_v1"
+  },
+  "lap_length_m": 5387.5,
+  "corners": [
+    {
+      "id": "t1",
+      "name": "turn 1",
+      "s_start_m": 719.0,
+      "apex_s_m": 743.0,
+      "s_end_m": 862.0,
+      "apex_side": "right",
+      "apex_side_source": "default_cli_option"
+    },
+    {
+      "id": "t2",
+      "name": "turn 2",
+      "s_start_m": 1499.0,
+      "apex_s_m": 1513.0,
+      "s_end_m": 1632.0,
+      "apex_side": "right",
+      "apex_side_source": "default_cli_option"
+    },
+    {
+      "id": "t3",
+      "name": "turn 3",
+      "s_start_m": 1861.0,
+      "apex_s_m": 1908.0,
+      "s_end_m": 1959.0,
+      "apex_side": "right",
+      "apex_side_source": "default_cli_option"
+    },
+    {
+      "id": "t4",
+      "name": "turn 4",
+      "s_start_m": 1959.0,
+      "apex_s_m": 2011.0,
+      "s_end_m": 2130.0,
+      "apex_side": "right",
+      "apex_side_source": "default_cli_option"
+    },
+    {
+      "id": "t5",
+      "name": "turn 5",
+      "s_start_m": 2238.0,
+      "apex_s_m": 2256.0,
+      "s_end_m": 2375.0,
+      "apex_side": "right",
+      "apex_side_source": "default_cli_option"
+    },
+    {
+      "id": "t6",
+      "name": "turn 6",
+      "s_start_m": 2702.0,
+      "apex_s_m": 2730.0,
+      "s_end_m": 2849.0,
+      "apex_side": "right",
+      "apex_side_source": "default_cli_option"
+    },
+    {
+      "id": "t7",
+      "name": "turn 7",
+      "s_start_m": 3414.0,
+      "apex_s_m": 3452.0,
+      "s_end_m": 3571.0,
+      "apex_side": "right",
+      "apex_side_source": "default_cli_option"
+    },
+    {
+      "id": "t8",
+      "name": "turn 8",
+      "s_start_m": 3747.0,
+      "apex_s_m": 3866.0,
+      "s_end_m": 3985.0,
+      "apex_side": "right",
+      "apex_side_source": "default_cli_option"
+    },
+    {
+      "id": "t9",
+      "name": "turn 9",
+      "s_start_m": 4067.0,
+      "apex_s_m": 4105.0,
+      "s_end_m": 4224.0,
+      "apex_side": "right",
+      "apex_side_source": "default_cli_option"
+    },
+    {
+      "id": "t10",
+      "name": "turn 10",
+      "s_start_m": 4882.0,
+      "apex_s_m": 4902.0,
+      "s_end_m": 5021.0,
+      "apex_side": "right",
+      "apex_side_source": "default_cli_option"
+    }
+  ],
+  "straight_zones": []
+}

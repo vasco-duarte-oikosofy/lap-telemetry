@@ -1,0 +1,636 @@
+{
+  "schema_version": "1",
+  "track_id": "spa-francorchamps",
+  "layout_id": "lmu-default",
+  "reference_lap": {
+    "path": "product\\data\\reference-laps\\spa-francorchamps_wtm-12-lmp3-duqueine-hdf-spa_time_02.05.489.parquet",
+    "car_id": "wtm-12-lmp3-duqueine-hdf-spa",
+    "lap_time_s": 125.489,
+    "detection_method": "speed_local_minimum_v1"
+  },
+  "lap_length_m": 7003.4,
+  "corners": [
+    {
+      "id": "t1",
+      "name": "turn 1",
+      "s_start_m": 66.0,
+      "apex_s_m": 67.0,
+      "s_end_m": 87.0,
+      "apex_side": "right",
+      "apex_side_source": "default_cli_option"
+    },
+    {
+      "id": "t2",
+      "name": "turn 2",
+      "s_start_m": 143.0,
+      "apex_s_m": 144.0,
+      "s_end_m": 164.0,
+      "apex_side": "right",
+      "apex_side_source": "default_cli_option"
+    },
+    {
+      "id": "t3",
+      "name": "turn 3",
+      "s_start_m": 258.0,
+      "apex_s_m": 259.0,
+      "s_end_m": 279.0,
+      "apex_side": "right",
+      "apex_side_source": "default_cli_option"
+    },
+    {
+      "id": "t4",
+      "name": "turn 4",
+      "s_start_m": 373.0,
+      "apex_s_m": 374.0,
+      "s_end_m": 394.0,
+      "apex_side": "right",
+      "apex_side_source": "default_cli_option"
+    },
+    {
+      "id": "t5",
+      "name": "turn 5",
+      "s_start_m": 450.0,
+      "apex_s_m": 451.0,
+      "s_end_m": 471.0,
+      "apex_side": "right",
+      "apex_side_source": "default_cli_option"
+    },
+    {
+      "id": "t6",
+      "name": "turn 6",
+      "s_start_m": 565.0,
+      "apex_s_m": 566.0,
+      "s_end_m": 586.0,
+      "apex_side": "right",
+      "apex_side_source": "default_cli_option"
+    },
+    {
+      "id": "t7",
+      "name": "turn 7",
+      "s_start_m": 642.0,
+      "apex_s_m": 643.0,
+      "s_end_m": 663.0,
+      "apex_side": "right",
+      "apex_side_source": "default_cli_option"
+    },
+    {
+      "id": "t8",
+      "name": "turn 8",
+      "s_start_m": 757.0,
+      "apex_s_m": 758.0,
+      "s_end_m": 778.0,
+      "apex_side": "right",
+      "apex_side_source": "default_cli_option"
+    },
+    {
+      "id": "t9",
+      "name": "turn 9",
+      "s_start_m": 872.0,
+      "apex_s_m": 873.0,
+      "s_end_m": 893.0,
+      "apex_side": "right",
+      "apex_side_source": "default_cli_option"
+    },
+    {
+      "id": "t10",
+      "name": "turn 10",
+      "s_start_m": 949.0,
+      "apex_s_m": 950.0,
+      "s_end_m": 970.0,
+      "apex_side": "right",
+      "apex_side_source": "default_cli_option"
+    },
+    {
+      "id": "t11",
+      "name": "turn 11",
+      "s_start_m": 1064.0,
+      "apex_s_m": 1065.0,
+      "s_end_m": 1085.0,
+      "apex_side": "right",
+      "apex_side_source": "default_cli_option"
+    },
+    {
+      "id": "t12",
+      "name": "turn 12",
+      "s_start_m": 1141.0,
+      "apex_s_m": 1142.0,
+      "s_end_m": 1162.0,
+      "apex_side": "right",
+      "apex_side_source": "default_cli_option"
+    },
+    {
+      "id": "t13",
+      "name": "turn 13",
+      "s_start_m": 1256.0,
+      "apex_s_m": 1257.0,
+      "s_end_m": 1277.0,
+      "apex_side": "right",
+      "apex_side_source": "default_cli_option"
+    },
+    {
+      "id": "t14",
+      "name": "turn 14",
+      "s_start_m": 1371.0,
+      "apex_s_m": 1372.0,
+      "s_end_m": 1392.0,
+      "apex_side": "right",
+      "apex_side_source": "default_cli_option"
+    },
+    {
+      "id": "t15",
+      "name": "turn 15",
+      "s_start_m": 1448.0,
+      "apex_s_m": 1449.0,
+      "s_end_m": 1469.0,
+      "apex_side": "right",
+      "apex_side_source": "default_cli_option"
+    },
+    {
+      "id": "t16",
+      "name": "turn 16",
+      "s_start_m": 1563.0,
+      "apex_s_m": 1564.0,
+      "s_end_m": 1584.0,
+      "apex_side": "right",
+      "apex_side_source": "default_cli_option"
+    },
+    {
+      "id": "t17",
+      "name": "turn 17",
+      "s_start_m": 1678.0,
+      "apex_s_m": 1679.0,
+      "s_end_m": 1699.0,
+      "apex_side": "right",
+      "apex_side_source": "default_cli_option"
+    },
+    {
+      "id": "t18",
+      "name": "turn 18",
+      "s_start_m": 1755.0,
+      "apex_s_m": 1756.0,
+      "s_end_m": 1776.0,
+      "apex_side": "right",
+      "apex_side_source": "default_cli_option"
+    },
+    {
+      "id": "t19",
+      "name": "turn 19",
+      "s_start_m": 1870.0,
+      "apex_s_m": 1871.0,
+      "s_end_m": 1891.0,
+      "apex_side": "right",
+      "apex_side_source": "default_cli_option"
+    },
+    {
+      "id": "t20",
+      "name": "turn 20",
+      "s_start_m": 1985.0,
+      "apex_s_m": 1986.0,
+      "s_end_m": 2006.0,
+      "apex_side": "right",
+      "apex_side_source": "default_cli_option"
+    },
+    {
+      "id": "t21",
+      "name": "turn 21",
+      "s_start_m": 2100.0,
+      "apex_s_m": 2101.0,
+      "s_end_m": 2121.0,
+      "apex_side": "right",
+      "apex_side_source": "default_cli_option"
+    },
+    {
+      "id": "t22",
+      "name": "turn 22",
+      "s_start_m": 2177.0,
+      "apex_s_m": 2178.0,
+      "s_end_m": 2198.0,
+      "apex_side": "right",
+      "apex_side_source": "default_cli_option"
+    },
+    {
+      "id": "t23",
+      "name": "turn 23",
+      "s_start_m": 2292.0,
+      "apex_s_m": 2293.0,
+      "s_end_m": 2313.0,
+      "apex_side": "right",
+      "apex_side_source": "default_cli_option"
+    },
+    {
+      "id": "t24",
+      "name": "turn 24",
+      "s_start_m": 2407.0,
+      "apex_s_m": 2408.0,
+      "s_end_m": 2428.0,
+      "apex_side": "right",
+      "apex_side_source": "default_cli_option"
+    },
+    {
+      "id": "t25",
+      "name": "turn 25",
+      "s_start_m": 2484.0,
+      "apex_s_m": 2485.0,
+      "s_end_m": 2505.0,
+      "apex_side": "right",
+      "apex_side_source": "default_cli_option"
+    },
+    {
+      "id": "t26",
+      "name": "turn 26",
+      "s_start_m": 2599.0,
+      "apex_s_m": 2600.0,
+      "s_end_m": 2620.0,
+      "apex_side": "right",
+      "apex_side_source": "default_cli_option"
+    },
+    {
+      "id": "t27",
+      "name": "turn 27",
+      "s_start_m": 2714.0,
+      "apex_s_m": 2715.0,
+      "s_end_m": 2735.0,
+      "apex_side": "right",
+      "apex_side_source": "default_cli_option"
+    },
+    {
+      "id": "t28",
+      "name": "turn 28",
+      "s_start_m": 2791.0,
+      "apex_s_m": 2792.0,
+      "s_end_m": 2812.0,
+      "apex_side": "right",
+      "apex_side_source": "default_cli_option"
+    },
+    {
+      "id": "t29",
+      "name": "turn 29",
+      "s_start_m": 2906.0,
+      "apex_s_m": 2907.0,
+      "s_end_m": 2927.0,
+      "apex_side": "right",
+      "apex_side_source": "default_cli_option"
+    },
+    {
+      "id": "t30",
+      "name": "turn 30",
+      "s_start_m": 3021.0,
+      "apex_s_m": 3022.0,
+      "s_end_m": 3042.0,
+      "apex_side": "right",
+      "apex_side_source": "default_cli_option"
+    },
+    {
+      "id": "t31",
+      "name": "turn 31",
+      "s_start_m": 3098.0,
+      "apex_s_m": 3099.0,
+      "s_end_m": 3119.0,
+      "apex_side": "right",
+      "apex_side_source": "default_cli_option"
+    },
+    {
+      "id": "t32",
+      "name": "turn 32",
+      "s_start_m": 3213.0,
+      "apex_s_m": 3214.0,
+      "s_end_m": 3234.0,
+      "apex_side": "right",
+      "apex_side_source": "default_cli_option"
+    },
+    {
+      "id": "t33",
+      "name": "turn 33",
+      "s_start_m": 3328.0,
+      "apex_s_m": 3329.0,
+      "s_end_m": 3349.0,
+      "apex_side": "right",
+      "apex_side_source": "default_cli_option"
+    },
+    {
+      "id": "t34",
+      "name": "turn 34",
+      "s_start_m": 3405.0,
+      "apex_s_m": 3406.0,
+      "s_end_m": 3426.0,
+      "apex_side": "right",
+      "apex_side_source": "default_cli_option"
+    },
+    {
+      "id": "t35",
+      "name": "turn 35",
+      "s_start_m": 3520.0,
+      "apex_s_m": 3521.0,
+      "s_end_m": 3541.0,
+      "apex_side": "right",
+      "apex_side_source": "default_cli_option"
+    },
+    {
+      "id": "t36",
+      "name": "turn 36",
+      "s_start_m": 3635.0,
+      "apex_s_m": 3636.0,
+      "s_end_m": 3656.0,
+      "apex_side": "right",
+      "apex_side_source": "default_cli_option"
+    },
+    {
+      "id": "t37",
+      "name": "turn 37",
+      "s_start_m": 3712.0,
+      "apex_s_m": 3713.0,
+      "s_end_m": 3733.0,
+      "apex_side": "right",
+      "apex_side_source": "default_cli_option"
+    },
+    {
+      "id": "t38",
+      "name": "turn 38",
+      "s_start_m": 3827.0,
+      "apex_s_m": 3828.0,
+      "s_end_m": 3848.0,
+      "apex_side": "right",
+      "apex_side_source": "default_cli_option"
+    },
+    {
+      "id": "t39",
+      "name": "turn 39",
+      "s_start_m": 3942.0,
+      "apex_s_m": 3943.0,
+      "s_end_m": 3963.0,
+      "apex_side": "right",
+      "apex_side_source": "default_cli_option"
+    },
+    {
+      "id": "t40",
+      "name": "turn 40",
+      "s_start_m": 4019.0,
+      "apex_s_m": 4020.0,
+      "s_end_m": 4040.0,
+      "apex_side": "right",
+      "apex_side_source": "default_cli_option"
+    },
+    {
+      "id": "t41",
+      "name": "turn 41",
+      "s_start_m": 4134.0,
+      "apex_s_m": 4135.0,
+      "s_end_m": 4155.0,
+      "apex_side": "right",
+      "apex_side_source": "default_cli_option"
+    },
+    {
+      "id": "t42",
+      "name": "turn 42",
+      "s_start_m": 4211.0,
+      "apex_s_m": 4212.0,
+      "s_end_m": 4232.0,
+      "apex_side": "right",
+      "apex_side_source": "default_cli_option"
+    },
+    {
+      "id": "t43",
+      "name": "turn 43",
+      "s_start_m": 4326.0,
+      "apex_s_m": 4327.0,
+      "s_end_m": 4347.0,
+      "apex_side": "right",
+      "apex_side_source": "default_cli_option"
+    },
+    {
+      "id": "t44",
+      "name": "turn 44",
+      "s_start_m": 4403.0,
+      "apex_s_m": 4404.0,
+      "s_end_m": 4424.0,
+      "apex_side": "right",
+      "apex_side_source": "default_cli_option"
+    },
+    {
+      "id": "t45",
+      "name": "turn 45",
+      "s_start_m": 4518.0,
+      "apex_s_m": 4519.0,
+      "s_end_m": 4539.0,
+      "apex_side": "right",
+      "apex_side_source": "default_cli_option"
+    },
+    {
+      "id": "t46",
+      "name": "turn 46",
+      "s_start_m": 4633.0,
+      "apex_s_m": 4634.0,
+      "s_end_m": 4654.0,
+      "apex_side": "right",
+      "apex_side_source": "default_cli_option"
+    },
+    {
+      "id": "t47",
+      "name": "turn 47",
+      "s_start_m": 4710.0,
+      "apex_s_m": 4711.0,
+      "s_end_m": 4731.0,
+      "apex_side": "right",
+      "apex_side_source": "default_cli_option"
+    },
+    {
+      "id": "t48",
+      "name": "turn 48",
+      "s_start_m": 4825.0,
+      "apex_s_m": 4826.0,
+      "s_end_m": 4846.0,
+      "apex_side": "right",
+      "apex_side_source": "default_cli_option"
+    },
+    {
+      "id": "t49",
+      "name": "turn 49",
+      "s_start_m": 4902.0,
+      "apex_s_m": 4903.0,
+      "s_end_m": 4923.0,
+      "apex_side": "right",
+      "apex_side_source": "default_cli_option"
+    },
+    {
+      "id": "t50",
+      "name": "turn 50",
+      "s_start_m": 5017.0,
+      "apex_s_m": 5018.0,
+      "s_end_m": 5038.0,
+      "apex_side": "right",
+      "apex_side_source": "default_cli_option"
+    },
+    {
+      "id": "t51",
+      "name": "turn 51",
+      "s_start_m": 5132.0,
+      "apex_s_m": 5133.0,
+      "s_end_m": 5153.0,
+      "apex_side": "right",
+      "apex_side_source": "default_cli_option"
+    },
+    {
+      "id": "t52",
+      "name": "turn 52",
+      "s_start_m": 5209.0,
+      "apex_s_m": 5210.0,
+      "s_end_m": 5230.0,
+      "apex_side": "right",
+      "apex_side_source": "default_cli_option"
+    },
+    {
+      "id": "t53",
+      "name": "turn 53",
+      "s_start_m": 5324.0,
+      "apex_s_m": 5325.0,
+      "s_end_m": 5345.0,
+      "apex_side": "right",
+      "apex_side_source": "default_cli_option"
+    },
+    {
+      "id": "t54",
+      "name": "turn 54",
+      "s_start_m": 5439.0,
+      "apex_s_m": 5440.0,
+      "s_end_m": 5460.0,
+      "apex_side": "right",
+      "apex_side_source": "default_cli_option"
+    },
+    {
+      "id": "t55",
+      "name": "turn 55",
+      "s_start_m": 5516.0,
+      "apex_s_m": 5517.0,
+      "s_end_m": 5537.0,
+      "apex_side": "right",
+      "apex_side_source": "default_cli_option"
+    },
+    {
+      "id": "t56",
+      "name": "turn 56",
+      "s_start_m": 5631.0,
+      "apex_s_m": 5632.0,
+      "s_end_m": 5652.0,
+      "apex_side": "right",
+      "apex_side_source": "default_cli_option"
+    },
+    {
+      "id": "t57",
+      "name": "turn 57",
+      "s_start_m": 5746.0,
+      "apex_s_m": 5747.0,
+      "s_end_m": 5767.0,
+      "apex_side": "right",
+      "apex_side_source": "default_cli_option"
+    },
+    {
+      "id": "t58",
+      "name": "turn 58",
+      "s_start_m": 5823.0,
+      "apex_s_m": 5824.0,
+      "s_end_m": 5844.0,
+      "apex_side": "right",
+      "apex_side_source": "default_cli_option"
+    },
+    {
+      "id": "t59",
+      "name": "turn 59",
+      "s_start_m": 5938.0,
+      "apex_s_m": 5939.0,
+      "s_end_m": 5959.0,
+      "apex_side": "right",
+      "apex_side_source": "default_cli_option"
+    },
+    {
+      "id": "t60",
+      "name": "turn 60",
+      "s_start_m": 6053.0,
+      "apex_s_m": 6054.0,
+      "s_end_m": 6074.0,
+      "apex_side": "right",
+      "apex_side_source": "default_cli_option"
+    },
+    {
+      "id": "t61",
+      "name": "turn 61",
+      "s_start_m": 6130.0,
+      "apex_s_m": 6131.0,
+      "s_end_m": 6151.0,
+      "apex_side": "right",
+      "apex_side_source": "default_cli_option"
+    },
+    {
+      "id": "t62",
+      "name": "turn 62",
+      "s_start_m": 6245.0,
+      "apex_s_m": 6246.0,
+      "s_end_m": 6266.0,
+      "apex_side": "right",
+      "apex_side_source": "default_cli_option"
+    },
+    {
+      "id": "t63",
+      "name": "turn 63",
+      "s_start_m": 6360.0,
+      "apex_s_m": 6361.0,
+      "s_end_m": 6381.0,
+      "apex_side": "right",
+      "apex_side_source": "default_cli_option"
+    },
+    {
+      "id": "t64",
+      "name": "turn 64",
+      "s_start_m": 6437.0,
+      "apex_s_m": 6438.0,
+      "s_end_m": 6458.0,
+      "apex_side": "right",
+      "apex_side_source": "default_cli_option"
+    },
+    {
+      "id": "t65",
+      "name": "turn 65",
+      "s_start_m": 6552.0,
+      "apex_s_m": 6553.0,
+      "s_end_m": 6573.0,
+      "apex_side": "right",
+      "apex_side_source": "default_cli_option"
+    },
+    {
+      "id": "t66",
+      "name": "turn 66",
+      "s_start_m": 6667.0,
+      "apex_s_m": 6668.0,
+      "s_end_m": 6688.0,
+      "apex_side": "right",
+      "apex_side_source": "default_cli_option"
+    },
+    {
+      "id": "t67",
+      "name": "turn 67",
+      "s_start_m": 6744.0,
+      "apex_s_m": 6745.0,
+      "s_end_m": 6765.0,
+      "apex_side": "right",
+      "apex_side_source": "default_cli_option"
+    },
+    {
+      "id": "t68",
+      "name": "turn 68",
+      "s_start_m": 6859.0,
+      "apex_s_m": 6860.0,
+      "s_end_m": 6880.0,
+      "apex_side": "right",
+      "apex_side_source": "default_cli_option"
+    },
+    {
+      "id": "t69",
+      "name": "turn 69",
+      "s_start_m": 6936.0,
+      "apex_s_m": 6937.0,
+      "s_end_m": 6957.0,
+      "apex_side": "right",
+      "apex_side_source": "default_cli_option"
+    }
+  ],
+  "straight_zones": []
+}

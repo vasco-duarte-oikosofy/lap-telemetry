@@ -1,0 +1,114 @@
+{
+  "schema_version": "1",
+  "track_id": "circuit-de-spa-francorchamps",
+  "layout_id": "lmu-default",
+  "reference_lap": {
+    "path": "product\\data\\reference-laps\\circuit-de-spa-francorchamps_dkr-engineering-4-elms25_time_02.13.835.parquet",
+    "car_id": "dkr-engineering-4-elms25",
+    "lap_time_s": 133.835,
+    "detection_method": "speed_local_minimum_v1"
+  },
+  "lap_length_m": 6978.8,
+  "corners": [
+    {
+      "id": "t1",
+      "name": "turn 1",
+      "s_start_m": 242.0,
+      "apex_s_m": 271.0,
+      "s_end_m": 390.0,
+      "apex_side": "right",
+      "apex_side_source": "default_cli_option"
+    },
+    {
+      "id": "t2",
+      "name": "turn 2",
+      "s_start_m": 2257.0,
+      "apex_s_m": 2310.0,
+      "s_end_m": 2351.0,
+      "apex_side": "right",
+      "apex_side_source": "default_cli_option"
+    },
+    {
+      "id": "t3",
+      "name": "turn 3",
+      "s_start_m": 2351.0,
+      "apex_s_m": 2392.0,
+      "s_end_m": 2458.0,
+      "apex_side": "right",
+      "apex_side_source": "default_cli_option"
+    },
+    {
+      "id": "t4",
+      "name": "turn 4",
+      "s_start_m": 2458.0,
+      "apex_s_m": 2525.0,
+      "s_end_m": 2644.0,
+      "apex_side": "right",
+      "apex_side_source": "default_cli_option"
+    },
+    {
+      "id": "t5",
+      "name": "turn 5",
+      "s_start_m": 2877.0,
+      "apex_s_m": 2918.0,
+      "s_end_m": 3037.0,
+      "apex_side": "right",
+      "apex_side_source": "default_cli_option"
+    },
+    {
+      "id": "t6",
+      "name": "turn 6",
+      "s_start_m": 3106.0,
+      "apex_s_m": 3177.0,
+      "s_end_m": 3296.0,
+      "apex_side": "right",
+      "apex_side_source": "default_cli_option"
+    },
+    {
+      "id": "t7",
+      "name": "turn 7",
+      "s_start_m": 3616.0,
+      "apex_s_m": 3735.0,
+      "s_end_m": 3854.0,
+      "apex_side": "right",
+      "apex_side_source": "default_cli_option"
+    },
+    {
+      "id": "t8",
+      "name": "turn 8",
+      "s_start_m": 4335.0,
+      "apex_s_m": 4383.0,
+      "s_end_m": 4463.0,
+      "apex_side": "right",
+      "apex_side_source": "default_cli_option"
+    },
+    {
+      "id": "t9",
+      "name": "turn 9",
+      "s_start_m": 4463.0,
+      "apex_s_m": 4544.0,
+      "s_end_m": 4663.0,
+      "apex_side": "right",
+      "apex_side_source": "default_cli_option"
+    },
+    {
+      "id": "t10",
+      "name": "turn 10",
+      "s_start_m": 4777.0,
+      "apex_s_m": 4816.0,
+      "s_end_m": 4935.0,
+      "apex_side": "right",
+      "apex_side_source": "default_cli_option"
+    },
+    {
+      "id": "t11",
+      "name": "turn 11",
+      "s_start_m": 6612.0,
+      "apex_s_m": 6630.0,
+      "s_end_m": 6652.0,
+      "apex_side": "right",
+      "apex_side_source": "default_cli_option"
+    }
+  ],
+  "straight_zones": []
+}

@@ -1,0 +1,87 @@
+{
+  "schema_version": "1",
+  "track_id": "fuji-speedway",
+  "layout_id": "lmu-default",
+  "reference_lap": {
+    "path": "product\\data\\reference-laps\\fuji-speedway_dkr-engineering-4-elms25_time_01.39.291.parquet",
+    "car_id": "dkr-engineering-4-elms25",
+    "lap_time_s": 99.291,
+    "detection_method": "speed_local_minimum_v1"
+  },
+  "lap_length_m": 4538.9,
+  "corners": [
+    {
+      "id": "t1",
+      "name": "turn 1",
+      "s_start_m": 734.0,
+      "apex_s_m": 762.0,
+      "s_end_m": 881.0,
+      "apex_side": "right",
+      "apex_side_source": "default_cli_option"
+    },
+    {
+      "id": "t2",
+      "name": "turn 2",
+      "s_start_m": 1229.0,
+      "apex_s_m": 1305.0,
+      "s_end_m": 1424.0,
+      "apex_side": "right",
+      "apex_side_source": "default_cli_option"
+    },
+    {
+      "id": "t3",
+      "name": "turn 3",
+      "s_start_m": 1606.0,
+      "apex_s_m": 1725.0,
+      "s_end_m": 1844.0,
+      "apex_side": "right",
+      "apex_side_source": "default_cli_option"
+    },
+    {
+      "id": "t4",
+      "name": "turn 4",
+      "s_start_m": 1936.0,
+      "apex_s_m": 2018.0,
+      "s_end_m": 2137.0,
+      "apex_side": "right",
+      "apex_side_source": "default_cli_option"
+    },
+    {
+      "id": "t5",
+      "name": "turn 5",
+      "s_start_m": 2826.0,
+      "apex_s_m": 2848.0,
+      "s_end_m": 2967.0,
+      "apex_side": "right",
+      "apex_side_source": "default_cli_option"
+    },
+    {
+      "id": "t6",
+      "name": "turn 6",
+      "s_start_m": 3085.0,
+      "apex_s_m": 3137.0,
+      "s_end_m": 3256.0,
+      "apex_side": "right",
+      "apex_side_source": "default_cli_option"
+    },
+    {
+      "id": "t7",
+      "name": "turn 7",
+      "s_start_m": 3354.0,
+      "apex_s_m": 3399.0,
+      "s_end_m": 3518.0,
+      "apex_side": "right",
+      "apex_side_source": "default_cli_option"
+    },
+    {
+      "id": "t8",
+      "name": "turn 8",
+      "s_start_m": 3657.0,
+      "apex_s_m": 3683.0,
+      "s_end_m": 3802.0,
+      "apex_side": "right",
+      "apex_side_source": "default_cli_option"
+    }
+  ],
+  "straight_zones": []
+}

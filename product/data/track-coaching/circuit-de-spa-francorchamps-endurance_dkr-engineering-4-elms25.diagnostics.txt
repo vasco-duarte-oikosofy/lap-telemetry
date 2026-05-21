@@ -1,0 +1,12 @@
+detection_method=speed_local_minimum_v1
+t1 apex=281m start=253m end=400m min=59.0kph entry=78.0kph exit=153.0kph drop=83.3kph recovery=74.9kph prominence=74.9kph accepted
+t2 apex=2316m start=2274m end=2350m min=124.9kph entry=145.4kph exit=138.4kph drop=62.4kph recovery=7.4kph prominence=7.4kph accepted
+t3 apex=2385m start=2350m end=2446m min=120.0kph entry=145.4kph exit=145.3kph drop=12.3kph recovery=31.1kph prominence=12.3kph accepted
+t4 apex=2507m start=2446m end=2626m min=144.7kph entry=120.3kph exit=168.8kph drop=10.5kph recovery=18.6kph prominence=10.5kph accepted
+t5 apex=2956m start=2848m end=3062m min=98.4kph entry=136.0kph exit=160.4kph drop=20.0kph recovery=44.1kph prominence=20.0kph accepted
+t6 apex=3169m start=3062m end=3288m min=128.0kph entry=149.3kph exit=176.1kph drop=38.5kph recovery=34.4kph prominence=34.4kph accepted
+t7 apex=3723m start=3604m end=3842m min=176.9kph entry=223.1kph exit=198.1kph drop=30.4kph recovery=11.7kph prominence=11.7kph accepted
+t8 apex=4381m start=4332m end=4457m min=124.4kph entry=159.4kph exit=145.7kph drop=66.3kph recovery=30.1kph prominence=30.1kph accepted
+t9 apex=4534m start=4457m end=4653m min=135.9kph entry=137.3kph exit=174.9kph drop=20.4kph recovery=27.3kph prominence=20.4kph accepted
+t10 apex=4818m start=4783m end=4937m min=110.6kph entry=133.9kph exit=165.7kph drop=73.1kph recovery=39.7kph prominence=39.7kph accepted
+t11 apex=6620m start=6609m end=6739m min=64.2kph entry=69.4kph exit=119.6kph drop=103.4kph recovery=21.9kph prominence=21.9kph accepted
