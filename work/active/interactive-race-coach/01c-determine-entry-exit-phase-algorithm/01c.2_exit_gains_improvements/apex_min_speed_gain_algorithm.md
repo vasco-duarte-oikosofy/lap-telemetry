@@ -59,6 +59,7 @@ def compute_delta_time_trace(
 
 ### Notes
 
+- **MUST use the same delta-T calculation as the web UI.** The existing web JS (`product/web/js/pipeline.js`, `computeDeltaT()`) computes delta-t from the `lap_time_s` column directly: `dt[i] = (sessionLapTime[i] - refLapTime[i]) * 1000`. This is the ground truth — it uses the actual recorded elapsed time at each distance. Our current Python implementation reconstructs cumulative time from speed (`time_per_meter = 1 / (speed_kph / 3.6)`, summed over distance), which is an approximation. We MUST replace `compute_delta_time_trace()` with a version that resamples `lap_time_s` onto the same 1 m grid and then computes `delta_t[i] = driver_lap_time[i] - ref_lap_time[i]`, matching the web JS approach exactly. See `product/web/js/pipeline.js` line 180.
 - Speeds clamped to 1.0 kph minimum (0.28 m/s) to avoid division by zero for pit lane / stopped car.
 - The trace covers the entire lap, so it can be queried at any distance.
 - `delta_t[len-1]` ≈ `lap_time_delta_s` (the total lap time difference). Small discrepancy from start/finish alignment is expected.

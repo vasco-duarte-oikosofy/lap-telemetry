@@ -16,6 +16,8 @@
 
 7. **Speed clamping matters.** Speeds clamped to 1.0 kph in `compute_delta_time_trace()` to avoid division by zero for stopped car / pit lane samples.
 
+8. **`delta_t` must use `lap_time_s`, not speed integration.** Our current `compute_delta_time_trace()` reconstructs cumulative time from speed — this is an approximation. The web UI (`product/web/js/pipeline.js`, `computeDeltaT()`) uses the actual `lap_time_s` column: `dt[i] = (sessionLapTime[i] - refLapTime[i]) * 1000`. We MUST replace our Python version with one that resamples `lap_time_s` onto the 1 m grid, forward-clamps, and computes the difference. This will match the web JS exactly and produce the same delta_t values shown in `product/dist/compare.html`.
+
 ## Edge cases handled
 
 - **Last corner on track**: `find_straight_end_after_corner()` returns `track_length - 1` when there's no next corner.

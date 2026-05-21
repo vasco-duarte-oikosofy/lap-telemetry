@@ -40,6 +40,7 @@ class CornerLoss:
     driver_apex_distance_m: float | None = None  # for minimum_speed: where driver hit min speed
     reference_apex_distance_m: float | None = None  # for minimum_speed: where reference hit min speed
     apex_offset_m: float | None = None  # for minimum_speed: ref_apex - driver_apex; positive = driver earlier
+    gain_end_distance_m: float | None = None  # for gains: distance where gain measurement stops (end of straight)
 
 
 @dataclass
@@ -78,6 +79,8 @@ class LapComparisonFacts:
                 d["reference_apex_distance_m"] = round(c.reference_apex_distance_m, 1)
             if c.apex_offset_m is not None:
                 d["apex_offset_m"] = round(c.apex_offset_m, 1)
+            if c.gain_end_distance_m is not None:
+                d["gain_end_distance_m"] = round(c.gain_end_distance_m, 1)
             return d
 
         return {
@@ -535,6 +538,7 @@ def compare_laps(
                 driver_apex_distance_m=driver_apex_m,
                 reference_apex_distance_m=ref_apex_m,
                 apex_offset_m=ref_apex_m - driver_apex_m,
+                gain_end_distance_m=float(straight_end) if speed_delta < 0 else None,
             ))
 
         # --- Entry phase (algorithm-driven) ---
@@ -593,6 +597,7 @@ def compare_laps(
                         unit="km/h",
                         confidence="medium",
                         phase_distance_m=float(exit_idx),
+                        gain_end_distance_m=float(straight_end) if exit_delta < 0 else None,
                     ))
 
     # Sort by loss magnitude
