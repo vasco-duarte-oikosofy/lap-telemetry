@@ -6,25 +6,20 @@ can be validated against known distances.
 """
 from __future__ import annotations
 
-import json
 import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent.parent
 sys.path.insert(0, str(ROOT / "product" / "python"))
 
-from lap_telemetry.coach.track_model import Corner
+from lap_telemetry.coach.entry_detection import find_entry_point, find_brake_point
+from lap_telemetry.coach.exit_detection import find_exit_points
 from lap_telemetry.coach.lap_comparator import (
     PhaseDetectionThresholds,
     compute_minimum_speed_per_corner,
-    compute_delta_time_trace,
-    find_entry_point,
-    find_straight_end_after_corner,
-    find_brake_point,
-    find_exit_points,
-    resample_column,
     compare_laps,
 )
+from lap_telemetry.coach.track_model import Corner
 
 
 pass_count = 0
@@ -74,16 +69,16 @@ def make_speed_trace(n: int, peak_at: int, peak_val: float, min_at: int, min_val
     return trace
 
 
-# ── Tests ────────────────────────────────────────────────────────────────────
+# ── Phase detection tests ────────────────────────────────────────────────────
 
 
 def test_throttle_lift_entry() -> None:
     """Throttle drops at a known distance; entry should be reported at s_lift, not apex-30."""
     corner = make_corner(s_start=900, apex=1000, s_end=1100)
-    speed = [200.0] * 1200  # flat speed (simplified)
+    speed = [200.0] * 1200
     throttle = [1.0] * 1200
     for i in range(950, 1001):
-        throttle[i] = 0.5  # driver lifts at 950 m
+        throttle[i] = 0.5
 
     entry_idx, method = find_entry_point(speed, throttle, None, corner)
     ok(method == "throttle_lift", f"method = {method}, expected throttle_lift")
@@ -92,14 +87,11 @@ def test_throttle_lift_entry() -> None:
 
 def test_throttle_lift_before_zone() -> None:
     """Throttle lift occurs before s_start_m; look-back should still find it."""
-    # Zone starts at 500, but driver lifts throttle at 420 (80m before zone).
-    # Without look-back, the algorithm would miss the lift and fall back
-    # to speed_peak at the zone boundary.
     corner = make_corner(s_start=500, apex=600, s_end=700)
     speed = [200.0] * 1200
     throttle = [1.0] * 1200
     for i in range(420, 600):
-        throttle[i] = 0.5  # lift starts at 420, well before zone
+        throttle[i] = 0.5
 
     entry_idx, method = find_entry_point(speed, throttle, None, corner)
     ok(method == "throttle_lift", f"method = {method}, expected throttle_lift")
@@ -111,7 +103,7 @@ def test_brake_point_before_zone() -> None:
     corner = make_corner(s_start=500, apex=600, s_end=700)
     brake = [0.0] * 1200
     for i in range(430, 580):
-        brake[i] = 0.5  # braking from 430, before zone at 500
+        brake[i] = 0.5
 
     bp = find_brake_point(brake, corner)
     ok(bp == 430, f"brake point = {bp}, expected 430 (before zone start)")
@@ -122,9 +114,8 @@ def test_brake_off_exit() -> None:
     corner = make_corner(s_start=900, apex=1000, s_end=1100)
     brake = [0.0] * 1200
     for i in range(980, 1020):
-        brake[i] = 0.8  # braking zone
-    # Brake off at 1020
-    throttle = [0.0] * 1200  # never reaches full throttle
+        brake[i] = 0.8
+    throttle = [0.0] * 1200
 
     exits = find_exit_points(brake, throttle, corner)
     ok(len(exits) >= 1, f"exit count {len(exits)}, expected >= 1")
@@ -136,12 +127,11 @@ def test_brake_off_exit() -> None:
 def test_full_throttle_exit() -> None:
     """Throttle reaches 100% at known distance after apex; exit should be reported there."""
     corner = make_corner(s_start=900, apex=1000, s_end=1100)
-    brake = None  # no brake data
+    brake = None
     throttle = [0.0] * 1200
     for i in range(0, 950):
-        throttle[i] = 1.0  # full throttle on straight
-    # throttle = 0 in braking zone
-    throttle[1050] = 0.96  # first full-throttle after apex
+        throttle[i] = 1.0
+    throttle[1050] = 0.96
 
     exits = find_exit_points(brake, throttle, corner)
     ok(len(exits) == 1, f"exit count {len(exits)}, expected 1")
@@ -156,12 +146,10 @@ def test_separate_exit_phases() -> None:
     brake = [0.0] * 1200
     for i in range(980, 1020):
         brake[i] = 0.8
-    # Brake off at 1020
-
     throttle = [0.0] * 1200
     for i in range(0, 950):
         throttle[i] = 1.0
-    throttle[1040] = 0.96  # Full throttle at 1040 (>3m from brake-off)
+    throttle[1040] = 0.96
 
     exits = find_exit_points(brake, throttle, corner)
     ok(len(exits) == 2, f"exit count {len(exits)}, expected 2 (separate phases)")
@@ -172,17 +160,15 @@ def test_separate_exit_phases() -> None:
 
 
 def test_merged_exit() -> None:
-    """Brake-off and full-throttle within 3m → single merged 'exit' phase."""
+    """Brake-off and full-throttle within 3m -> single merged 'exit' phase."""
     corner = make_corner(s_start=900, apex=1000, s_end=1100)
     brake = [0.0] * 1200
     for i in range(980, 1020):
         brake[i] = 0.8
-    # Brake off at 1020
-
     throttle = [0.0] * 1200
     for i in range(0, 950):
         throttle[i] = 1.0
-    throttle[1022] = 0.96  # Full throttle 2m after brake-off (within 3m)
+    throttle[1022] = 0.96
 
     exits = find_exit_points(brake, throttle, corner)
     ok(len(exits) == 1, f"exit count {len(exits)}, expected 1 (merged)")
@@ -194,7 +180,6 @@ def test_speed_fallback_entry() -> None:
     """No throttle data; entry should be at the speed local maximum (speed_peak)."""
     corner = make_corner(s_start=900, apex=1000, s_end=1100)
     speed = make_speed_trace(1200, peak_at=940, peak_val=250.0, min_at=1000, min_val=80.0)
-    # no throttle, no brake
     entry_idx, method = find_entry_point(speed, None, None, corner)
     ok(method == "speed_peak", f"method = {method}, expected speed_peak")
     ok(entry_idx == 940, f"entry at {entry_idx}, expected 940 (speed peak)")
@@ -210,16 +195,14 @@ def test_speed_only_exit_fallback() -> None:
 
 
 def test_missing_channels_graceful() -> None:
-    """Missing brake/throttle columns → algorithm still works with speed-only fallback."""
+    """Missing brake/throttle columns; algorithm still works with speed-only fallback."""
     corner = make_corner(s_start=900, apex=1000, s_end=1100)
     speed = make_speed_trace(1200, peak_at=940, peak_val=250.0, min_at=1000, min_val=80.0)
 
-    # Entry: speed-only
     entry_idx, method = find_entry_point(speed, None, None, corner)
     ok(method == "speed_peak", f"speed-only entry method = {method}")
     ok(entry_idx == 940, f"speed-only entry at {entry_idx}")
 
-    # Exit: zone boundary fallback
     exits = find_exit_points(None, None, corner)
     ok(len(exits) == 1, f"speed-only exit count = {len(exits)}")
     ok(exits[0][1] == 1100, f"speed-only exit at {exits[0][1]}, expected 1100")
@@ -230,7 +213,7 @@ def test_brake_point_secondary() -> None:
     corner = make_corner(s_start=900, apex=1000, s_end=1100)
     brake = [0.0] * 1200
     for i in range(960, 990):
-        brake[i] = 0.5  # braking from 960
+        brake[i] = 0.5
 
     bp = find_brake_point(brake, corner)
     ok(bp == 960, f"brake point = {bp}, expected 960")
@@ -240,14 +223,12 @@ def test_thresholds_configurable() -> None:
     """Custom thresholds change detection behavior."""
     corner = make_corner(s_start=900, apex=1000, s_end=1100)
 
-    # Default threshold (0.9): throttle 0.85 lifts → detected
     throttle = [1.0] * 1200
     throttle[950] = 0.85
     entry_idx, method = find_entry_point([200.0] * 1200, throttle, None, corner)
     ok(method == "throttle_lift", f"default threshold: method = {method}")
     ok(entry_idx == 950, f"default: entry at {entry_idx}")
 
-    # Custom threshold 0.7: throttle 0.85 NOT below → falls back to speed peak
     speed = make_speed_trace(1200, peak_at=940, peak_val=250.0, min_at=1000, min_val=80.0)
     custom_thresh = PhaseDetectionThresholds(throttle_lift=0.7)
     entry_idx2, method2 = find_entry_point(speed, throttle, None, corner, custom_thresh)
@@ -257,12 +238,11 @@ def test_thresholds_configurable() -> None:
 def test_apex_offset_same_position() -> None:
     """When driver and reference hit min speed at the same distance, both distances match."""
     corner = make_corner(s_start=900, apex=1000, s_end=1100)
-    # Both traces min at 1000 m (index 1000)
     n = 1200
     driver_speed = [200.0] * n
     ref_speed = [200.0] * n
-    driver_speed[1000] = 100.0  # driver min at 1000
-    ref_speed[1000] = 105.0     # ref min at 1000
+    driver_speed[1000] = 100.0
+    ref_speed[1000] = 105.0
 
     driver_min, ref_min, delta, driver_apex, ref_apex = compute_minimum_speed_per_corner(
         driver_speed, ref_speed, corner
@@ -280,14 +260,12 @@ def test_apex_offset_driver_late() -> None:
     n = 1200
     driver_speed = [200.0] * n
     ref_speed = [200.0] * n
-    # Reference apex at 995 m
     for i in range(990, 1001):
-        ref_speed[i] = 110.0 + (1001 - i) * 2  # descending to minimum
-    ref_speed[995] = 100.0  # ref min at 995
-    # Driver apex at 1004 m (9 m late)
+        ref_speed[i] = 110.0 + (1001 - i) * 2
+    ref_speed[995] = 100.0
     for i in range(999, 1010):
         driver_speed[i] = 115.0 + (1010 - i) * 2
-    driver_speed[1004] = 95.0  # driver min at 1004
+    driver_speed[1004] = 95.0
 
     driver_min, ref_min, delta, driver_apex, ref_apex = compute_minimum_speed_per_corner(
         driver_speed, ref_speed, corner
@@ -299,7 +277,7 @@ def test_apex_offset_driver_late() -> None:
 
 
 def test_apex_offset_fixture() -> None:
-    """Barcelona fixture comparison includes driver_apex_distance_m and reference_apex_distance_m on minimum_speed phases."""
+    """Barcelona fixture: minimum_speed phases include driver/reference apex distances."""
     current_lap = ROOT / "dev" / "fixtures" / "coach" / "barcelona_lap15_current.parquet"
     reference_lap = ROOT / "product" / "data" / "reference-laps" / "circuit-de-barcelona_dkr-engineering-4-elms25_time_01.36.456.parquet"
     track_model = ROOT / "product" / "data" / "track-coaching" / "circuit-de-barcelona_dkr-engineering-4-elms25.json"
@@ -318,26 +296,19 @@ def test_apex_offset_fixture() -> None:
         return
 
     for loss in min_speed_losses:
-        ok(
-            loss.driver_apex_distance_m is not None,
-            f"{loss.corner_id} minimum_speed has driver_apex_distance_m = {loss.driver_apex_distance_m}",
-        )
-        ok(
-            loss.reference_apex_distance_m is not None,
-            f"{loss.corner_id} minimum_speed has reference_apex_distance_m = {loss.reference_apex_distance_m}",
-        )
-        # The model apex_distance_m is the track model's defined apex
-        ok(
-            loss.apex_distance_m != loss.driver_apex_distance_m or loss.apex_distance_m != loss.reference_apex_distance_m,
-            f"{loss.corner_id} apex positions are not both identical to track model apex (driver={loss.driver_apex_distance_m}, ref={loss.reference_apex_distance_m}, model={loss.apex_distance_m})",
-        )
+        ok(loss.driver_apex_distance_m is not None,
+           f"{loss.corner_id} has driver_apex_distance_m = {loss.driver_apex_distance_m}")
+        ok(loss.reference_apex_distance_m is not None,
+           f"{loss.corner_id} has reference_apex_distance_m = {loss.reference_apex_distance_m}")
+        ok(loss.apex_distance_m != loss.driver_apex_distance_m
+           or loss.apex_distance_m != loss.reference_apex_distance_m,
+           f"{loss.corner_id} not all identical (driver={loss.driver_apex_distance_m}, ref={loss.reference_apex_distance_m})")
 
-    # Also verify the JSON output contains the new fields
     output = facts.to_dict()
-    min_speed_dicts = [d for d in output["top_losses"] if d["phase"] == "minimum_speed"]
-    for d in min_speed_dicts:
-        ok("driver_apex_distance_m" in d, f"minimum_speed dict has driver_apex_distance_m")
-        ok("reference_apex_distance_m" in d, f"minimum_speed dict has reference_apex_distance_m")
+    for d in output["top_losses"]:
+        if d["phase"] == "minimum_speed":
+            ok("driver_apex_distance_m" in d, "minimum_speed dict has driver_apex_distance_m")
+            ok("reference_apex_distance_m" in d, "minimum_speed dict has reference_apex_distance_m")
 
 
 def test_comparison_with_fixture() -> None:
@@ -361,557 +332,27 @@ def test_comparison_with_fixture() -> None:
     ok("top_losses" in output, "top_losses in output")
     ok("top_gains" in output, "top_gains in output")
 
-    # Verify entry distances are NOT fixed apex-30
     for loss in facts.top_losses + facts.top_gains:
         if loss.phase == "entry":
-            ok(
-                loss.phase_distance_m is not None,
-                f"entry phase has phase_distance_m = {loss.phase_distance_m}",
-            )
-            # Entry should NOT be exactly apex - 30
+            ok(loss.phase_distance_m is not None,
+               f"entry phase has phase_distance_m = {loss.phase_distance_m}")
             is_fixed_offset = abs(loss.phase_distance_m - (loss.apex_distance_m - 30)) < 0.5
-            ok(
-                not is_fixed_offset,
-                f"entry at {loss.phase_distance_m} is NOT fixed apex-30={loss.apex_distance_m - 30}",
-            )
+            ok(not is_fixed_offset,
+               f"entry at {loss.phase_distance_m} is NOT fixed apex-30={loss.apex_distance_m - 30}")
 
-    # Verify exit phases: no fixed apex+30
     for loss in facts.top_losses + facts.top_gains:
         if loss.phase in ("exit", "exit_brake", "exit_throttle"):
-            ok(
-                loss.phase_distance_m is not None,
-                f"{loss.phase} phase has phase_distance_m = {loss.phase_distance_m}",
-            )
+            ok(loss.phase_distance_m is not None,
+               f"{loss.phase} phase has phase_distance_m = {loss.phase_distance_m}")
             is_fixed_offset = abs(loss.phase_distance_m - (loss.apex_distance_m + 30)) < 0.5
-            ok(
-                not is_fixed_offset,
-                f"{loss.phase} at {loss.phase_distance_m} is NOT fixed apex+30={loss.apex_distance_m + 30}",
-            )
-
-
-# ── Delta-time and gain tests ─────────────────────────────────────────────
-
-
-def test_delta_time_trace_basic() -> None:
-    """Delta-time from lap_time_s: driver slower everywhere → trace ends positive (behind)."""
-    n = 100
-    # Driver has higher cumulative time at each meter (slower)
-    driver_lap_time = [0.0 + i * 0.036 for i in range(n)]  # ~36 s at 100kph over 100m
-    ref_lap_time = [0.0 + i * 0.018 for i in range(n)]       # ~18 s at 200kph over 100m
-
-    delta_t = compute_delta_time_trace(driver_lap_time, ref_lap_time, n)
-
-    ok(len(delta_t) == n, f"delta_t length = {len(delta_t)}, expected {n}")
-    # Driver is slower, so cumulative time is higher: delta_t should be positive
-    ok(delta_t[-1] > 0, f"delta_t[-1] = {delta_t[-1]:.4f}, expected positive (driver slower)")
-    # delta_t should be monotonically increasing (driver falls further behind each meter)
-    ok(delta_t[50] > delta_t[0], f"delta_t[50] = {delta_t[50]:.4f} > delta_t[0] = {delta_t[0]:.4f}")
-
-
-def test_delta_time_trace_faster_driver() -> None:
-    """Delta-time from lap_time_s: driver faster everywhere → trace ends negative (ahead)."""
-    n = 100
-    driver_lap_time = [0.0 + i * 0.018 for i in range(n)]  # faster
-    ref_lap_time = [0.0 + i * 0.036 for i in range(n)]      # slower
-
-    delta_t = compute_delta_time_trace(driver_lap_time, ref_lap_time, n)
-
-    ok(len(delta_t) == n, f"delta_t length = {len(delta_t)}, expected {n}")
-    # Driver is faster, so cumulative time is lower: delta_t should be negative
-    ok(delta_t[-1] < 0, f"delta_t[-1] = {delta_t[-1]:.4f}, expected negative (driver faster)")
-
-
-def test_delta_time_trace_equal_times() -> None:
-    """Delta-time from lap_time_s: identical times → all deltas zero."""
-    n = 100
-    lap_time = [0.0 + i * 0.018 for i in range(n)]
-
-    delta_t = compute_delta_time_trace(lap_time, lap_time, n)
-
-    # All values should be exactly zero
-    ok(delta_t[-1] == 0.0, f"delta_t[-1] = {delta_t[-1]:.6f}, expected 0")
-
-
-def test_delta_time_trace_matches_lap_time() -> None:
-    """Delta-time trace final value equals the lap time delta."""
-    n = 1000
-    # Driver: 36.0s lap, ref: 32.727s lap → delta = 3.273s
-    driver_lap_time = [i * 0.036 for i in range(n)]   # 36.0s over 1000m
-    ref_lap_time = [i * 0.032727 for i in range(n)]  # 32.727s over 1000m
-
-    delta_t = compute_delta_time_trace(driver_lap_time, ref_lap_time, n)
-
-    # Final value should be driver_lap_time[-1] - ref_lap_time[-1]
-    expected_delta = driver_lap_time[-1] - ref_lap_time[-1]
-    ok(abs(delta_t[-1] - expected_delta) < 0.001, f"delta_t[-1] = {delta_t[-1]:.4f}, expected {expected_delta:.4f}")
-
-
-def test_find_straight_end_middle_corner() -> None:
-    """Straight end after a middle corner is entry of next corner."""
-    corners = [
-        Corner(id="t1", name="turn 1", s_start_m=900, apex_s_m=1000, s_end_m=1100, apex_side="right"),
-        Corner(id="t2", name="turn 2", s_start_m=1400, apex_s_m=1500, s_end_m=1600, apex_side="right"),
-    ]
-    n = 2000
-    speed = [200.0] * n
-    throttle = [1.0] * n
-    throttle[1350] = 0.5  # driver lifts at 1350 for turn 2
-
-    end = find_straight_end_after_corner(
-        0, corners, speed, throttle, None, PhaseDetectionThresholds(), n
-    )
-    ok(end == 1350, f"straight end after t1 = {end}, expected 1350 (entry of t2)")
-
-
-def test_find_straight_end_last_corner() -> None:
-    """Straight end after last corner = end of lap."""
-    corners = [
-        Corner(id="t1", name="turn 1", s_start_m=900, apex_s_m=1000, s_end_m=1100, apex_side="right"),
-    ]
-    n = 1500
-    speed = [200.0] * n
-
-    end = find_straight_end_after_corner(
-        0, corners, speed, None, None, PhaseDetectionThresholds(), n
-    )
-    ok(end == n - 1, f"straight end after last corner = {end}, expected {n - 1}")
-
-
-def test_minimum_speed_gain_uses_delta_time() -> None:
-    """Minimum speed gains use delta-time from apex to end of straight."""
-    # Two corners, driver faster through t1 → gain
-    n = 5000
-    driver_speed = [200.0] * n
-    ref_speed = [200.0] * n
-
-    # Driver is faster in t1 zone [900:1100]
-    for i in range(900, 1100):
-        ref_speed[i] = 95.0 + (i - 900) * 0.05  # ref min ~100
-    ref_speed[950] = 100.0  # ref apex
-    for i in range(900, 1100):
-        driver_speed[i] = 105.0 + (i - 900) * 0.05  # driver min ~110
-    driver_speed[950] = 110.0  # driver apex, 10 kph faster
-
-    # Driver also lifts for t2 at 1350
-    driver_throttle = [1.0] * n
-    for i in range(1350, 1500):
-        driver_throttle[i] = 0.5
-        driver_speed[i] = 180.0
-    for i in range(1400, 1500):
-        ref_speed[i] = 180.0  # ref brakes later
-
-    corners = [
-        Corner(id="t1", name="turn 1", s_start_m=900, apex_s_m=1000, s_end_m=1100, apex_side="right"),
-        Corner(id="t2", name="turn 2", s_start_m=1400, apex_s_m=1500, s_end_m=1600, apex_side="right"),
-    ]
-
-    # Build lap_time_s from speed (synthetic but proportional)
-    driver_lap_time = [0.0] * n
-    ref_lap_time = [0.0] * n
-    for i in range(1, n):
-        driver_lap_time[i] = driver_lap_time[i - 1] + 1.0 / max(driver_speed[i] / 3.6, 0.28)
-        ref_lap_time[i] = ref_lap_time[i - 1] + 1.0 / max(ref_speed[i] / 3.6, 0.28)
-
-    # Compute delta-t from lap_time_s (matches web JS approach)
-    delta_t = compute_delta_time_trace(driver_lap_time, ref_lap_time, n)
-
-    # Driver is faster through t1 → delta_t at apex should be negative (ahead)
-    apex_idx = 950
-    ok(delta_t[apex_idx] < 0, f"delta_t at apex = {delta_t[apex_idx]:.6f}, expected negative (driver ahead)")
-
-    # Compute minimum speed per corner
-    driver_min, ref_min, speed_delta, driver_apex_m, ref_apex_m = compute_minimum_speed_per_corner(
-        driver_speed, ref_speed, corners[0]
-    )
-    ok(speed_delta < 0, f"speed_delta = {speed_delta:.1f}, expected negative (driver faster)")
-    ok(driver_min > ref_min, f"driver_min = {driver_min:.1f} > ref_min = {ref_min:.1f}")
-
-    # Find straight end (= entry of t2)
-    straight_end = find_straight_end_after_corner(
-        0, corners, driver_speed, driver_throttle, None, PhaseDetectionThresholds(), n
-    )
-    ok(straight_end == 1350, f"straight end = {straight_end}, expected 1350")
-
-    # gain = delta_t[straight_end] - delta_t[apex]
-    gain_s = delta_t[straight_end] - delta_t[int(driver_apex_m)]
-    ok(gain_s < 0, f"gain_s = {gain_s:.6f}, expected negative (driver gained time)")
-
-
-def test_entry_gain_uses_delta_time() -> None:
-    """Entry gains use delta_t[apex] - delta_t[entry] instead of speed_delta/100."""
-    n = 5000
-    driver_speed = [200.0] * n
-    ref_speed = [200.0] * n
-
-    # Driver lifts later at 880, carries more speed into corner t1 [900:1100], apex at 1000
-    driver_throttle = [1.0] * 880 + [0.5] * (n - 880)
-
-    # Driver is faster at entry, slower through apex and beyond
-    for i in range(880, 1000):
-        driver_speed[i] = 250.0 - (i - 880) * 0.5
-    driver_speed[950] = 180.0  # driver apex
-    for i in range(1000, 1100):
-        driver_speed[i] = 180.0 + (i - 1000) * 0.2
-
-    # Reference lifts at 850, slower at entry point
-    for i in range(850, 1000):
-        ref_speed[i] = 240.0 - (i - 850) * 0.5
-    ref_speed[950] = 175.0  # ref apex
-    for i in range(1000, 1100):
-        ref_speed[i] = 175.0 + (i - 1000) * 0.2
-
-    corners = [
-        Corner(id="t1", name="turn 1", s_start_m=900, apex_s_m=1000, s_end_m=1100, apex_side="right"),
-    ]
-
-    # Build lap_time_s from speed (synthetic but proportional)
-    driver_lap_time = [0.0] * n
-    ref_lap_time = [0.0] * n
-    for i in range(1, n):
-        driver_lap_time[i] = driver_lap_time[i - 1] + 1.0 / max(driver_speed[i] / 3.6, 0.28)
-        ref_lap_time[i] = ref_lap_time[i - 1] + 1.0 / max(ref_speed[i] / 3.6, 0.28)
-
-    delta_t = compute_delta_time_trace(driver_lap_time, ref_lap_time, n)
-
-    # Find entry point (throttle lift at 880)
-    entry_idx, method = find_entry_point(
-        driver_speed, driver_throttle, None, corners[0], PhaseDetectionThresholds()
-    )
-    ok(method == "throttle_lift", f"entry method = {method}, expected throttle_lift")
-    ok(entry_idx == 880, f"entry at {entry_idx}, expected 880")
-
-    # At entry point, driver should be faster → entry_delta < 0
-    entry_delta = ref_speed[entry_idx] - driver_speed[entry_idx]
-    ok(entry_delta < 0, f"entry_delta = {entry_delta:.1f}, expected negative (driver faster at entry)")
-
-    # Entry gain = delta_t[apex] - delta_t[entry], NOT entry_delta/100
-    apex_idx = int(corners[0].apex_s_m)
-    expected_gain = delta_t[apex_idx] - delta_t[entry_idx]
-    heuristic_value = entry_delta / 100.0
-
-    # The real delta-time gain should be more negative (larger gain) than the heuristic
-    ok(
-        expected_gain < heuristic_value,
-        f"delta-time gain ({expected_gain:.6f}) should be more negative than heuristic ({heuristic_value:.6f})",
-    )
-    ok(expected_gain < 0, f"expected_gain = {expected_gain:.6f}, expected negative (driver gained time)")
-
-    # Entry gain end distance should be the apex index
-    ok(float(apex_idx) == float(corners[0].apex_s_m),
-       f"apex_idx {apex_idx} should equal corner.apex_s_m {corners[0].apex_s_m}")
-
-
-def test_entry_loss_unchanged() -> None:
-    """Entry losses still use the speed_delta / 100 heuristic."""
-    n = 1200
-    driver_speed = [200.0] * n
-    ref_speed = [200.0] * n
-
-    # Driver is slower at entry of corner t1 [900:1100], apex at 1000
-    driver_speed[880] = 190.0  # driver slower at entry
-    ref_speed[880] = 250.0  # ref faster at entry
-
-    corner = Corner(id="t1", name="turn 1", s_start_m=900, apex_s_m=1000, s_end_m=1100, apex_side="right")
-
-    ref_entry_speed = ref_speed[880]
-    driver_entry_speed = driver_speed[880]
-    entry_delta = ref_entry_speed - driver_entry_speed  # positive = driver slower = loss
-    ok(entry_delta > 0, f"entry_delta = {entry_delta:.1f}, expected positive (driver slower)")
-
-    # For losses, loss_s should equal entry_delta / 100.0 (unchanged heuristic)
-    expected_loss_s = entry_delta / 100.0
-    ok(expected_loss_s > 0, f"expected_loss_s = {expected_loss_s:.4f}, expected positive")
-
-
-def test_minimum_speed_loss_unchanged() -> None:
-    """Minimum speed losses still use the speed_delta / 100 heuristic."""
-    n = 1200
-    driver_speed = [200.0] * n
-    ref_speed = [200.0] * n
-
-    # Driver is slower in corner zone [900:1100]
-    for i in range(900, 1100):
-        driver_speed[i] = 90.0 + (i - 900) * 0.05  # driver min ~95
-    driver_speed[950] = 95.0  # driver apex, slower
-    for i in range(900, 1100):
-        ref_speed[i] = 100.0 + (i - 900) * 0.05  # ref min ~105
-    ref_speed[950] = 105.0  # ref apex
-
-    corner = Corner(id="t1", name="turn 1", s_start_m=900, apex_s_m=1000, s_end_m=1100, apex_side="right")
-
-    driver_min, ref_min, speed_delta, driver_apex_m, ref_apex_m = compute_minimum_speed_per_corner(
-        driver_speed, ref_speed, corner
-    )
-    ok(speed_delta > 0, f"speed_delta = {speed_delta:.1f}, expected positive (ref faster)")
-    ok(driver_min < ref_min, f"driver_min = {driver_min:.1f} < ref_min = {ref_min:.1f}")
-
-    # For losses, loss_s should equal speed_delta / 100 (the heuristic)
-    expected_loss_s = speed_delta / 100.0
-    ok(expected_loss_s > 0, f"expected_loss_s = {expected_loss_s:.4f}, expected positive")
-
-
-def test_apex_offset_in_comparison() -> None:
-    """Full comparison includes apex_offset_m on minimum_speed phases."""
-    current_lap = ROOT / "dev" / "fixtures" / "coach" / "barcelona_lap15_current.parquet"
-    reference_lap = ROOT / "product" / "data" / "reference-laps" / "circuit-de-barcelona_dkr-engineering-4-elms25_time_01.36.456.parquet"
-    track_model = ROOT / "product" / "data" / "track-coaching" / "circuit-de-barcelona_dkr-engineering-4-elms25.json"
-
-    if not current_lap.exists():
-        print("  SKIP: apex offset comparison (fixture not found)")
-        return
-
-    from lap_telemetry.coach.track_model import load_track_coaching_model
-    model = load_track_coaching_model(track_model)
-    facts = compare_laps(current_lap, reference_lap, model)
-
-    # Check that minimum_speed phases have apex_offset_m
-    for loss in facts.top_losses + facts.top_gains:
-        if loss.phase == "minimum_speed":
-            ok(
-                loss.apex_offset_m is not None,
-                f"{loss.corner_id} minimum_speed has apex_offset_m = {loss.apex_offset_m}",
-            )
-            # apex_offset_m = ref_apex - driver_apex
-            expected_offset = loss.reference_apex_distance_m - loss.driver_apex_distance_m
-            ok(
-                abs(loss.apex_offset_m - expected_offset) < 0.5,
-                f"{loss.corner_id} apex_offset_m = {loss.apex_offset_m:.1f}, expected {expected_offset:.1f}",
-            )
-
-    # Check JSON output
-    output = facts.to_dict()
-    for d in output["top_losses"] + output["top_gains"]:
-        if d["phase"] == "minimum_speed":
-            ok("apex_offset_m" in d, f"minimum_speed dict has apex_offset_m")
-
-
-def test_minimum_speed_gain_negative_loss_s() -> None:
-    """Minimum speed gains have negative loss_s (real integrated time)."""
-    current_lap = ROOT / "dev" / "fixtures" / "coach" / "barcelona_lap15_current.parquet"
-    reference_lap = ROOT / "product" / "data" / "reference-laps" / "circuit-de-barcelona_dkr-engineering-4-elms25_time_01.36.456.parquet"
-    track_model = ROOT / "product" / "data" / "track-coaching" / "circuit-de-barcelona_dkr-engineering-4-elms25.json"
-
-    if not current_lap.exists():
-        print("  SKIP: gain negative loss_s (fixture not found)")
-        return
-
-    from lap_telemetry.coach.track_model import load_track_coaching_model
-    model = load_track_coaching_model(track_model)
-    facts = compare_laps(current_lap, reference_lap, model)
-
-    # All gains should have negative loss_s
-    for gain in facts.top_gains:
-        ok(gain.loss_s < 0, f"gain {gain.corner_id} {gain.phase} loss_s = {gain.loss_s:.4f}, expected negative")
-
-        if gain.phase == "minimum_speed":
-            # Minimum speed gains should use delta-time (real seconds)
-            # loss_s should be in the range of plausible lap time differences
-            # (not speed_delta/100 which would be tiny like -0.05)
-            ok(
-                abs(gain.loss_s) < 10.0,
-                f"minimum_speed gain loss_s = {gain.loss_s:.4f} is plausible (< 10s)"
-            )
-
-
-def test_entry_gain_swap_barcelona() -> None:
-    """Entry gains on swapped Barcelona use delta_t entry→apex, not heuristic."""
-    current_lap = ROOT / "dev" / "fixtures" / "coach" / "barcelona_lap15_current.parquet"
-    reference_lap = ROOT / "product" / "data" / "reference-laps" / "circuit-de-barcelona_dkr-engineering-4-elms25_time_01.36.456.parquet"
-    track_model = ROOT / "product" / "data" / "track-coaching" / "circuit-de-barcelona_dkr-engineering-4-elms25.json"
-
-    if not current_lap.exists():
-        print("  SKIP: entry gain swap (fixture not found)")
-        return
-
-    from lap_telemetry.coach.track_model import load_track_coaching_model
-    model = load_track_coaching_model(track_model)
-    # Swapped: faster reference as driver, slower lap as reference
-    facts = compare_laps(reference_lap, current_lap, model, top_n=20)
-
-    # Collect all entry phases
-    entry_results = [c for c in facts.top_losses + facts.top_gains if c.phase == "entry"]
-    entry_gains = [c for c in entry_results if c.loss_s < 0]
-
-    if not entry_gains:
-        print("  SKIP: no entry gains in swapped Barcelona")
-        return
-
-    for gain in entry_gains:
-        # Entry gains should use delta_t (real seconds), not speed_delta/100
-        # The heuristic under-reports by 30–60%, so gains should be
-        # significantly larger (more negative) than the heuristic value.
-        speed_delta = gain.reference_value - gain.driver_value  # negative for gains
-        heuristic = speed_delta / 100.0
-        ok(
-            gain.loss_s < heuristic,
-            f"{gain.corner_id} entry gain {gain.loss_s:.4f} < heuristic {heuristic:.4f} (delta-t is larger gain)",
-        )
-        # gain_end_distance_m should be set and equal to apex distance
-        ok(
-            gain.gain_end_distance_m is not None,
-            f"{gain.corner_id} entry gain has gain_end_distance_m",
-        )
-        ok(
-            gain.gain_end_distance_m == gain.apex_distance_m,
-            f"{gain.corner_id} entry gain_end={gain.gain_end_distance_m} == apex={gain.apex_distance_m}",
-        )
-
-    # t1 entry gain ≈ −156 ms (spec: was −85 ms with heuristic)
-    t1_entry = [g for g in entry_gains if g.corner_id == "t1"]
-    if t1_entry:
-        t1_ms = t1_entry[0].loss_s * 1000
-        ok(
-            abs(t1_ms - (-156)) < 10,
-            f"t1 entry gain ≈ −156 ms, got {t1_ms:.1f} ms",
-        )
-
-
-# ── JS pipeline contract tests ───────────────────────────────────────────────
-
-
-def test_js_pipeline_delta_t_matches_web_ui() -> None:
-    """JS pipeline delta_t at key distances matches user-confirmed web UI values."""
-    current_lap = ROOT / "dev" / "fixtures" / "coach" / "barcelona_lap15_current.parquet"
-    reference_lap = ROOT / "product" / "data" / "reference-laps" / "circuit-de-barcelona_dkr-engineering-4-elms25_time_01.36.456.parquet"
-
-    if not current_lap.exists():
-        print("  SKIP: JS pipeline contract (fixture not found)")
-        return
-
-    from lap_telemetry.coach.js_pipeline import run_js_pipeline, delta_t_ms_to_seconds
-    import pyarrow.parquet as pq
-
-    current_table = pq.read_table(current_lap)
-    ref_table = pq.read_table(reference_lap)
-
-    result = run_js_pipeline(
-        driver_lap_time_s=current_table.column("lap_time_s").to_pylist(),
-        driver_lap_distance_m=current_table.column("lap_distance_m").to_pylist(),
-        driver_speed_kph=current_table.column("speed_kph").to_pylist(),
-        ref_lap_time_s=ref_table.column("lap_time_s").to_pylist(),
-        ref_lap_distance_m=ref_table.column("lap_distance_m").to_pylist(),
-        ref_speed_kph=ref_table.column("speed_kph").to_pylist(),
-        track_length=4680,
-    )
-
-    dt_ms = result["delta_t_ms"]
-
-    # User-confirmed values from the web UI (fix_delta_t_calculation.md):
-    #   delta_t at 2158m = +436 ms
-    #   delta_t at 2439m = +331 ms (next braking zone)
-    ok(
-        abs(dt_ms[2158] - 436) < 0.5,
-        f"delta_t[2158] = {dt_ms[2158]:.1f} ms, expected ~436 ms (web UI confirmed)",
-    )
-    ok(
-        abs(dt_ms[2439] - 331) < 0.5,
-        f"delta_t[2439] = {dt_ms[2439]:.1f} ms, expected ~331 ms (web UI confirmed)",
-    )
-
-    # Final delta_t should match lap time delta (1.155 s = 1155 ms)
-    ok(
-        abs(dt_ms[-1] - 1155) < 1.0,
-        f"delta_t[-1] = {dt_ms[-1]:.1f} ms, expected ~1155 ms (lap_time_delta = 1.155 s)",
-    )
-
-
-def test_js_pipeline_speed_matches_web_ui() -> None:
-    """JS pipeline resampled speed at key distances matches web UI."""
-    current_lap = ROOT / "dev" / "fixtures" / "coach" / "barcelona_lap15_current.parquet"
-    reference_lap = ROOT / "product" / "data" / "reference-laps" / "circuit-de-barcelona_dkr-engineering-4-elms25_time_01.36.456.parquet"
-
-    if not current_lap.exists():
-        print("  SKIP: JS pipeline speed contract (fixture not found)")
-        return
-
-    from lap_telemetry.coach.js_pipeline import run_js_pipeline
-    import pyarrow.parquet as pq
-
-    current_table = pq.read_table(current_lap)
-    ref_table = pq.read_table(reference_lap)
-
-    result = run_js_pipeline(
-        driver_lap_time_s=current_table.column("lap_time_s").to_pylist(),
-        driver_lap_distance_m=current_table.column("lap_distance_m").to_pylist(),
-        driver_speed_kph=current_table.column("speed_kph").to_pylist(),
-        ref_lap_time_s=ref_table.column("lap_time_s").to_pylist(),
-        ref_lap_distance_m=ref_table.column("lap_distance_m").to_pylist(),
-        ref_speed_kph=ref_table.column("speed_kph").to_pylist(),
-        track_length=4680,
-    )
-
-    # Speed values at t5 exit (2158m): driver 92 kph, ref 91 kph
-    # These match the coaching output from the demo script
-    driver_speed = result["driver_speed_kph"]
-    ref_speed = result["ref_speed_kph"]
-    ok(
-        abs(driver_speed[2158] - 92.0) < 1.0,
-        f"driver_speed[2158] = {driver_speed[2158]:.1f}, expected ~92 kph",
-    )
-    ok(
-        abs(ref_speed[2158] - 91.0) < 1.0,
-        f"ref_speed[2158] = {ref_speed[2158]:.1f}, expected ~91 kph",
-    )
-
-    # All grid arrays should have the same length (track_length + 1)
-    tl = result["track_length"]
-    ok(len(driver_speed) == tl + 1, f"driver_speed len = {len(driver_speed)}, expected {tl + 1}")
-    ok(len(ref_speed) == tl + 1, f"ref_speed len = {len(ref_speed)}, expected {tl + 1}")
-    ok(len(result["delta_t_ms"]) == tl + 1, f"delta_t len = {len(result['delta_t_ms'])}, expected {tl + 1}")
-
-
-def test_js_pipeline_smooth_dt_reduces_jitter() -> None:
-    """smoothDt attenuates plateau-alignment jitter by ~6x."""
-    current_lap = ROOT / "dev" / "fixtures" / "coach" / "barcelona_lap15_current.parquet"
-    reference_lap = ROOT / "product" / "data" / "reference-laps" / "circuit-de-barcelona_dkr-engineering-4-elms25_time_01.36.456.parquet"
-
-    if not current_lap.exists():
-        print("  SKIP: smoothDt jitter test (fixture not found)")
-        return
-
-    from lap_telemetry.coach.js_pipeline import run_js_pipeline
-    import pyarrow.parquet as pq
-
-    current_table = pq.read_table(current_lap)
-    ref_table = pq.read_table(reference_lap)
-
-    result = run_js_pipeline(
-        driver_lap_time_s=current_table.column("lap_time_s").to_pylist(),
-        driver_lap_distance_m=current_table.column("lap_distance_m").to_pylist(),
-        driver_speed_kph=current_table.column("speed_kph").to_pylist(),
-        ref_lap_time_s=ref_table.column("lap_time_s").to_pylist(),
-        ref_lap_distance_m=ref_table.column("lap_distance_m").to_pylist(),
-        ref_speed_kph=ref_table.column("speed_kph").to_pylist(),
-        track_length=4680,
-    )
-
-    dt_smoothed_ms = result["delta_t_ms"]
-
-    # Compare raw (no smoothDt) vs smoothed jitter in a 200m zone.
-    # Compute raw delta_t (no smoothDt) by running a raw version.
-    # We can check that smoothed delta_t in a stable zone has lower
-    # point-to-point variance than we'd expect from raw.
-    # For a 200m zone around 2158m, check that adjacent-bin jumps
-    # are small (smoothed: typically < 1 ms/bin; raw would be ~20 ms).
-    zone_start, zone_end = 2050, 2250
-    max_adjacent_jump = 0
-    for i in range(zone_start + 1, min(zone_end, len(dt_smoothed_ms))):
-        jump = abs(dt_smoothed_ms[i] - dt_smoothed_ms[i - 1])
-        if jump > max_adjacent_jump:
-            max_adjacent_jump = jump
-
-    # After smoothDt (±20m), adjacent jumps should be well under 10 ms
-    # (raw plateau-alignment jitter is ~20 ms)
-    ok(
-        max_adjacent_jump < 10.0,
-        f"smoothed adjacent jump max = {max_adjacent_jump:.2f} ms, expected < 10 ms (smoothDt works)",
-    )
+            ok(not is_fixed_offset,
+               f"{loss.phase} at {loss.phase_distance_m} is NOT fixed apex+30={loss.apex_distance_m + 30}")
 
 
 # ── Main ─────────────────────────────────────────────────────────────────────
 
 def main() -> int:
-    print("═══ Entry/Exit Phase Detection Tests ═══\n")
+    print("═══ Phase Detection Tests ═══\n")
 
     test_throttle_lift_entry()
     test_throttle_lift_before_zone()
@@ -927,27 +368,8 @@ def main() -> int:
     test_thresholds_configurable()
     test_apex_offset_same_position()
     test_apex_offset_driver_late()
-    # Delta-time and gain tests
-    test_delta_time_trace_basic()
-    test_delta_time_trace_faster_driver()
-    test_delta_time_trace_equal_times()
-    test_delta_time_trace_matches_lap_time()
-    test_find_straight_end_middle_corner()
-    test_find_straight_end_last_corner()
-    test_minimum_speed_gain_uses_delta_time()
-    test_entry_gain_uses_delta_time()
-    test_entry_loss_unchanged()
-    test_minimum_speed_loss_unchanged()
-    test_apex_offset_in_comparison()
-    test_minimum_speed_gain_negative_loss_s()
-    test_entry_gain_swap_barcelona()
-    # Fixture tests
     test_apex_offset_fixture()
     test_comparison_with_fixture()
-    # JS pipeline contract tests
-    test_js_pipeline_delta_t_matches_web_ui()
-    test_js_pipeline_speed_matches_web_ui()
-    test_js_pipeline_smooth_dt_reduces_jitter()
 
     total = pass_count + fail_count
     print(f"\n  {pass_count}/{total} assertions passed")

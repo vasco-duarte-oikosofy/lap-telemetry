@@ -5,13 +5,13 @@ from pathlib import Path
 
 import pyarrow.parquet as pq
 
+from .entry_detection import find_entry_point, find_brake_point
+from .exit_detection import find_exit_points
 from .facts import PhaseDetectionThresholds, CornerLoss, LapComparisonFacts
 from .js_pipeline import run_js_pipeline, delta_t_ms_to_seconds
 from .resample import resample_column, compute_delta_time_trace
 from .track_model import TrackCoachingModel, Corner
 
-# Minimum speed
-# ---------------------------------------------------------------------------
 
 def compute_minimum_speed_per_corner(
     driver_speed: list[float],
@@ -23,26 +23,22 @@ def compute_minimum_speed_per_corner(
     Returns (driver_min_speed, ref_min_speed, speed_delta_kph,
              driver_apex_distance_m, reference_apex_distance_m).
     Positive speed_delta means driver was slower.
-    Apex distances are the lap-distance positions where each lap
-    reaches its minimum speed within the corner zone.
     """
     start_idx = int(corner.s_start_m)
     end_idx = min(int(corner.s_end_m) + 1, len(driver_speed))
-
     if start_idx >= len(driver_speed) or end_idx <= start_idx:
         return 0.0, 0.0, 0.0, float(start_idx), float(start_idx)
 
     driver_zone = driver_speed[start_idx:end_idx]
     driver_min = min(driver_zone)
-    driver_min_offset = driver_zone.index(driver_min)
-    driver_apex_m = float(start_idx + driver_min_offset)
+    driver_apex_m = float(start_idx + driver_zone.index(driver_min))
 
     ref_zone = ref_speed[start_idx:end_idx]
     ref_min = min(ref_zone)
-    ref_min_offset = ref_zone.index(ref_min)
-    ref_apex_m = float(start_idx + ref_min_offset)
+    ref_apex_m = float(start_idx + ref_zone.index(ref_min))
 
     return driver_min, ref_min, ref_min - driver_min, driver_apex_m, ref_apex_m
+
 
 def find_straight_end_after_corner(
     corner_index: int,
@@ -59,9 +55,7 @@ def find_straight_end_after_corner(
     For the last corner, returns track_length - 1 (end of lap).
     """
     if corner_index >= len(corners) - 1:
-        # Last corner: measure to end of lap
         return track_length - 1 if track_length > 0 else 0
-
     next_corner = corners[corner_index + 1]
     entry_idx, _method = find_entry_point(
         driver_speed, driver_throttle, driver_brake,
@@ -69,149 +63,6 @@ def find_straight_end_after_corner(
     )
     return entry_idx
 
-# Entry phase detection
-
-def find_entry_point(
-    speed: list[float],
-    throttle: list[float] | None,
-    brake: list[float] | None,
-    corner: Corner,
-    thresholds: PhaseDetectionThresholds = PhaseDetectionThresholds(),
-    look_back_m: float = 200.0,
-) -> tuple[int, str]:
-    """Find the entry phase distance for a corner.
-
-    Scans from (s_start_m - look_back_m) toward apex using throttle
-    (preferred) or speed local maximum (fallback) to find where corner
-    entry begins. The look-back extends the search into the preceding
-    straight, because throttle lift and braking often start well before
-    the formal corner zone.
-
-    Returns (distance_m, detection_method) where detection_method is
-    'throttle_lift', 'speed_peak', or 'zone_start'.
-    """
-    # Search starts look_back_m before zone start, clamped to 0.
-    search_start = max(0, int(corner.s_start_m - look_back_m))
-    apex_idx = min(int(corner.apex_s_m), len(speed) - 1)
-
-    if apex_idx <= search_start:
-        return max(0, int(corner.s_start_m)), "zone_start"
-
-    # --- Throttle lift (preferred) ---
-    if throttle is not None:
-        # Scan from look-back start toward apex. Find the first index where
-        # throttle drops below threshold *after* being at or above it
-        # (i.e. the transition from full-throttle straight to lift-off).
-        was_full_throttle = False
-        for i in range(search_start, apex_idx + 1):
-            if i >= len(throttle):
-                break
-            if throttle[i] >= thresholds.throttle_lift:
-                was_full_throttle = True
-            elif was_full_throttle:
-                return i, "throttle_lift"
-
-    # --- Speed local maximum (fallback) ---
-    zone_speeds = speed[search_start:apex_idx + 1]
-    if zone_speeds:
-        max_val = max(zone_speeds)
-        max_offset = zone_speeds.index(max_val)
-        return search_start + max_offset, "speed_peak"
-
-    return max(0, int(corner.s_start_m)), "zone_start"
-
-def find_brake_point(
-    brake: list[float] | None,
-    corner: Corner,
-    thresholds: PhaseDetectionThresholds = PhaseDetectionThresholds(),
-    look_back_m: float = 200.0,
-) -> int | None:
-    """Find the brake application point (secondary entry fact).
-
-    Scans from (s_start_m - look_back_m) toward apex; returns the first
-    index where brake rises above the threshold after being at or below
-    it, or None.
-    """
-    if brake is None:
-        return None
-
-    search_start = max(0, int(corner.s_start_m - look_back_m))
-    apex_idx = min(int(corner.apex_s_m), len(brake) - 1)
-
-    was_no_brake = False
-    for i in range(search_start, apex_idx + 1):
-        if brake[i] <= thresholds.brake_apply:
-            was_no_brake = True
-        elif was_no_brake:
-            return i
-
-    return None
-
-# Exit phase detection
-
-def find_exit_points(
-    brake: list[float] | None,
-    throttle: list[float] | None,
-    corner: Corner,
-    thresholds: PhaseDetectionThresholds = PhaseDetectionThresholds(),
-) -> list[tuple[str, int]]:
-    """Find exit phase distances for a corner.
-
-    Walks forward from apex toward s_end_m using brake and throttle
-    channels to detect brake release (exit_brake) and full-throttle
-    (exit_throttle) points.
-
-    Returns list of (phase_name, distance_m).
-    When both are detected and within merge tolerance, emits a single
-    "exit" at the midpoint.  When only one channel is available, emits
-    "exit" at that point.  Falls back to s_end_m when neither is found.
-    """
-    apex_idx = max(0, int(corner.apex_s_m))
-    end_idx = min(int(corner.s_end_m), len(brake or throttle or []) - 1 if (brake or throttle) else int(corner.s_end_m))
-
-    exit_brake_s: int | None = None
-    exit_throttle_s: int | None = None
-
-    # --- Brake release (exit-1) ---
-    if brake is not None:
-        end_idx_brake = min(int(corner.s_end_m), len(brake) - 1)
-        was_braking = False
-        for i in range(apex_idx, end_idx_brake + 1):
-            if brake[i] > thresholds.brake_apply:
-                was_braking = True
-            if was_braking and brake[i] < thresholds.brake_off:
-                exit_brake_s = i
-                break
-
-    # --- Full throttle (exit-2) ---
-    if throttle is not None:
-        end_idx_throttle = min(int(corner.s_end_m), len(throttle) - 1)
-        was_partial = False
-        for i in range(apex_idx, end_idx_throttle + 1):
-            if throttle[i] < thresholds.throttle_full:
-                was_partial = True
-            if was_partial and throttle[i] >= thresholds.throttle_full:
-                exit_throttle_s = i
-                break
-
-    # Merge logic
-    if exit_brake_s is not None and exit_throttle_s is not None:
-        if abs(exit_brake_s - exit_throttle_s) <= thresholds.exit_merge_tolerance_m:
-            mid = round((exit_brake_s + exit_throttle_s) / 2)
-            return [("exit", mid)]
-        return [("exit_brake", exit_brake_s), ("exit_throttle", exit_throttle_s)]
-
-    if exit_brake_s is not None:
-        return [("exit", exit_brake_s)]
-    if exit_throttle_s is not None:
-        return [("exit", exit_throttle_s)]
-
-    # Neither channel detected → fall back to zone boundary
-    return [("exit", int(corner.s_end_m))]
-
-# ---------------------------------------------------------------------------
-# Column extraction helper
-# ---------------------------------------------------------------------------
 
 def _try_column(table, name: str) -> list[float] | None:
     """Extract a column from a Parquet table; return None if missing."""
@@ -221,9 +72,6 @@ def _try_column(table, name: str) -> list[float] | None:
     except (KeyError, AttributeError):
         return None
 
-# ---------------------------------------------------------------------------
-# Main comparison
-# ---------------------------------------------------------------------------
 
 def compare_laps(
     current_lap_path: Path | str,
@@ -237,24 +85,13 @@ def compare_laps(
     Uses phase-detection (throttle lift / speed peak / brake release /
     full throttle) per corner. Delta-t computed via JS pipeline
     (product/web/js/pipeline.js) to match the web UI exactly.
-
-    Args:
-        current_lap_path: Path to current lap Parquet file.
-        reference_lap_path: Path to reference lap Parquet file.
-        track_model: Track coaching model with corner definitions.
-        thresholds: Phase detection thresholds (uses defaults if None).
-
-    Returns:
-        LapComparisonFacts with top losses and gains.
     """
     if thresholds is None:
         thresholds = PhaseDetectionThresholds()
 
-    # Load both laps
     current_table = pq.read_table(current_lap_path)
     ref_table = pq.read_table(reference_lap_path)
 
-    # Extract mandatory columns
     current_dist = current_table.column("lap_distance_m").to_pylist()
     current_speed = current_table.column("speed_kph").to_pylist()
     current_lap_times = current_table.column("lap_time_s").to_pylist()
@@ -263,17 +100,12 @@ def compare_laps(
     ref_speed = ref_table.column("speed_kph").to_pylist()
     ref_lap_times = ref_table.column("lap_time_s").to_pylist()
 
-    # Extract optional pedal channels
     driver_throttle = _try_column(current_table, "throttle_norm")
     driver_brake = _try_column(current_table, "brake_norm")
-    # Reference pedal channels not used for phase detection yet.
 
-    # Track length for computeKeepIndices (JS pipeline uses this for halfTrack).
     max_dist = int(max(max(current_dist), max(ref_dist)))
     track_length = min(max_dist, int(track_model.lap_length_m))
 
-    # Run JS telemetry pipeline — same 6-step pipeline as web UI
-    # (computeKeepIndices, smoothLapTime, resample, clamp, computeDeltaT, smoothDt).
     js_result = run_js_pipeline(
         driver_lap_time_s=current_lap_times,
         driver_lap_distance_m=current_dist,
@@ -293,19 +125,15 @@ def compare_laps(
     driver_brake_grid = js_result["driver_brake_norm"]
     track_length = js_result["track_length"]
 
-    # Compute lap time delta
     driver_lap_time = max(t for t in current_lap_times if t is not None and t > 0)
     ref_lap_time = max(t for t in ref_lap_times if t is not None and t > 0)
     lap_time_delta = driver_lap_time - ref_lap_time
 
-    # Get lap number
     lap_numbers = current_table.column("lap_number").to_pylist()
     lap_number = max(lap_numbers) if lap_numbers else 0
 
-    # Analyze each corner
     corner_losses: list[CornerLoss] = []
     for corner_idx, corner in enumerate(track_model.corners):
-        # Pre-compute straight end for this corner (used for gain measurement)
         straight_end = find_straight_end_after_corner(
             corner_idx, track_model.corners,
             driver_speed, driver_throttle_grid, driver_brake_grid,
@@ -313,31 +141,24 @@ def compare_laps(
         )
 
         # --- Minimum speed ---
-        driver_min, ref_min, speed_delta, driver_apex_m, ref_apex_m = compute_minimum_speed_per_corner(
-            driver_speed, ref_speed_grid, corner
+        driver_min, ref_min, speed_delta, driver_apex_m, ref_apex_m = (
+            compute_minimum_speed_per_corner(driver_speed, ref_speed_grid, corner)
         )
         if abs(speed_delta) > 0.5:
             if speed_delta > 0:
-                # LOSS — unchanged heuristic
                 loss_s = speed_delta / 100.0
             else:
-                # GAIN — real integrated time from apex to end of straight
                 apex_idx = int(driver_apex_m)
                 if 0 <= apex_idx < len(delta_t) and 0 <= straight_end < len(delta_t):
                     loss_s = delta_t[straight_end] - delta_t[apex_idx]
                 else:
-                    # Fallback to heuristic if delta-t indices are out of range
                     loss_s = speed_delta / 100.0
 
             corner_losses.append(CornerLoss(
-                corner_id=corner.id,
-                corner_name=corner.name,
-                apex_distance_m=corner.apex_s_m,
-                phase="minimum_speed",
-                loss_s=loss_s,
-                driver_value=driver_min,
-                reference_value=ref_min,
-                unit="km/h",
+                corner_id=corner.id, corner_name=corner.name,
+                apex_distance_m=corner.apex_s_m, phase="minimum_speed",
+                loss_s=loss_s, driver_value=driver_min,
+                reference_value=ref_min, unit="km/h",
                 confidence="high" if abs(speed_delta) > 2.0 else "medium",
                 driver_apex_distance_m=driver_apex_m,
                 reference_apex_distance_m=ref_apex_m,
@@ -345,7 +166,7 @@ def compare_laps(
                 gain_end_distance_m=float(straight_end) if speed_delta < 0 else None,
             ))
 
-        # --- Entry phase (algorithm-driven) ---
+        # --- Entry phase ---
         entry_idx, _method = find_entry_point(
             driver_speed, driver_throttle_grid, driver_brake_grid,
             corner, thresholds,
@@ -357,33 +178,28 @@ def compare_laps(
             if abs(entry_delta) > 1.0:
                 apex_idx = int(corner.apex_s_m)
                 if entry_delta < 0:
-                    # GAIN — real delta-time from entry to apex
-                    if 0 <= entry_idx < len(delta_t) and 0 <= apex_idx < len(delta_t) and entry_idx < apex_idx:
+                    if (0 <= entry_idx < len(delta_t)
+                            and 0 <= apex_idx < len(delta_t)
+                            and entry_idx < apex_idx):
                         loss_s = delta_t[apex_idx] - delta_t[entry_idx]
                     else:
-                        loss_s = entry_delta / 100.0  # fallback heuristic
+                        loss_s = entry_delta / 100.0
                 else:
-                    # LOSS — unchanged heuristic
                     loss_s = entry_delta / 100.0
 
                 corner_losses.append(CornerLoss(
-                    corner_id=corner.id,
-                    corner_name=corner.name,
-                    apex_distance_m=corner.apex_s_m,
-                    phase="entry",
-                    loss_s=loss_s,
-                    driver_value=driver_entry_speed,
-                    reference_value=ref_entry_speed,
-                    unit="km/h",
+                    corner_id=corner.id, corner_name=corner.name,
+                    apex_distance_m=corner.apex_s_m, phase="entry",
+                    loss_s=loss_s, driver_value=driver_entry_speed,
+                    reference_value=ref_entry_speed, unit="km/h",
                     confidence="medium",
                     phase_distance_m=float(entry_idx),
                     gain_end_distance_m=float(apex_idx) if entry_delta < 0 else None,
                 ))
 
-        # --- Exit phase(s) (algorithm-driven) ---
+        # --- Exit phase(s) ---
         exit_points = find_exit_points(
-            driver_brake_grid, driver_throttle_grid,
-            corner, thresholds,
+            driver_brake_grid, driver_throttle_grid, corner, thresholds,
         )
         for phase_name, exit_idx in exit_points:
             if 0 <= exit_idx < len(driver_speed):
@@ -392,37 +208,27 @@ def compare_laps(
                 exit_delta = ref_exit_speed - driver_exit_speed
                 if abs(exit_delta) > 1.0:
                     if exit_delta > 0:
-                        # LOSS — unchanged heuristic
                         loss_s = exit_delta / 100.0
                     else:
-                        # GAIN — real integrated time from exit to end of straight
-                        if 0 <= exit_idx < len(delta_t) and 0 <= straight_end < len(delta_t):
+                        if (0 <= exit_idx < len(delta_t)
+                                and 0 <= straight_end < len(delta_t)):
                             loss_s = delta_t[straight_end] - delta_t[exit_idx]
                         else:
-                            # Fallback to heuristic if delta-t indices are out of range
                             loss_s = exit_delta / 100.0
 
                     corner_losses.append(CornerLoss(
-                        corner_id=corner.id,
-                        corner_name=corner.name,
-                        apex_distance_m=corner.apex_s_m,
-                        phase=phase_name,
-                        loss_s=loss_s,
-                        driver_value=driver_exit_speed,
-                        reference_value=ref_exit_speed,
-                        unit="km/h",
+                        corner_id=corner.id, corner_name=corner.name,
+                        apex_distance_m=corner.apex_s_m, phase=phase_name,
+                        loss_s=loss_s, driver_value=driver_exit_speed,
+                        reference_value=ref_exit_speed, unit="km/h",
                         confidence="medium",
                         phase_distance_m=float(exit_idx),
                         gain_end_distance_m=float(straight_end) if exit_delta < 0 else None,
                     ))
 
-    # Sort by loss magnitude
     corner_losses.sort(key=lambda x: x.loss_s, reverse=True)
-
-    # Split into losses and gains
     losses = [c for c in corner_losses if c.loss_s > 0]
     gains = [c for c in corner_losses if c.loss_s < 0]
-
     top_losses = losses[:top_n]
     top_gains = sorted(gains, key=lambda x: x.loss_s)[:top_n]
 
