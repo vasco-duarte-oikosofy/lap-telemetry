@@ -12,7 +12,7 @@
   "corners": [
     {
       "id": "t1",
-      "name": "turn 1",
+      "name": "Tamburello",
       "s_start_m": 678.0,
       "apex_s_m": 702.0,
       "s_end_m": 706.0,
@@ -21,7 +21,7 @@
     },
     {
       "id": "t2",
-      "name": "turn 2",
+      "name": "Variante Villeneuve 1",
       "s_start_m": 1243.0,
       "apex_s_m": 1295.0,
       "s_end_m": 1295.0,
@@ -30,7 +30,7 @@
     },
     {
       "id": "t3",
-      "name": "turn 3",
+      "name": "Variante Villeneuve 2",
       "s_start_m": 1404.0,
       "apex_s_m": 1417.0,
       "s_end_m": 1420.0,
@@ -39,7 +39,7 @@
     },
     {
       "id": "t4",
-      "name": "turn 4",
+      "name": "Tosa",
       "s_start_m": 1687.0,
       "apex_s_m": 1709.0,
       "s_end_m": 1736.0,
@@ -48,7 +48,7 @@
     },
     {
       "id": "t5",
-      "name": "turn 5",
+      "name": "Piratella",
       "s_start_m": 2296.0,
       "apex_s_m": 2332.0,
       "s_end_m": 2334.0,
@@ -57,7 +57,7 @@
     },
     {
       "id": "t6",
-      "name": "turn 6",
+      "name": "Acque Minerali 1",
       "s_start_m": 2671.0,
       "apex_s_m": 2707.0,
       "s_end_m": 2707.0,
@@ -66,7 +66,7 @@
     },
     {
       "id": "t7",
-      "name": "turn 7",
+      "name": "Acque Minerali 2",
       "s_start_m": 2836.0,
       "apex_s_m": 2858.0,
       "s_end_m": 2861.0,
@@ -75,7 +75,7 @@
     },
     {
       "id": "t8",
-      "name": "turn 8",
+      "name": "Variante Alta 1",
       "s_start_m": 3244.0,
       "apex_s_m": 3326.0,
       "s_end_m": 3326.0,
@@ -84,7 +84,7 @@
     },
     {
       "id": "t9",
-      "name": "turn 9",
+      "name": "Variante Alta 2",
       "s_start_m": 3374.0,
       "apex_s_m": 3396.0,
       "s_end_m": 3398.0,
@@ -93,7 +93,7 @@
     },
     {
       "id": "t10",
-      "name": "turn 10",
+      "name": "Rivazza 1",
       "s_start_m": 4139.0,
       "apex_s_m": 4144.0,
       "s_end_m": 4153.0,
@@ -102,7 +102,7 @@
     },
     {
       "id": "t11",
-      "name": "turn 11",
+      "name": "Rivazza 2",
       "s_start_m": 4224.0,
       "apex_s_m": 4261.0,
       "s_end_m": 4282.0,
