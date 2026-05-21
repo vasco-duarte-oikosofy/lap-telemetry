@@ -31,6 +31,16 @@
       "dev/scripts/test_js_pipeline_contract.js",
       "dev/scripts/test_coach_lap_comparison.js",
       "dev/scripts/test_llm_text_adapter.js"
+    ],
+    "local-tts-smoke-path": [
+      "dev/scripts/test_runner_self_test.js",
+      "dev/scripts/test_protocol_enforcement.js",
+      "dev/scripts/test_phase_detection.js",
+      "dev/scripts/test_losses_delta_time.js",
+      "dev/scripts/test_js_pipeline_contract.js",
+      "dev/scripts/test_coach_lap_comparison.js",
+      "dev/scripts/test_llm_text_adapter.js",
+      "dev/scripts/test_local_tts_smoke_path.js"
     ]
   }
 }
