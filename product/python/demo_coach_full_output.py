@@ -58,6 +58,16 @@ def main():
         help="Max losses/gains to show per category. 0 = uncapped (default).",
     )
     parser.add_argument(
+        "--swap",
+        action="store_true",
+        help=(
+            "Swap current and reference laps. Useful when the reference "
+            "lap is faster and you want to see the gains the faster lap "
+            "achieved over the slower one (e.g. swap the Barcelona fixture "
+            "to see many gains instead of many losses)."
+        ),
+    )
+    parser.add_argument(
         "--verbose",
         action="store_true",
         help="Print additional info about the comparison.",
@@ -65,16 +75,21 @@ def main():
 
     args = parser.parse_args()
 
-    for path, name in [(args.current_lap, "current lap"),
-                        (args.reference_lap, "reference lap"),
+    current_lap = args.reference_lap if args.swap else args.current_lap
+    reference_lap = args.current_lap if args.swap else args.reference_lap
+
+    for path, name in [(current_lap, "current lap"),
+                        (reference_lap, "reference lap"),
                         (args.track_model, "track model")]:
         if not path.exists():
             print(f"Error: {name} not found: {path}", file=sys.stderr)
             return 1
 
     if args.verbose:
-        print(f"Current lap: {args.current_lap}", file=sys.stderr)
-        print(f"Reference lap: {args.reference_lap}", file=sys.stderr)
+        print(f"Current lap: {current_lap}", file=sys.stderr)
+        print(f"Reference lap: {reference_lap}", file=sys.stderr)
+        if args.swap:
+            print("(swapped: --current-lap and --reference-lap exchanged)", file=sys.stderr)
         print(f"Track model: {args.track_model}", file=sys.stderr)
         print(file=sys.stderr)
 
@@ -88,12 +103,12 @@ def main():
         # "no limit" since slicing [:0] would give an empty list, so
         # we pass a huge number instead.
         top_n = args.top_n if args.top_n > 0 else 999
-        facts = compare_laps(args.current_lap, args.reference_lap, model, top_n=top_n)
+        facts = compare_laps(current_lap, reference_lap, model, top_n=top_n)
 
         output = facts.to_dict()
         # Override the type label to distinguish from the capped version
         output["type"] = "lap_coaching_full_output"
-        output["top_n"] = args.top_n
+        output["swapped"] = args.swap
 
         print(json.dumps(output, indent=2))
 
