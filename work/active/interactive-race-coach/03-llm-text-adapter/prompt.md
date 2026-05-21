@@ -66,6 +66,19 @@ Lost two tenths in turn 3 — exit speed 12 km/h lower, released brakes 4 m late
    - `dev/fixtures/coach/barcelona_lap15_facts.json` — the output of
      `demo_coach_slice01.py` for reproducible testing
 
+6. **Demo script** (`product/python/demo_coach_slice03.py`)
+   - Similar pattern to `demo_coach_slice01.py` — runs the full pipeline
+     end-to-end with default Barcelona fixtures, no manual setup needed.
+   - Generates facts from the current/reference parquets (same as slice 01
+     demo), then sends them through the LLM adapter to produce an utterance.
+   - Also accepts `--facts` for canned JSON input (skips fact generation).
+   - Prints the facts JSON followed by the utterance.
+   - Usage: `python3 product/python/demo_coach_slice03.py`
+   - With custom paths: `python3 product/python/demo_coach_slice03.py --current-lap <path> --reference-lap <path> --track-model <path>`
+   - With canned facts: `python3 product/python/demo_coach_slice03.py --facts dev/fixtures/coach/barcelona_lap15_facts.json`
+   - Requires: Python 3.10+, pyarrow, litellm (or openai), and a valid
+     LLM API key in the environment (e.g. `ANTHROPIC_API_KEY`).
+
 ### Out of scope
 
 - Live telemetry integration (slice 5)
