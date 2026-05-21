@@ -72,8 +72,15 @@ def parse_args() -> argparse.Namespace:
                         help="Minimum zone length in metres to count as a corner (default 5)")
     parser.add_argument("--min-speed-drop-kph", type=float, default=10.0,
                         help="Minimum speed drop from entry to apex to count as a corner (default 10)")
-    parser.add_argument("--min-separation-m", type=int, default=60,
-                        help="Minimum apex-to-apex distance; closer ones are merged (default 60)")
+    parser.add_argument("--max-throttle-significant", type=float, default=0.50,
+                        help="For pure-lift zones: if min throttle within zone drops at or below this "
+                             "fraction the corner qualifies even if speed drop < min-speed-drop-kph "
+                             "(catches fast chicanes; default 0.50)")
+    parser.add_argument("--min-speed-drop-lift-kph", type=float, default=3.0,
+                        help="Minimum speed drop for a throttle-lift corner that qualifies via "
+                             "max-throttle-significant (prevents near-zero speed kinks; default 3.0)")
+    parser.add_argument("--min-separation-m", type=int, default=68,
+                        help="Minimum apex-to-apex distance; closer ones are merged (default 68)")
     # v1 fallback parameters
     parser.add_argument("--smooth-window-m", type=int, default=5)
     parser.add_argument("--local-radius-m", type=int, default=8)
@@ -210,6 +217,8 @@ def detect_corners_from_signals(
     min_separation_m: int = 60,
     min_event_length_m: int = 5,
     min_speed_drop_kph: float = 10.0,
+    max_throttle_significant: float = 0.50,
+    min_speed_drop_lift_kph: float = 3.0,
 ) -> list[Candidate]:
     """Detect corners using throttle and brake signals.
 
@@ -220,26 +229,33 @@ def detect_corners_from_signals(
     lift_events = _find_lift_events(throttle, brake, max_throttle_fraction, min_brake_fraction)
 
     # Filter very short events (sensor noise / kerb touches)
-    all_zones = [
-        (s, e) for s, e in brake_events + lift_events
-        if e - s >= min_event_length_m
-    ]
-    if not all_zones:
+    # Tag each zone as brake or lift so we can apply different qualifying rules
+    tagged_zones: list[tuple[int, int, str]] = []
+    for s, e in brake_events:
+        if e - s >= min_event_length_m:
+            tagged_zones.append((s, e, "brake"))
+    for s, e in lift_events:
+        if e - s >= min_event_length_m:
+            tagged_zones.append((s, e, "lift"))
+
+    if not tagged_zones:
         return []
 
-    # Merge overlapping zones
-    all_zones.sort(key=lambda z: z[0])
-    merged: list[list[int]] = [list(all_zones[0])]
-    for s, e in all_zones[1:]:
+    # Merge overlapping zones (brake wins over lift when merged)
+    tagged_zones.sort(key=lambda z: z[0])
+    merged: list[list] = [list(tagged_zones[0])]
+    for s, e, kind in tagged_zones[1:]:
         if s <= merged[-1][1]:
             merged[-1][1] = max(merged[-1][1], e)
+            if kind == "brake":
+                merged[-1][2] = "brake"
         else:
-            merged.append([s, e])
+            merged.append([s, e, kind])
 
     # Build Candidate for each zone: apex = speed minimum inside the zone
     prominence_radius = 80
     candidates: list[Candidate] = []
-    for s, e in merged:
+    for s, e, kind in merged:
         zone_speeds = speed[s:e + 1]
         if not zone_speeds:
             continue
@@ -249,7 +265,7 @@ def detect_corners_from_signals(
         left_peak = max(speed[max(0, apex - prominence_radius):apex], default=min_spd)
         right_peak = max(speed[apex + 1:min(len(speed), apex + prominence_radius + 1)], default=min_spd)
         prominence = min(left_peak - min_spd, right_peak - min_spd)
-        candidates.append(Candidate(
+        c = Candidate(
             apex_m=apex,
             min_speed_kph=min_spd,
             prominence_kph=prominence,
@@ -259,10 +275,23 @@ def detect_corners_from_signals(
             s_end_m=float(e),
             entry_speed_kph=speed[s],
             exit_speed_kph=speed[e],
-        ))
+        )
 
-    # Drop candidates where apex speed doesn't drop enough (high-speed kinks, noise)
-    candidates = [c for c in candidates if c.speed_drop_kph >= min_speed_drop_kph]
+        # Qualify: brake zones → speed drop >= threshold
+        #          lift zones → speed drop >= threshold OR min throttle <= max_throttle_significant
+        if kind == "brake":
+            if c.speed_drop_kph < min_speed_drop_kph:
+                continue
+        else:  # pure lift
+            zone_throttle = throttle[s:e + 1]
+            min_throttle = min(zone_throttle) if zone_throttle else 1.0
+            significant_lift = min_throttle <= max_throttle_significant
+            if c.speed_drop_kph < min_speed_drop_kph:
+                # Allow via significant lift, but still require a minimum speed drop
+                if not significant_lift or c.speed_drop_kph < min_speed_drop_lift_kph:
+                    continue
+
+        candidates.append(c)
 
     # Merge candidates that are still too close (keep most prominent)
     candidates = merge_close_candidates(candidates, min_separation_m)
@@ -526,6 +555,8 @@ def main() -> int:
                 min_separation_m=args.min_separation_m,
                 min_event_length_m=args.min_event_length_m,
                 min_speed_drop_kph=args.min_speed_drop_kph,
+                max_throttle_significant=args.max_throttle_significant,
+                min_speed_drop_lift_kph=args.min_speed_drop_lift_kph,
             )
             detection_method = DETECTION_METHOD_V2
         else:
