@@ -1,0 +1,89 @@
+{
+  "type": "lap_coaching_summary",
+  "track_id": "circuit-de-barcelona",
+  "lap_number": 15,
+  "lap_time_delta_s": 1.155,
+  "top_losses": [
+    {
+      "corner_id": "t3",
+      "corner_name": "turn 3",
+      "apex_distance_m": 1161.0,
+      "phase": "exit_brake",
+      "loss_s": 0.194,
+      "driver_value": 155.1,
+      "reference_value": 167.1,
+      "unit": "km/h",
+      "confidence": "medium",
+      "phase_distance_m": 1169.0,
+      "gain_end_distance_m": 1597.0,
+      "exit_distance_delta_m": -4.0,
+      "reference_phase_distance_m": 1165.0
+    },
+    {
+      "corner_id": "t3",
+      "corner_name": "turn 3",
+      "apex_distance_m": 1161.0,
+      "phase": "minimum_speed",
+      "loss_s": 0.19,
+      "driver_value": 155.0,
+      "reference_value": 165.6,
+      "unit": "km/h",
+      "confidence": "high",
+      "driver_apex_distance_m": 1170.0,
+      "reference_apex_distance_m": 1161.0,
+      "apex_offset_m": -9.0,
+      "gain_end_distance_m": 1597.0
+    },
+    {
+      "corner_id": "t3",
+      "corner_name": "turn 3",
+      "apex_distance_m": 1161.0,
+      "phase": "exit_throttle",
+      "loss_s": 0.179,
+      "driver_value": 155.5,
+      "reference_value": 168.1,
+      "unit": "km/h",
+      "confidence": "medium",
+      "phase_distance_m": 1174.0,
+      "gain_end_distance_m": 1597.0,
+      "exit_distance_delta_m": -9.0,
+      "reference_phase_distance_m": 1165.0
+    }
+  ],
+  "top_gains": [
+    {
+      "corner_id": "t5",
+      "corner_name": "turn 5",
+      "apex_distance_m": 2143.0,
+      "phase": "minimum_speed",
+      "loss_s": -0.118,
+      "driver_value": 81.8,
+      "reference_value": 85.0,
+      "unit": "km/h",
+      "confidence": "high",
+      "driver_apex_distance_m": 2137.0,
+      "reference_apex_distance_m": 2143.0,
+      "apex_offset_m": 6.0,
+      "gain_end_distance_m": 2439.0
+    },
+    {
+      "corner_id": "t5",
+      "corner_name": "turn 5",
+      "apex_distance_m": 2143.0,
+      "phase": "exit",
+      "loss_s": -0.105,
+      "driver_value": 92.0,
+      "reference_value": 91.0,
+      "unit": "km/h",
+      "confidence": "medium",
+      "phase_distance_m": 2158.0,
+      "gain_end_distance_m": 2439.0,
+      "exit_distance_delta_m": 10.0,
+      "reference_phase_distance_m": 2168.0
+    }
+  ],
+  "constraints": {
+    "max_words": 35,
+    "style": "calm_concise_engineer"
+  }
+}

@@ -1,0 +1,11 @@
+# Coach LLM configuration
+# API keys are NEVER stored here — only the name of the environment variable.
+# Set the actual key in your shell: export ANTHROPIC_API_KEY=sk-...
+
+[llm]
+provider = "anthropic"                    # anthropic, openai, deepseek, google
+model = "claude-sonnet-4-20250514"
+api_key_env = "ANTHROPIC_API_KEY"          # env var name (NOT the key itself)
+temperature = 0.3
+max_tokens = 100
+# base_url = ""                            # optional: for local/custom endpoints
