@@ -115,8 +115,20 @@ Run the **full suite** (no `--feature`) at two points:
 2. After every 3rd slice within a mission, to catch cross-feature regressions.
 
 Feature test lists are defined in `package.json` under `testFeatures`.
-When starting a new mission, add a feature key with the relevant test scripts
-and update the mission's `PLAN.md` to reference it.
+
+**When defining a feature's test list, always include:**
+1. The feature's own test scripts.
+2. `test_runner_self_test.js` and `test_protocol_enforcement.js` — these
+   guard test infrastructure and must pass regardless of which feature you're
+   working on. If you add a new test script and forget the `[PASS]`/`[FAIL]`
+   protocol, `test_protocol_enforcement.js` catches it immediately.
+3. Any tests that exercise **shared code paths** your feature touches. For
+   example, if your feature modifies `product/web/js/pipeline.js`, include the
+   web UI tests that exercise the resampler. If your feature only adds new
+   Python modules under `product/python/lap_telemetry/coach/`, the web UI
+   tests are unlikely to be affected.
+4. Re-evaluate the list when starting each new slice — dependencies can
+   grow as the feature evolves.
 
 ## Standing orders
 
