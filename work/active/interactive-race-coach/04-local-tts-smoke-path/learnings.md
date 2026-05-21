@@ -31,19 +31,37 @@
 6. **File adapter writes UTF-8 text, not real WAV.** For CI, the
    FileAdapter just writes the text content to the output file. This
    is intentional — it validates the pipeline without needing actual
-   TTS synthesis. A real audio-producing FileAdapter would need Piper
-   installed.
+   TTS synthesis.
 
 7. **Piper installed via pip, not standalone binary.** The standalone
    Piper binary for macOS doesn't include shared libraries (dylibs),
    so it fails with `Library not loaded`. Using `pip install piper-tts`
    works out of the box. PiperAdapter uses `shlex.split()` on
-   `piper_binary` so both `"piper"` (standalone) and `"python3 -m piper"`
-   (pip-installed) work. Default changed to `"python3 -m piper"`.
+   `piper_binary` so both `"piper"` and `"python3 -m piper"` work.
 
-8. **Voice model is 60 MB, not committed to git.** Added
-   `product/data/.gitignore` to exclude `tts-voices/*.onnx` and
-   `tts-bin/`. Install instructions in `docs/PIPER_INSTALL.md`.
+8. **Voice model is 60+ MB, not committed to git.** Added
+   `product/data/.gitignore` to exclude `tts-voices/*.onnx`,
+   `tts-voices/*.bin`, and `tts-bin/`. Install instructions in
+   `docs/PIPER_INSTALL.md`.
+
+9. **Kokoro is the primary engine.** Piper sounds robotic and flat with
+   zero natural intonation. Kokoro (kokoro-onnx) with bm_daniel voice
+   produces noticeably better output. It's now the default engine.
+   Voice quality is still not perfect — sub-slice 04b.1 continues
+   evaluation of ChatTTS, Qwen3-TTS, and XTTS-v2.
+
+10. **Kokoro model loads lazily.** KokoroAdapter loads the model on
+    first `speak()` call, not at construction time. This avoids the
+    ~1s model load time at startup until it's actually needed.
+
+11. **Edge TTS reads SSML tags as literal text.** Microsoft's Edge
+    Read Aloud API does not support SSML. Tags like `<prosody>` are
+    spoken verbatim.
+
+12. **"m" abbreviation problem.** LLM-generated utterances use
+    abbreviations like "4m later" which TTS engines read as "four em
+    later" instead of "four meters later". Text preprocessing will
+    be needed in a future slice.
 
 ## For the next agent
 
@@ -52,10 +70,11 @@
   items queued during playback are not missed.
 - `create_adapter(config)` is the factory — always use it to create
   adapters from config rather than constructing directly.
-- `sounddevice` is now installed for audio playback. PiperAdapter plays
-  via sounddevice with platform fallback (afplay on macOS).
-- Piper installed via `pip install piper-tts`. Voice model downloaded to
-  `product/data/tts-voices/en_US-lessac-medium.onnx`. See
-  `docs/PIPER_INSTALL.md` for full install instructions.
-- The `piper` standalone binary (from GitHub releases) doesn't work on
-  macOS due to missing dylibs. Use `python3 -m piper` instead.
+- `KokoroAdapter` lazy-loads the model on first use. If you change
+  config, construct a new adapter.
+- Voice quality evaluation continues in sub-slice 04b.1.
+  Engines to evaluate: ChatTTS, Qwen3-TTS, XTTS-v2.
+- The `sounddevice` package is installed. KokoroAdapter plays via
+  sounddevice with WAV fallback for platforms without it.
+- Text preprocessing for abbreviations ("4m" → "4 meters") is a
+  known gap, documented in sub-slice 04b.1.
