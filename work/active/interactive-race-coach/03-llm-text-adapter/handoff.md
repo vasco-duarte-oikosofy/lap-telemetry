@@ -2,7 +2,7 @@
 
 ## Status
 
-✅ Complete
+✅ Complete (including Ollama/glm-5.1:cloud validation)
 
 ## What's on disk now
 
@@ -125,11 +125,22 @@ Loads a canned facts JSON file back into the dataclass. Used by CLI and demo.
 2. **Prompt A/B testing** — Need a `prompt_version` field and variant loader.
 3. **OpenAI SDK fallback base URL** — Only DeepSeek and Google have explicit
    base URLs. Other providers use SDK defaults. May need more mappings.
-4. **litellm dependency management** — Currently optional (graceful fallback
-   to openai SDK). Should formalize as an optional dependency group.
-5. **Integration test with real LLM** — Documented as manual smoke test.
-   A CI gate behind `COACH_LLM_PROVIDER` could be added later.
-6. **TOML parser upgrade** — The fallback parser only handles flat [llm]
+4. **Reasoning model support** — glm-5.1:cloud (and similar reasoning
+   models like deepseek-r1) put chain-of-thought in `reasoning` field and
+   may return empty `content`. The adapter now:
+   - Detects empty content with reasoning present
+   - Extracts the last quoted utterance from reasoning as fallback
+   - Falls back to the last meaningful sentence if no quotes found
+   - Logs a warning suggesting to increase max_tokens
+5. **max_tokens bumped** — Default is now 4096 to accommodate reasoning
+   models that need substantial thinking budget before producing content.
+   The actual utterance is still ≤35 words — this just lets the model
+   think without hitting the ceiling.
+6. **Ollama support** — `ollama` is a first-class provider routed through
+   the OpenAI-compatible SDK with `base_url = http://localhost:11434/v1`.
+   Local Ollama doesn't validate API keys but the openai SDK requires
+   *something* — set `OLLAMA_API_KEY=local` as a dummy value.
+7. **TOML parser upgrade** — The fallback parser only handles flat [llm]
    tables. If config grows, add `tomli` as a dependency for Python 3.10.
 
 ## Test results
