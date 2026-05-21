@@ -26,7 +26,20 @@ Place it at `work/active/<feature-name>/PLAN.md`. It must contain:
 | `02-<slice-name>` | 🔲 Not started | <brief outcome> |
 ```
 
-## 4. Create the first vertical slice folder
+## 4. Define the feature test suite
+
+Add a feature key to `testFeatures` in `package.json`. The key must match
+the mission folder name. Include:
+
+1. `test_runner_self_test.js` and `test_protocol_enforcement.js` (infrastructure guards).
+2. All test scripts that directly test the feature's code.
+3. Any test scripts that exercise shared code paths the feature touches.
+
+Then add the `--feature` command to the mission's `PLAN.md` (next to the Goal).
+
+See [AGENTS.md](../AGENTS.md) for full details on feature test cadence.
+
+## 5. Create the first vertical slice folder
 
 ```
 work/active/<feature-name>/01-<slice-name>/
@@ -41,29 +54,30 @@ Each slice folder must contain these four artifacts:
 | `handoff.md` | Concrete state at handoff: what changed, what remains, commands/results worth knowing |
 | `learnings.md` | Surprises and context not in the spec |
 
-## 5. Implement one slice at a time
+## 6. Implement one slice at a time
 
 Within a slice, follow this cycle:
 
 1. **Write the failing test first** (test-first)
 2. **Write the minimal code** to make it pass (simplest thing that could possibly work)
-3. **Run** `bash scripts/test-summary.sh` — must exit 0
+3. **Run** `bash scripts/test-summary.sh --feature <feature>` — must exit 0
 4. **Run** `npm run build` — must succeed with current `dist/compare.html`
 5. **Commit** — small, green, on `main`. Use `refactor:` prefix for refactor-only commits
 6. Repeat until the slice's acceptance criteria pass
 
-## 6. Finish the slice
+## 7. Finish the slice
 
 When acceptance passes:
 
-1. Ensure `bash scripts/test-summary.sh` exits 0 — **no failing tests may remain**. If a test was passing before your slice and is now failing, you must fix it before finishing. You may not leave failing tests "for the next slice" or skip them.
+1. Ensure `bash scripts/test-summary.sh --feature <feature>` exits 0 (feature tests).
+   Run the full suite (no `--feature`) at feature completion and every 3rd slice — **no failing tests may remain**. If a test was passing before your slice and is now failing, you must fix it before finishing. You may not leave failing tests "for the next slice" or skip them.
 2. Update `handoff.md` — what's on disk, feature flags, helpers, deferred TODOs
 3. Update `learnings.md` — what surprised you, context for the next agent
 4. Update the slice status in `PLAN.md` (✅ Complete)
 5. Ensure all required artifacts exist (see [AGENTS.md](../AGENTS.md))
 6. Commit and **stop** — do not start the next slice
 
-## 7. Proceed to the next slice
+## 8. Proceed to the next slice
 
 Create the next slice folder (`02-<next-slice>/`) with its own `prompt.md`, `artifacts/`, `handoff.md`, and `learnings.md`, then repeat from step 5.
 

@@ -115,6 +115,24 @@ Run the **full suite** (no `--feature`) at two points:
 2. After every 3rd slice within a mission, to catch cross-feature regressions.
 
 Feature test lists are defined in `package.json` under `testFeatures`.
+Each key is a feature name (matching the mission folder name) and its value
+is an array of test script paths.
+
+**Creating a feature test suite:**
+
+1. Add a key to `testFeatures` in `package.json` with the feature name
+   and an array of test script paths.
+2. Add the `--feature` command to the mission's `PLAN.md` (next to the Goal).
+3. Include the two infrastructure guards:
+   `test_runner_self_test.js` and `test_protocol_enforcement.js`.
+4. Include all test scripts that directly test the feature's code.
+5. Include any test scripts that exercise shared code paths the feature
+   touches (e.g., if the feature modifies `pipeline.js`, include web UI
+   tests that use the resampler).
+6. Re-evaluate the list at each new slice — dependencies can grow.
+
+**This is required when starting a new mission**, not optional. Every
+mission must have a feature test suite before the first slice begins.
 
 **When defining a feature's test list, always include:**
 1. The feature's own test scripts.
