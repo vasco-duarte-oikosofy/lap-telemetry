@@ -20,15 +20,20 @@ Replaced `apex ± 30 m` offsets with throttle-lift entry, brake-off/throttle-ful
 2. **Apex/min-speed gain algorithm** — `delta_t[straight_end] - delta_t[apex]`, `apex_offset_m`
 3. **Entry gain algorithm** — `delta_t[apex] - delta_t[entry]`
 
-All gains use real delta-time. Losses still use `speed_delta / 100.0` heuristic.
+All gains use real delta-time. (Losses unified in 01c.4.)
 
 ### ✅ 01c.3 — Fix oversized modules
 Split test and implementation files to respect 437-line ceiling.
 
-### ✅ 01c.4 — Losses and gains algorithm review
+### ✅ 01c.4 — Losses and gains algorithm review + entry/exit distance deltas
 Unified losses to use delta-time for all three phases (same formula as gains).
 `gain_end_distance_m` now populated for both losses and gains.
 `speed_delta / 100.0` heuristic removed (fallback only for out-of-range indices).
+Added `entry_distance_delta_m`, `exit_distance_delta_m`, and
+`reference_phase_distance_m` — comparing driver vs reference phase-transition
+distances ("you lifted 8 m later", "you got back to full throttle 12 m earlier").
+JS pipeline extended to resample reference throttle/brake traces.
+Spec: `delta_loss_gain_delta_break_throttle.md`.
 
 **Current algorithm summary:**
 
