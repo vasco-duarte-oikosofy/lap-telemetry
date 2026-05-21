@@ -162,7 +162,7 @@ def test_load_config_defaults():
             assert cfg.provider == "anthropic", f"Expected anthropic, got {cfg.provider}"
             assert cfg.model == "claude-sonnet-4-20250514", f"Unexpected model: {cfg.model}"
             assert cfg.temperature == 0.3, f"Unexpected temperature: {cfg.temperature}"
-            assert cfg.max_tokens == 100, f"Unexpected max_tokens: {cfg.max_tokens}"
+            assert cfg.max_tokens == 4096, f"Unexpected max_tokens: {cfg.max_tokens}"
     finally:
         os.environ.update(env_backup)
 
