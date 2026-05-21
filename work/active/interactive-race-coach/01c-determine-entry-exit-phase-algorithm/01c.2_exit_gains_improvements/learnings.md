@@ -14,6 +14,8 @@
 
 6. **The ES module reparsing warning is harmless but noisy.** Node.js warns "Reparsing as ES module" when it first encounters import syntax in a .mjs file. Redirecting stderr to /dev/null in production code is fine; the subprocess.run() call only checks returncode.
 
+7. **Single source of truth eliminates an entire class of bugs.** By routing ALL telemetry channels through the exact same JS code the web UI uses, we eliminated the drift problem entirely. No amount of contract testing on a Python port would give the same guarantee — a contract test catches drift after it happens; sharing the code prevents it from happening.
+
 ## Design decisions
 
 1. **Option A (Node.js as golden source) chosen over Option B (Python port).** The user explicitly requested using the Node.js module as the single source of truth. This eliminates drift risk entirely — the same code runs in both the web UI and the Python coaching engine. The only downside is the Node.js runtime dependency, which is already present (needed for the build).
@@ -21,6 +23,8 @@
 2. **All channels piped through JS, not just lap_time_s.** The user emphasized we must use the exact same code for ALL parameters. This means computeKeepIndices filtering applies to speed/throttle/brake resampling too, not just delta_t computation.
 
 3. **Contract tests use user-confirmed values.** The fix document recorded +436 ms at 2158 m and +331 ms at 2439 m from the web UI. The contract test verifies the JS pipeline matches within 0.5 ms. This is the most reliable regression guard — if the pipeline drifts, these tests will catch it immediately.
+
+4. **Dataclasses and resample helpers extracted to separate files.** This brought `lap_comparator.py` from 626 → 433 lines. `facts.py` (88 lines) holds `PhaseDetectionThresholds`, `CornerLoss`, `LapComparisonFacts`. `resample.py` (61 lines) holds `resample_column` and `compute_delta_time_trace` (the Python-only versions used by synthetic unit tests).
 
 ## Edge cases handled
 
