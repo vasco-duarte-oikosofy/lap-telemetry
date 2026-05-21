@@ -6,79 +6,106 @@
     "path": "product\\data\\reference-laps\\autodromo-enzo-e-dino-ferrari_dkr-engineering-4-elms25_time_01.40.916.parquet",
     "car_id": "dkr-engineering-4-elms25",
     "lap_time_s": 100.916,
-    "detection_method": "speed_local_minimum_v1"
+    "detection_method": "throttle_brake_v1"
   },
   "lap_length_m": 4904.3,
   "corners": [
     {
       "id": "t1",
       "name": "turn 1",
-      "s_start_m": 670.0,
+      "s_start_m": 678.0,
       "apex_s_m": 702.0,
-      "s_end_m": 821.0,
+      "s_end_m": 706.0,
       "apex_side": "right",
       "apex_side_source": "default_cli_option"
     },
     {
       "id": "t2",
       "name": "turn 2",
-      "s_start_m": 1379.0,
-      "apex_s_m": 1418.0,
-      "s_end_m": 1537.0,
+      "s_start_m": 1243.0,
+      "apex_s_m": 1295.0,
+      "s_end_m": 1295.0,
       "apex_side": "right",
       "apex_side_source": "default_cli_option"
     },
     {
       "id": "t3",
       "name": "turn 3",
-      "s_start_m": 1684.0,
-      "apex_s_m": 1710.0,
-      "s_end_m": 1829.0,
+      "s_start_m": 1404.0,
+      "apex_s_m": 1417.0,
+      "s_end_m": 1420.0,
       "apex_side": "right",
       "apex_side_source": "default_cli_option"
     },
     {
       "id": "t4",
       "name": "turn 4",
-      "s_start_m": 2253.0,
-      "apex_s_m": 2332.0,
-      "s_end_m": 2451.0,
+      "s_start_m": 1687.0,
+      "apex_s_m": 1709.0,
+      "s_end_m": 1736.0,
       "apex_side": "right",
       "apex_side_source": "default_cli_option"
     },
     {
       "id": "t5",
       "name": "turn 5",
-      "s_start_m": 2815.0,
-      "apex_s_m": 2858.0,
-      "s_end_m": 2977.0,
+      "s_start_m": 2296.0,
+      "apex_s_m": 2332.0,
+      "s_end_m": 2334.0,
       "apex_side": "right",
       "apex_side_source": "default_cli_option"
     },
     {
       "id": "t6",
       "name": "turn 6",
-      "s_start_m": 3368.0,
-      "apex_s_m": 3395.0,
-      "s_end_m": 3514.0,
+      "s_start_m": 2671.0,
+      "apex_s_m": 2707.0,
+      "s_end_m": 2707.0,
       "apex_side": "right",
       "apex_side_source": "default_cli_option"
     },
     {
       "id": "t7",
       "name": "turn 7",
-      "s_start_m": 4110.0,
-      "apex_s_m": 4144.0,
-      "s_end_m": 4202.0,
+      "s_start_m": 2836.0,
+      "apex_s_m": 2858.0,
+      "s_end_m": 2861.0,
       "apex_side": "right",
       "apex_side_source": "default_cli_option"
     },
     {
       "id": "t8",
       "name": "turn 8",
-      "s_start_m": 4202.0,
-      "apex_s_m": 4260.0,
-      "s_end_m": 4379.0,
+      "s_start_m": 3244.0,
+      "apex_s_m": 3326.0,
+      "s_end_m": 3326.0,
+      "apex_side": "right",
+      "apex_side_source": "default_cli_option"
+    },
+    {
+      "id": "t9",
+      "name": "turn 9",
+      "s_start_m": 3374.0,
+      "apex_s_m": 3396.0,
+      "s_end_m": 3398.0,
+      "apex_side": "right",
+      "apex_side_source": "default_cli_option"
+    },
+    {
+      "id": "t10",
+      "name": "turn 10",
+      "s_start_m": 4139.0,
+      "apex_s_m": 4144.0,
+      "s_end_m": 4153.0,
+      "apex_side": "right",
+      "apex_side_source": "default_cli_option"
+    },
+    {
+      "id": "t11",
+      "name": "turn 11",
+      "s_start_m": 4224.0,
+      "apex_s_m": 4261.0,
+      "s_end_m": 4282.0,
       "apex_side": "right",
       "apex_side_source": "default_cli_option"
     }

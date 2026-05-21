@@ -65,7 +65,7 @@ function isFiniteArray(arr) {
 
 // ── Parse input ──────────────────────────────────────────────────────────────
 
-const input = JSON.parse(readFileSync('/dev/stdin', 'utf8'));
+const input = JSON.parse(readFileSync(0, 'utf8'));
 const { driver, reference, trackLength } = input;
 
 // ── Step 1: computeKeepIndices ───────────────────────────────────────────────
