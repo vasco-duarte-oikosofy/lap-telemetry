@@ -15,6 +15,7 @@ import { FUJI_SPEEDWAY_OUTLINE_STATIC_OUTLINE } from './staticFujiSpeedway_outli
 import { CIRCUIT_BARCELONA_STATIC_OUTLINE } from './staticCircuitBarcelonaOutlineData.js';
 import { AUTODROMO_DINO_FERRARI_STATIC_OUTLINE } from './staticAutodromoDinoFerrariOutlineData.js';
 import { AUTODROMO_NAZIONALE_MONZA_STATIC_OUTLINE } from './staticAutodromoNazionaleMonzaOutlineData.js';
+import { CIRCUIT_OF_THE_AMERICAS_STATIC_OUTLINE } from './staticCircuitOfTheAmericasOutlineData.js';
 
 // slug normalization: lowercase, collapse whitespace to single dash, strip non-alnum/dash
 function slugify(name) {
@@ -41,6 +42,8 @@ const OUTLINES = new Map([
   ['imola', AUTODROMO_DINO_FERRARI_STATIC_OUTLINE],
   // Autodromo Nazionale Monza
   ['autodromo-nazionale-monza', AUTODROMO_NAZIONALE_MONZA_STATIC_OUTLINE],
+  // Circuit of the Americas
+  ['circuit-of-the-americas', CIRCUIT_OF_THE_AMERICAS_STATIC_OUTLINE],
 ]);
 
 /**
