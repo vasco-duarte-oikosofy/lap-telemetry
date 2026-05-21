@@ -1,57 +1,78 @@
-# Installing Piper TTS
+# Installing TTS Engines
 
-This project uses [Piper](https://github.com/rhasspy/piper) for local,
-offline text-to-speech. Piper runs entirely on CPU alongside LMU without
-stealing GPU resources, and produces identical audio on macOS and Windows.
+The coach uses Kokoro as the primary TTS engine (natural intonation).
+Piper is available as a secondary engine. Both run entirely on CPU.
 
-## Quick install (macOS / Linux)
+## Primary: Kokoro (recommended)
 
-### Option A: Python package (recommended)
+Kokoro produces natural-sounding speech with proper intonation —
+dramatically better than Piper's flat output. Default voice is
+`bm_daniel` (British male, race engineer feel).
 
-```bash
-pip3 install piper-tts
-```
-
-This installs Piper as a Python module, invoked via `python3 -m piper`.
-No standalone binary needed. This is the default `piper_binary` in
-`coach_config.toml`.
-
-### Option B: Standalone binary
-
-Download from [Piper releases](https://github.com/rhasspy/piper/releases):
+### Install
 
 ```bash
-# macOS (Apple Silicon)
-curl -SL https://github.com/rhasspy/piper/releases/latest/download/piper_macos_aarch64.tar.gz | tar xz -C /usr/local/bin/
-
-# macOS (Intel)
-curl -SL https://github.com/rhasspy/piper/releases/latest/download/piper_macos_x64.tar.gz | tar xz -C /usr/local/bin/
-
-# Linux (x86_64)
-curl -SL https://github.com/rhasspy/piper/releases/latest/download/piper_linux_x86_64.tar.gz | tar xz
-sudo mv piper/piper /usr/local/bin/
+pip3 install kokoro-onnx sounddevice
 ```
 
-If using the standalone binary, set `piper_binary = "piper"` in
-`coach_config.toml` (or the `COACH_PIPER_BINARY` env var).
-
-## Windows
-
-```powershell
-pip install piper-tts
-```
-
-Or download `piper_windows_amd64.zip` from the releases page and add to
-PATH.
-
-## Voice model
-
-Download the English (US) Lessac medium model — good quality, ~60 MB:
+### Download model and voices
 
 ```bash
 # From project root
 mkdir -p product/data/tts-voices
 
+# Kokoro int8 model (~88 MB)
+curl -SL "https://github.com/thewh1teagle/kokoro-onnx/releases/download/model-files-v1.0/kokoro-v1.0.int8.onnx" \
+  -o product/data/tts-voices/kokoro-v1.0.int8.onnx
+
+# Voice definitions (~27 MB)
+curl -SL "https://github.com/thewh1teagle/kokoro-onnx/releases/download/model-files-v1.0/voices-v1.0.bin" \
+  -o product/data/tts-voices/kokoro-voices-v1.0.bin
+```
+
+### Available voices
+
+American male: `am_adam`, `am_echo`, `am_eric`, `am_fenrir`, `am_liam`,
+`am_michael`, `am_onyx`, `am_puck`
+
+British male: `bm_daniel`, `bm_george`, `bm_fable`, `bm_lewis`
+
+American female: `af_alloy`, `af_bella`, `af_nicole`, `af_nova`, `af_river`, `af_sarah`, `af_sky`
+
+British female: `bf_alice`, `bf_emma`, `bf_isabella`, `bf_lily`
+
+### Configuration
+
+```toml
+[tts]
+engine = "kokoro"
+kokoro_model = "product/data/tts-voices/kokoro-v1.0.int8.onnx"
+kokoro_voices = "product/data/tts-voices/kokoro-voices-v1.0.bin"
+kokoro_voice = "bm_daniel"        # British male, race engineer feel
+kokoro_speed = 1.05               # slightly faster than default
+```
+
+### Smoke test
+
+```bash
+python3 -m lap_telemetry.coach.speak \
+  --text "Box this lap, box this lap. Medium tyre."
+```
+
+## Secondary: Piper (flat, robotic output)
+
+Piper is available as a fallback engine. Its output lacks natural
+intonation but is very fast and fully offline.
+
+### Install
+
+```bash
+pip3 install piper-tts
+```
+
+### Download voice model
+
+```bash
 curl -SL "https://huggingface.co/rhasspy/piper-voices/resolve/v1.0.0/en/en_US/lessac/medium/en_US-lessac-medium.onnx" \
   -o product/data/tts-voices/en_US-lessac-medium.onnx
 
@@ -59,42 +80,12 @@ curl -SL "https://huggingface.co/rhasspy/piper-voices/resolve/v1.0.0/en/en_US/le
   -o product/data/tts-voices/en_US-lessac-medium.onnx.json
 ```
 
-The model path is already configured in `coach_config.toml`:
-
-```toml
-[ tts]
-piper_model = "product/data/tts-voices/en_US-lessac-medium.onnx"
-```
-
-Other voices are available at
-<https://huggingface.co/rhasspy/piper-voices/tree/v1.0.0>.
-
-## Audio playback dependencies
-
-Piper synthesizes to a WAV file; playback requires one of:
-
-| Package | Install | Notes |
-|---------|---------|-------|
-| `sounddevice` | `pip install sounddevice` | Preferred — cross-platform, programmatic |
-| Platform player | Built-in | `afplay` (macOS), `PowerShell SoundPlayer` (Windows), `aplay` (Linux) |
+### Use Piper
 
 ```bash
-pip install sounddevice   # recommended playback library
-```
-
-## Smoke test
-
-After installing Piper + voice model:
-
-```bash
-# From project root
-echo "Hello world" | python3 -m piper \
-  --model product/data/tts-voices/en_US-lessac-medium.onnx \
-  --output_file /tmp/test.wav
-
-# Or use the coach speak CLI:
 python3 -m lap_telemetry.coach.speak \
-  --text "Lost time in turn 3 exit — minimum speed 10 km/h lower"
+  --engine piper \
+  --text "Lost time in turn 3 exit"
 ```
 
 ## Testing without speakers (CI)
@@ -108,16 +99,24 @@ python3 -m lap_telemetry.coach.speak \
   --output /tmp/test_output.wav
 ```
 
-## Configuration
-
-All TTS settings live in `coach_config.toml` under `[tts]`:
+## All configuration options
 
 ```toml
 [tts]
-engine = "piper"                                                # piper | pyttsx3 | file
-piper_binary = "python3 -m piper"                              # or path to standalone binary
-piper_model = "product/data/tts-voices/en_US-lessac-medium.onnx"
-# output_file = "coach_output.wav"                              # for file adapter
+engine = "kokoro"                   # kokoro | piper | pyttsx3 | file
+
+# Kokoro settings
+kokoro_model = "product/data/tts-voices/kokoro-v1.0.int8.onnx"
+kokoro_voices = "product/data/tts-voices/kokoro-voices-v1.0.bin"
+kokoro_voice = "bm_daniel"
+kokoro_speed = 1.05
+
+# Piper settings (secondary engine)
+# piper_binary = "python3 -m piper"
+# piper_model = "product/data/tts-voices/en_US-lessac-medium.onnx"
+
+# File adapter
+# output_file = "coach_output.wav"
 ```
 
 ### Environment variable overrides
@@ -125,6 +124,9 @@ piper_model = "product/data/tts-voices/en_US-lessac-medium.onnx"
 | Env var | Overrides |
 |---------|-----------|
 | `COACH_TTS_ENGINE` | `engine` |
+| `COACH_KOKORO_MODEL` | `kokoro_model` |
+| `COACH_KOKORO_VOICES` | `kokoro_voices` |
+| `COACH_KOKORO_VOICE` | `kokoro_voice` |
 | `COACH_PIPER_BINARY` | `piper_binary` |
 | `COACH_PIPER_MODEL` | `piper_model` |
 | `COACH_TTS_OUTPUT_FILE` | `output_file` |
