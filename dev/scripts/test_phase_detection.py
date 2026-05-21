@@ -88,6 +88,33 @@ def test_throttle_lift_entry() -> None:
     ok(entry_idx == 950, f"entry at {entry_idx}, expected 950 (not apex-30={int(corner.apex_s_m - 30)})")
 
 
+def test_throttle_lift_before_zone() -> None:
+    """Throttle lift occurs before s_start_m; look-back should still find it."""
+    # Zone starts at 500, but driver lifts throttle at 420 (80m before zone).
+    # Without look-back, the algorithm would miss the lift and fall back
+    # to speed_peak at the zone boundary.
+    corner = make_corner(s_start=500, apex=600, s_end=700)
+    speed = [200.0] * 1200
+    throttle = [1.0] * 1200
+    for i in range(420, 600):
+        throttle[i] = 0.5  # lift starts at 420, well before zone
+
+    entry_idx, method = find_entry_point(speed, throttle, None, corner)
+    ok(method == "throttle_lift", f"method = {method}, expected throttle_lift")
+    ok(entry_idx == 420, f"entry at {entry_idx}, expected 420 (lift before zone)")
+
+
+def test_brake_point_before_zone() -> None:
+    """Brake application occurs before s_start_m; look-back should find it."""
+    corner = make_corner(s_start=500, apex=600, s_end=700)
+    brake = [0.0] * 1200
+    for i in range(430, 580):
+        brake[i] = 0.5  # braking from 430, before zone at 500
+
+    bp = find_brake_point(brake, corner)
+    ok(bp == 430, f"brake point = {bp}, expected 430 (before zone start)")
+
+
 def test_brake_off_exit() -> None:
     """Brake returns to 0 at known distance after apex; exit should be reported there."""
     corner = make_corner(s_start=900, apex=1000, s_end=1100)
@@ -366,7 +393,9 @@ def main() -> int:
     print("═══ Entry/Exit Phase Detection Tests ═══\n")
 
     test_throttle_lift_entry()
+    test_throttle_lift_before_zone()
     test_brake_off_exit()
+    test_brake_point_before_zone()
     test_full_throttle_exit()
     test_separate_exit_phases()
     test_merged_exit()
