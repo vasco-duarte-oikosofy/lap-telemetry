@@ -1,35 +1,30 @@
-# Learnings — Sub-slice 01c.2: Delta-Time Gains for Minimum-Speed and Exit Phases
+# Learnings — Fix: Delta-T calculation must use the exact same code as the web UI
 
 ## What surprised us
 
-1. **Gain time compounds down the straight.** A speed advantage at the apex or exit compounds until the driver lifts off for the next corner. The delta-time trace captures this: if the driver is 429ms behind at the exit but only 364ms behind at the next braking zone, they recovered 65ms on that straight. The heuristic `(ref_speed - driver_speed) / 100` would give only 10ms for our Barcelona t5 example — off by 6.5x.
+1. **computeKeepIndices affects ALL channels, not just lap_time_s.** The web JS applies the keep filter to speed, throttle, brake, and every other channel before resampling. Our original Python code resampled raw data without filtering boundary-artifact frames. This means ALL resampled grids could potentially differ from the web UI, not just delta_t. The impact was small for Barcelona (few or no boundary-artifact frames in the fixture), but it would be significant on lap data that starts immediately after a pit exit.
 
-2. **End of straight = next corner's entry, not next corner's zone start.** The `s_start_m` zone boundary would be wrong because braking zones regularly start 50-100m before the formal zone boundary (same look-back issue from entry detection). Using `find_entry_point()` on the next corner gives the actual lift-off point. For the last corner, measure to the finish line.
+2. **smoothLapTime is essential for delta_t accuracy.** Without it, two laps' clock ticks land at different distances, creating ±200 ms sawtooth jitter in the raw delta_t. The smoothing bridges each 5 Hz plateau by distributing the next tick's increment across the held frames. This alone changes delta_t[2158] from ~424 ms to ~436 ms on the Barcelona fixture.
 
-3. **The delta-time formula is the same for all phases.** `loss_s = delta_t[straight_end] - delta_t[phase_point]` works for minimum_speed gains, exit gains, and will work for entry gains too. The only difference is which `phase_point` to use (apex, exit distance, or entry distance).
+3. **smoothDt attenuates plateau-alignment residual jitter by ~6×.** Even after smoothLapTime, two laps' clock ticks land at slightly different distances (1-2 frames of recorder phase offset), creating ~20 ms jitter at each tick boundary. The 41-bin boxcar (±20 m) reduces this to ~3 ms. Adjacent-bin jumps in the smoothed trace are well under 10 ms; raw would be ~20 ms.
 
-4. **`straight_end` computed once per corner, shared across phases.** Originally computed inside the minimum_speed block and again in the exit block. Refactored to compute once at the top of the loop. This is correct because all phases within the same corner share the same "end of the straight" — it's where the next braking zone starts, which is the same regardless of which phase within the current corner you're measuring from.
+4. **Node.js subprocess IPC is fast enough.** Piping JSON through stdin/stdout adds ~200 ms per pipeline call on the Barcelona fixture (~635 KB input, ~100 KB output). For offline coaching, this is negligible. For real-time coaching at 1 Hz (one comparison per second), it would also be fine.
 
-5. **`apex_offset_m` sign convention**: `ref_apex - driver_apex`. Positive = driver apexed earlier. For Barcelona t3, driver at 1170m vs reference at 1161m → offset = -9.0 (driver apexed 9m later). This is intuitive: "you apexed late in turn 3."
+5. **`sys.executable.replace("python", "node")` doesn't work on systems where Python is `python3`.** Use `"node"` directly, since Node.js is always on PATH for this project (it's needed for the build).
 
-6. **Delta-time trace final value ≈ `lap_time_delta_s`.** With Barcelona data, `delta_t[-1]` should be close to the actual lap time delta. This provides a natural sanity check.
+6. **The ES module reparsing warning is harmless but noisy.** Node.js warns "Reparsing as ES module" when it first encounters import syntax in a .mjs file. Redirecting stderr to /dev/null in production code is fine; the subprocess.run() call only checks returncode.
 
-7. **Speed clamping matters.** Speeds clamped to 1.0 kph in `compute_delta_time_trace()` to avoid division by zero for stopped car / pit lane samples.
+## Design decisions
 
-8. **`delta_t` must use `lap_time_s`, not speed integration.** Our original `compute_delta_time_trace()` reconstructed cumulative time from speed — this was an approximation that produced different values than the web UI. The web JS (`product/web/js/pipeline.js`, `computeDeltaT()`) uses the actual `lap_time_s` column: `dt[i] = (sessionLapTime[i] - refLapTime[i]) * 1000`. We replaced the Python version with one that resamples `lap_time_s` onto the 1 m grid, forward-clamps to handle LMU's ~5 Hz update rate plateaus, and computes the difference. This now matches the web JS exactly and produces the same delta_t values shown in `product/dist/compare.html`. With this fix, the t5 exit gain went from -65ms (speed integration) to -68ms (lap_time_s) — closer to actual measured values.
+1. **Option A (Node.js as golden source) chosen over Option B (Python port).** The user explicitly requested using the Node.js module as the single source of truth. This eliminates drift risk entirely — the same code runs in both the web UI and the Python coaching engine. The only downside is the Node.js runtime dependency, which is already present (needed for the build).
+
+2. **All channels piped through JS, not just lap_time_s.** The user emphasized we must use the exact same code for ALL parameters. This means computeKeepIndices filtering applies to speed/throttle/brake resampling too, not just delta_t computation.
+
+3. **Contract tests use user-confirmed values.** The fix document recorded +436 ms at 2158 m and +331 ms at 2439 m from the web UI. The contract test verifies the JS pipeline matches within 0.5 ms. This is the most reliable regression guard — if the pipeline drifts, these tests will catch it immediately.
 
 ## Edge cases handled
 
-- **Last corner on track**: `find_straight_end_after_corner()` returns `track_length - 1` when there's no next corner.
-- **Delta-time index out of range**: If `phase_point` or `straight_end` is outside the grid, falls back to the heuristic.
-- **Entry gains still use heuristic**: Entry gains need a different algorithm (reference entry detection + distance delta). Not yet implemented.
-
-## What's still heuristic
-
-| Phase | Loss | Gain |
-|-------|------|------|
-| minimum_speed | `speed_delta / 100.0` | delta-time ✅ |
-| exit | `speed_delta / 100.0` | delta-time ✅ |
-| entry | `speed_delta / 100.0` | `speed_delta / 100.0` ❌ |
-
-Entry gains need their own algorithm (reference entry detection + delta-time). Losses for all phases need review in 01c.3.
+- Missing throttle/brake columns → JS returns null, Python uses None
+- Empty distance arrays → JS produces zero-filled bins
+- Node.js not found → FileNotFoundError with clear message
+- Subprocess timeout → 30 second limit prevents hangs
