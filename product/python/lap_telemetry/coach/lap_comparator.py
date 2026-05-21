@@ -1,144 +1,17 @@
 """Lap comparison engine for deterministic coaching facts."""
 from __future__ import annotations
 
-from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Any
 
 import pyarrow.parquet as pq
 
+from .facts import PhaseDetectionThresholds, CornerLoss, LapComparisonFacts
 from .js_pipeline import run_js_pipeline, delta_t_ms_to_seconds
+from .resample import resample_column, compute_delta_time_trace
 from .track_model import TrackCoachingModel, Corner
 
 
-@dataclass
-class PhaseDetectionThresholds:
-    """Configurable thresholds for entry/exit phase detection.
-
-    All thresholds operate on normalised 0–1 pedal traces unless noted.
-    """
-
-    throttle_lift: float = 0.9     # throttle < 0.9 → driver lifted
-    brake_apply: float = 0.05     # brake > 0.05 → driver is braking
-    brake_off: float = 0.01       # brake < 0.01 → brake fully released
-    throttle_full: float = 0.95   # throttle ≥ 0.95 → back to full power
-    exit_merge_tolerance_m: float = 3.0  # ≤ 3 m → merge exit phases
-
-
-@dataclass
-class CornerLoss:
-    """Loss/gain analysis for a single corner phase."""
-    corner_id: str
-    corner_name: str
-    apex_distance_m: float
-    phase: str  # "minimum_speed" | "entry" | "exit" | "exit_brake" | "exit_throttle"
-    loss_s: float  # positive = lost time, negative = gained
-    driver_value: float
-    reference_value: float
-    unit: str
-    confidence: str  # "high" | "medium" | "low"
-    phase_distance_m: float | None = None  # distance where phase was measured; None = apex
-    driver_apex_distance_m: float | None = None  # for minimum_speed: where driver hit min speed
-    reference_apex_distance_m: float | None = None  # for minimum_speed: where reference hit min speed
-    apex_offset_m: float | None = None  # for minimum_speed: ref_apex - driver_apex; positive = driver earlier
-    gain_end_distance_m: float | None = None  # for gains: distance where gain measurement stops (end of straight)
-
-
-@dataclass
-class LapComparisonFacts:
-    """Structured facts from comparing two laps."""
-    type: str
-    track_id: str
-    lap_number: int
-    lap_time_delta_s: float
-    top_losses: list[CornerLoss] = field(default_factory=list)
-    top_gains: list[CornerLoss] = field(default_factory=list)
-    constraints: dict[str, Any] = field(default_factory=lambda: {
-        "max_words": 35,
-        "style": "calm_concise_engineer"
-    })
-
-    def to_dict(self) -> dict[str, Any]:
-        """Convert to dictionary for JSON serialization."""
-        def _corner_dict(c: CornerLoss) -> dict[str, Any]:
-            d: dict[str, Any] = {
-                "corner_id": c.corner_id,
-                "corner_name": c.corner_name,
-                "apex_distance_m": c.apex_distance_m,
-                "phase": c.phase,
-                "loss_s": round(c.loss_s, 3),
-                "driver_value": round(c.driver_value, 1),
-                "reference_value": round(c.reference_value, 1),
-                "unit": c.unit,
-                "confidence": c.confidence,
-            }
-            if c.phase_distance_m is not None:
-                d["phase_distance_m"] = round(c.phase_distance_m, 1)
-            if c.driver_apex_distance_m is not None:
-                d["driver_apex_distance_m"] = round(c.driver_apex_distance_m, 1)
-            if c.reference_apex_distance_m is not None:
-                d["reference_apex_distance_m"] = round(c.reference_apex_distance_m, 1)
-            if c.apex_offset_m is not None:
-                d["apex_offset_m"] = round(c.apex_offset_m, 1)
-            if c.gain_end_distance_m is not None:
-                d["gain_end_distance_m"] = round(c.gain_end_distance_m, 1)
-            return d
-
-        return {
-            "type": self.type,
-            "track_id": self.track_id,
-            "lap_number": self.lap_number,
-            "lap_time_delta_s": round(self.lap_time_delta_s, 3),
-            "top_losses": [_corner_dict(c) for c in self.top_losses],
-            "top_gains": [_corner_dict(c) for c in self.top_gains],
-            "constraints": self.constraints,
-        }
-
-
-# ---------------------------------------------------------------------------
-# Resampling
-# ---------------------------------------------------------------------------
-
-def resample_column(distances: list[float], values: list[float], max_dist: int) -> list[float]:
-    """Resample a column onto a 1-meter distance grid using linear interpolation.
-
-    Args:
-        distances: Lap distance values in meters.
-        values: Corresponding values to resample.
-        max_dist: Maximum distance to resample to (exclusive).
-
-    Returns:
-        List of resampled values, one per meter.
-    """
-    if not distances:
-        return []
-
-    sorted_pairs = sorted(zip(distances, values), key=lambda x: x[0])
-    xs = [p[0] for p in sorted_pairs]
-    ys = [p[1] if p[1] is not None else 0.0 for p in sorted_pairs]
-
-    def interp(x: float) -> float:
-        if x <= xs[0]:
-            return ys[0]
-        if x >= xs[-1]:
-            return ys[-1]
-        lo, hi = 0, len(xs) - 1
-        while hi - lo > 1:
-            mid = (lo + hi) // 2
-            if xs[mid] <= x:
-                lo = mid
-            else:
-                hi = mid
-        if xs[hi] == xs[lo]:
-            return ys[lo]
-        t = (x - xs[lo]) / (xs[hi] - xs[lo])
-        return ys[lo] + t * (ys[hi] - ys[lo])
-
-    return [interp(float(d)) for d in range(max_dist)]
-
-
-# ---------------------------------------------------------------------------
-# Minimum speed (unchanged algorithm)
+# Minimum speed
 # ---------------------------------------------------------------------------
 
 def compute_minimum_speed_per_corner(
@@ -173,28 +46,6 @@ def compute_minimum_speed_per_corner(
     return driver_min, ref_min, ref_min - driver_min, driver_apex_m, ref_apex_m
 
 
-# ---------------------------------------------------------------------------
-# Delta-time trace
-# ---------------------------------------------------------------------------
-
-def compute_delta_time_trace(
-    driver_lap_time: list[float],
-    ref_lap_time: list[float],
-    track_length: int,
-) -> list[float]:
-    """Compute cumulative time delta at each meter from lap_time_s columns.
-
-    Matches the web JS computeDeltaT() in product/web/js/pipeline.js:
-        dt[i] = sessionLapTime[i] - refLapTime[i]
-
-    Both lap_time_s arrays must already be resampled onto the 1 m grid
-    and forward-clamped (non-decreasing). This function simply computes
-    the difference at each meter.
-
-    Positive = driver behind (slower cumulative time to this point).
-    Negative = driver ahead (faster cumulative time to this point).
-    """
-    return [driver_lap_time[s] - ref_lap_time[s] for s in range(track_length)]
 
 
 def find_straight_end_after_corner(
@@ -223,9 +74,7 @@ def find_straight_end_after_corner(
     return entry_idx
 
 
-# ---------------------------------------------------------------------------
 # Entry phase detection
-# ---------------------------------------------------------------------------
 
 def find_entry_point(
     speed: list[float],
@@ -305,9 +154,7 @@ def find_brake_point(
     return None
 
 
-# ---------------------------------------------------------------------------
 # Exit phase detection
-# ---------------------------------------------------------------------------
 
 def find_exit_points(
     brake: list[float] | None,
@@ -370,38 +217,6 @@ def find_exit_points(
     return [("exit", int(corner.s_end_m))]
 
 
-# ---------------------------------------------------------------------------
-# Legacy helpers (kept for backward compatibility with other callers)
-# ---------------------------------------------------------------------------
-
-def compute_corner_entry_loss(
-    driver_speed: list[float],
-    ref_speed: list[float],
-    corner: Corner,
-    entry_length_m: float = 30.0,
-) -> tuple[float, float, float]:
-    """Compute entry speed loss using a fixed offset (legacy)."""
-    entry_idx = int(corner.apex_s_m - entry_length_m)
-    if entry_idx < 0 or entry_idx >= len(driver_speed):
-        return 0.0, 0.0, 0.0
-    driver_entry = driver_speed[entry_idx]
-    ref_entry = ref_speed[entry_idx]
-    return driver_entry, ref_entry, ref_entry - driver_entry
-
-
-def compute_corner_exit_loss(
-    driver_speed: list[float],
-    ref_speed: list[float],
-    corner: Corner,
-    exit_length_m: float = 30.0,
-) -> tuple[float, float, float]:
-    """Compute exit speed loss using a fixed offset (legacy)."""
-    exit_idx = int(corner.apex_s_m + exit_length_m)
-    if exit_idx < 0 or exit_idx >= len(driver_speed):
-        return 0.0, 0.0, 0.0
-    driver_exit = driver_speed[exit_idx]
-    ref_exit = ref_speed[exit_idx]
-    return driver_exit, ref_exit, ref_exit - driver_exit
 
 
 # ---------------------------------------------------------------------------
@@ -429,9 +244,9 @@ def compare_laps(
 ) -> LapComparisonFacts:
     """Compare a current lap against a reference lap.
 
-    Uses the phase-detection algorithm to find entry (throttle lift /
-    speed peak) and exit (brake release / full throttle) distances per
-    corner, instead of fixed 30 m offsets.
+    Uses phase-detection (throttle lift / speed peak / brake release /
+    full throttle) per corner. Delta-t computed via JS pipeline
+    (product/web/js/pipeline.js) to match the web UI exactly.
 
     Args:
         current_lap_path: Path to current lap Parquet file.
@@ -461,22 +276,14 @@ def compare_laps(
     # Extract optional pedal channels
     driver_throttle = _try_column(current_table, "throttle_norm")
     driver_brake = _try_column(current_table, "brake_norm")
-    # Reference pedal channels are not used for phase detection but
-    # could be in a future slice; resample them for consistency.
+    # Reference pedal channels not used for phase detection yet.
 
-    # Determine track length (used by computeKeepIndices in JS pipeline)
+    # Track length for computeKeepIndices (JS pipeline uses this for halfTrack).
     max_dist = int(max(max(current_dist), max(ref_dist)))
     track_length = min(max_dist, int(track_model.lap_length_m))
 
-    # Run the JS telemetry pipeline (single source of truth).
-    # ALL channels go through the same 6-step pipeline as the web UI:
-    #   1. computeKeepIndices — drop boundary-artifact frames
-    #   2. smoothLapTime — interpolate scoring-rate plateaus (lap_time_s only)
-    #   3. resample — onto 1 m grid (ALL channels including speed/throttle/brake)
-    #   4. forward-clamp — non-decreasing (lap_time_s only)
-    #   5. computeDeltaT — session - reference
-    #   6. smoothDt — spatial moving average (±20 m)
-    # This guarantees every resampled grid matches the web UI exactly.
+    # Run JS telemetry pipeline — same 6-step pipeline as web UI
+    # (computeKeepIndices, smoothLapTime, resample, clamp, computeDeltaT, smoothDt).
     js_result = run_js_pipeline(
         driver_lap_time_s=current_lap_times,
         driver_lap_distance_m=current_dist,
