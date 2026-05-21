@@ -8,8 +8,9 @@
  * Output matches the old bash runner's contract.
  *
  * Usage:
- *   node dev/scripts/run-tests-parallel.js                # full suite
- *   node dev/scripts/run-tests-parallel.js <script>        # single test
+ *   node dev/scripts/run-tests-parallel.js                           # full suite
+ *   node dev/scripts/run-tests-parallel.js --feature <name>          # feature-only
+ *   node dev/scripts/run-tests-parallel.js <script>                   # single test
  *   node dev/scripts/run-tests-parallel.js --concurrency 4
  */
 
@@ -38,8 +39,17 @@ function isPlaywright(filePath) {
   catch { return false; }
 }
 
-function getTestScripts() {
+function getTestScripts(feature) {
   const pkg = JSON.parse(fs.readFileSync(path.join(ROOT, 'package.json'), 'utf8'));
+  if (feature) {
+    const features = pkg.testFeatures || {};
+    if (!features[feature]) {
+      console.error(`Unknown feature: ${feature}`);
+      console.error(`Available: ${Object.keys(features).join(', ') || '(none)'}`);
+      process.exit(1);
+    }
+    return features[feature];
+  }
   return pkg.scripts.test.split(' && ')
     .map(p => { const m = p.match(/node\s+(.+)/); return m ? m[1] : null; })
     .filter(Boolean);
@@ -145,12 +155,18 @@ async function runSingleTest(target) {
 async function main() {
   const args = process.argv.slice(2);
   let concurrency = DEFAULT_PW_CONCURRENCY;
+  let feature = null;
+
   const ci = args.indexOf('--concurrency');
   if (ci !== -1) { concurrency = parseInt(args[ci + 1], 10); args.splice(ci, 2); }
 
+  const fi = args.indexOf('--feature');
+  if (fi !== -1) { feature = args[fi + 1]; args.splice(fi, 2); }
+
   if (args.length > 0) { process.exit(await runSingleTest(args[0])); }
 
-  const scripts = getTestScripts();
+  const scripts = getTestScripts(feature);
+  if (feature) { console.log(`Feature: ${feature} (${scripts.length} scripts)\n`); }
   const nodePool = [], pwPool = [], serial = [];
   for (const s of scripts) {
     const abs = path.resolve(ROOT, s);

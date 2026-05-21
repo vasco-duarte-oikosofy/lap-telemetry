@@ -4,6 +4,8 @@
 
 **Goal:** Build a local, live coaching and engineering companion for Le Mans Ultimate (LMU) using this repo's telemetry stack. The first useful product is a calm, concise voice that speaks during straights after a lap or corner group and explains where lap time is being gained or lost against a reference lap.
 
+**Feature tests:** `bash scripts/test-summary.sh --feature interactive-race-coach`
+
 ---
 
 ## Vertical slices

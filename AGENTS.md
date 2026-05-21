@@ -52,7 +52,7 @@ slice's `prompt.md`, you are breaking this rule. Stop and reconfirm.
 
 You are not done until all of these exist:
 
-1. `bash scripts/test-summary.sh` exits 0 (runs full suite, all pass).
+1. `bash scripts/test-summary.sh --feature <feature>` exits 0 (feature tests pass). Full suite must also pass at feature completion and every 3rd slice.
 2. `npm run build` succeeds and `dist/compare.html` is current (no stale bundle).
 3. The current mission slice has `learnings.md` — what surprised you, anything
    the next agent needs to know that is not in the spec.
@@ -97,12 +97,26 @@ script individually, reports only failures with the exact script path to
 re-run, and prints a concise one-line summary on success:
 
 ```bash
-bash scripts/test-summary.sh                        # full suite
-bash scripts/test-summary.sh scripts/test_f1f2.js   # single failing script
+bash scripts/test-summary.sh                                       # full suite
+bash scripts/test-summary.sh --feature interactive-race-coach     # feature-specific
+bash scripts/test-summary.sh scripts/test_f1f2.js                  # single failing script
 ```
 
 Do **not** use raw `npm test` — its voluminous output pollutes context and
 makes it hard to spot failures.
+
+### Test cadence: feature-specific during development, full suite at milestones
+
+During active development on a mission, run **only the feature-specific tests**
+using `--feature <name>`. This keeps feedback fast (under 5 seconds).
+
+Run the **full suite** (no `--feature`) at two points:
+1. After completing the feature (before the final commit).
+2. After every 3rd slice within a mission, to catch cross-feature regressions.
+
+Feature test lists are defined in `package.json` under `testFeatures`.
+When starting a new mission, add a feature key with the relevant test scripts
+and update the mission's `PLAN.md` to reference it.
 
 ## Standing orders
 
