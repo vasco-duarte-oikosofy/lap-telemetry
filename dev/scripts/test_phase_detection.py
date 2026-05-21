@@ -393,12 +393,13 @@ def test_comparison_with_fixture() -> None:
 
 
 def test_delta_time_trace_basic() -> None:
-    """Delta-time trace: driver slower everywhere → trace ends positive (behind)."""
+    """Delta-time from lap_time_s: driver slower everywhere → trace ends positive (behind)."""
     n = 100
-    driver_speed = [100.0] * n  # slower
-    ref_speed = [200.0] * n      # faster
+    # Driver has higher cumulative time at each meter (slower)
+    driver_lap_time = [0.0 + i * 0.036 for i in range(n)]  # ~36 s at 100kph over 100m
+    ref_lap_time = [0.0 + i * 0.018 for i in range(n)]       # ~18 s at 200kph over 100m
 
-    delta_t = compute_delta_time_trace(driver_speed, ref_speed, n)
+    delta_t = compute_delta_time_trace(driver_lap_time, ref_lap_time, n)
 
     ok(len(delta_t) == n, f"delta_t length = {len(delta_t)}, expected {n}")
     # Driver is slower, so cumulative time is higher: delta_t should be positive
@@ -408,42 +409,41 @@ def test_delta_time_trace_basic() -> None:
 
 
 def test_delta_time_trace_faster_driver() -> None:
-    """Delta-time trace: driver faster everywhere → trace ends negative (ahead)."""
+    """Delta-time from lap_time_s: driver faster everywhere → trace ends negative (ahead)."""
     n = 100
-    driver_speed = [200.0] * n  # faster
-    ref_speed = [100.0] * n      # slower
+    driver_lap_time = [0.0 + i * 0.018 for i in range(n)]  # faster
+    ref_lap_time = [0.0 + i * 0.036 for i in range(n)]      # slower
 
-    delta_t = compute_delta_time_trace(driver_speed, ref_speed, n)
+    delta_t = compute_delta_time_trace(driver_lap_time, ref_lap_time, n)
 
     ok(len(delta_t) == n, f"delta_t length = {len(delta_t)}, expected {n}")
     # Driver is faster, so cumulative time is lower: delta_t should be negative
     ok(delta_t[-1] < 0, f"delta_t[-1] = {delta_t[-1]:.4f}, expected negative (driver faster)")
 
 
-def test_delta_time_trace_equal_speeds() -> None:
-    """Delta-time trace: identical speeds → all deltas approximately zero."""
+def test_delta_time_trace_equal_times() -> None:
+    """Delta-time from lap_time_s: identical times → all deltas zero."""
     n = 100
-    speed = [150.0] * n
+    lap_time = [0.0 + i * 0.018 for i in range(n)]
 
-    delta_t = compute_delta_time_trace(speed, speed, n)
+    delta_t = compute_delta_time_trace(lap_time, lap_time, n)
 
-    # All values should be very close to zero
-    ok(abs(delta_t[-1]) < 0.001, f"delta_t[-1] = {delta_t[-1]:.6f}, expected ~0")
+    # All values should be exactly zero
+    ok(delta_t[-1] == 0.0, f"delta_t[-1] = {delta_t[-1]:.6f}, expected 0")
 
 
 def test_delta_time_trace_matches_lap_time() -> None:
-    """Delta-time trace final value should approximate the lap time delta."""
-    # Driver completes 1000m at 100 kph, ref at 110 kph
-    # Lap time ~= 1000 / (100/3.6) = 36.0s vs 1000 / (110/3.6) = 32.727s
-    # Delta ~= 3.273s
+    """Delta-time trace final value equals the lap time delta."""
     n = 1000
-    driver_speed = [100.0] * n
-    ref_speed = [110.0] * n
+    # Driver: 36.0s lap, ref: 32.727s lap → delta = 3.273s
+    driver_lap_time = [i * 0.036 for i in range(n)]   # 36.0s over 1000m
+    ref_lap_time = [i * 0.032727 for i in range(n)]  # 32.727s over 1000m
 
-    delta_t = compute_delta_time_trace(driver_speed, ref_speed, n)
+    delta_t = compute_delta_time_trace(driver_lap_time, ref_lap_time, n)
 
-    expected_delta = 36.0 - 32.727  # ~3.273s
-    ok(abs(delta_t[-1] - expected_delta) < 0.05, f"delta_t[-1] = {delta_t[-1]:.3f}, expected ~{expected_delta:.3f}")
+    # Final value should be driver_lap_time[-1] - ref_lap_time[-1]
+    expected_delta = driver_lap_time[-1] - ref_lap_time[-1]
+    ok(abs(delta_t[-1] - expected_delta) < 0.001, f"delta_t[-1] = {delta_t[-1]:.4f}, expected {expected_delta:.4f}")
 
 
 def test_find_straight_end_middle_corner() -> None:
@@ -505,8 +505,15 @@ def test_minimum_speed_gain_uses_delta_time() -> None:
         Corner(id="t2", name="turn 2", s_start_m=1400, apex_s_m=1500, s_end_m=1600, apex_side="right"),
     ]
 
-    # Compute manually to verify
-    delta_t = compute_delta_time_trace(driver_speed, ref_speed, n)
+    # Build lap_time_s from speed (synthetic but proportional)
+    driver_lap_time = [0.0] * n
+    ref_lap_time = [0.0] * n
+    for i in range(1, n):
+        driver_lap_time[i] = driver_lap_time[i - 1] + 1.0 / max(driver_speed[i] / 3.6, 0.28)
+        ref_lap_time[i] = ref_lap_time[i - 1] + 1.0 / max(ref_speed[i] / 3.6, 0.28)
+
+    # Compute delta-t from lap_time_s (matches web JS approach)
+    delta_t = compute_delta_time_trace(driver_lap_time, ref_lap_time, n)
 
     # Driver is faster through t1 → delta_t at apex should be negative (ahead)
     apex_idx = 950
@@ -642,7 +649,7 @@ def main() -> int:
     # Delta-time and gain tests
     test_delta_time_trace_basic()
     test_delta_time_trace_faster_driver()
-    test_delta_time_trace_equal_speeds()
+    test_delta_time_trace_equal_times()
     test_delta_time_trace_matches_lap_time()
     test_find_straight_end_middle_corner()
     test_find_straight_end_last_corner()

@@ -41,21 +41,13 @@ bash scripts/test-summary.sh
 npm run build
 ```
 
-## Known issue: delta_t calculation must match web JS
+## Known issue: delta_t calculation must match web JS ~~ FIXED
 
-Our current `compute_delta_time_trace()` reconstructs cumulative time from speed: `time_per_meter = 1 / (speed_kph / 3.6)`, summed over distance. This is an **approximation** that may differ from the actual recorded `lap_time_s`.
+~Our current `compute_delta_time_trace()` reconstructs cumulative time from speed: `time_per_meter = 1 / (speed_kph / 3.6)`, summed over distance. This is an **approximation** that may differ from the actual recorded `lap_time_s`.~
 
-The web UI (`product/web/js/pipeline.js`, `computeDeltaT()`) uses `lap_time_s` directly:
-```js
-dt[i] = (sessionLapTime[i] - refLapTime[i]) * 1000;
-```
+**Fixed:** `compute_delta_time_trace()` now takes resampled `lap_time_s` arrays and computes `delta_t[i] = driver_lap_time[i] - ref_lap_time[i]`, matching the web JS (`product/web/js/pipeline.js`, `computeDeltaT()`). Both `lap_time_s` columns are resampled onto the 1 m grid and forward-clamped (non-decreasing) before computing the difference.
 
-We MUST replace `compute_delta_time_trace()` with a version that:
-1. Resamples both laps' `lap_time_s` onto the 1 m grid using `resample_column()`
-2. Forward-clamps so `lap_time_s` is non-decreasing (handles LMU's ~5 Hz update rate)
-3. Computes `delta_t[i] = driver_lap_time[i] - ref_lap_time[i]`
-
-This will match the web JS exactly and give the same delta_t values shown in `product/dist/compare.html`.
+The resampling and forward-clamping in `compare_laps()` follow the same steps as the web JS: `resample_column()` then forward-clamp loop (matches `product/web/js/main.js` lines 240-249).
 
 ## Deferred TODOs
 - **Entry gains**: Different algorithm needed — delta-time from entry point to end of straight, plus reference entry detection for distance deltas.

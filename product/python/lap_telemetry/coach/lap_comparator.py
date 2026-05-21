@@ -177,31 +177,23 @@ def compute_minimum_speed_per_corner(
 # ---------------------------------------------------------------------------
 
 def compute_delta_time_trace(
-    driver_speed: list[float],
-    ref_speed: list[float],
+    driver_lap_time: list[float],
+    ref_lap_time: list[float],
     track_length: int,
 ) -> list[float]:
-    """Compute cumulative time delta at each meter.
+    """Compute cumulative time delta at each meter from lap_time_s columns.
 
-    delta_t[s] = driver_cumtime[s] - ref_cumtime[s]
+    Matches the web JS computeDeltaT() in product/web/js/pipeline.js:
+        dt[i] = sessionLapTime[i] - refLapTime[i]
+
+    Both lap_time_s arrays must already be resampled onto the 1 m grid
+    and forward-clamped (non-decreasing). This function simply computes
+    the difference at each meter.
+
     Positive = driver behind (slower cumulative time to this point).
     Negative = driver ahead (faster cumulative time to this point).
-
-    Speeds are clamped to 1.0 kph minimum to avoid division by zero.
     """
-    dt_driver = 0.0
-    dt_ref = 0.0
-    delta_t = [0.0] * track_length
-
-    for s in range(track_length):
-        # Time to traverse 1 m at this speed: 1m / (speed_kph / 3.6)
-        driver_speed_ms = max(driver_speed[s], 1.0) / 3.6
-        ref_speed_ms = max(ref_speed[s], 1.0) / 3.6
-        dt_driver += 1.0 / driver_speed_ms
-        dt_ref += 1.0 / ref_speed_ms
-        delta_t[s] = dt_driver - dt_ref
-
-    return delta_t
+    return [driver_lap_time[s] - ref_lap_time[s] for s in range(track_length)]
 
 
 def find_straight_end_after_corner(
@@ -486,13 +478,28 @@ def compare_laps(
     if driver_brake is not None:
         driver_brake_grid = resample_column(current_dist, driver_brake, track_length)
 
+    # Resample lap_time_s onto 1 m grid for delta-t computation
+    # (matches web JS: product/web/js/pipeline.js computeDeltaT)
+    driver_lap_time_grid = resample_column(current_dist, current_lap_times, track_length)
+    ref_lap_time_grid = resample_column(ref_dist, ref_lap_times, track_length)
+
+    # Forward-clamp: make lap_time_s non-decreasing in distance.
+    # LMU's mCurrentET updates at ~5 Hz (200 ms quantum), so a 50 Hz recorder
+    # sees plateaus of identical lap_time_s values. Forward-clamp ensures the
+    # resampled grid doesn't introduce backward steps from interpolation artifacts.
+    for i in range(1, track_length):
+        if driver_lap_time_grid[i] < driver_lap_time_grid[i - 1]:
+            driver_lap_time_grid[i] = driver_lap_time_grid[i - 1]
+        if ref_lap_time_grid[i] < ref_lap_time_grid[i - 1]:
+            ref_lap_time_grid[i] = ref_lap_time_grid[i - 1]
+
     # Compute lap time delta
     driver_lap_time = max(t for t in current_lap_times if t is not None and t > 0)
     ref_lap_time = max(t for t in ref_lap_times if t is not None and t > 0)
     lap_time_delta = driver_lap_time - ref_lap_time
 
-    # Compute delta-time trace for gain measurement
-    delta_t = compute_delta_time_trace(driver_speed, ref_speed_grid, track_length)
+    # Compute delta-time trace for gain measurement (using lap_time_s directly)
+    delta_t = compute_delta_time_trace(driver_lap_time_grid, ref_lap_time_grid, track_length)
 
     # Get lap number
     lap_numbers = current_table.column("lap_number").to_pylist()

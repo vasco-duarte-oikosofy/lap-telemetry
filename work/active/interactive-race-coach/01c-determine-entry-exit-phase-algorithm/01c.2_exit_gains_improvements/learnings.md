@@ -16,7 +16,7 @@
 
 7. **Speed clamping matters.** Speeds clamped to 1.0 kph in `compute_delta_time_trace()` to avoid division by zero for stopped car / pit lane samples.
 
-8. **`delta_t` must use `lap_time_s`, not speed integration.** Our current `compute_delta_time_trace()` reconstructs cumulative time from speed — this is an approximation. The web UI (`product/web/js/pipeline.js`, `computeDeltaT()`) uses the actual `lap_time_s` column: `dt[i] = (sessionLapTime[i] - refLapTime[i]) * 1000`. We MUST replace our Python version with one that resamples `lap_time_s` onto the 1 m grid, forward-clamps, and computes the difference. This will match the web JS exactly and produce the same delta_t values shown in `product/dist/compare.html`.
+8. **`delta_t` must use `lap_time_s`, not speed integration.** Our original `compute_delta_time_trace()` reconstructed cumulative time from speed — this was an approximation that produced different values than the web UI. The web JS (`product/web/js/pipeline.js`, `computeDeltaT()`) uses the actual `lap_time_s` column: `dt[i] = (sessionLapTime[i] - refLapTime[i]) * 1000`. We replaced the Python version with one that resamples `lap_time_s` onto the 1 m grid, forward-clamps to handle LMU's ~5 Hz update rate plateaus, and computes the difference. This now matches the web JS exactly and produces the same delta_t values shown in `product/dist/compare.html`. With this fix, the t5 exit gain went from -65ms (speed integration) to -68ms (lap_time_s) — closer to actual measured values.
 
 ## Edge cases handled
 
