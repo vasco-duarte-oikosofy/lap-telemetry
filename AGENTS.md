@@ -207,3 +207,17 @@ export COACH_CONFIG=/path/to/lap-telemetry/coach_config.toml
 ## Reference-lap extraction and storage
 
 To extract the fastest lap from a session file and store it as the reference lap for a circuit, follow the procedure in [`dev/scripts/EXTRACT_AND_STORE_REFERENCE_LAP.md`](dev/scripts/EXTRACT_AND_STORE_REFERENCE_LAP.md).
+
+For sessions recorded as many `.part*.parquet` shards, see the **Multi-shard sessions** pitfall section in that doc — merge shards to a single file before running the extraction scripts.
+
+## Generating a track coaching model
+
+To generate a corner-detection coaching model from a reference lap, follow the procedure in [`dev/scripts/GENERATE_TRACK_COACHING_MODEL.md`](dev/scripts/GENERATE_TRACK_COACHING_MODEL.md).
+
+## Generating a track outline
+
+For circuits with TUMFTM data (Spa, Bahrain, COTA, Monza, etc.), follow [`docs/specs/MULTI_TRACK_TUMFTM_OUTLINE_PIPELINE.md`](docs/specs/MULTI_TRACK_TUMFTM_OUTLINE_PIPELINE.md).
+
+For circuits with no external boundary data (Lusail, Fuji, Le Mans, etc.), generate a trajectory-based outline from the reference lap — follow [`dev/scripts/GENERATE_TRAJECTORY_OUTLINE.md`](dev/scripts/GENERATE_TRAJECTORY_OUTLINE.md).
+
+See [`docs/TRACK_OUTLINE_COVERAGE.md`](docs/TRACK_OUTLINE_COVERAGE.md) for which tracks are covered and at what quality.

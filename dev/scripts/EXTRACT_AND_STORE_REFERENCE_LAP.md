@@ -15,6 +15,22 @@ When a new fastest time is found, **replace the old file** (delete it) and creat
 
 ## Pitfalls
 
+### Multi-shard sessions
+
+Long or interrupted recording sessions produce many `.part0.parquet`, `.part1.parquet`, … shard files instead of a single `.parquet`. The extraction scripts require a single merged file. Merge first:
+
+```python
+import pyarrow.parquet as pq, pyarrow as pa, glob, os
+
+slug = "lusail-international-circuit"  # or any session slug
+parts = sorted(glob.glob(f"sessions/session_*{slug}*.part*.parquet"))
+merged = pa.concat_tables([pq.read_table(p) for p in parts])
+os.makedirs("dev/sessions", exist_ok=True)
+pq.write_table(merged, f"dev/sessions/{slug}_merged.parquet")
+```
+
+Then use `dev/sessions/{slug}_merged.parquet` as the input to the steps below. Delete the temp file when done.
+
 ### Multi-stint sessions
 
 Many sessions contain two or more stints (pit stops rejoining the track). When this happens, the same `lap_number` value appears in multiple segments — e.g. lap 3 in stint 1 might be 1:36.456 while lap 3 in stint 2 is 1:37.435. If you group by `lap_number` and take `max(lap_time_s)`, you get the **slower** stint, hiding the actually fastest segment.

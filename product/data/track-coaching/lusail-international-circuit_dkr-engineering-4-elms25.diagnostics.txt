@@ -1,0 +1,16 @@
+detection_method=throttle_brake_v1
+t1 apex=809m start=747m end=865m min=117.4kph entry=133.0kph exit=134.5kph drop=22.4kph recovery=27.6kph prominence=22.4kph accepted
+t2 apex=1094m start=1084m end=1116m min=118.8kph entry=121.2kph exit=124.2kph drop=43.5kph recovery=29.8kph prominence=29.8kph accepted
+t3 apex=1745m start=1744m end=1750m min=124.2kph entry=124.3kph exit=126.2kph drop=55.7kph recovery=33.0kph prominence=33.0kph accepted
+t4 apex=1938m start=1908m end=1940m min=145.9kph entry=148.2kph exit=146.1kph drop=19.1kph recovery=18.0kph prominence=18.0kph accepted
+t5 apex=2216m start=2207m end=2231m min=81.1kph entry=84.5kph exit=87.7kph drop=43.1kph recovery=51.4kph prominence=43.1kph accepted
+t6 apex=2616m start=2614m end=2633m min=101.0kph entry=101.4kph exit=108.0kph drop=49.0kph recovery=39.1kph prominence=39.1kph accepted
+t7 apex=2961m start=2894m end=2964m min=173.6kph entry=184.6kph exit=174.0kph drop=17.0kph recovery=15.1kph prominence=15.1kph accepted
+t8 apex=3121m start=3051m end=3121m min=118.9kph entry=190.6kph exit=118.9kph drop=71.7kph recovery=-0.5kph prominence=-0.5kph accepted
+t9 apex=3190m start=3150m end=3217m min=109.9kph entry=115.2kph exit=121.3kph drop=16.5kph recovery=37.7kph prominence=16.5kph accepted
+t10 apex=3724m start=3685m end=3724m min=212.8kph entry=228.0kph exit=212.8kph drop=16.5kph recovery=-0.4kph prominence=-0.4kph accepted
+t11 apex=3826m start=3725m end=3826m min=190.0kph entry=212.5kph exit=190.0kph drop=18.0kph recovery=14.7kph prominence=14.7kph accepted
+t12 apex=3994m start=3988m end=3996m min=179.2kph entry=180.6kph exit=179.4kph drop=26.2kph recovery=15.4kph prominence=15.4kph accepted
+t13 apex=4187m start=4115m end=4187m min=150.6kph entry=201.0kph exit=150.6kph drop=50.9kph recovery=22.8kph prominence=22.8kph accepted
+t14 apex=4537m start=4478m end=4539m min=147.7kph entry=153.5kph exit=148.0kph drop=18.0kph recovery=26.7kph prominence=18.0kph accepted
+t15 apex=4960m start=4956m end=5011m min=121.8kph entry=122.9kph exit=126.1kph drop=63.2kph recovery=14.4kph prominence=14.4kph accepted

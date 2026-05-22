@@ -1,0 +1,150 @@
+{
+  "schema_version": "1",
+  "track_id": "lusail-international-circuit",
+  "layout_id": "lmu-default",
+  "reference_lap": {
+    "path": "product\\data\\reference-laps\\lusail-international-circuit_dkr-engineering-4-elms25_time_01.52.200.parquet",
+    "car_id": "dkr-engineering-4-elms25",
+    "lap_time_s": 112.2,
+    "detection_method": "throttle_brake_v1"
+  },
+  "lap_length_m": 5401.1,
+  "corners": [
+    {
+      "id": "t1",
+      "name": "turn 1",
+      "s_start_m": 747.0,
+      "apex_s_m": 809.0,
+      "s_end_m": 865.0,
+      "apex_side": "right",
+      "apex_side_source": "default_cli_option"
+    },
+    {
+      "id": "t2",
+      "name": "turn 2",
+      "s_start_m": 1084.0,
+      "apex_s_m": 1094.0,
+      "s_end_m": 1116.0,
+      "apex_side": "right",
+      "apex_side_source": "default_cli_option"
+    },
+    {
+      "id": "t3",
+      "name": "turn 3",
+      "s_start_m": 1744.0,
+      "apex_s_m": 1745.0,
+      "s_end_m": 1750.0,
+      "apex_side": "right",
+      "apex_side_source": "default_cli_option"
+    },
+    {
+      "id": "t4",
+      "name": "turn 4",
+      "s_start_m": 1908.0,
+      "apex_s_m": 1938.0,
+      "s_end_m": 1940.0,
+      "apex_side": "right",
+      "apex_side_source": "default_cli_option"
+    },
+    {
+      "id": "t5",
+      "name": "turn 5",
+      "s_start_m": 2207.0,
+      "apex_s_m": 2216.0,
+      "s_end_m": 2231.0,
+      "apex_side": "right",
+      "apex_side_source": "default_cli_option"
+    },
+    {
+      "id": "t6",
+      "name": "turn 6",
+      "s_start_m": 2614.0,
+      "apex_s_m": 2616.0,
+      "s_end_m": 2633.0,
+      "apex_side": "right",
+      "apex_side_source": "default_cli_option"
+    },
+    {
+      "id": "t7",
+      "name": "turn 7",
+      "s_start_m": 2894.0,
+      "apex_s_m": 2961.0,
+      "s_end_m": 2964.0,
+      "apex_side": "right",
+      "apex_side_source": "default_cli_option"
+    },
+    {
+      "id": "t8",
+      "name": "turn 8",
+      "s_start_m": 3051.0,
+      "apex_s_m": 3121.0,
+      "s_end_m": 3121.0,
+      "apex_side": "right",
+      "apex_side_source": "default_cli_option"
+    },
+    {
+      "id": "t9",
+      "name": "turn 9",
+      "s_start_m": 3150.0,
+      "apex_s_m": 3190.0,
+      "s_end_m": 3217.0,
+      "apex_side": "right",
+      "apex_side_source": "default_cli_option"
+    },
+    {
+      "id": "t10",
+      "name": "turn 10",
+      "s_start_m": 3685.0,
+      "apex_s_m": 3724.0,
+      "s_end_m": 3724.0,
+      "apex_side": "right",
+      "apex_side_source": "default_cli_option"
+    },
+    {
+      "id": "t11",
+      "name": "turn 11",
+      "s_start_m": 3725.0,
+      "apex_s_m": 3826.0,
+      "s_end_m": 3826.0,
+      "apex_side": "right",
+      "apex_side_source": "default_cli_option"
+    },
+    {
+      "id": "t12",
+      "name": "turn 12",
+      "s_start_m": 3988.0,
+      "apex_s_m": 3994.0,
+      "s_end_m": 3996.0,
+      "apex_side": "right",
+      "apex_side_source": "default_cli_option"
+    },
+    {
+      "id": "t13",
+      "name": "turn 13",
+      "s_start_m": 4115.0,
+      "apex_s_m": 4187.0,
+      "s_end_m": 4187.0,
+      "apex_side": "right",
+      "apex_side_source": "default_cli_option"
+    },
+    {
+      "id": "t14",
+      "name": "turn 14",
+      "s_start_m": 4478.0,
+      "apex_s_m": 4537.0,
+      "s_end_m": 4539.0,
+      "apex_side": "right",
+      "apex_side_source": "default_cli_option"
+    },
+    {
+      "id": "t15",
+      "name": "turn 15",
+      "s_start_m": 4956.0,
+      "apex_s_m": 4960.0,
+      "s_end_m": 5011.0,
+      "apex_side": "right",
+      "apex_side_source": "default_cli_option"
+    }
+  ],
+  "straight_zones": []
+}

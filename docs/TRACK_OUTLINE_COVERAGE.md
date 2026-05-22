@@ -35,6 +35,7 @@ kerb or far from the outside wall.
 | Bahrain International Circuit | `bahrain-international-circuit` | **Real** | TUMFTM `Sakhir.csv` | Varies per point | ✅ Yes |
 | Fuji Speedway | `fuji-speedway` | Trajectory | Single lap (lap 7) | Constant 3m each side | ❌ No |
 | Autodromo Enzo e Dino Ferrari | `autodromo-enzo-e-dino-ferrari` | ❌ None | — | — | — |
+| Lusail International Circuit | `lusail-international-circuit` | Trajectory | Single lap (lap 12, 1:52.200, 2026-05-22) | Constant 5m each side | ❌ No |
 
 ---
 
@@ -83,7 +84,7 @@ kerb or far from the outside wall.
 |-------|---------|
 | Fuji Speedway | OSM extraction (`highway=raceway`) |
 | Circuit de la Sarthe (Le Mans) | OSM extraction |
-| Lusail International Circuit | OSM or satellite imagery |
+| Lusail International Circuit | ✅ Trajectory outline done; OSM extraction needed for real widths |
 | Sebring International Raceway | OSM or satellite imagery |
 
 ---
