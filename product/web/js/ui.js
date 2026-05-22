@@ -119,6 +119,13 @@ export async function loadFile(file, renderAll) {
   setBadge(badge, 'loading', 'loading…');
 
   try {
+    // terrain_name_* are string columns that can overflow the JS call stack when
+    // hyparquet expands very long uniform RLE runs (e.g. a full session on a track
+    // where the surface type barely changes). Load them separately so a failure
+    // there doesn't kill the whole file.
+    const terrainCols = TRACK_OUTLINE_CHANNELS.filter(c => c.startsWith('terrain_name'));
+    const nonTerrainOutlineCols = TRACK_OUTLINE_CHANNELS.filter(c => !c.startsWith('terrain_name'));
+
     const { data, missingCols } = await readColumns(file, [
       'lap_number', 'lap_time_s', 'lap_distance_m', 'speed_kph',
       'throttle_norm', 'brake_norm', 'engine_rpm', 'gear',
@@ -126,8 +133,20 @@ export async function loadFile(file, renderAll) {
       'last_sector_1_s', 'last_sector_2_s',
       'pos_x_m', 'pos_z_m',
       'abs_active', 'tc_active',
-      ...TRACK_OUTLINE_CHANNELS,
+      ...nonTerrainOutlineCols,
     ]);
+
+    if (terrainCols.length > 0) {
+      try {
+        const { data: td } = await readColumns(file, terrainCols);
+        for (const col of terrainCols) {
+          if (td[col] && td[col].length > 0) data[col] = td[col];
+        }
+      } catch (e) {
+        console.warn(`${file.name}: terrain_name columns skipped (hyparquet stack overflow on long uniform runs)`);
+      }
+    }
+
     warnInvalidTrackOutlineSamples(data, file.name);
 
     const segments = buildSegments(data.lap_number);

@@ -3246,6 +3246,8 @@ async function loadFile(file, renderAll2) {
   const badge = addSessionEntry(file.name, key, "loading\u2026");
   setBadge(badge, "loading", "loading\u2026");
   try {
+    const terrainCols = TRACK_OUTLINE_CHANNELS.filter((c) => c.startsWith("terrain_name"));
+    const nonTerrainOutlineCols = TRACK_OUTLINE_CHANNELS.filter((c) => !c.startsWith("terrain_name"));
     const { data, missingCols } = await readColumns(file, [
       "lap_number",
       "lap_time_s",
@@ -3264,8 +3266,18 @@ async function loadFile(file, renderAll2) {
       "pos_z_m",
       "abs_active",
       "tc_active",
-      ...TRACK_OUTLINE_CHANNELS
+      ...nonTerrainOutlineCols
     ]);
+    if (terrainCols.length > 0) {
+      try {
+        const { data: td } = await readColumns(file, terrainCols);
+        for (const col of terrainCols) {
+          if (td[col] && td[col].length > 0) data[col] = td[col];
+        }
+      } catch (e) {
+        console.warn(`${file.name}: terrain_name columns skipped (hyparquet stack overflow on long uniform runs)`);
+      }
+    }
     warnInvalidTrackOutlineSamples(data, file.name);
     const segments = buildSegments(data.lap_number);
     annotateSegments(segments, data.lap_distance_m, data.lap_time_s);
