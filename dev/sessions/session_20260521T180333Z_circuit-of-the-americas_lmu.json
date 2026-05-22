@@ -1,0 +1,14 @@
+{
+  "schema_version": "2",
+  "recorder_version": "0.1.0a1",
+  "started_utc": "2026-05-21T18:03:33Z",
+  "ended_utc": "2026-05-21T18:39:45Z",
+  "sim": "lmu",
+  "track": "Circuit of the Americas",
+  "vehicle_name": "DKR Engineering #4:ELMS25",
+  "setup_file_guess": "CDA3_LMP3G_COTA_S01.svm",
+  "sample_rate_hz": 50.0,
+  "row_count": 108460,
+  "lap_count": 16,
+  "in_progress": false
+}
