@@ -358,3 +358,21 @@ python3 dev/scripts/test_foo.py
 ```
 
 The wrapper only exists so the parallel runner can discover and execute it.
+
+---
+
+## L13. When a function gains a required parameter, grep for all call sites including embedded test strings
+
+**Problem.** When `build_model()` gained a `detection_method` parameter in one slice, the test that calls it (`test_generate_track_coaching_model_from_reference.js`) wasn't updated. The test embeds Python code inside a JS template literal, so IDE "find usages" and refactoring tools don't discover the call site. The failure was a `TypeError: missing 1 required positional argument` that only appeared when the test ran.
+
+**Symptom.** A test that used to pass starts failing with `TypeError: … missing N required positional argument(s)` after a signature change, and `grep` on `.py` files finds nothing because the call lives inside a `.js` file.
+
+**Rule.** After changing any function signature in `product/python/`, search for all call sites across the entire repo — including `.js` files that embed Python:
+
+```bash
+grep -r "build_model\(" dev/ product/
+```
+
+Alternatively, always run the full suite after changing a public function's signature, not just the feature-specific tests. The parallel runner catches these within seconds.
+
+**Why this matters.** Embedded-Python-in-JS wrappers (`L12`) are invisible to Python refactoring tools. The only reliable safety net is a `grep` across all file types or a full test run.
