@@ -60,8 +60,13 @@ class LiveFactGenerator:
         self._ref_cache: dict[str, Path | None] = {}
         self._model_cache: dict[str, Path | None] = {}
 
-    def generate(self, event: LapCompleted) -> str | None:
+    def generate(self, event: LapCompleted, top: int = 3) -> str | None:
         """Generate a coaching utterance from a LapCompleted event.
+
+        Args:
+            event: The lap-completed event.
+            top: Number of coaching items per call (1 or 3). Truncates
+                facts and adjusts the LLM's word limit.
 
         Returns the utterance string, or ``None`` if any step fails.
         """
@@ -124,7 +129,15 @@ class LiveFactGenerator:
             except OSError:
                 pass
 
-        # 5. Generate utterance.
+        # 5. Apply top-N filtering.
+        if top < len(facts.top_losses):
+            facts.top_losses = facts.top_losses[:top]
+        if top < len(facts.top_gains):
+            facts.top_gains = facts.top_gains[:top]
+        # Adjust word limit in constraints based on top.
+        facts.constraints["max_words"] = 20 if top == 1 else 35
+
+        # 6. Generate utterance.
         if self._utterance_fn is None:
             log.warning("No utterance function configured — skipping LLM call")
             # Still output facts for debugging.

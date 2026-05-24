@@ -6,10 +6,18 @@ environment variable that holds the key.
 """
 from __future__ import annotations
 
+import enum
 import os
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
+
+
+class CoachMode(enum.Enum):
+    """When the coach speaks: after lap only, turn-by-turn, or both."""
+    LAP = "lap"
+    TURN = "turn"
+    ALL = "all"
 
 
 DEFAULT_CONFIG_PATHS = [
@@ -31,6 +39,13 @@ class LLMConfig:
     def api_key(self) -> str | None:
         """Read the API key from the named environment variable."""
         return os.environ.get(self.api_key_env)
+
+
+@dataclass
+class CoachRunConfig:
+    """Run-time configuration for the coaching pipeline."""
+    mode: CoachMode = CoachMode.LAP
+    top: int = 3
 
 
 @dataclass
