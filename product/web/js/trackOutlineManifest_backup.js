@@ -16,6 +16,7 @@ import { CIRCUIT_BARCELONA_STATIC_OUTLINE } from './staticCircuitBarcelonaOutlin
 import { AUTODROMO_DINO_FERRARI_STATIC_OUTLINE } from './staticAutodromoDinoFerrariOutlineData.js';
 import { AUTODROMO_NAZIONALE_MONZA_STATIC_OUTLINE } from './staticAutodromoNazionaleMonzaOutlineData.js';
 import { CIRCUIT_OF_THE_AMERICAS_STATIC_OUTLINE } from './staticCircuitOfTheAmericasOutlineData.js';
+import { LUSAIL_INTERNATIONAL_CIRCUIT_STATIC_OUTLINE } from './staticLusailInternationalCircuitOutlineData.js';
 
 // slug normalization: lowercase, collapse whitespace to single dash, strip non-alnum/dash
 function slugify(name) {
@@ -44,6 +45,8 @@ const OUTLINES = new Map([
   ['autodromo-nazionale-monza', AUTODROMO_NAZIONALE_MONZA_STATIC_OUTLINE],
   // Circuit of the Americas
   ['circuit-of-the-americas', CIRCUIT_OF_THE_AMERICAS_STATIC_OUTLINE],
+  // Lusail International Circuit
+  ['lusail-international-circuit', LUSAIL_INTERNATIONAL_CIRCUIT_STATIC_OUTLINE],
 ]);
 
 /**
