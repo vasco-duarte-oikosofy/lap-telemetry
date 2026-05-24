@@ -26,6 +26,15 @@ Each mission folder must use this structure:
 - `<slice-name>/handoff.md` records the concrete state for the next agent: what changed, what remains, and any commands/results worth knowing.
 - `<slice-name>/learnings.md` records surprises and context that are not already in the spec.
 
+## Closing a slice
+
+When a slice is done, complete these steps before moving on:
+
+1. Verify the fix against the real input (not just a synthetic fixture or test).
+2. Commit and push all changed files.
+3. Update the slice status in `PLAN.md` (e.g. `✅ Done`).
+4. Write `learnings.md` — surprises, non-obvious findings, and context not already in the spec. Keep it to bullet points.
+
 ## State folders
 
 - `active/` contains missions currently being worked.
