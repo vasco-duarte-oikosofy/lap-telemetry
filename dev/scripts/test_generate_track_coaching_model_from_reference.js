@@ -79,7 +79,7 @@ def run_unit_tests():
     check(len(candidates) == 1, 'single V-shaped trace produces one corner', str(len(candidates)))
     check(abs(candidates[0].apex_m - 300) <= 2, 'single V-shaped trace apex is near expected distance', str(candidates[0].apex_m))
 
-    model = gen.build_model(Path('synthetic.parquet'), 'synthetic', 'test', 'synthetic-car', 24.0, 1199.0, candidates, 'right')
+    model = gen.build_model(Path('synthetic.parquet'), 'synthetic', 'test', 'synthetic-car', 24.0, 1199.0, candidates, 'right', 'unit_test_speed_min')
     check(model['reference_lap']['car_id'] == 'synthetic-car', 'generated JSON includes reference car_id', model['reference_lap']['car_id'])
 
     candidates, _ = gen.detect_apex_candidates(synthetic_speed(1200, [(250, 75, 60), (700, 65, 60)]))
@@ -124,8 +124,9 @@ def run_barcelona_generation_test():
         float(max(distances)),
         candidates,
         'right',
+        gen.DETECTION_METHOD_V2,
     )
-    diagnostics = gen.diagnostics_text(candidates)
+    diagnostics = gen.diagnostics_text(candidates, gen.DETECTION_METHOD_V2)
 
     check(model['reference_lap']['car_id'] == 'dkr-engineering-4-elms25', 'Barcelona output records reference car id', model['reference_lap']['car_id'])
     sorted_zones = all(previous['s_end_m'] <= current['s_start_m'] for previous, current in zip(model['corners'], model['corners'][1:]))
