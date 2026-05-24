@@ -32,6 +32,11 @@
 - `record_with_coach.py` is intentionally minimal — just starts recorder + coach tap
 - Cross-process bus (WebSocket/HTTP) not needed for MVP
 
+## Runtime notes
+- `record_with_coach.py` is the recommended entry point (handles PYTHONPATH automatically)
+- `python -m lap_telemetry.coach.live_coach` needs `PYTHONPATH=product/python` (see learnings #8)
+- NumPy 2 / PyArrow mismatch may block startup in some conda envs (see learnings #9)
+
 ## Test status
 - All 39 assertions pass: `bash scripts/test-summary.sh dev/scripts/test_live_bus_tap.js`
 - `npm run build` succeeds

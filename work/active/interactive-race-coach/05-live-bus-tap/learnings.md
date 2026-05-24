@@ -31,3 +31,13 @@ When `lap_number` decreases (session restart), the in-progress lap is discarded 
 ## 7. QueuedBus drain on shutdown
 
 After `shutdown()`, the worker drains any remaining items in the queue before exiting. This ensures no frames are lost on clean teardown, which matters for the lap detector seeing the final frames of a session.
+
+## 8. `python -m lap_telemetry.coach.live_coach` needs PYTHONPATH
+
+The package lives under `product/python/`, which isn't on the default `sys.path`. Users must either:
+- Run `python3 record_with_coach.py` (which adds the path automatically), or
+- Set `PYTHONPATH=product/python python3 -m lap_telemetry.coach.live_coach`
+
+## 9. NumPy 2 / PyArrow 1.x incompatibility blocks recorder imports
+
+In conda environments with NumPy 2.x and an older PyArrow, `import pyarrow` crashes with `AttributeError: _ARRAY_API not found`. Fix: `pip install --upgrade pyarrow` or use a venv with compatible versions. This is an environment issue, not a code bug.
