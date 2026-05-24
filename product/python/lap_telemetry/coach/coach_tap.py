@@ -84,7 +84,8 @@ class CoachTap:
 
     def shutdown(self) -> None:
         """Shut down the bus worker thread and speech queue."""
-        self._bus.shutdown()
+        if hasattr(self._bus, 'shutdown'):
+            self._bus.shutdown()
         if self._speech_queue is not None:
             self._speech_queue.shutdown()
 

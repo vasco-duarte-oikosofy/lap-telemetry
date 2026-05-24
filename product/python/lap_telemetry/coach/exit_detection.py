@@ -1,4 +1,14 @@
-"""Exit phase detection: brake release, full throttle, merged exit point."""
+"""Exit phase detection: brake release, full throttle, merged exit point.
+
+The search window extends past ``s_end_m`` by
+``PhaseDetectionThresholds.exit_search_past_end_m`` (default 50 m).
+This is necessary because the actual brake release and full-throttle
+point often occur on the early straight, beyond the corner boundary —
+especially for short corners where the apex-to-end span is only a few
+metres.  Limiting the search to ``s_end_m`` would fall back to the
+boundary for both driver and reference, yielding a delta of 0 and
+masking the real exit-distance difference.
+"""
 from __future__ import annotations
 
 from .facts import PhaseDetectionThresholds
@@ -13,9 +23,10 @@ def find_exit_points(
 ) -> list[tuple[str, int]]:
     """Find exit phase distances for a corner.
 
-    Walks forward from apex toward s_end_m using brake and throttle
-    channels to detect brake release (exit_brake) and full-throttle
-    (exit_throttle) points.
+    Walks forward from apex, searching up to
+    ``s_end_m + exit_search_past_end_m`` (default 50 m past the corner
+    boundary) using brake and throttle channels to detect brake release
+    (exit_brake) and full-throttle (exit_throttle) points.
 
     Returns list of (phase_name, distance_m).
     When both are detected and within merge tolerance, emits a single
@@ -23,14 +34,18 @@ def find_exit_points(
     "exit" at that point.  Falls back to s_end_m when neither is found.
     """
     apex_idx = max(0, int(corner.apex_s_m))
-    end_idx = min(int(corner.s_end_m), len(brake or throttle or []) - 1 if (brake or throttle) else int(corner.s_end_m))
+    data_len = len(brake or throttle or [])
+    # Extend search past corner boundary so short corners don't miss
+    # real brake release / throttle transitions on the exit straight.
+    past_end = int(thresholds.exit_search_past_end_m)
+    search_end = min(int(corner.s_end_m) + past_end, data_len - 1) if data_len else int(corner.s_end_m)
 
     exit_brake_s: int | None = None
     exit_throttle_s: int | None = None
 
     # --- Brake release (exit-1) ---
     if brake is not None:
-        end_idx_brake = min(int(corner.s_end_m), len(brake) - 1)
+        end_idx_brake = min(search_end, len(brake) - 1)
         was_braking = False
         for i in range(apex_idx, end_idx_brake + 1):
             if brake[i] > thresholds.brake_apply:
@@ -41,7 +56,7 @@ def find_exit_points(
 
     # --- Full throttle (exit-2) ---
     if throttle is not None:
-        end_idx_throttle = min(int(corner.s_end_m), len(throttle) - 1)
+        end_idx_throttle = min(search_end, len(throttle) - 1)
         was_partial = False
         for i in range(apex_idx, end_idx_throttle + 1):
             if throttle[i] < thresholds.throttle_full:

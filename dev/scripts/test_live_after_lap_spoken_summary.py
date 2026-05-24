@@ -19,7 +19,7 @@ ROOT = Path(__file__).resolve().parent.parent.parent
 sys.path.insert(0, str(ROOT / "product" / "python"))
 
 from lap_telemetry.recorder.connect import Frame
-from lap_telemetry.recorder.bus import QueuedBus
+from lap_telemetry.recorder.bus import LiveBus, QueuedBus
 from lap_telemetry.coach.lap_detector import LapCompleted, LapDetector, NewLap
 from lap_telemetry.coach.reference_resolver import resolve_reference_lap, _track_slug
 from lap_telemetry.coach.track_model_resolver import resolve_track_model
@@ -341,7 +341,7 @@ ok(True, "T13b: CoachTap didn't crash during bus processing")
 if tts_output.exists():
     tts_output.unlink()
 
-# T14: CoachTap with real Barcelona data via bus.
+# T14: CoachTap with real Barcelona data (synchronous bus for deterministic testing).
 if ref_path and model_path:
     tts_output14 = Path(tempfile.mktemp(suffix=".txt"))
     file_adapter14 = FileAdapter(output_path=tts_output14)
@@ -354,13 +354,13 @@ if ref_path and model_path:
         return f"Lap {facts.lap_number}: lost time in turn 4."
 
     gen14 = LiveFactGenerator(utterance_fn=mock_utterance_fn_14)
-    bus14 = QueuedBus(maxsize=256)
+    bus14 = LiveBus()
     tap14 = CoachTap(bus14, fact_generator=gen14, speech_queue=speech_q14)
-    tap14.start()
+    tap14.start()  # subscribes _on_frame to the bus
 
-    # Feed frames from the reference data.
-    for i in range(len(ref_dist)):
-        bus14.publish(current_frames[i])
+    # Feed frames via the synchronous bus.
+    for frame in current_frames:
+        bus14.publish(frame)
 
     # Cross lap boundary to trigger LapCompleted.
     bus14.publish(_make_frame(
@@ -370,9 +370,7 @@ if ref_path and model_path:
         track_name="circuit-de-barcelona",
     ))
 
-    time.sleep(2.0)  # Give processing time.
-    tap14.shutdown()
-
+    # LiveBus is synchronous — utterance generated immediately.
     ok(len(utterances_14) >= 1, "T14a: CoachTap with real data — utterance generated",
        f"utterances={len(utterances_14)}")
 
@@ -385,6 +383,8 @@ if ref_path and model_path:
         tts_output14.unlink()
     else:
         ok(True, "T14b: TTS output file not yet written (timing)")
+
+    tap14.shutdown()
 else:
     ok(True, "T14: SKIPPED — no Barcelona reference data")
 

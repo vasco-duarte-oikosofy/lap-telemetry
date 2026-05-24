@@ -17,6 +17,7 @@ class PhaseDetectionThresholds:
     brake_off: float = 0.01       # brake < 0.01 → brake fully released
     throttle_full: float = 0.95   # throttle ≥ 0.95 → back to full power
     exit_merge_tolerance_m: float = 3.0  # ≤ 3 m → merge exit phases
+    exit_search_past_end_m: float = 50.0  # search up to 50 m past corner boundary for brake/throttle transitions
 
 
 @dataclass

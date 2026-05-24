@@ -376,3 +376,19 @@ grep -r "build_model\(" dev/ product/
 Alternatively, always run the full suite after changing a public function's signature, not just the feature-specific tests. The parallel runner catches these within seconds.
 
 **Why this matters.** Embedded-Python-in-JS wrappers (`L12`) are invisible to Python refactoring tools. The only reliable safety net is a `grep` across all file types or a full test run.
+
+---
+
+## L14. A failing test assertion may reveal an algorithm limitation, not a test bug
+
+**Problem.** `test_losses_delta_time` asserts that `exit_distance_delta_m < 0` for a known loss at turn 3 exit. The assertion failed with `delta = 0.0`, which initially looked like a wrong test. Investigation showed the **algorithm** was the problem: `find_exit_points()` searched only from `apex_s_m` to `s_end_m` for brake release and full-throttle transitions. For short corners (apex-to-end ≤ 5 m), the real pedal transitions occur **past `s_end_m`** on the early straight. Both driver and reference fell back to the same boundary, yielding `delta = 0` — a meaningless value that says "we couldn't detect either exit point" rather than "they exited at the same point."
+
+**Root cause.** Turn 3 at Barcelona has `apex_s_m = 1161`, `s_end_m = 1163` — a 2-metre search window. The driver's brake release at 1169 m and full throttle at 1175 m were outside the window. So were the reference's transitions. Both returned the fallback boundary (1163), producing `delta = 0`.
+
+**Symptom.** A test that checks a sign convention (`delta < 0` for a loss) fails with `delta = 0.0`. The `loss_s` field is still correct (computed from delta-time), but `exit_distance_delta_m` is uninformative.
+
+**Diagnosis.** Before concluding a test is wrong, ask: is the algorithm producing the best answer it can with the data available? If the output is a fallback value (boundary, `None`, `0.0`), the test may be correctly asserting a sign convention that the algorithm should satisfy but can't due to a search limitation.
+
+**Fix.** Extend the search window past `s_end_m` by `exit_search_past_end_m` (default 50 m) so brake release and throttle transitions on the early straight are found. Added as a parameter on `PhaseDetectionThresholds` so it's configurable per-track if needed.
+
+**Rule.** When a test fails with a default/fallback value, investigate whether the algorithm should have found a real value. A `0.0` or `None` that passes a weak assertion (`>= 0`) may be hiding the fact that the algorithm gave up too early.
