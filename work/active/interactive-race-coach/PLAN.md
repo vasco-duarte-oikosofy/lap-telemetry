@@ -18,7 +18,7 @@
 | `02-track-coaching-model-loader` | ✅ Complete | Validate/load one Barcelona LMU coaching JSON and map corner names/zones to telemetry distance (delivered in slice 01 as `track_model.py`) |
 | `03-llm-text-adapter` | ✅ Complete | CLI sends sample facts to configured model and records the returned utterance |
 | `04-local-tts-smoke-path` | ✅ Complete | CLI speaks a supplied text string through the local TTS adapter with queue semantics |
-| `05-live-bus-tap` | 🔲 Not started | Recorder runs normally and a coach tap receives frames, detects lap boundaries, and writes debug events |
+| `05-live-bus-tap` | ✅ Complete | Recorder runs normally and a coach tap receives frames, detects lap boundaries, and writes debug events |
 | `06-live-after-lap-spoken-summary` | 🔲 Not started | At lap end, analyze completed lap, generate one LLM utterance, and speak it on the next straight |
 | `07-corner-exit-coaching` | 🔲 Not started | Speak one targeted note after selected corner exits when a safe straight is available |
 | `08-fuel-fact-recorder-channels` | 🔲 Not started | Extend `Frame` with fuel/race-state fields and print deterministic fuel-to-end facts |
