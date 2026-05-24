@@ -1,0 +1,14 @@
+{
+  "schema_version": "2",
+  "recorder_version": "0.1.0a1",
+  "started_utc": "2026-05-24T14:16:13Z",
+  "ended_utc": "2026-05-24T14:53:47Z",
+  "sim": "lmu",
+  "track": "Paul Ricard - 3A",
+  "vehicle_name": "DKR Engineering #4:ELMS25",
+  "setup_file_guess": null,
+  "sample_rate_hz": 50.0,
+  "row_count": 112446,
+  "lap_count": 22,
+  "in_progress": false
+}
