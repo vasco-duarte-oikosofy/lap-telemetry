@@ -86,9 +86,10 @@ bundles `web/js/main.js` (with its module dependencies) via esbuild.
 ## Testing
 
 Before writing a new test or fixing a failing test, **read
-[TESTING_LESSONS.md](TESTING_LESSONS.md)**. It documents hard-won rules
+[TESTING_LESSONS.md](docs/TESTING_LESSONS.md)**. It documents hard-won rules
 about Playwright and headless Chromium that prevent silent, layout-dependent
-failures.
+failures — and how to wire Python test scripts into the Node-based parallel
+runner (lesson L12: Python tests need a thin `.js` wrapper).
 
 ### Running tests
 
