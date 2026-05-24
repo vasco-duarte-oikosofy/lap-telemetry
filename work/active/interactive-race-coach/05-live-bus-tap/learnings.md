@@ -41,3 +41,7 @@ The package lives under `product/python/`, which isn't on the default `sys.path`
 ## 9. NumPy 2 / PyArrow 1.x incompatibility blocks recorder imports
 
 In conda environments with NumPy 2.x and an older PyArrow, `import pyarrow` crashes with `AttributeError: _ARRAY_API not found`. Fix: `pip install --upgrade pyarrow` or use a venv with compatible versions. This is an environment issue, not a code bug.
+
+## 10. Very short completed laps (e.g. 2.4 s) are expected when a session ends mid-lap
+
+When the recorder closes a session (idle timeout or Ctrl+C), the in-progress lap has no natural lap-boundary crossing. On the next session, the sim resets the lap counter, which the LapDetector sees as a backward-number event and discards. However, if the session ends while the sim is still emitting frames up to the final crossing, the LapDetector may emit a `LapCompleted` for the tail fragment with a very small frame count and duration. This is correct behaviour for slice 05 — no filtering of short/invalid laps is expected until slice 06.
