@@ -46,8 +46,9 @@ python3 record_with_coach.py --out-dir sessions --coach-mode all --coach-top 1
 - **Track model auto-loading**: Currently `CornerExitDetector.track_model` is None at creation. CoachTap needs to load it when a track is detected. This works in `live_coach.py` via the LiveFactGenerator's existing model resolver, but the `CornerExitDetector` doesn't auto-load from track name changes. Future enhancement: add track model auto-loading to CoachTap when the first frame of a new track arrives.
 - **Speech window retry timing**: When a pending utterance is held because the car is in a corner, it's retried on every frame until the car enters a speech window. This could be optimized with a small timer, but YAGNI for now.
 - **Dynamic mode changes during a session**: Not supported (by design). Mode is set at startup.
+- **Exit detection search window**: `exit_search_past_end_m` defaults to 50m. For very close corners (gap < 50m), this could search into the next corner's entry. Future enhancement: limit search to `next_corner.s_start_m` when available.
 
-## Pre-existing test failures (not from this slice)
+## Pre-existing test failures — FIXED
 
-- `test_losses_delta_time.js` — T3 exit loss delta assertion fails
-- `test_live_after_lap_spoken_summary.js` — T14a timing-dependent utterance check fails
+- `test_losses_delta_time.js` — T3 exit loss delta assertion **now passes**. The root cause was `find_exit_points()` only searching within the corner boundary (`s_end_m`), missing real brake/throttle transitions that occur past the boundary. Fixed by extending the search window by `exit_search_past_end_m` (default 50m).
+- `test_live_after_lap_spoken_summary.js` — T14a **now passes**. The root cause was `QueuedBus(maxsize=256)` dropping most of the 4826 test frames, so the LapDetector never saw the lap boundary. Fixed by using `LiveBus` (synchronous) instead.
