@@ -2,7 +2,7 @@
 
 ## Status
 
-🔍 Investigating — partial fix shipped, root cause identified, recorder fix pending.
+Resolved. App-level isolation fix shipped; recorder fix shipped. Both covered by tests.
 
 ---
 
@@ -23,8 +23,8 @@ Maximum call stack size exceeded
 |---|---|---|
 | `session_20260522T062054Z_lusail-international-circuit_lmu.parquet` | 28,714 | ✅ OK |
 | `session_20260520T160300Z_autodromo-nazionale-monza_lmu.parquet` | 354,736 | ✅ OK |
-| `session_20260522T063035Z_lusail-international-circuit_lmu.parquet` | 236,983 | ❌ Fails |
-| `session_20260522T075107Z_lusail-international-circuit_lmu.parquet` | 331,175 | ❌ Fails |
+| `session_20260522T063035Z_lusail-international-circuit_lmu.parquet` | 236,983 | ✅ Fixed |
+| `session_20260522T075107Z_lusail-international-circuit_lmu.parquet` | 331,175 | ✅ Fixed |
 
 ---
 
@@ -70,7 +70,11 @@ trigger the overflow regardless of run length.
 
 ---
 
-## Fix shipped (commits c06f9cc, 511d2a7)
+## App-level fixes
+
+There were two independent spread-overflow sites in the app.
+
+### 1. hyparquet column read (commits c06f9cc, 511d2a7)
 
 `terrain_name_*`, `abs_active`, and `tc_active` are now loaded in isolated
 per-column try/catch calls inside `loadFile` (product/web/js/ui.js). A failure
@@ -92,45 +96,37 @@ for (const col of isolatedCols) {
 Regression test: `dev/scripts/test_uniform_rle_load.js` + fixture
 `dev/scripts/parquet-fixture-uniform-rle.parquet`.
 
----
+### 2. `rebuildPickers` / `formatPickLabel` spread (discovered during verification)
 
-## Root fix still needed — recorder
+After column reads succeeded, the load still crashed in `rebuildPickers` at:
 
-The app-level fix is defensive. The correct fix is in the recorder so the
-problematic columns are never written as long uniform runs in the first place.
-
-**Problem:** The recorder writes `bool(tele_v.mTCActive)` — `False` for every
-frame TC is inactive. On a track where TC rarely fires, or for a car with weak
-TC calibration, this produces a massive uniform `False` run.
-
-**Fix:** Write `None` (null) when the SHM value is 0, and `True` only when it
-is 1:
-
-```python
-# product/python/lap_telemetry/recorder/connect.py — in _frame_from_lmu()
-
-# Current:
-abs_active=bool(tele_v.mABSActive),
-tc_active=bool(tele_v.mTCActive),
-
-# Fixed:
-abs_active=True if tele_v.mABSActive else None,
-tc_active=True if tele_v.mTCActive else None,
+```javascript
+const dur = sliceTimes.length ? Math.max(...sliceTimes) : 0;
 ```
 
-Null values are stored in PyArrow's definition-level bitmap (not in the data
-pages), so there is no long uniform run in the actual encoded data regardless
-of session length or track character. The column stays nullable bool: `True`
-= system active, `None` = system not active or not present.
+`sliceTimes` is `lap_time_s` values for one lap segment. When a session has a
+large lap (Lusail 075107Z laps reach ~19k frames each), this spread also
+overflows. The same pattern existed in `utils.js` (`formatPickLabel`).
 
-This is a **semantic change**: `False` (system present, not active) collapses
-to `None` (not active / not present). In practice the app already renders
-`None` and `False` identically in the ABS/TC panels, so there is no visible
-regression.
+Fixed in `pickers.js` and `utils.js` by replacing spread with reduce:
 
-Sessions recorded before this fix will still load correctly via the app-level
-isolation — they just won't show ABS/TC data if the run length exceeded the
-threshold.
+```javascript
+const dur = sliceTimes.length ? sliceTimes.reduce((a, b) => b > a ? b : a, -Infinity) : 0;
+```
+
+Verified: `session_20260522T075107Z` now loads as **331,175 rows · 17 laps** with no errors.
+
+---
+
+## Recorder fix (shipped)
+
+`connect.py` line 269–270 changed from `bool(tele_v.mABS/TCActive)` to
+`True if tele_v.mABS/TCActive else None`. Null values go into PyArrow's
+definition-level bitmap, not the data pages — no long uniform run regardless
+of session length. `True` = system active, `None` = not active / not present.
+
+Sessions recorded before this fix load via the app-level isolation (ABS/TC
+panels will be empty if the run exceeded the overflow threshold).
 
 ---
 
@@ -152,11 +148,10 @@ threshold.
 |---|---|
 | `product/web/js/ui.js` | Isolated load for `abs_active`, `tc_active`, `terrain_name_*` |
 | `product/dist/compare.html` | Rebuilt |
-| `dev/scripts/test_uniform_rle_load.js` | Regression test |
+| `dev/scripts/test_uniform_rle_load.js` | App-side regression test (fixture-based) |
 | `dev/scripts/parquet-fixture-uniform-rle.parquet` | Test fixture |
 | `package.json` | Test wired into full suite |
-
-## Next action
-
-Implement the recorder fix in `connect.py` and add a test that verifies
-`tc_active` is written as `None` (not `False`) for inactive frames.
+| `product/python/lap_telemetry/recorder/connect.py` | Recorder fix (None instead of False) |
+| `dev/scripts/test_recorder_nullable_bool.py` | Recorder test (null round-trip via SessionWriter) |
+| `product/web/js/pickers.js` | Replace `Math.max(...sliceTimes)` with reduce |
+| `product/web/js/utils.js` | Replace `Math.max(...sliceTimes)` with reduce |

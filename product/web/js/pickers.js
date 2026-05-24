@@ -28,7 +28,7 @@ export function rebuildPickers() {
       const seg = entry.segments[i];
       const lapTimes = entry.data.lap_time_s;
       const sliceTimes = lapTimes.slice(seg.start, seg.end);
-      const dur = sliceTimes.length ? Math.max(...sliceTimes) : 0;
+      const dur = sliceTimes.length ? sliceTimes.reduce((a, b) => b > a ? b : a, -Infinity) : 0;
 
       let label = `  Lap ${i + 1}  (lap# ${seg.lapNum})  ${formatDuration(dur)}`;
       label += lapStatusBadges(seg);

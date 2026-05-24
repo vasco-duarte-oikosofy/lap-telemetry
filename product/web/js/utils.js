@@ -30,7 +30,7 @@ export function formatPickLabel(entry, segIdx) {
   const seg = entry.segments[segIdx];
   const lapTimes = entry.data.lap_time_s;
   const sliceTimes = lapTimes.slice(seg.start, seg.end);
-  const dur = sliceTimes.length ? Math.max(...sliceTimes) : 0;
+  const dur = sliceTimes.length ? sliceTimes.reduce((a, b) => b > a ? b : a, -Infinity) : 0;
   const sc = entry.sidecar;
   const vehicleLabel = entry.isDeltabest ? sc?.vehicle_name : (sc ? shortVehicle(sc.vehicle_name) : null);
   const meta = sc
