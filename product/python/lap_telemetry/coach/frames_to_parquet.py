@@ -69,6 +69,12 @@ def frames_to_parquet(frames: list[Frame], suffix: str = ".parquet") -> Path:
     terrain_name_fr = [f.terrain_name_fr for f in frames]
     terrain_name_rl = [f.terrain_name_rl for f in frames]
     terrain_name_rr = [f.terrain_name_rr for f in frames]
+    # Fuel and race-state columns (slice 08)
+    fuel_l = [f.fuel_l for f in frames]
+    fuel_capacity_l = [f.fuel_capacity_l for f in frames]
+    session_type = [f.session_type for f in frames]
+    session_time_remaining_s = [f.session_time_remaining_s for f in frames]
+    race_laps_total = [f.race_laps_total for f in frames]
 
     # Build column dicts matching _SCHEMA field names.
     columns = {
@@ -106,6 +112,11 @@ def frames_to_parquet(frames: list[Frame], suffix: str = ".parquet") -> Path:
         "terrain_name_fr": terrain_name_fr,
         "terrain_name_rl": terrain_name_rl,
         "terrain_name_rr": terrain_name_rr,
+        "fuel_l": fuel_l,
+        "fuel_capacity_l": fuel_capacity_l,
+        "session_type": session_type,
+        "session_time_remaining_s": session_time_remaining_s,
+        "race_laps_total": race_laps_total,
     }
 
     table = pa.table(columns, schema=_SCHEMA)

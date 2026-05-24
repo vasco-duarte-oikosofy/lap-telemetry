@@ -48,6 +48,12 @@ _SCHEMA = pa.schema([
     pa.field("terrain_name_fr", pa.string(), nullable=True),
     pa.field("terrain_name_rl", pa.string(), nullable=True),
     pa.field("terrain_name_rr", pa.string(), nullable=True),
+    # Fuel and race-state columns (slice 08)
+    pa.field("fuel_l", pa.float32(), nullable=True),
+    pa.field("fuel_capacity_l", pa.float32(), nullable=True),
+    pa.field("session_type", pa.int8(), nullable=True),
+    pa.field("session_time_remaining_s", pa.float32(), nullable=True),
+    pa.field("race_laps_total", pa.int32(), nullable=True),
 ])
 
 
@@ -245,6 +251,11 @@ class SessionWriter:
         b["terrain_name_fr"].append(frame.terrain_name_fr)
         b["terrain_name_rl"].append(frame.terrain_name_rl)
         b["terrain_name_rr"].append(frame.terrain_name_rr)
+        b["fuel_l"].append(frame.fuel_l)
+        b["fuel_capacity_l"].append(frame.fuel_capacity_l)
+        b["session_type"].append(frame.session_type)
+        b["session_time_remaining_s"].append(frame.session_time_remaining_s)
+        b["race_laps_total"].append(frame.race_laps_total)
         self._lap_numbers.add(frame.lap_number)
         self._last_vehicle = frame.vehicle_name
 

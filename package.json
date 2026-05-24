@@ -24,7 +24,8 @@
       "dev/scripts/test_generate_track_coaching_model_from_reference.js",
       "dev/scripts/test_live_bus_tap.js",
       "dev/scripts/test_live_after_lap_spoken_summary.js",
-      "dev/scripts/test_corner_exit_coaching.js"
+      "dev/scripts/test_corner_exit_coaching.js",
+      "dev/scripts/test_fuel_facts.js"
     ],
     "llm-text-adapter": [
       "dev/scripts/test_runner_self_test.js",

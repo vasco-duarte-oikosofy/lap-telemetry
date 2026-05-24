@@ -70,6 +70,12 @@ class Frame:
     terrain_name_fr: Optional[str] = None
     terrain_name_rl: Optional[str] = None
     terrain_name_rr: Optional[str] = None
+    # Fuel and race-state fields (slice 08)
+    fuel_l: Optional[float] = None
+    fuel_capacity_l: Optional[float] = None
+    session_type: Optional[int] = None
+    session_time_remaining_s: Optional[float] = None
+    race_laps_total: Optional[int] = None
 
 
 class _BaseConnection:
@@ -164,6 +170,32 @@ def _optional_float(obj, attr: str) -> Optional[float]:
     try:
         return float(getattr(obj, attr))
     except AttributeError:
+        return None
+
+
+def _optional_int(obj, attr: str) -> Optional[int]:
+    try:
+        v = int(getattr(obj, attr))
+        return v if v > 0 else None
+    except (AttributeError, ValueError):
+        return None
+
+
+def _positive_float(obj, attr: str) -> Optional[float]:
+    """Read attr from obj, return float only if > 0, else None."""
+    try:
+        v = float(getattr(obj, attr))
+        return v if v > 0.0 else None
+    except AttributeError:
+        return None
+
+
+def _valid_session_type(obj, attr: str) -> Optional[int]:
+    """Read session type, return int if valid (0-10), else None."""
+    try:
+        v = int(getattr(obj, attr))
+        return v if 0 <= v <= 10 else None
+    except (AttributeError, ValueError):
         return None
 
 
@@ -285,6 +317,11 @@ class LMUConnection(_BaseConnection):
             terrain_name_fr=_wheel_terrain(tele_v.mWheels[1]),
             terrain_name_rl=_wheel_terrain(tele_v.mWheels[2]),
             terrain_name_rr=_wheel_terrain(tele_v.mWheels[3]),
+            fuel_l=_positive_float(tele_v, "mFuel"),
+            fuel_capacity_l=_positive_float(tele_v, "mFuelCapacity"),
+            session_type=_valid_session_type(scor_info, "mSession"),
+            session_time_remaining_s=_optional_float(scor_info, "mSessionTimeRemaining"),
+            race_laps_total=_optional_int(scor_info, "mMaxLaps"),
         )
 
 
@@ -386,6 +423,11 @@ class RF2Connection(_BaseConnection):
             terrain_name_fr=_wheel_terrain(tele_v.mWheels[1]),
             terrain_name_rl=_wheel_terrain(tele_v.mWheels[2]),
             terrain_name_rr=_wheel_terrain(tele_v.mWheels[3]),
+            fuel_l=None,
+            fuel_capacity_l=None,
+            session_type=_valid_session_type(scor_info, "mSession"),
+            session_time_remaining_s=_optional_float(scor_info, "mSessionTimeRemaining"),
+            race_laps_total=_optional_int(scor_info, "mMaxLaps"),
         )
 
 
