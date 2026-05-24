@@ -14,6 +14,7 @@ import time
 from pathlib import Path
 from typing import Optional
 
+from .bus import LiveBus, QueuedBus
 from .connect import ConnectError, Frame, _BaseConnection, probe_and_connect
 from .writer import SessionWriter, recover_orphaned_shards
 
@@ -86,6 +87,7 @@ def run(
     once: bool = False,
     probe_timeout_s: float = 0.0,
     out_dir: Path = Path("sessions"),
+    bus: LiveBus | QueuedBus | None = None,
 ) -> int:
     out_dir.mkdir(parents=True, exist_ok=True)
     recover_orphaned_shards(out_dir)
@@ -200,6 +202,10 @@ def run(
 
                 writer.append(frame)
                 n_frames += 1
+
+                # Publish to live bus if attached.
+                if bus is not None:
+                    bus.publish(frame)
 
                 now = time.monotonic()
                 if now - last_flush_time >= _FLUSH_INTERVAL_S:
