@@ -1,12 +1,15 @@
 #!/usr/bin/env python3
 """Record with coach — single command, single process, single Ctrl+C.
 
-Starts the recorder with a live bus tap. The recorder writes Parquet
-normally and the coach tap prints lap boundary events to stderr.
+Starts the recorder with full coaching: fact generation, LLM utterances,
+and TTS playback. The recorder writes Parquet normally and the coach
+generates spoken coaching after each completed lap.
 
 Usage::
 
     python3 record_with_coach.py --out-dir sessions
+    python3 record_with_coach.py --out-dir sessions --tts-engine kokoro
+    python3 record_with_coach.py --out-dir sessions --tts-engine file --tts-output /tmp/coach.txt
 
 PowerShell::
 
