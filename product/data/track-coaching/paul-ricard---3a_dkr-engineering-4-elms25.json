@@ -3,84 +3,93 @@
   "track_id": "paul-ricard---3a",
   "layout_id": "3a",
   "reference_lap": {
-    "path": "product\\data\\reference-laps\\paul-ricard---3a_dkr-engineering-4-elms25_time_01.19.010.parquet",
+    "path": "product\\data\\reference-laps\\paul-ricard---3a_dkr-engineering-4-elms25_time_01.18.392.parquet",
     "car_id": "dkr-engineering-4-elms25",
-    "lap_time_s": 79.01,
+    "lap_time_s": 78.392,
     "detection_method": "throttle_brake_v1"
   },
-  "lap_length_m": 3748.2,
+  "lap_length_m": 3760.1,
   "corners": [
     {
       "id": "t1",
       "name": "turn 1",
-      "s_start_m": 496.0,
-      "apex_s_m": 523.0,
-      "s_end_m": 531.0,
+      "s_start_m": 508.0,
+      "apex_s_m": 521.0,
+      "s_end_m": 532.0,
       "apex_side": "right",
-      "apex_side_source": "default_cli_option"
+      "apex_side_source": "auto"
     },
     {
       "id": "t2",
       "name": "turn 2",
-      "s_start_m": 629.0,
-      "apex_s_m": 651.0,
-      "s_end_m": 655.0,
+      "s_start_m": 639.0,
+      "apex_s_m": 644.0,
+      "s_end_m": 658.0,
       "apex_side": "right",
-      "apex_side_source": "default_cli_option"
+      "apex_side_source": "auto"
     },
     {
-      "id": "t3",
-      "name": "turn 3",
-      "s_start_m": 1727.0,
-      "apex_s_m": 1918.0,
-      "s_end_m": 1920.0,
+      "id": "signes",
+      "name": "Signes",
+      "s_start_m": 1825.0,
+      "apex_s_m": 1878.0,
+      "s_end_m": 1880.0,
       "apex_side": "right",
-      "apex_side_source": "default_cli_option"
+      "apex_side_source": "manual"
     },
     {
-      "id": "t4",
-      "name": "turn 4",
-      "s_start_m": 2310.0,
-      "apex_s_m": 2328.0,
-      "s_end_m": 2355.0,
+      "id": "beausset_1",
+      "name": "Beausset 1",
+      "s_start_m": 2320.0,
+      "apex_s_m": 2338.0,
+      "s_end_m": 2426.0,
       "apex_side": "right",
-      "apex_side_source": "default_cli_option"
+      "apex_side_source": "manual"
     },
     {
-      "id": "t5",
-      "name": "turn 5",
-      "s_start_m": 2443.0,
-      "apex_s_m": 2445.0,
+      "id": "beausset_2",
+      "name": "Beausset 2",
+      "s_start_m": 2444.0,
+      "apex_s_m": 2448.0,
       "s_end_m": 2455.0,
       "apex_side": "right",
-      "apex_side_source": "default_cli_option"
+      "apex_side_source": "manual"
     },
     {
-      "id": "t6",
-      "name": "turn 6",
-      "s_start_m": 2756.0,
-      "apex_s_m": 2796.0,
-      "s_end_m": 2803.0,
+      "id": "lepingle_de_bendor",
+      "name": "L'Epingle de Bendor",
+      "s_start_m": 2638.0,
+      "apex_s_m": 2784.0,
+      "s_end_m": 2802.0,
       "apex_side": "right",
-      "apex_side_source": "default_cli_option"
+      "apex_side_source": "manual"
     },
     {
-      "id": "t7",
-      "name": "turn 7",
-      "s_start_m": 3264.0,
-      "apex_s_m": 3303.0,
-      "s_end_m": 3363.0,
+      "id": "s_du_village",
+      "name": "S du Village",
+      "s_start_m": 2900.0,
+      "apex_s_m": 2983.0,
+      "s_end_m": 3120.0,
       "apex_side": "right",
-      "apex_side_source": "default_cli_option"
+      "apex_side_source": "manual"
     },
     {
-      "id": "t8",
-      "name": "turn 8",
-      "s_start_m": 3401.0,
-      "apex_s_m": 3431.0,
-      "s_end_m": 3442.0,
+      "id": "virage_de_la_tour",
+      "name": "Virage de la Tour",
+      "s_start_m": 3140.0,
+      "apex_s_m": 3353.0,
+      "s_end_m": 3374.0,
       "apex_side": "right",
-      "apex_side_source": "default_cli_option"
+      "apex_side_source": "manual"
+    },
+    {
+      "id": "virage_du_pont",
+      "name": "Virage du Pont",
+      "s_start_m": 3407.0,
+      "apex_s_m": 3429.0,
+      "s_end_m": 3449.0,
+      "apex_side": "right",
+      "apex_side_source": "manual"
     }
   ],
   "straight_zones": []

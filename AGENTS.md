@@ -226,7 +226,9 @@ For sessions recorded as many `.part*.parquet` shards, see the **Multi-shard ses
 
 ## Generating a track coaching model
 
-To generate a corner-detection coaching model from a reference lap, follow the procedure in [`dev/scripts/GENERATE_TRACK_COACHING_MODEL.md`](dev/scripts/GENERATE_TRACK_COACHING_MODEL.md).
+For the full end-to-end procedure (find fastest lap → extract → store reference → generate model → name corners → verify), see [`docs/HOW_TO_CREATE_A_COACHING_MODEL.md`](docs/HOW_TO_CREATE_A_COACHING_MODEL.md).
+
+For detection algorithm details and tuning flags only, see [`dev/scripts/GENERATE_TRACK_COACHING_MODEL.md`](dev/scripts/GENERATE_TRACK_COACHING_MODEL.md).
 
 ## Generating a track outline
 
