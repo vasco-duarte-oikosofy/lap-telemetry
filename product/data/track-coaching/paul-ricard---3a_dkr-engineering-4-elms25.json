@@ -11,7 +11,7 @@
   "lap_length_m": 3760.1,
   "corners": [
     {
-      "id": "la_bretelle",
+      "id": "t1",
       "name": "La Bretelle",
       "s_start_m": 508.0,
       "apex_s_m": 521.0,
@@ -29,7 +29,7 @@
       "apex_side_source": "auto"
     },
     {
-      "id": "signes",
+      "id": "t3",
       "name": "Signes",
       "s_start_m": 1825.0,
       "apex_s_m": 1878.0,
@@ -38,7 +38,7 @@
       "apex_side_source": "manual"
     },
     {
-      "id": "beausset_1",
+      "id": "t4",
       "name": "Beausset 1",
       "s_start_m": 2320.0,
       "apex_s_m": 2338.0,
@@ -47,7 +47,7 @@
       "apex_side_source": "manual"
     },
     {
-      "id": "beausset_2",
+      "id": "t5",
       "name": "Beausset 2",
       "s_start_m": 2444.0,
       "apex_s_m": 2448.0,
@@ -56,7 +56,7 @@
       "apex_side_source": "manual"
     },
     {
-      "id": "lepingle_de_bendor",
+      "id": "t6",
       "name": "L'Epingle de Bendor",
       "s_start_m": 2638.0,
       "apex_s_m": 2784.0,
@@ -65,7 +65,7 @@
       "apex_side_source": "manual"
     },
     {
-      "id": "s_du_village",
+      "id": "t7",
       "name": "S du Village",
       "s_start_m": 2900.0,
       "apex_s_m": 2983.0,
@@ -74,7 +74,7 @@
       "apex_side_source": "manual"
     },
     {
-      "id": "virage_de_la_tour",
+      "id": "t8",
       "name": "Virage de la Tour",
       "s_start_m": 3140.0,
       "apex_s_m": 3353.0,
@@ -83,7 +83,7 @@
       "apex_side_source": "manual"
     },
     {
-      "id": "virage_du_pont",
+      "id": "t9",
       "name": "Virage du Pont",
       "s_start_m": 3407.0,
       "apex_s_m": 3429.0,
