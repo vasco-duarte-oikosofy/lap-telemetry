@@ -84,6 +84,8 @@ class CoachTap:
     def start(self) -> None:
         """Subscribe detectors to the bus and start the bus worker."""
         self._bus.subscribe(self._on_frame)
+        if hasattr(self._bus, 'start'):
+            self._bus.start()
 
     def shutdown(self) -> None:
         """Shut down the bus worker thread and speech queue."""
