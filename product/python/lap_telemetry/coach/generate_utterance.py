@@ -114,6 +114,11 @@ def main(argv: list[str] | None = None) -> int:
         help="Path to coach_config.toml (default: COACH_CONFIG env or ./coach_config.toml).",
     )
     parser.add_argument(
+        "--print-facts",
+        action="store_true",
+        help="Print facts JSON to stdout and exit without calling the LLM.",
+    )
+    parser.add_argument(
         "--debug",
         action="store_true",
         help="Print full facts JSON and debug info to stderr.",
@@ -151,6 +156,11 @@ def main(argv: list[str] | None = None) -> int:
     else:
         parser.error("Provide --facts <json> or --lap with --current-lap, --reference-lap, --track-config.")
         return 1
+
+    # Print facts and exit without calling the LLM
+    if args.print_facts:
+        print(json.dumps(facts.to_dict(), indent=2))
+        return 0
 
     # Debug: print full facts JSON
     if args.debug:

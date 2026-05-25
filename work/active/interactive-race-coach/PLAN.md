@@ -21,8 +21,9 @@
 | `05-live-bus-tap` | ✅ Complete | Recorder runs normally and a coach tap receives frames, detects lap boundaries, and writes debug events |
 | `06-live-after-lap-spoken-summary` | ✅ Complete | At lap end, analyze completed lap, generate one LLM utterance, and speak it on the next straight |
 | `07-corner-exit-coaching` | ✅ Complete | Speak one targeted note after selected corner exits when a safe straight is available |
-| `08-fuel-fact-recorder-channels` | 🔲 In progress | Extend `Frame` with fuel/race-state fields and print deterministic fuel-to-end facts |
+| `08-fuel-fact-recorder-channels` | ✅ Complete | Extend `Frame` with fuel/race-state fields and print deterministic fuel-to-end facts |
 | `09-fuel-engineer-call` | 🔲 Not started | Speak "fuel laps remaining vs race laps remaining" using deterministic strategy facts plus LLM phrasing |
+| `10-facts-inspector` | ✅ Complete | Add `--print-facts` flag to `generate_utterance.py` — prints facts JSON to stdout and exits without calling the LLM |
 
 ---
 
