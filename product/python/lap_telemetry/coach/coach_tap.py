@@ -24,6 +24,7 @@ from lap_telemetry.coach.coach_config import CoachMode, CoachRunConfig
 from lap_telemetry.coach.corner_exit_detector import CornerExitDetector, CornerExited
 from lap_telemetry.coach.live_corner_fact_generator import LiveCornerFactGenerator
 from lap_telemetry.coach.live_fact_generator import LiveFactGenerator
+from lap_telemetry.coach.live_fuel_fact_generator import LiveFuelFactGenerator
 from lap_telemetry.coach.lap_detector import LapCompleted, LapDetector, NewLap
 from lap_telemetry.coach.speech_window import is_speech_window
 from lap_telemetry.coach.speech_queue import SpeechQueue
@@ -56,12 +57,14 @@ class CoachTap:
         bus: QueuedBus,
         fact_generator: LiveFactGenerator | None = None,
         corner_fact_generator: LiveCornerFactGenerator | None = None,
+        fuel_fact_generator: LiveFuelFactGenerator | None = None,
         speech_queue: SpeechQueue | None = None,
         config: CoachRunConfig | None = None,
     ) -> None:
         self._bus = bus
         self._fact_generator = fact_generator
         self._corner_fact_generator = corner_fact_generator
+        self._fuel_fact_generator = fuel_fact_generator
         self._speech_queue = speech_queue
         self._config = config or CoachRunConfig()
 
@@ -142,6 +145,22 @@ class CoachTap:
                 flush=True,
             )
             self._speech_queue.enqueue(utterance)
+
+        # Fuel engineer call — only when enabled and generator is wired
+        if self._config.fuel_calls and self._fuel_fact_generator is not None:
+            try:
+                fuel_utterance = self._fuel_fact_generator.generate(event.frames)
+            except Exception:
+                log.exception("Fuel fact generation failed for lap %d", event.lap_number)
+                fuel_utterance = None
+
+            if fuel_utterance is not None and self._speech_queue is not None:
+                print(
+                    f"lap-telemetry: [coach] fuel utterance: {fuel_utterance}",
+                    file=sys.stderr,
+                    flush=True,
+                )
+                self._speech_queue.enqueue(fuel_utterance)
 
     def _on_new_lap(self, event: NewLap) -> None:
         """Handle new lap — debug output."""

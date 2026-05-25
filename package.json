@@ -25,7 +25,8 @@
       "dev/scripts/test_live_bus_tap.js",
       "dev/scripts/test_live_after_lap_spoken_summary.js",
       "dev/scripts/test_corner_exit_coaching.js",
-      "dev/scripts/test_fuel_facts.js"
+      "dev/scripts/test_fuel_facts.js",
+      "dev/scripts/test_fuel_engineer_call.js"
     ],
     "llm-text-adapter": [
       "dev/scripts/test_runner_self_test.js",

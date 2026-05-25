@@ -36,9 +36,11 @@ if str(_PRODUCT_PY) not in sys.path:
 
 from lap_telemetry.coach.coach_config import CoachMode, CoachRunConfig, load_config, load_tts_config
 from lap_telemetry.coach.coach_tap import CoachTap
+from lap_telemetry.coach.fuel_prompt import build_fuel_messages
 from lap_telemetry.coach.live_corner_fact_generator import LiveCornerFactGenerator
 from lap_telemetry.coach.live_fact_generator import LiveFactGenerator
-from lap_telemetry.coach.llm_adapter import generate_utterance
+from lap_telemetry.coach.live_fuel_fact_generator import LiveFuelFactGenerator
+from lap_telemetry.coach.llm_adapter import _call_llm, generate_utterance
 from lap_telemetry.coach.speech_queue import SpeechQueue
 from lap_telemetry.coach.tts_adapter import create_adapter
 from lap_telemetry.recorder.bus import QueuedBus
@@ -102,6 +104,12 @@ def main() -> int:
         help="Path to coach_config.toml.",
     )
     parser.add_argument(
+        "--fuel-calls",
+        action="store_true",
+        default=False,
+        help="Enable fuel engineer calls after each race lap (disabled by default).",
+    )
+    parser.add_argument(
         "--debug",
         action="store_true",
         help="Enable debug logging.",
@@ -118,7 +126,11 @@ def main() -> int:
 
     # Build coach run config.
     coach_mode = CoachMode(args.coach_mode)
-    coach_run_config = CoachRunConfig(mode=coach_mode, top=args.coach_top)
+    coach_run_config = CoachRunConfig(
+        mode=coach_mode,
+        top=args.coach_top,
+        fuel_calls=args.fuel_calls,
+    )
 
     # Apply CLI overrides for TTS.
     if args.tts_engine:
@@ -149,10 +161,19 @@ def main() -> int:
         try:
             from lap_telemetry.coach.corner_exit_prompt import build_corner_exit_messages
             messages = build_corner_exit_messages(facts, corner_name, top)
-            from lap_telemetry.coach.llm_adapter import _call_llm
             return _call_llm(llm_config, messages)
         except Exception as e:
             log.exception("Corner-exit LLM utterance generation failed")
+            print(f"lap-telemetry: [coach] LLM error: {e}", file=sys.stderr, flush=True)
+            return None
+
+    def fuel_utterance_fn(facts):
+        """Generate a fuel engineer utterance via the LLM adapter."""
+        try:
+            messages = build_fuel_messages(facts)
+            return _call_llm(llm_config, messages)
+        except Exception as e:
+            log.exception("Fuel LLM utterance generation failed")
             print(f"lap-telemetry: [coach] LLM error: {e}", file=sys.stderr, flush=True)
             return None
 
@@ -160,10 +181,12 @@ def main() -> int:
     bus = QueuedBus(maxsize=256)
     fact_generator = LiveFactGenerator(utterance_fn=utterance_fn)
     corner_fact_generator = LiveCornerFactGenerator(utterance_fn=corner_utterance_fn)
+    fuel_fact_generator = LiveFuelFactGenerator(utterance_fn=fuel_utterance_fn)
     tap = CoachTap(
         bus,
         fact_generator=fact_generator,
         corner_fact_generator=corner_fact_generator,
+        fuel_fact_generator=fuel_fact_generator,
         speech_queue=speech_queue,
         config=coach_run_config,
     )

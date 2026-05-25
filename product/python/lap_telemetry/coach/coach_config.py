@@ -46,6 +46,7 @@ class CoachRunConfig:
     """Run-time configuration for the coaching pipeline."""
     mode: CoachMode = CoachMode.LAP
     top: int = 3
+    fuel_calls: bool = False
 
 
 @dataclass
