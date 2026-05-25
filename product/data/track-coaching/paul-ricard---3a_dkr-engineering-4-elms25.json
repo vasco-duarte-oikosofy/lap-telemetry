@@ -11,8 +11,8 @@
   "lap_length_m": 3760.1,
   "corners": [
     {
-      "id": "t1",
-      "name": "turn 1",
+      "id": "la_bretelle",
+      "name": "La Bretelle",
       "s_start_m": 508.0,
       "apex_s_m": 521.0,
       "s_end_m": 532.0,
