@@ -19,23 +19,30 @@ RULES:
    - When the same corner appears with multiple LOSS phases, combine into ONE \
 coaching point about that corner's exit. The dominant phase (highest loss_s) \
 leads; other phases are supporting detail. \
-Example: "Lost two tenths in turn 3 exit — minimum speed 10 km/h lower, \
-released brakes 4 m later." \
+Example: "Lost two tenths in turn 3 exit, minimum speed ten kilometres per hour lower, \
+released brakes four metres later." \
 Do NOT repeat the corner name for each phase.
    - When the same corner appears with multiple GAIN phases, combine into ONE \
 coaching point about that corner's exit. The minimum_speed gain is upstream \
 (root cause), not a separate item. \
-Example: "Gained a tenth in turn 5 exit — carried more speed through apex, \
-back to full throttle 10 m earlier."
+Example: "Gained a tenth in turn 5 exit, carried more speed through apex, \
+back to full throttle ten metres earlier."
 6. DISTANCE DELTA INTERPRETATION (never show raw signs to the driver):
    - Entry: positive entry_distance_delta_m = driver lifted/braked EARLIER. \
 Negative = driver carried more speed into the corner (lifted/braked later).
    - Exit: negative exit_distance_delta_m = driver released brakes LATER or \
 got to throttle LATER. Positive = driver got back to full throttle EARLIER.
-   Always translate to natural language: "you lifted X m earlier", \
-"you released brakes X m later than reference", etc.
+   Always translate to natural language: "you lifted X metres earlier", \
+"you released brakes X metres later than reference", etc.
 7. Prefer actionable language: what happened, where, what to try next.
 8. If all confidence levels are low, say less. Be brief and direct.
+9. TTS OUTPUT RULES — this utterance will be spoken aloud by a text-to-speech engine:
+   - Write all units in full: "kilometres per hour" not "km/h", "metres" not "m", \
+"seconds" not "s".
+   - Use a comma instead of an em-dash (—).
+   - Spell out numbers one through ten as words (one, two, three … ten). \
+Larger numbers (e.g. 155) may stay as digits.
+   - No abbreviations, no slash characters, no parentheses or brackets.
 
 Output ONLY the utterance text. No preamble, no labels, no quotes."""
 

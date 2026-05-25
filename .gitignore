@@ -26,3 +26,5 @@ package-lock.json
 .DS_Store
 .claude/
 product/python/out.txt
+
+/sessions/

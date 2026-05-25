@@ -361,6 +361,61 @@ def test_dict_to_facts_roundtrip():
 
 # ─── LLM adapter tests (no API calls) ───
 
+def test_prompt_tts_rules_present():
+    """System prompt contains a TTS OUTPUT RULES section."""
+    facts = LapComparisonFacts(
+        type="lap_coaching_summary", track_id="test", lap_number=1,
+        lap_time_delta_s=0.5, top_losses=[], top_gains=[],
+    )
+    messages = build_messages(facts)
+    system_msg = [m for m in messages if m["role"] == "system"][0]
+    assert "TTS OUTPUT RULES" in system_msg["content"], "Missing TTS OUTPUT RULES section"
+    print("  prompt_tts_rules_present: OK")
+
+def test_prompt_tts_no_kmh_in_examples():
+    """System prompt examples use full units, not abbreviations."""
+    facts = LapComparisonFacts(
+        type="lap_coaching_summary", track_id="test", lap_number=1,
+        lap_time_delta_s=0.5, top_losses=[], top_gains=[],
+    )
+    messages = build_messages(facts)
+    system_msg = [m for m in messages if m["role"] == "system"][0]
+    content = system_msg["content"]
+    # The examples in rules 5/6 must use full units.
+    # (The TTS rule itself may mention "km/h" as the form to avoid — that's fine.)
+    # Split off everything before the TTS OUTPUT RULES section and check examples there.
+    before_tts = content.split("TTS OUTPUT RULES")[0]
+    assert "km/h" not in before_tts, "Examples section still contains 'km/h' abbreviation"
+    print("  prompt_tts_no_kmh_in_examples: OK")
+
+def test_prompt_tts_full_units():
+    """System prompt uses 'kilometres per hour' and 'metres' (not abbreviations)."""
+    facts = LapComparisonFacts(
+        type="lap_coaching_summary", track_id="test", lap_number=1,
+        lap_time_delta_s=0.5, top_losses=[], top_gains=[],
+    )
+    messages = build_messages(facts)
+    system_msg = [m for m in messages if m["role"] == "system"][0]
+    content = system_msg["content"]
+    assert "kilometres per hour" in content, "Prompt missing 'kilometres per hour'"
+    assert "metres" in content, "Prompt missing 'metres'"
+    print("  prompt_tts_full_units: OK")
+
+def test_prompt_tts_no_em_dash_rule():
+    """System prompt instructs the LLM not to use em-dashes."""
+    facts = LapComparisonFacts(
+        type="lap_coaching_summary", track_id="test", lap_number=1,
+        lap_time_delta_s=0.5, top_losses=[], top_gains=[],
+    )
+    messages = build_messages(facts)
+    system_msg = [m for m in messages if m["role"] == "system"][0]
+    content = system_msg["content"]
+    assert "em-dash" in content or "—" not in content, (
+        "Prompt uses em-dashes in examples without telling LLM to avoid them"
+    )
+    assert "comma" in content, "Prompt missing instruction to use comma instead of em-dash"
+    print("  prompt_tts_no_em_dash_rule: OK")
+
 def test_llm_adapter_missing_api_key():
     """generate_utterance raises error when API key is missing."""
     from lap_telemetry.coach.llm_adapter import generate_utterance, LLMAdapterError
@@ -412,9 +467,14 @@ test_toml_value_parsing()
 test_load_facts_from_json()
 test_dict_to_facts_roundtrip()
 test_llm_adapter_missing_api_key()
+test_prompt_tts_rules_present()
+test_prompt_tts_no_kmh_in_examples()
+test_prompt_tts_full_units()
+test_prompt_tts_no_em_dash_rule()
 print("ALL OK")
 `;
-  return spawnSync('python3', ['-c', code], { encoding: 'utf8', timeout: 30000 });
+  const py = process.platform === 'win32' ? 'python' : 'python3';
+  return spawnSync(py, ['-c', code], { encoding: 'utf8', timeout: 30000 });
 }
 
 function main() {
