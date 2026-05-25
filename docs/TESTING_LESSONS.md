@@ -392,3 +392,50 @@ Alternatively, always run the full suite after changing a public function's sign
 **Fix.** Extend the search window past `s_end_m` by `exit_search_past_end_m` (default 50 m) so brake release and throttle transitions on the early straight are found. Added as a parameter on `PhaseDetectionThresholds` so it's configurable per-track if needed.
 
 **Rule.** When a test fails with a default/fallback value, investigate whether the algorithm should have found a real value. A `0.0` or `None` that passes a weak assertion (`>= 0`) may be hiding the fact that the algorithm gave up too early.
+
+---
+
+## L15. Playwright tests are expensive — exclude by default, run with `--pw`
+
+**Problem.** The full test suite (51 scripts) takes ~20 s, of which ~15 s comes
+from 25 Playwright tests. Each PW test launches a Chromium process (~0.5–1 s
+startup overhead), and even with concurrency of 8 the PW pool takes ~6–7 s
+minimum. Most slices change Python or data-layer code and don't touch the UI
+at all — yet every test run pays the full browser cost.
+
+**Timing breakdown (typical, 10-core machine):**
+
+| Category     | Count | Avg time | Concurrency | Pool time |
+|--------------|-------|----------|-------------|-----------|
+| Node (pure)  | 25    | ~0.1 s   | unlimited   | ~0.5 s    |
+| Playwright   | 25    | ~1.7 s   | 8           | ~6–7 s    |
+| Serial       | 1     | ~0.5 s   | 1           | ~0.5 s    |
+| **Total**    | 51    |          |             | ~8–10 s   |
+
+The slowest individual tests are all Playwright:
+- `test_02_zoom_pan.js` — 2.5 s
+- `test_f1f2.js` — 2.3 s
+- `test_001_responsive.js` — 2.1 s
+- `test_m6.js` — 2.1 s
+- `test_m5.js` — 1.9 s
+
+**Solution.** The test runner (`run-tests-parallel.js`) excludes Playwright
+tests by default. This brings suite time down to ~5 s for typical slices
+that don't change UI code.
+
+```bash
+bash scripts/test-summary.sh          # fast — Node + serial only (~5 s)
+bash scripts/test-summary.sh --pw    # full — includes Playwright (~20 s)
+```
+
+**When to use `--pw`:**
+
+1. Before completing every slice (per AGENTS.md).
+2. When the slice changes UI code (`web/`, `dist/`).
+3. After every 3rd slice within a mission (catch cross-layer regressions).
+
+**Why not always include Playwright?** During active development on a
+Python-only slice, running 25 browser processes per test cycle wastes
+~15 s with zero chance of catching a regression. The fast suite catches
+all Python- and Node-level regressions. UI regressions are only relevant
+when UI code changes.

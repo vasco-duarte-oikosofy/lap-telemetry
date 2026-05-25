@@ -8,7 +8,8 @@
  * Output matches the old bash runner's contract.
  *
  * Usage:
- *   node dev/scripts/run-tests-parallel.js                           # full suite
+ *   node dev/scripts/run-tests-parallel.js                           # fast suite (no Playwright)
+ *   node dev/scripts/run-tests-parallel.js --pw                      # full suite including Playwright
  *   node dev/scripts/run-tests-parallel.js --feature <name>          # feature-only
  *   node dev/scripts/run-tests-parallel.js <script>                   # single test
  *   node dev/scripts/run-tests-parallel.js --concurrency 4
@@ -156,12 +157,15 @@ async function main() {
   const args = process.argv.slice(2);
   let concurrency = DEFAULT_PW_CONCURRENCY;
   let feature = null;
+  let includePw = false;
 
   const ci = args.indexOf('--concurrency');
   if (ci !== -1) { concurrency = parseInt(args[ci + 1], 10); args.splice(ci, 2); }
 
   const fi = args.indexOf('--feature');
   if (fi !== -1) { feature = args[fi + 1]; args.splice(fi, 2); }
+
+  if (args.includes('--pw')) { includePw = true; args.splice(args.indexOf('--pw'), 1); }
 
   if (args.length > 0) { process.exit(await runSingleTest(args[0])); }
 
@@ -175,10 +179,15 @@ async function main() {
     else { nodePool.push(s); }
   }
 
+  if (!includePw && pwPool.length > 0) {
+    console.log(`Skipping ${pwPool.length} Playwright test(s) — use --pw to include them\n`);
+  }
+
   const start = Date.now();
+  const pwScripts = includePw ? pwPool : [];
   const [nResults, pResults] = await Promise.all([
     nodePool.length ? runConcurrently(nodePool, nodePool.length) : Promise.resolve([]),
-    pwPool.length ? runConcurrently(pwPool, concurrency) : Promise.resolve([]),
+    pwScripts.length ? runConcurrently(pwScripts, concurrency) : Promise.resolve([]),
   ]);
   const sResults = serial.length ? await runSequentially(serial) : [];
   const elapsed = ((Date.now() - start) / 1000).toFixed(1);

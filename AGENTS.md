@@ -98,22 +98,35 @@ script individually, reports only failures with the exact script path to
 re-run, and prints a concise one-line summary on success:
 
 ```bash
-bash scripts/test-summary.sh                                       # full suite
+bash scripts/test-summary.sh                                       # fast suite (no Playwright)
+bash scripts/test-summary.sh --pw                                  # full suite including Playwright
 bash scripts/test-summary.sh --feature interactive-race-coach     # feature-specific
 bash scripts/test-summary.sh scripts/test_f1f2.js                  # single failing script
 ```
 
+Playwright (browser) tests are **excluded by default** because each one
+launches a Chromium process (~1–2 s overhead per test). Only include them
+when your slice changes the UI layer (`web/`, `dist/`), or when told to
+by a specific `--feature` list that includes them. Use `--pw` to force
+the full suite including Playwright tests.
+
 Do **not** use raw `npm test` — its voluminous output pollutes context and
 makes it hard to spot failures.
+
+**Run the full suite (with `--pw`) before completing every slice.** This
+catches cross-layer regressions that feature-specific runs miss.
 
 ### Test cadence: feature-specific during development, full suite at milestones
 
 During active development on a mission, run **only the feature-specific tests**
 using `--feature <name>`. This keeps feedback fast (under 5 seconds).
 
-Run the **full suite** (no `--feature`) at two points:
+Run the **full suite with `--pw`** at two points:
 1. After completing the feature (before the final commit).
 2. After every 3rd slice within a mission, to catch cross-feature regressions.
+
+During development, run without `--pw` for fast feedback (~10 s instead of ~20 s).
+Include `--pw` only when the slice touches UI code, or at the milestone points above.
 
 Feature test lists are defined in `package.json` under `testFeatures`.
 Each key is a feature name (matching the mission folder name) and its value
