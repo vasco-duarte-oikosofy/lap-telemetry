@@ -18,6 +18,7 @@ from __future__ import annotations
 
 import logging
 import sys
+import time
 from typing import Optional
 
 from lap_telemetry.coach.coach_config import CoachMode, CoachRunConfig
@@ -126,6 +127,7 @@ class CoachTap:
         # Clear any pending corner utterance — lap summary takes priority
         self._pending_corner_utterance = None
 
+        t_lap_done = time.monotonic()
         print(
             f"lap-telemetry: [coach] lap completed: lap {event.lap_number}, "
             f"track={event.track_name}, frames={event.frame_count}, "
@@ -141,8 +143,9 @@ class CoachTap:
             return
 
         if utterance is not None and self._speech_queue is not None:
+            t_enqueue = time.monotonic()
             print(
-                f"lap-telemetry: [coach] utterance: {utterance}",
+                f"lap-telemetry: [coach] utterance (enqueue +{(t_enqueue - t_lap_done) * 1000:.0f}ms): {utterance}",
                 file=sys.stderr,
                 flush=True,
             )

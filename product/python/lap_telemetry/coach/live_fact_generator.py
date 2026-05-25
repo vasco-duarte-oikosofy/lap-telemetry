@@ -12,6 +12,7 @@ LLM failure → log and skip. The caller (coach_tap) never sees an exception.
 from __future__ import annotations
 
 import logging
+import sys
 import time
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -24,6 +25,29 @@ from lap_telemetry.coach.reference_resolver import resolve_reference_lap
 from lap_telemetry.coach.track_model_resolver import resolve_track_model
 
 log = logging.getLogger(__name__)
+
+# Minimum frame count for a lap to be worth analysing.
+_MIN_VALID_FRAMES = 50
+
+# Phrases that indicate the LLM leaked reasoning instead of producing an utterance.
+_META_PREFIXES = ("let me", "i will", "as a rule", "as a race engineer", "sure,",
+                  "sure.", "here is", "coaching note:", "this seems", "below is")
+
+
+def _is_meta_output(utterance: str) -> bool:
+    """Return True when the LLM output looks like leaked reasoning, not an utterance."""
+    text = utterance.strip()
+    if not text:
+        return True
+    lower = text.lower()
+    if text.startswith("-") or text.startswith("–"):
+        return True
+    if text.endswith(":"):
+        return True
+    for phrase in _META_PREFIXES:
+        if lower.startswith(phrase):
+            return True
+    return False
 
 
 # Type alias for the LLM utterance generator function.
@@ -72,6 +96,15 @@ class LiveFactGenerator:
         """
         track_name = event.track_name
         frames = event.frames
+        t_start = time.monotonic()
+
+        # Guard: skip ghost laps produced at session end.
+        if event.frame_count < _MIN_VALID_FRAMES or event.lap_time_s <= 0:
+            log.debug(
+                "Skipping ghost lap %d (frames=%d, lap_time=%.2fs)",
+                event.lap_number, event.frame_count, event.lap_time_s,
+            )
+            return None
 
         # 1. Resolve reference lap.
         ref_path = resolve_reference_lap(
@@ -158,15 +191,25 @@ class LiveFactGenerator:
             log.exception("LLM utterance generation failed for track=%s", track_name)
             return None
         t_llm = time.monotonic() - t2
+        t_total = time.monotonic() - t_start
 
-        log.info(
-            "Coaching: track=%s lap=%d convert=%.1fms compare=%.1fms llm=%.1fms → %s",
-            track_name,
-            event.lap_number,
-            t_convert * 1000,
-            t_compare * 1000,
-            t_llm * 1000,
-            utterance[:80] if utterance else "(none)",
+        print(
+            f"lap-telemetry: [coach] timing lap={event.lap_number} "
+            f"convert={t_convert * 1000:.0f}ms "
+            f"compare={t_compare * 1000:.0f}ms "
+            f"llm={t_llm * 1000:.0f}ms "
+            f"total={t_total * 1000:.0f}ms",
+            file=sys.stderr,
+            flush=True,
         )
+
+        if utterance is not None and _is_meta_output(utterance):
+            print(
+                f"lap-telemetry: [coach] dropped meta-output for lap {event.lap_number}: "
+                f"{utterance[:120]!r}",
+                file=sys.stderr,
+                flush=True,
+            )
+            return None
 
         return utterance

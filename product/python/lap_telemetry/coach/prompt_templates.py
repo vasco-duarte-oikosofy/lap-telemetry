@@ -43,8 +43,14 @@ got to throttle LATER. Positive = driver got back to full throttle EARLIER.
    - Spell out numbers one through ten as words (one, two, three … ten). \
 Larger numbers (e.g. 155) may stay as digits.
    - No abbreviations, no slash characters, no parentheses or brackets.
-
-Output ONLY the utterance text. No preamble, no labels, no quotes."""
+10. OUTPUT RULE — this is the most important rule:
+    Output ONLY the utterance text. No preamble, no labels, no quotes, no reasoning.
+    Do NOT start with "Let me", "I will", "As a race engineer", "Sure", or any similar phrase.
+    Do NOT end a sentence with a colon.
+    Do NOT use bullet points or dashes.
+    If you have no useful fact to state, output an empty string.
+    Bad: "Let me summarize: turn three was slow."
+    Good: "Turn three exit, lost two seconds. Brake ten metres later."""
 
 USER_PROMPT_TEMPLATE = """\
 Lap comparison facts:
