@@ -1,0 +1,7 @@
+# Bug 02 Learnings
+
+- **The hostname was reversed.** The bug description claimed `https://ollama.com/v1` was the marketing site and `https://api.ollama.com/v1` was the correct API endpoint. The truth is the opposite: `https://ollama.com/v1` is the correct OpenAI-compatible API, and `https://api.ollama.com/v1` returns `301` (redirect) then `401 unauthorized` for chat completions. The `/v1/models` endpoint on `api.ollama.com` still works, which made the redirect hard to notice.
+- **The fix was a single hostname change** in two places: `coach_config.toml` (`base_url`) and `_provider_base_url()` in `llm_adapter.py`.
+- **Diagnosing this requires a live curl test.** Python SDK errors just say "unauthorized" — you have to curl the endpoint directly to see the 301 redirect. Always test with `curl -sL` (follow redirects) and check the final HTTP status code.
+- **The `:cloud` tag on model names works fine** on Ollama Cloud. Models like `glm-5.1:cloud` resolve correctly; the tag selects the cloud-hosted variant.
+- **The `reasoning` field in Ollama responses** can contain the model's chain-of-thought, leaving `content` empty. The adapter already handles this (extracts quoted text or last sentence from reasoning).

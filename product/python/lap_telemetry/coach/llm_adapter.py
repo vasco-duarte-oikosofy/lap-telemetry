@@ -205,6 +205,6 @@ def _provider_base_url(provider: str) -> str | None:
     urls: dict[str, str] = {
         "deepseek": "https://api.deepseek.com",
         "google": "https://generativelanguage.googleapis.com/v1beta/openai",
-        "ollama": "https://api.ollama.com/v1",
+        "ollama": "https://ollama.com/v1",
     }
     return urls.get(provider)
