@@ -16,3 +16,4 @@ Active bug investigations. Each bug gets its own numbered slice folder.
 | `06-ghost-lap-comparator-crash` | 1-frame session-end laps crash compare_laps() with ValueError: max() arg is an empty sequence | ✅ Fixed in `50528e5` |
 | `07-coaching-reads-dropped-frames` | Coaching compares against incomplete live frame buffer (3093 vs 3935 frames for lap 14) — should read from the recorded session Parquet instead | 📋 Open |
 | `08-coaching-data-source-mismatch` | compare.html reads full recorded Parquet; coaching pipeline reads live bus frames — same JS pipeline code, different (and inferior) data source | 📋 Open |
+| `09-utterance-readability` | Utterances hard to parse when spoken: no gain/loss lead-in, gains/losses interleaved, dropped subject | 🔧 Prompt rules added, all tests pass |

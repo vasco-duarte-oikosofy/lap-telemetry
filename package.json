@@ -30,6 +30,7 @@
       "dev/scripts/test_llm_utterance_guard.js",
       "dev/scripts/test_ghost_lap_filter.js",
       "dev/scripts/test_contradictory_speed_coaching.js",
+      "dev/scripts/test_utterance_readability.js",
       "dev/scripts/test_facts_inspector.js"
     ],
     "llm-text-adapter": [
@@ -39,6 +40,13 @@
       "dev/scripts/test_losses_delta_time.js",
       "dev/scripts/test_js_pipeline_contract.js",
       "dev/scripts/test_coach_lap_comparison.js",
+      "dev/scripts/test_llm_text_adapter.js"
+    ],
+    "utterance-readability": [
+      "dev/scripts/test_runner_self_test.js",
+      "dev/scripts/test_protocol_enforcement.js",
+      "dev/scripts/test_contradictory_speed_coaching.js",
+      "dev/scripts/test_utterance_readability.js",
       "dev/scripts/test_llm_text_adapter.js"
     ],
     "local-tts-smoke-path": [

@@ -1,0 +1,28 @@
+{
+  "type": "lap_coaching_summary",
+  "track_id": "circuit-de-barcelona",
+  "lap_number": 9,
+  "lap_time_delta_s": 0.140,
+  "top_losses": [
+    {
+      "corner_id": "t3",
+      "corner_name": "Turn 3 — Renault",
+      "apex_distance_m": 1161.0,
+      "phase": "minimum_speed",
+      "loss_s": 0.140,
+      "driver_value": 151.0,
+      "reference_value": 157.1,
+      "unit": "km/h",
+      "confidence": "high",
+      "driver_apex_distance_m": 1169.0,
+      "reference_apex_distance_m": 1161.0,
+      "apex_offset_m": 8.0,
+      "gain_end_distance_m": 1596.0
+    }
+  ],
+  "top_gains": [],
+  "constraints": {
+    "max_words": 25,
+    "style": "calm_concise_engineer"
+  }
+}

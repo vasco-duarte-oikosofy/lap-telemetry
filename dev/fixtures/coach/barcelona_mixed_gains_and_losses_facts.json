@@ -1,0 +1,74 @@
+{
+  "type": "lap_coaching_summary",
+  "track_id": "circuit-de-barcelona",
+  "lap_number": 12,
+  "lap_time_delta_s": 0.205,
+  "top_losses": [
+    {
+      "corner_id": "t10",
+      "corner_name": "Turn 10 — Campsa",
+      "apex_distance_m": 3480.0,
+      "phase": "minimum_speed",
+      "loss_s": 0.250,
+      "driver_value": 132.0,
+      "reference_value": 141.5,
+      "unit": "km/h",
+      "confidence": "high",
+      "driver_apex_distance_m": 3488.0,
+      "reference_apex_distance_m": 3479.0,
+      "apex_offset_m": 9.0,
+      "gain_end_distance_m": 3820.0
+    },
+    {
+      "corner_id": "t5",
+      "corner_name": "Turn 5 — Seat",
+      "apex_distance_m": 2143.0,
+      "phase": "exit",
+      "loss_s": 0.150,
+      "driver_value": 98.5,
+      "reference_value": 101.1,
+      "unit": "km/h",
+      "confidence": "medium",
+      "phase_distance_m": 2168.0,
+      "gain_end_distance_m": 2439.0,
+      "exit_distance_delta_m": -10.0,
+      "reference_phase_distance_m": 2158.0
+    }
+  ],
+  "top_gains": [
+    {
+      "corner_id": "t3",
+      "corner_name": "Turn 3 — Renault",
+      "apex_distance_m": 1161.0,
+      "phase": "minimum_speed",
+      "loss_s": -0.180,
+      "driver_value": 165.6,
+      "reference_value": 157.1,
+      "unit": "km/h",
+      "confidence": "high",
+      "driver_apex_distance_m": 1161.0,
+      "reference_apex_distance_m": 1163.0,
+      "apex_offset_m": 2.0,
+      "gain_end_distance_m": 1596.0
+    },
+    {
+      "corner_id": "t3",
+      "corner_name": "Turn 3 — Renault",
+      "apex_distance_m": 1161.0,
+      "phase": "exit",
+      "loss_s": -0.140,
+      "driver_value": 166.1,
+      "reference_value": 156.2,
+      "unit": "km/h",
+      "confidence": "medium",
+      "phase_distance_m": 1165.0,
+      "gain_end_distance_m": 1596.0,
+      "exit_distance_delta_m": 4.0,
+      "reference_phase_distance_m": 1169.0
+    }
+  ],
+  "constraints": {
+    "max_words": 45,
+    "style": "calm_concise_engineer"
+  }
+}

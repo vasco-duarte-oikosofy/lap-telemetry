@@ -1,0 +1,58 @@
+{
+  "type": "lap_coaching_summary",
+  "track_id": "circuit-de-barcelona",
+  "lap_number": 4,
+  "lap_time_delta_s": -0.420,
+  "top_losses": [],
+  "top_gains": [
+    {
+      "corner_id": "t3",
+      "corner_name": "Turn 3 — Renault",
+      "apex_distance_m": 1161.0,
+      "phase": "minimum_speed",
+      "loss_s": -0.212,
+      "driver_value": 165.6,
+      "reference_value": 157.1,
+      "unit": "km/h",
+      "confidence": "high",
+      "driver_apex_distance_m": 1161.0,
+      "reference_apex_distance_m": 1163.0,
+      "apex_offset_m": 2.0,
+      "gain_end_distance_m": 1596.0
+    },
+    {
+      "corner_id": "t3",
+      "corner_name": "Turn 3 — Renault",
+      "apex_distance_m": 1161.0,
+      "phase": "exit",
+      "loss_s": -0.207,
+      "driver_value": 166.1,
+      "reference_value": 156.2,
+      "unit": "km/h",
+      "confidence": "medium",
+      "phase_distance_m": 1165.0,
+      "gain_end_distance_m": 1596.0,
+      "exit_distance_delta_m": 4.0,
+      "reference_phase_distance_m": 1169.0
+    },
+    {
+      "corner_id": "t1",
+      "corner_name": "Turn 1 — Elf",
+      "apex_distance_m": 842.0,
+      "phase": "entry",
+      "loss_s": -0.157,
+      "driver_value": 267.1,
+      "reference_value": 258.6,
+      "unit": "km/h",
+      "confidence": "medium",
+      "phase_distance_m": 680.0,
+      "gain_end_distance_m": 842.0,
+      "entry_distance_delta_m": -12.0,
+      "reference_phase_distance_m": 668.0
+    }
+  ],
+  "constraints": {
+    "max_words": 35,
+    "style": "calm_concise_engineer"
+  }
+}

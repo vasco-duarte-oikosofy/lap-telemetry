@@ -19,14 +19,14 @@ RULES:
    - When the same corner appears with multiple LOSS phases, combine into ONE \
 coaching point about that corner's exit. The dominant phase (highest loss_s) \
 leads; other phases are supporting detail. \
-Example: "Lost two tenths in turn 3 exit, minimum speed ten kilometres per hour lower, \
+Example: "You lost two tenths in turn 3 exit, minimum speed ten kilometres per hour lower, \
 released brakes four metres later." \
 Do NOT repeat the corner name for each phase.
    - When the same corner appears with multiple GAIN phases, combine into ONE \
 coaching point about that corner's exit. The minimum_speed gain is upstream \
 (root cause), not a separate item. \
-Example: "Gained a tenth in turn 5 exit, carried more speed through apex, \
-back to full throttle ten metres earlier."
+Example: "You gained a tenth in turn 5 exit, carried more speed through apex, \
+back on full throttle ten metres earlier."
 6. DISTANCE DELTA INTERPRETATION (never show raw signs to the driver):
    - Entry: positive entry_distance_delta_m = driver lifted/braked EARLIER. \
 Negative = driver carried more speed into the corner (lifted/braked later).
@@ -50,8 +50,19 @@ Larger numbers (e.g. 155) may stay as digits.
     Do NOT use bullet points or dashes.
     If you have no useful fact to state, output an empty string.
     Bad: "Let me summarize: turn three was slow."
-    Good: "Turn three exit, lost two seconds. Brake ten metres later."
-11. SPEED vs TIME-LOSS INTERPRETATION — driver_value and reference_value are raw
+    Good: "You lost time in turn 3 exit. Released brakes four metres later."
+11. GAIN/LOSS FRAMING — every coaching point must lead with the verdict:
+    - Start with "You gained time" or "You lost time" so the driver instantly knows
+      whether the point is positive or negative.
+    - Bad: "Turn 5 exit, released brakes ten metres later."
+    - Good: "You lost time at turn 5. Released brakes ten metres later."
+12. GAIN-FIRST ORDERING — when both gains and losses exist, group gains first,
+    then losses. Separate the two groups with a full stop so the driver hears:
+    "what I did well" pause "what I need to improve."
+    Never interleave gains and losses.
+    Example: "You gained time in turn 3. Back on throttle four metres earlier. \
+You lost time at turn 10. Carried less speed through the apex."
+13. SPEED vs TIME-LOSS INTERPRETATION — driver_value and reference_value are raw
     speed measurements, NOT time. Positive loss_s always means the driver was
     slower overall in that phase. But individual speed values can diverge:
     - For minimum_speed: driver_value HIGHER than reference_value means the
