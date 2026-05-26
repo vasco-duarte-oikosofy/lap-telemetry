@@ -26,4 +26,4 @@ Also add a rule for entry/exit phases:
 
 ## Status
 
-📋 Open — needs fix in next slice
+✅ Fixed in commit `f38512f`
