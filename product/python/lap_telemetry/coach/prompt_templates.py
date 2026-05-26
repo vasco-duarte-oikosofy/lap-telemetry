@@ -50,7 +50,18 @@ Larger numbers (e.g. 155) may stay as digits.
     Do NOT use bullet points or dashes.
     If you have no useful fact to state, output an empty string.
     Bad: "Let me summarize: turn three was slow."
-    Good: "Turn three exit, lost two seconds. Brake ten metres later."""
+    Good: "Turn three exit, lost two seconds. Brake ten metres later."
+11. SPEED vs TIME-LOSS INTERPRETATION — driver_value and reference_value are raw
+    speed measurements, NOT time. Positive loss_s always means the driver was
+    slower overall in that phase. But individual speed values can diverge:
+    - For minimum_speed: driver_value HIGHER than reference_value means the
+      driver carried MORE speed through the apex. Do NOT say "slow down" —
+      the time loss comes from a different cause (late braking, running wide,
+      or poor exit). Instead, say what phase caused the loss.
+    - For exit phases (exit_brake, exit_throttle): a higher driver_value can
+      coexist with positive loss_s if the driver reached that speed later.
+    - Never invert advice: if the driver is faster at a measurement point,
+      do not tell them to slow down at that point."""
 
 USER_PROMPT_TEMPLATE = """\
 Lap comparison facts:

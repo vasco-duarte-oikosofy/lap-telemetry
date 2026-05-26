@@ -1,0 +1,104 @@
+{
+  "type": "lap_coaching_summary",
+  "track_id": "circuit-de-barcelona",
+  "lap_number": 3,
+  "lap_time_delta_s": -1.155,
+  "top_losses": [
+    {
+      "corner_id": "t5",
+      "corner_name": "Turn 5 \u2014 Seat",
+      "apex_distance_m": 2143.0,
+      "phase": "minimum_speed",
+      "loss_s": 0.114,
+      "driver_value": 85.0,
+      "reference_value": 81.8,
+      "unit": "km/h",
+      "confidence": "high",
+      "driver_apex_distance_m": 2143.0,
+      "reference_apex_distance_m": 2137.0,
+      "apex_offset_m": -6.0,
+      "gain_end_distance_m": 2439.0
+    },
+    {
+      "corner_id": "t7",
+      "corner_name": "Turn 8",
+      "apex_distance_m": 2850.0,
+      "phase": "exit",
+      "loss_s": 0.095,
+      "driver_value": 171.6,
+      "reference_value": 157.8,
+      "unit": "km/h",
+      "confidence": "medium",
+      "phase_distance_m": 2882.0,
+      "gain_end_distance_m": 2820.0,
+      "exit_distance_delta_m": -21.0,
+      "reference_phase_distance_m": 2861.0
+    },
+    {
+      "corner_id": "t5",
+      "corner_name": "Turn 5 \u2014 Seat",
+      "apex_distance_m": 2143.0,
+      "phase": "exit",
+      "loss_s": 0.078,
+      "driver_value": 98.5,
+      "reference_value": 101.1,
+      "unit": "km/h",
+      "confidence": "medium",
+      "phase_distance_m": 2168.0,
+      "gain_end_distance_m": 2439.0,
+      "exit_distance_delta_m": -10.0,
+      "reference_phase_distance_m": 2158.0
+    }
+  ],
+  "top_gains": [
+    {
+      "corner_id": "t3",
+      "corner_name": "Turn 3 \u2014 Renault",
+      "apex_distance_m": 1161.0,
+      "phase": "minimum_speed",
+      "loss_s": -0.212,
+      "driver_value": 165.6,
+      "reference_value": 157.1,
+      "unit": "km/h",
+      "confidence": "high",
+      "driver_apex_distance_m": 1161.0,
+      "reference_apex_distance_m": 1163.0,
+      "apex_offset_m": 2.0,
+      "gain_end_distance_m": 1596.0
+    },
+    {
+      "corner_id": "t3",
+      "corner_name": "Turn 3 \u2014 Renault",
+      "apex_distance_m": 1161.0,
+      "phase": "exit",
+      "loss_s": -0.207,
+      "driver_value": 166.1,
+      "reference_value": 156.2,
+      "unit": "km/h",
+      "confidence": "medium",
+      "phase_distance_m": 1165.0,
+      "gain_end_distance_m": 1596.0,
+      "exit_distance_delta_m": 4.0,
+      "reference_phase_distance_m": 1169.0
+    },
+    {
+      "corner_id": "t1",
+      "corner_name": "Turn 1 \u2014 Elf",
+      "apex_distance_m": 842.0,
+      "phase": "entry",
+      "loss_s": -0.157,
+      "driver_value": 267.1,
+      "reference_value": 258.6,
+      "unit": "km/h",
+      "confidence": "medium",
+      "phase_distance_m": 680.0,
+      "gain_end_distance_m": 842.0,
+      "entry_distance_delta_m": -12.0,
+      "reference_phase_distance_m": 668.0
+    }
+  ],
+  "constraints": {
+    "max_words": 35,
+    "style": "calm_concise_engineer"
+  }
+}

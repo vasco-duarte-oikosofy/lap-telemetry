@@ -29,6 +29,7 @@
       "dev/scripts/test_fuel_engineer_call.js",
       "dev/scripts/test_llm_utterance_guard.js",
       "dev/scripts/test_ghost_lap_filter.js",
+      "dev/scripts/test_contradictory_speed_coaching.js",
       "dev/scripts/test_facts_inspector.js"
     ],
     "llm-text-adapter": [
