@@ -14,10 +14,18 @@ from typing import Any
 
 
 class CoachMode(enum.Enum):
-    """When the coach speaks: after lap only, turn-by-turn, or both."""
+    """When the coach speaks: after lap only, turn-by-turn, both, or off."""
     LAP = "lap"
     TURN = "turn"
     ALL = "all"
+    OFF = "off"
+
+
+class UtteranceMode(enum.Enum):
+    """How utterances are generated: cloud LLM, local LLM, or deterministic templates."""
+    CLOUD_LLM = "cloud-llm"
+    LOCAL_LLM = "local-llm"
+    TEMPLATE = "template"
 
 
 DEFAULT_CONFIG_PATHS = [
@@ -47,6 +55,8 @@ class CoachRunConfig:
     mode: CoachMode = CoachMode.LAP
     top: int = 3
     fuel_calls: bool = False
+    utterance_mode: UtteranceMode = UtteranceMode.CLOUD_LLM
+    local_model: str = "llama3.2"
 
 
 @dataclass

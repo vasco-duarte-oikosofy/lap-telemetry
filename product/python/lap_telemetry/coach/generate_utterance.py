@@ -19,9 +19,11 @@ import logging
 import sys
 from pathlib import Path
 
-from .coach_config import load_config
+from .coach_config import UtteranceMode, load_config
 from .facts import LapComparisonFacts, CornerLoss
 from .llm_adapter import generate_utterance
+from .short_prompt import build_short_messages
+from .template_adapter import TemplateAdapter
 
 
 def _load_facts_from_json(path: Path) -> LapComparisonFacts:
@@ -119,6 +121,19 @@ def main(argv: list[str] | None = None) -> int:
         help="Print facts JSON to stdout and exit without calling the LLM.",
     )
     parser.add_argument(
+        "--utterance-mode",
+        type=str,
+        choices=["cloud-llm", "local-llm", "template"],
+        default="cloud-llm",
+        help="How to generate utterances: cloud-llm (default), local-llm (Ollama), or template (deterministic).",
+    )
+    parser.add_argument(
+        "--local-model",
+        type=str,
+        default=None,
+        help="Ollama model name for --utterance-mode local-llm (default: llama3.2).",
+    )
+    parser.add_argument(
         "--debug",
         action="store_true",
         help="Print full facts JSON and debug info to stderr.",
@@ -167,12 +182,38 @@ def main(argv: list[str] | None = None) -> int:
         facts_json = json.dumps(facts.to_dict(), indent=2)
         print(f"Facts JSON:\n{facts_json}", file=sys.stderr)
 
-    # Generate utterance
-    try:
-        utterance = generate_utterance(facts, config)
-    except Exception as e:
-        print(f"Error generating utterance: {e}", file=sys.stderr)
-        return 1
+    # Generate utterance based on mode
+    utterance_mode = UtteranceMode(args.utterance_mode)
+    local_model = args.local_model or "llama3.2"
+
+    if utterance_mode == UtteranceMode.TEMPLATE:
+        try:
+            utterance = TemplateAdapter.generate(facts)
+        except Exception as e:
+            print(f"Error generating template utterance: {e}", file=sys.stderr)
+            return 1
+    elif utterance_mode == UtteranceMode.LOCAL_LLM:
+        from .coach_config import LLMConfig
+        from .llm_adapter import _call_llm
+        local_config = LLMConfig(
+            provider="ollama",
+            model=local_model,
+            api_key_env="OLLAMA_API_KEY",
+            base_url="http://localhost:11434/v1",
+        )
+        try:
+            messages = build_short_messages(facts)
+            utterance = _call_llm(local_config, messages)
+        except Exception as e:
+            print(f"Error generating local LLM utterance: {e}", file=sys.stderr)
+            return 1
+    else:
+        # CLOUD_LLM (default)
+        try:
+            utterance = generate_utterance(facts, config)
+        except Exception as e:
+            print(f"Error generating utterance: {e}", file=sys.stderr)
+            return 1
 
     print(utterance)
     return 0

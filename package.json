@@ -31,7 +31,8 @@
       "dev/scripts/test_ghost_lap_filter.js",
       "dev/scripts/test_contradictory_speed_coaching.js",
       "dev/scripts/test_utterance_readability.js",
-      "dev/scripts/test_facts_inspector.js"
+      "dev/scripts/test_facts_inspector.js",
+      "dev/scripts/test_template_adapter.js"
     ],
     "llm-text-adapter": [
       "dev/scripts/test_runner_self_test.js",

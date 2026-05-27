@@ -24,6 +24,7 @@ from __future__ import annotations
 
 import argparse
 import logging
+import os
 import signal
 import sys
 from pathlib import Path
@@ -34,14 +35,16 @@ _PRODUCT_PY = _SCRIPT_DIR.parent.parent
 if str(_PRODUCT_PY) not in sys.path:
     sys.path.insert(0, str(_PRODUCT_PY))
 
-from lap_telemetry.coach.coach_config import CoachMode, CoachRunConfig, load_config, load_tts_config
+from lap_telemetry.coach.coach_config import CoachMode, CoachRunConfig, UtteranceMode, load_config, load_tts_config
 from lap_telemetry.coach.coach_tap import CoachTap
 from lap_telemetry.coach.fuel_prompt import build_fuel_messages
 from lap_telemetry.coach.live_corner_fact_generator import LiveCornerFactGenerator
 from lap_telemetry.coach.live_fact_generator import LiveFactGenerator
 from lap_telemetry.coach.live_fuel_fact_generator import LiveFuelFactGenerator
 from lap_telemetry.coach.llm_adapter import _call_llm, generate_utterance
+from lap_telemetry.coach.short_prompt import build_short_messages
 from lap_telemetry.coach.speech_queue import SpeechQueue
+from lap_telemetry.coach.template_adapter import TemplateAdapter
 from lap_telemetry.coach.tts_adapter import create_adapter
 from lap_telemetry.recorder.bus import QueuedBus
 from lap_telemetry.recorder import record
@@ -62,9 +65,22 @@ def main() -> int:
     parser.add_argument(
         "--coach-mode",
         type=str,
-        choices=["lap", "turn", "all"],
+        choices=["lap", "turn", "all", "off"],
         default="lap",
-        help="When to speak: lap (after-lap only), turn (corner exits only), all (both). Default: lap.",
+        help="When to speak: lap, turn, all, or off (record only). Default: lap.",
+    )
+    parser.add_argument(
+        "--utterance-mode",
+        type=str,
+        choices=["cloud-llm", "local-llm", "template"],
+        default="cloud-llm",
+        help="How to generate utterances: cloud-llm (default), local-llm (Ollama), or template (deterministic).",
+    )
+    parser.add_argument(
+        "--local-model",
+        type=str,
+        default=None,
+        help="Ollama model name for --utterance-mode local-llm (default: llama3.2).",
     )
     parser.add_argument(
         "--coach-top",
@@ -126,11 +142,34 @@ def main() -> int:
 
     # Build coach run config.
     coach_mode = CoachMode(args.coach_mode)
+    utterance_mode = UtteranceMode(args.utterance_mode)
+    local_model = args.local_model or os.environ.get("COACH_LOCAL_MODEL", "llama3.2")
     coach_run_config = CoachRunConfig(
         mode=coach_mode,
         top=args.coach_top,
         fuel_calls=args.fuel_calls,
+        utterance_mode=utterance_mode,
+        local_model=local_model,
     )
+
+    # Record-only mode: skip coach tap, speech queue, and TTS entirely.
+    if coach_mode == CoachMode.OFF:
+        bus = QueuedBus(maxsize=256)
+        print(
+            f"lap-telemetry: [coach] mode=off top={coach_run_config.top}",
+            file=sys.stderr,
+            flush=True,
+        )
+        try:
+            return record.run(
+                rate_hz=50.0,
+                once=args.once,
+                probe_timeout_s=args.probe_timeout,
+                out_dir=args.out_dir,
+                bus=bus,
+            )
+        finally:
+            pass
 
     # Apply CLI overrides for TTS.
     if args.tts_engine:
@@ -146,9 +185,50 @@ def main() -> int:
         return 1
     speech_queue = SpeechQueue(adapter=tts_adapter)
 
-    # Create the utterance functions that call the LLM.
+    # Create the utterance functions based on utterance mode.
+    def _template_utterance(facts):
+        """Generate a deterministic coaching utterance via templates."""
+        try:
+            return TemplateAdapter.generate(facts)
+        except Exception as e:
+            log.exception("Template utterance generation failed")
+            print(f"lap-telemetry: [coach] template error: {e}", file=sys.stderr, flush=True)
+            return None
+
+    def _local_llm_utterance(facts, max_words=None):
+        """Generate a coaching utterance via a local Ollama model."""
+        try:
+            from lap_telemetry.coach.coach_config import LLMConfig
+            local_config = LLMConfig(
+                provider="ollama",
+                model=local_model,
+                api_key_env="OLLAMA_API_KEY",
+                base_url="http://localhost:11434/v1",
+            )
+            if max_words is not None:
+                facts_copy = facts
+                if facts.constraints.get("max_words") != max_words:
+                    # Override max_words for corner-exit context
+                    facts_dict = facts.to_dict()
+                    facts_dict["constraints"]["max_words"] = max_words
+                    from lap_telemetry.coach.generate_utterance import _dict_to_facts
+                    facts_copy = _dict_to_facts(facts_dict)
+                messages = build_short_messages(facts_copy)
+            else:
+                messages = build_short_messages(facts)
+            return _call_llm(local_config, messages)
+        except Exception as e:
+            log.exception("Local LLM utterance generation failed")
+            print(f"lap-telemetry: [coach] local LLM error: {e}", file=sys.stderr, flush=True)
+            return None
+
     def utterance_fn(facts):
-        """Generate a coaching utterance via the LLM adapter (after-lap)."""
+        """Generate a coaching utterance (after-lap) based on utterance mode."""
+        if utterance_mode == UtteranceMode.TEMPLATE:
+            return _template_utterance(facts)
+        if utterance_mode == UtteranceMode.LOCAL_LLM:
+            return _local_llm_utterance(facts)
+        # CLOUD_LLM (default)
         try:
             return generate_utterance(facts, config=llm_config)
         except Exception as e:
@@ -157,7 +237,12 @@ def main() -> int:
             return None
 
     def corner_utterance_fn(facts, corner_name, top):
-        """Generate a coaching utterance via the LLM adapter (corner-exit)."""
+        """Generate a coaching utterance (corner-exit) based on utterance mode."""
+        if utterance_mode == UtteranceMode.TEMPLATE:
+            return _template_utterance(facts)
+        if utterance_mode == UtteranceMode.LOCAL_LLM:
+            return _local_llm_utterance(facts, max_words=20 if top == 1 else 30)
+        # CLOUD_LLM (default)
         try:
             from lap_telemetry.coach.corner_exit_prompt import build_corner_exit_messages
             messages = build_corner_exit_messages(facts, corner_name, top)
@@ -168,7 +253,32 @@ def main() -> int:
             return None
 
     def fuel_utterance_fn(facts):
-        """Generate a fuel engineer utterance via the LLM adapter."""
+        """Generate a fuel engineer utterance based on utterance mode."""
+        if utterance_mode == UtteranceMode.TEMPLATE:
+            from lap_telemetry.coach.template_adapter import TemplateAdapter
+            try:
+                return TemplateAdapter.generate_fuel_phrase(facts)
+            except Exception as e:
+                log.exception("Template fuel utterance generation failed")
+                print(f"lap-telemetry: [coach] template error: {e}", file=sys.stderr, flush=True)
+                return None
+        if utterance_mode == UtteranceMode.LOCAL_LLM:
+            try:
+                from lap_telemetry.coach.coach_config import LLMConfig
+                from lap_telemetry.coach.fuel_prompt import build_fuel_messages
+                local_config = LLMConfig(
+                    provider="ollama",
+                    model=local_model,
+                    api_key_env="OLLAMA_API_KEY",
+                    base_url="http://localhost:11434/v1",
+                )
+                messages = build_fuel_messages(facts)
+                return _call_llm(local_config, messages)
+            except Exception as e:
+                log.exception("Local LLM fuel utterance generation failed")
+                print(f"lap-telemetry: [coach] local LLM error: {e}", file=sys.stderr, flush=True)
+                return None
+        # CLOUD_LLM (default)
         try:
             messages = build_fuel_messages(facts)
             return _call_llm(llm_config, messages)
@@ -207,7 +317,7 @@ def main() -> int:
         signal.signal(signal.SIGBREAK, _signal_handler)
 
     print(
-        f"lap-telemetry: [coach] mode={coach_mode.value} top={coach_run_config.top}",
+        f"lap-telemetry: [coach] mode={coach_mode.value} top={coach_run_config.top} utterance={utterance_mode.value}",
         file=sys.stderr,
         flush=True,
     )
