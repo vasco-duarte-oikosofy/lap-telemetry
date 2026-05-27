@@ -71,6 +71,25 @@ and `learnings.md`.
 For the full step-by-step process of starting a new feature, see
 [`docs/HOW_TO_START_A_NEW_FEATURE.md`](docs/HOW_TO_START_A_NEW_FEATURE.md).
 
+### ⛔ When work is complete, update the plan
+
+When a work item (slice, bug, or entire mission) is completed or retired, you
+**must** update its PLAN.md or bug.md status before moving on. Stale status is
+not acceptable:
+
+- **Slice completed** → mark its row in the mission's `PLAN.md` as ✅ with the
+  commit hash.
+- **Bug fixed** → update `bug.md` status to ✅ with the commit hash, then move
+  the folder from `work/active/bugs/` to `work/completed/bugs/`.
+- **Bug retired** (not a bug, now a feature) → update `bug.md` status to 📋
+  Retired with a pointer to the feature/slice that replaces it.
+- **Mission completed** → move the entire mission folder from `work/active/`
+  to `work/completed/`.
+
+Do not leave completed work marked as 🔧 In progress or 📋 Open. The plan is the
+single source of truth — if it's stale, the next agent wastes time figuring out
+what's already done.
+
 ## Build instructions
 
 To build the distribution bundle:
