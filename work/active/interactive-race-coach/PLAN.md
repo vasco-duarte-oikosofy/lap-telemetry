@@ -24,7 +24,7 @@
 | `08-fuel-fact-recorder-channels` | ✅ Complete | Extend `Frame` with fuel/race-state fields and print deterministic fuel-to-end facts |
 | `09-fuel-engineer-call` | 🔲 Not started | Speak "fuel laps remaining vs race laps remaining" using deterministic strategy facts plus LLM phrasing |
 | `10-facts-inspector` | ✅ Complete | Add `--print-facts` flag to `generate_utterance.py` — prints facts JSON to stdout and exits without calling the LLM |
-| `11-low-latency-utterance` | 🔲 Not started | Add `--utterance-mode` options: `local-llm` (small local model, short prompt), `template` (deterministic phrase fill, no LLM), `cloud-llm` (current default) |
+| `11-low-latency-utterance` | ✅ e14d71e | Add `--utterance-mode` options: `local-llm` (small local model, short prompt), `template` (deterministic phrase fill, no LLM), `cloud-llm` (current default). Also `--coach-mode off` for record-only |
 
 ---
 
