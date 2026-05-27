@@ -26,4 +26,9 @@ lap-telemetry: [coach] utterance: - this seems like a hard rule. Let me include 
 
 ## Status
 
-🔧 In progress
+✅ Fixed in commit `50528e5`
+
+- Rule 10 added to `SYSTEM_PROMPT_TEMPLATE` (explicit bad/good examples, "output an empty string" fallback)
+- `_is_meta_output()` guard added in `live_fact_generator.py` (filters reasoning leaks before enqueue)
+
+Moved to `work/completed/bugs/`.

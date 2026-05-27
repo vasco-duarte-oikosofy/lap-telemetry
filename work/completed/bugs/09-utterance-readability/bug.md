@@ -61,4 +61,10 @@ Like `test_contradictory_speed_coaching.py` — check that the prompt template c
 
 ## Status
 
-🔧 Prompt rules added (T30, T31, T32 pass). E2E verified with all 5 corpus fixtures. No commit yet — needs final review.
+✅ Fixed in commit `addb36a`
+
+- Prompt rules 11 (gain/loss framing), 12 (gain-first ordering), and 13 (speed vs time-loss interpretation) added to `SYSTEM_PROMPT_TEMPLATE`
+- 5 test corpus fixtures created in `dev/fixtures/coach/`
+- Test script `dev/scripts/test_utterance_readability.py` passes
+
+Moved to `work/completed/bugs/`.

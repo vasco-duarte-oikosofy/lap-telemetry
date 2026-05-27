@@ -11,18 +11,24 @@ Lap 5 completed, but coaching was heard mid-lap 7.
 
 ## Root cause
 
-Unknown — could be LLM API latency, Parquet conversion, `compare_laps()`, or TTS queue depth. Need per-step timings visible at normal (non-debug) log level.
+**Quantified:** Pipeline timing (3 runs with `glm-5.1:cloud`) shows:
 
-## Fix plan
+| Stage | Avg | Min | Max |
+|---|---|---|---|
+| LLM round-trip | 48.5 s | 38.9 s | 64.8 s |
+| TTS synthesis | 4.7 s | 4.3 s | 5.3 s |
+| **Total (facts → audio starts)** | **53.3 s** | — | — |
 
-1. Promote the existing `log.info("Coaching: ... convert=%.1fms compare=%.1fms llm=%.1fms")` in `live_fact_generator.py` to `print(..., sys.stderr)` so it's visible without `--debug`.
-2. Add wall-clock timestamps at `coach_tap._on_lap_completed` entry and at utterance enqueue so total pipeline latency is visible.
+LLM latency (91% of total) makes live coaching impractical. At ~50 km/h average, the driver is ~750 m past the event by the time audio starts. This is an architectural limitation, not a defect.
 
-## Files
+## Resolution
 
-- `product/python/lap_telemetry/coach/live_fact_generator.py`
-- `product/python/lap_telemetry/coach/coach_tap.py`
+**Retired** — this is a feature, not a bug. Adding low-latency utterance modes (local LLM, template-based) is tracked as:
+
+→ **Slice 11: `low-latency-utterance`** in `work/active/interactive-race-coach/11-low-latency-utterance/`
+
+The `--utterance-mode local-llm|template|cloud-llm` option will let the driver choose speed vs. phrasing quality.
 
 ## Status
 
-📋 Open — need timing data to locate bottleneck
+📋 Retired → see slice 11 (`low-latency-utterance`)

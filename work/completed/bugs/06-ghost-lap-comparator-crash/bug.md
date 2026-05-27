@@ -34,4 +34,10 @@ This prevents the Parquet conversion and `compare_laps()` call entirely for ghos
 
 ## Status
 
-🔧 In progress
+✅ Fixed in commit `50528e5`
+
+- Ghost lap guard added at top of `LiveFactGenerator.generate()`:
+  `if event.frame_count < 50 or event.lap_time_s <= 0: skip`
+- 1-frame session-end laps no longer reach `compare_laps()`.
+
+Moved to `work/completed/bugs/`.
