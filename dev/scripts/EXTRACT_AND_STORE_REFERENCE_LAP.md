@@ -50,36 +50,27 @@ Some sessions end mid-lap when the driver exits. The resulting "lap" can have a 
 
 ### 1. Survey laps across all sessions for the circuit
 
-Run `explore_and_export_laps.py` on **every** session file for the target circuit. The fastest lap must come from the fastest lap across **all** sessions, not just one — a suboptimal session will produce a suboptimal reference.
+Run `extract_reference_lap.py` with `--valid-only` on **every** session file for the target circuit. Pass any `--segment` value just to trigger the listing; the segment listing prints regardless.
 
-```bash
-python3 dev/scripts/explore_and_export_laps.py \
-    dev/sessions/<session-file>.parquet
+```powershell
+python dev/scripts/extract_reference_lap.py `
+    sessions/<session-file>.parquet --segment 1 --valid-only
 ```
 
-This prints a table of every lap with its lap number, time, point count, distance, and completeness status. The script also identifies the fastest complete lap automatically.
+Each segment is tagged `[valid]` or `[INVALID]`. A segment is valid only when **every row** in it has `lap_valid=True` — a single track-limit violation marks the whole segment `[INVALID]`. Compare the fastest `[valid]` segment across all sessions and pick that lap.
 
-⚠️ **The "Fastest" line can be wrong in multi-stint sessions** (see Pitfalls above). If two sessions report the same lap number with different times, use `extract_reference_lap.py` to inspect the segment-level detail:
-
-```bash
-python3 dev/scripts/extract_reference_lap.py \
-    dev/sessions/<session-file>.parquet --segment 1
-```
-
-This lists every segment, which lets you spot the fastest individual segment even when lap numbers repeat across stints.
-
-Compare across all sessions and pick the overall fastest lap number and its source session file.
+⚠️ **Multi-stint sessions** (see Pitfalls above): the same `lap_number` can appear in multiple segments. `extract_reference_lap.py` lists them as separate segments so you can compare them individually — always use `--segment N` rather than `--lap N` when a lap number repeats.
 
 ### 2. Extract the lap
 
-```bash
-python3 dev/scripts/extract_reference_lap.py \
-    dev/sessions/<session-file>.parquet \
-    --lap <lap-number> \
-    --out /tmp/ref_lap_extract.parquet
+```powershell
+python dev/scripts/extract_reference_lap.py `
+    sessions/<session-file>.parquet `
+    --segment <N> --valid-only `
+    --out sessions/tmp_ref_lap.parquet
 ```
 
-Use the `--lap` flag with the lap number from step 1. If the same lap number appears in multiple stints, the script automatically picks the segment with the shortest lap time.
+Use `--segment N` with the segment number from step 1. Add `--valid-only` so the script refuses to extract if the segment contains any invalid rows — a safeguard against accidentally storing a lap with track-limit violations. If the lap number is unique in the session, `--lap <lap-number> --valid-only` works equally well.
 
 ### 3. Verify the extracted lap time
 

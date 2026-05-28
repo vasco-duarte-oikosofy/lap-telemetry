@@ -1,0 +1,60 @@
+{
+  "schema_version": "1",
+  "track_id": "bahrain-outer-circuit",
+  "layout_id": "lmu-default",
+  "reference_lap": {
+    "path": "product\\data\\reference-laps\\bahrain-outer-circuit_dkr-engineering-4-elms25_time_01.11.380.parquet",
+    "car_id": "dkr-engineering-4-elms25",
+    "lap_time_s": 71.242,
+    "detection_method": "throttle_brake_v1"
+  },
+  "lap_length_m": 3509.6,
+  "corners": [
+    {
+      "id": "t1",
+      "name": "turn 1",
+      "s_start_m": 716.0,
+      "apex_s_m": 739.0,
+      "s_end_m": 757.0,
+      "apex_side": "right",
+      "apex_side_source": "default_cli_option"
+    },
+    {
+      "id": "t2",
+      "name": "turn 2",
+      "s_start_m": 1506.0,
+      "apex_s_m": 1508.0,
+      "s_end_m": 1560.0,
+      "apex_side": "right",
+      "apex_side_source": "default_cli_option"
+    },
+    {
+      "id": "t3",
+      "name": "turn 3",
+      "s_start_m": 1814.0,
+      "apex_s_m": 1875.0,
+      "s_end_m": 1929.0,
+      "apex_side": "right",
+      "apex_side_source": "default_cli_option"
+    },
+    {
+      "id": "t4",
+      "name": "turn 4",
+      "s_start_m": 2010.0,
+      "apex_s_m": 2038.0,
+      "s_end_m": 2048.0,
+      "apex_side": "right",
+      "apex_side_source": "default_cli_option"
+    },
+    {
+      "id": "t5",
+      "name": "turn 5",
+      "s_start_m": 3009.0,
+      "apex_s_m": 3047.0,
+      "s_end_m": 3065.0,
+      "apex_side": "right",
+      "apex_side_source": "default_cli_option"
+    }
+  ],
+  "straight_zones": []
+}

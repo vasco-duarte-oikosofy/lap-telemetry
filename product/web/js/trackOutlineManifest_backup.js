@@ -17,6 +17,7 @@ import { AUTODROMO_DINO_FERRARI_STATIC_OUTLINE } from './staticAutodromoDinoFerr
 import { AUTODROMO_NAZIONALE_MONZA_STATIC_OUTLINE } from './staticAutodromoNazionaleMonzaOutlineData.js';
 import { CIRCUIT_OF_THE_AMERICAS_STATIC_OUTLINE } from './staticCircuitOfTheAmericasOutlineData.js';
 import { LUSAIL_INTERNATIONAL_CIRCUIT_STATIC_OUTLINE } from './staticLusailInternationalCircuitOutlineData.js';
+import { PAUL_RICARD___3A_STATIC_OUTLINE } from './staticPaulRicard3aOutlineData.js';
 
 // slug normalization: lowercase, collapse whitespace to single dash, strip non-alnum/dash
 function slugify(name) {
@@ -43,10 +44,13 @@ const OUTLINES = new Map([
   ['imola', AUTODROMO_DINO_FERRARI_STATIC_OUTLINE],
   // Autodromo Nazionale Monza
   ['autodromo-nazionale-monza', AUTODROMO_NAZIONALE_MONZA_STATIC_OUTLINE],
+  ['monza', AUTODROMO_NAZIONALE_MONZA_STATIC_OUTLINE],
   // Circuit of the Americas
   ['circuit-of-the-americas', CIRCUIT_OF_THE_AMERICAS_STATIC_OUTLINE],
   // Lusail International Circuit
   ['lusail-international-circuit', LUSAIL_INTERNATIONAL_CIRCUIT_STATIC_OUTLINE],
+  // Paul Ricard - 3A
+  ['paul-ricard---3a', PAUL_RICARD___3A_STATIC_OUTLINE],
 ]);
 
 /**

@@ -18,6 +18,7 @@ import { AUTODROMO_NAZIONALE_MONZA_STATIC_OUTLINE } from './staticAutodromoNazio
 import { CIRCUIT_OF_THE_AMERICAS_STATIC_OUTLINE } from './staticCircuitOfTheAmericasOutlineData.js';
 import { LUSAIL_INTERNATIONAL_CIRCUIT_STATIC_OUTLINE } from './staticLusailInternationalCircuitOutlineData.js';
 import { PAUL_RICARD___3A_STATIC_OUTLINE } from './staticPaulRicard3aOutlineData.js';
+import { BAHRAIN_OUTER_CIRCUIT_STATIC_OUTLINE } from './staticBahrainOuterCircuitOutlineData.js';
 
 // slug normalization: lowercase, collapse whitespace to single dash, strip non-alnum/dash
 function slugify(name) {
@@ -51,6 +52,8 @@ const OUTLINES = new Map([
   ['lusail-international-circuit', LUSAIL_INTERNATIONAL_CIRCUIT_STATIC_OUTLINE],
   // Paul Ricard - 3A
   ['paul-ricard---3a', PAUL_RICARD___3A_STATIC_OUTLINE],
+  // Bahrain Outer Circuit
+  ['bahrain-outer-circuit', BAHRAIN_OUTER_CIRCUIT_STATIC_OUTLINE],
 ]);
 
 /**

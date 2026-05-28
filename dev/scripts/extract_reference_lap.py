@@ -3,8 +3,12 @@
 Usage:
     python scripts/extract_reference_lap.py <session.parquet> --segment N [--out <output.parquet>]
 
---segment N  1-indexed chronological position (1 = first recorded segment,
-             which is usually an out-lap; pick a middle one for a clean reference).
+--segment N      1-indexed chronological position (1 = first recorded segment,
+                 which is usually an out-lap; pick a middle one for a clean reference).
+--valid-only     Skip segments where any row has lap_valid=False (track-limit
+                 violations, penalties, etc.).  The segment listing marks each
+                 segment [valid] or [INVALID] accordingly; --segment / --lap will refuse to
+                 extract a segment that fails this check.
 
 Example — extract lap 5 (fastest) from the 6-lap Barcelona session:
     python scripts/extract_reference_lap.py \\
@@ -46,6 +50,8 @@ def main() -> int:
     parser.add_argument("--segment", type=int, default=None, help="1-indexed chronological segment to extract")
     parser.add_argument("--lap", type=int, default=None, help="Lap number to extract (matches lap_number column)")
     parser.add_argument("--out", type=Path, default=None, help="Output path (default: auto-named next to session)")
+    parser.add_argument("--valid-only", action="store_true",
+                        help="Only consider segments where all rows have lap_valid=True")
     args = parser.parse_args()
 
     if not args.session.exists():
@@ -56,13 +62,21 @@ def main() -> int:
     lap_col = t.column("lap_number").to_pylist()
     segments = _build_segments(lap_col)
 
+    valid_col = t.column("lap_valid").to_pylist() if "lap_valid" in t.schema.names else None
+
+    def _is_valid_seg(start: int, end: int) -> bool:
+        if valid_col is None:
+            return True
+        return all(v is True for v in valid_col[start:end])
+
     print(f"Session: {args.session}")
     print(f"Total segments: {len(segments)}")
     for i, (lap_num, start, end) in enumerate(segments):
         lap_t_col = t.column("lap_time_s").to_pylist()[start:end]
         duration = max(lap_t_col) if lap_t_col else 0.0
         m, s = divmod(duration, 60)
-        print(f"  Segment {i+1}: lap_number={lap_num}, frames={end-start}, duration={int(m)}:{s:06.3f}")
+        valid_tag = f"  {'[valid]' if _is_valid_seg(start, end) else '[INVALID]'}" if valid_col is not None else ""
+        print(f"  Segment {i+1}: lap_number={lap_num}, frames={end-start}, duration={int(m)}:{s:06.3f}{valid_tag}")
 
     if args.segment is None and args.lap is None:
         print("error: --segment or --lap is required", file=sys.stderr)
@@ -77,6 +91,11 @@ def main() -> int:
         if not matching:
             print(f"error: lap_number {args.lap} not found in session", file=sys.stderr)
             return 1
+        if args.valid_only:
+            matching = [(i, seg) for i, seg in matching if _is_valid_seg(seg[1], seg[2])]
+            if not matching:
+                print(f"error: no valid segment found for lap_number {args.lap} (--valid-only)", file=sys.stderr)
+                return 1
         # Pick the segment with the shortest lap time (handles multi-stint sessions)
         best_i, _ = min(
             matching,
@@ -93,6 +112,9 @@ def main() -> int:
             print(f"error: --segment {n} out of range (1..{len(segments)})", file=sys.stderr)
             return 1
         lap_num, start, end = segments[n - 1]
+        if args.valid_only and not _is_valid_seg(start, end):
+            print(f"error: segment {n} (lap_number={lap_num}) has invalid rows (--valid-only)", file=sys.stderr)
+            return 1
     slice_table = t.slice(start, end - start)
     extracted_duration = max(t.column('lap_time_s').to_pylist()[start:end])
     mins, secs = divmod(extracted_duration, 60)
