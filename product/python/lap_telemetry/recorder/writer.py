@@ -6,6 +6,7 @@ import os
 import re
 from datetime import datetime, timezone
 from pathlib import Path
+from typing import Callable, Optional
 
 import pyarrow as pa
 import pyarrow.parquet as pq
@@ -194,11 +195,19 @@ def recover_orphaned_shards(out_dir: Path) -> None:
 
 
 class SessionWriter:
-    def __init__(self, out_dir: Path, sim: str, track: str, rate_hz: float) -> None:
+    def __init__(
+        self,
+        out_dir: Path,
+        sim: str,
+        track: str,
+        rate_hz: float,
+        on_lap_flushed: Callable[[Path, int], None] | None = None,
+    ) -> None:
         self._out_dir = out_dir
         self._sim = sim
         self._track = track
         self._rate_hz = rate_hz
+        self._on_lap_flushed = on_lap_flushed
         self._started_utc = _utc_iso()
         stem = f"session_{_utc_compact()}_{_track_slug(track)}_{sim}"
         self._stem = stem
@@ -210,6 +219,8 @@ class SessionWriter:
         self._lap_numbers: set[int] = set()
         self._row_count: int = 0  # cumulative across closed shards
         self._setup_file_guess: str | None = _guess_setup_file(sim, track)
+        self._prev_lap_number: int | None = None
+        self._completed_lap_numbers: set[int] = set()
 
         # Persist sidecar from session start so a hard kill still leaves
         # identifying metadata (track, sim, started_utc) on disk.
@@ -259,6 +270,14 @@ class SessionWriter:
         self._lap_numbers.add(frame.lap_number)
         self._last_vehicle = frame.vehicle_name
 
+        # Track lap boundaries for on_lap_flushed callback.
+        # We only record the transition, not emit here — the callback
+        # fires when flush_shard() writes the data to disk.
+        if self._prev_lap_number is not None and frame.lap_number != self._prev_lap_number:
+            if frame.lap_number > self._prev_lap_number:
+                self._completed_lap_numbers.add(self._prev_lap_number)
+        self._prev_lap_number = frame.lap_number
+
     def flush_shard(self) -> None:
         if not self._buf["session_time_s"]:
             return
@@ -271,6 +290,14 @@ class SessionWriter:
         self._row_count += n_rows
         self._buf = {f.name: [] for f in _SCHEMA}
         self._write_sidecar(in_progress=True, ended_utc=None)
+
+        # Fire on_lap_flushed for any lap numbers completed in this shard.
+        # The current shard file contains the data for these laps.
+        if self._on_lap_flushed is not None and self._completed_lap_numbers:
+            shard_path = path  # The shard just written
+            for lap_num in sorted(self._completed_lap_numbers):
+                self._on_lap_flushed(shard_path, lap_num)
+            self._completed_lap_numbers.clear()
 
     def close(self) -> tuple[Path, Path]:
         self.flush_shard()

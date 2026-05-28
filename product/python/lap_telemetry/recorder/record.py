@@ -188,7 +188,12 @@ def run(
                         f"vehicle={frame.vehicle_name}",
                         flush=True,
                     )
-                    writer = SessionWriter(out_dir, conn.sim, frame.track_name, rate_hz)
+                    # Wire SessionWriter's on_lap_flushed callback so the coach
+                    # can read from the Parquet instead of the bus buffer.
+                    on_lap_flushed = None
+                    if bus is not None and hasattr(bus, 'on_lap_flushed') and bus.on_lap_flushed is not None:
+                        on_lap_flushed = bus.on_lap_flushed
+                    writer = SessionWriter(out_dir, conn.sim, frame.track_name, rate_hz, on_lap_flushed=on_lap_flushed)
                     last_track = frame.track_name
                     last_vehicle = frame.vehicle_name
                     last_flush_time = time.monotonic()

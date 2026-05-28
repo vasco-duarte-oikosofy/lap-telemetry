@@ -343,6 +343,10 @@ if tts_output.exists():
 
 # T14: CoachTap with real Barcelona data (synchronous bus for deterministic testing).
 if ref_path and model_path:
+    # Set a very short parquet flush timeout for tests so the fallback
+    # path (event.frames) is used quickly when no SessionWriter is attached.
+    os.environ["COACH_PARQUET_TIMEOUT_S"] = "0.01"
+
     tts_output14 = Path(tempfile.mktemp(suffix=".txt"))
     file_adapter14 = FileAdapter(output_path=tts_output14)
     speech_q14 = SpeechQueue(adapter=file_adapter14)
@@ -370,7 +374,17 @@ if ref_path and model_path:
         track_name="circuit-de-barcelona",
     ))
 
-    # LiveBus is synchronous — utterance generated immediately.
+    # With the thread-pool refactor, _on_lap_completed submits analysis
+    # to a pool thread. LiveBus fires synchronously, but the pool task
+    # runs asynchronously. Wait for the pool to finish.
+    if tap14._pool is not None:
+        import concurrent.futures
+        # Submit a no-op and wait for it — this ensures all prior tasks
+        # (including the lap analysis) have completed.
+        done_event = concurrent.futures.Future()
+        tap14._pool.submit(lambda: done_event.set_result(None))
+        done_event.result(timeout=10.0)
+
     ok(len(utterances_14) >= 1, "T14a: CoachTap with real data — utterance generated",
        f"utterances={len(utterances_14)}")
 

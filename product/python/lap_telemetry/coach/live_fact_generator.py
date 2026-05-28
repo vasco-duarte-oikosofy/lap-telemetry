@@ -213,3 +213,123 @@ class LiveFactGenerator:
             return None
 
         return utterance
+
+    def generate_from_parquet(
+        self,
+        parquet_path: Path,
+        lap_number: int,
+        track_name: str,
+        top: int = 3,
+    ) -> str | None:
+        """Generate a coaching utterance from a session Parquet file.
+
+        This is the Parquet-based path used by the dual-path coach (Option C).
+        Instead of converting event.frames (which may have dropped data),
+        it reads the complete data from the session Parquet written by
+        SessionWriter.
+
+        Args:
+            parquet_path: Path to the session Parquet file (shard or merged).
+            lap_number: Which lap to filter for comparison.
+            track_name: Track name for resolving reference/model.
+            top: Number of coaching items per call.
+
+        Returns the utterance string, or ``None`` if any step fails.
+        """
+        t_start = time.monotonic()
+
+        # 1. Resolve reference lap.
+        ref_path = resolve_reference_lap(
+            track_name,
+            search_dir=self._config.reference_search_dir,
+            _cache=self._ref_cache if self._config.enable_cache else None,
+        )
+        if ref_path is None:
+            log.warning(
+                "No reference lap for track=%s — skipping utterance",
+                track_name,
+            )
+            return None
+
+        # 2. Resolve track model.
+        model_path = resolve_track_model(
+            track_name,
+            search_dir=self._config.track_model_search_dir,
+            _cache=self._model_cache if self._config.enable_cache else None,
+        )
+        if model_path is None:
+            log.warning(
+                "No track model for track=%s — skipping utterance",
+                track_name,
+            )
+            return None
+
+        # 3. Load track model and compare laps (filtering to lap_number).
+        #    No frames_to_parquet step — we read directly from the session file.
+        t0 = time.monotonic()
+        try:
+            from lap_telemetry.coach.track_model import load_track_coaching_model
+            from lap_telemetry.coach.lap_comparator import compare_laps
+            model = load_track_coaching_model(model_path)
+            t1 = time.monotonic()
+            facts = compare_laps(parquet_path, ref_path, model, lap_number=lap_number)
+            t_compare = time.monotonic() - t1
+        except Exception:
+            log.exception(
+                "compare_laps() from Parquet failed for track=%s lap=%d",
+                track_name, lap_number,
+            )
+            return None
+
+        t_parquet = time.monotonic() - t0
+
+        # 4. Apply top-N filtering.
+        if top < len(facts.top_losses):
+            facts.top_losses = facts.top_losses[:top]
+        if top < len(facts.top_gains):
+            facts.top_gains = facts.top_gains[:top]
+        # Adjust word limit in constraints based on top.
+        facts.constraints["max_words"] = 20 if top == 1 else 35
+
+        # 5. Generate utterance.
+        if self._utterance_fn is None:
+            log.warning("No utterance function configured — skipping LLM call")
+            log.info(
+                "Facts from Parquet (no utterance fn): track=%s lap=%d delta=%.3fs losses=%d gains=%d",
+                facts.track_id,
+                facts.lap_number,
+                facts.lap_time_delta_s,
+                len(facts.top_losses),
+                len(facts.top_gains),
+            )
+            return None
+
+        t2 = time.monotonic()
+        try:
+            utterance = self._utterance_fn(facts)
+        except Exception:
+            log.exception("LLM utterance generation failed for track=%s", track_name)
+            return None
+        t_llm = time.monotonic() - t2
+        t_total = time.monotonic() - t_start
+
+        print(
+            f"lap-telemetry: [coach] timing-from-parquet lap={lap_number} "
+            f"parquet_read={t_parquet * 1000:.0f}ms "
+            f"compare={t_compare * 1000:.0f}ms "
+            f"llm={t_llm * 1000:.0f}ms "
+            f"total={t_total * 1000:.0f}ms",
+            file=sys.stderr,
+            flush=True,
+        )
+
+        if utterance is not None and _is_meta_output(utterance):
+            print(
+                f"lap-telemetry: [coach] dropped meta-output for lap {lap_number}: "
+                f"{utterance[:120]!r}",
+                file=sys.stderr,
+                flush=True,
+            )
+            return None
+
+        return utterance

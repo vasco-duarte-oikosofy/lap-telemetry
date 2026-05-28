@@ -15,6 +15,7 @@ from __future__ import annotations
 import logging
 import queue
 import threading
+from pathlib import Path
 from typing import Callable, Optional
 
 from .connect import Frame
@@ -88,6 +89,10 @@ class QueuedBus:
         self._queue: queue.Queue[Frame] = queue.Queue(maxsize=maxsize)
         self._worker: Optional[threading.Thread] = None
         self._stopping = threading.Event()
+        # Callback for SessionWriter lap-flush events.
+        # Set by the recorder when the bus is attached. The CoachTap
+        # reads this to get parquet-flush notifications.
+        self.on_lap_flushed: Callable[[Path, int], None] | None = None
 
     def subscribe(self, callback: FrameCallback) -> Unsubscribe:
         """Register *callback* to receive frames from the worker thread."""

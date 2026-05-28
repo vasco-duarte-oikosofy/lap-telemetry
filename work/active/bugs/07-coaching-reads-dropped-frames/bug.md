@@ -1,4 +1,4 @@
-# Bug 07: Coaching compares against incomplete live frame buffer
+# Bug 07: Coaching compares against incomplete live frame buffer — ✅ FIXED
 
 ## Reference data (in this folder)
 

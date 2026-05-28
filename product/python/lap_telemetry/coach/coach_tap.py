@@ -11,15 +11,26 @@ Supports three ``CoachMode`` values:
   utterances take priority over pending corner-exit utterances (stale-drop
   in ``SpeechQueue``).
 
-All steps after the bus publish happen on the ``QueuedBus`` worker thread —
-never on the 50 Hz recorder thread.
+Architecture (Option C — dual-path):
+
+After-lap summaries read from the session Parquet written by SessionWriter
+(authoritative). Corner-exit notes use the live frame buffer from LapDetector
+(fast, low-latency, small window). Both analysis paths run on a
+ThreadPoolExecutor(max_workers=1) so the bus worker thread never blocks.
+
+The bus worker thread only does lightweight work: feeding detectors,
+submitting analysis jobs to the pool, and checking speech windows. All
+heavy work (compare_laps, LLM calls) runs on the pool thread.
 """
 from __future__ import annotations
 
 import logging
 import sys
+import threading
 import time
-from typing import Optional
+from concurrent.futures import ThreadPoolExecutor
+from pathlib import Path
+from typing import Callable, Optional
 
 from lap_telemetry.coach.coach_config import CoachMode, CoachRunConfig
 from lap_telemetry.coach.corner_exit_detector import CornerExitDetector, CornerExited
@@ -32,6 +43,20 @@ from lap_telemetry.coach.speech_queue import SpeechQueue
 from lap_telemetry.recorder.bus import QueuedBus
 
 log = logging.getLogger(__name__)
+
+# Max time to wait for the session Parquet to be flushed for a given lap
+# before falling back to event.frames (the old path). This covers the gap
+# between the LapCompleted event and the SessionWriter's flush_shard().
+_PARQUET_FLUSH_TIMEOUT_S = 10.0
+
+# Shorter timeout for tests — avoids 10s waits in test scenarios.
+# Set via environment variable COACH_PARQUET_TIMEOUT_S.
+def _get_parquet_timeout() -> float:
+    import os
+    try:
+        return float(os.environ.get("COACH_PARQUET_TIMEOUT_S", _PARQUET_FLUSH_TIMEOUT_S))
+    except (ValueError, TypeError):
+        return _PARQUET_FLUSH_TIMEOUT_S
 
 
 class CoachTap:
@@ -82,6 +107,45 @@ class CoachTap:
         # Pending corner-exit utterance (held if not in a speech window)
         self._pending_corner_utterance: str | None = None
 
+        # Thread pool for analysis (max_workers=1 for serialization)
+        self._pool: ThreadPoolExecutor | None = None
+        if self._config.mode != CoachMode.OFF:
+            self._pool = ThreadPoolExecutor(max_workers=1)
+
+        # Parquet flush signaling: when SessionWriter flushes a shard containing
+        # a completed lap, it fires on_lap_flushed(path, lap_number). We store
+        # the path so the pool thread can wait for it.
+        self._parquet_events: dict[int, Path] = {}
+        self._parquet_events_lock = threading.Lock()
+        self._parquet_events_cond = threading.Condition(self._parquet_events_lock)
+
+    def notify_parquet_flushed(self, parquet_path: Path, lap_number: int) -> None:
+        """Called by SessionWriter when a shard containing a completed lap is flushed.
+
+        This is the signalling mechanism for the dual-path: the after-lap
+        analysis waits for this notification before reading from the Parquet.
+        """
+        with self._parquet_events_cond:
+            self._parquet_events[lap_number] = parquet_path
+            self._parquet_events_cond.notify_all()
+
+    def _wait_for_parquet(self, lap_number: int, timeout_s: float | None = None) -> Path | None:
+        """Wait for the session Parquet to be flushed for a given lap number.
+
+        Returns the Parquet path if available within the timeout, otherwise None.
+        On timeout, falls back to None (caller should use event.frames instead).
+        """
+        if timeout_s is None:
+            timeout_s = _get_parquet_timeout()
+        deadline = time.monotonic() + timeout_s
+        with self._parquet_events_cond:
+            while lap_number not in self._parquet_events:
+                remaining = deadline - time.monotonic()
+                if remaining <= 0:
+                    return None
+                self._parquet_events_cond.wait(timeout=remaining)
+            return self._parquet_events.get(lap_number)
+
     def start(self) -> None:
         """Subscribe detectors to the bus and start the bus worker."""
         self._bus.subscribe(self._on_frame)
@@ -89,7 +153,10 @@ class CoachTap:
             self._bus.start()
 
     def shutdown(self) -> None:
-        """Shut down the bus worker thread and speech queue."""
+        """Shut down the thread pool, bus worker thread, and speech queue."""
+        if self._pool is not None:
+            self._pool.shutdown(wait=True)
+            self._pool = None
         if hasattr(self._bus, 'shutdown'):
             self._bus.shutdown()
         if self._speech_queue is not None:
@@ -113,7 +180,7 @@ class CoachTap:
                     self._pending_corner_utterance = None
 
     def _on_lap_completed(self, event: LapCompleted) -> None:
-        """Handle lap completion — notify detectors and generate summary."""
+        """Handle lap completion — submit analysis to thread pool."""
         # Notify corner-exit detector that a lap was completed
         self._corner_exit_detector.notify_lap_completed()
 
@@ -124,6 +191,22 @@ class CoachTap:
         if self._fact_generator is None:
             return
 
+        # Submit to the thread pool — non-blocking for the bus worker
+        if self._pool is not None:
+            future = self._pool.submit(self._analyze_lap, event)
+            future.add_done_callback(self._on_lap_analysis_done)
+        else:
+            # Fallback: run inline (should not happen if mode != OFF)
+            self._analyze_lap(event)
+
+    def _analyze_lap(self, event: LapCompleted) -> tuple[str | None, str | None]:
+        """Heavy work: fact generation + utterance (runs on pool thread).
+
+        Uses the dual-path: waits for Parquet flush first (authoritative data),
+        falls back to event.frames if Parquet is not available within timeout.
+
+        Returns (utterance, fuel_utterance) tuple.
+        """
         # Clear any pending corner utterance — lap summary takes priority
         self._pending_corner_utterance = None
 
@@ -136,11 +219,31 @@ class CoachTap:
             flush=True,
         )
 
-        try:
-            utterance = self._fact_generator.generate(event, top=self._config.top)
-        except Exception:
-            log.exception("Fact generation failed for lap %d", event.lap_number)
-            return
+        # Dual-path: try to read from session Parquet first
+        parquet_path = self._wait_for_parquet(event.lap_number)
+
+        utterance = None
+        if parquet_path is not None:
+            # Path C: read from session Parquet (authoritative, complete data)
+            try:
+                utterance = self._fact_generator.generate_from_parquet(
+                    parquet_path=parquet_path,
+                    lap_number=event.lap_number,
+                    track_name=event.track_name,
+                    top=self._config.top,
+                )
+            except Exception:
+                log.exception("Parquet-based fact generation failed for lap %d", event.lap_number)
+        else:
+            # Timeout fallback: use event.frames (old path, may have dropped frames)
+            log.warning(
+                "Parquet flush timeout for lap %d — falling back to event.frames (%d frames)",
+                event.lap_number, event.frame_count,
+            )
+            try:
+                utterance = self._fact_generator.generate(event, top=self._config.top)
+            except Exception:
+                log.exception("Fact generation failed for lap %d", event.lap_number)
 
         if utterance is not None and self._speech_queue is not None:
             t_enqueue = time.monotonic()
@@ -149,9 +252,9 @@ class CoachTap:
                 file=sys.stderr,
                 flush=True,
             )
-            self._speech_queue.enqueue(utterance)
 
         # Fuel engineer call — only when enabled and generator is wired
+        fuel_utterance = None
         if self._config.fuel_calls and self._fuel_fact_generator is not None:
             try:
                 fuel_utterance = self._fuel_fact_generator.generate(event.frames)
@@ -159,13 +262,28 @@ class CoachTap:
                 log.exception("Fuel fact generation failed for lap %d", event.lap_number)
                 fuel_utterance = None
 
-            if fuel_utterance is not None and self._speech_queue is not None:
-                print(
-                    f"lap-telemetry: [coach] fuel utterance: {fuel_utterance}",
-                    file=sys.stderr,
-                    flush=True,
-                )
-                self._speech_queue.enqueue(fuel_utterance)
+        return (utterance, fuel_utterance)
+
+    def _on_lap_analysis_done(self, future) -> None:
+        """Callback: enqueue utterance and fuel utterance to speech queue."""
+        utterance_and_fuel = None
+        try:
+            utterance_and_fuel = future.result()
+        except Exception:
+            log.exception("Lap analysis failed")
+            return
+        if utterance_and_fuel is None:
+            return
+        utterance, fuel_utterance = utterance_and_fuel
+        if utterance is not None and self._speech_queue is not None:
+            self._speech_queue.enqueue(utterance)
+        if fuel_utterance is not None and self._speech_queue is not None:
+            print(
+                f"lap-telemetry: [coach] fuel utterance: {fuel_utterance}",
+                file=sys.stderr,
+                flush=True,
+            )
+            self._speech_queue.enqueue(fuel_utterance)
 
     def _on_new_lap(self, event: NewLap) -> None:
         """Handle new lap — debug output."""
@@ -177,10 +295,23 @@ class CoachTap:
         )
 
     def _on_corner_exited(self, event: CornerExited) -> None:
-        """Handle corner exit — generate coaching note if applicable."""
+        """Handle corner exit — submit analysis to thread pool."""
         if self._corner_fact_generator is None:
             return
 
+        # Submit to the thread pool — non-blocking for the bus worker
+        if self._pool is not None:
+            self._pool.submit(self._analyze_corner, event)
+        else:
+            # Fallback: run inline (should not happen if mode != OFF)
+            self._analyze_corner(event)
+
+    def _analyze_corner(self, event: CornerExited) -> None:
+        """Corner-exit analysis (runs on pool thread).
+
+        Uses live frames from LapDetector (fast, small window, low-latency).
+        This is the corner-exit path of the dual-path architecture.
+        """
         print(
             f"lap-telemetry: [coach] corner exit: {event.corner_name} "
             f"at {event.exit_distance_m:.0f}m lap {event.lap_number}",

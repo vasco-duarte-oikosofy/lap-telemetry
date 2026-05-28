@@ -59,6 +59,14 @@
       "dev/scripts/test_coach_lap_comparison.js",
       "dev/scripts/test_llm_text_adapter.js",
       "dev/scripts/test_local_tts_smoke_path.js"
+    ],
+    "bug07-nonblocking-coach": [
+      "dev/scripts/test_runner_self_test.js",
+      "dev/scripts/test_protocol_enforcement.js",
+      "dev/scripts/test_live_bus_tap.js",
+      "dev/scripts/test_corner_exit_coaching.js",
+      "dev/scripts/test_live_after_lap_spoken_summary.js",
+      "dev/scripts/test_nonblocking_coach_pipeline.js"
     ]
   }
 }

@@ -300,6 +300,9 @@ def main() -> int:
         speech_queue=speech_queue,
         config=coach_run_config,
     )
+    # Wire the lap-flush callback so the coach reads authoritative
+    # Parquet data instead of potentially-dropped bus buffer data.
+    bus.on_lap_flushed = tap.notify_parquet_flushed
     tap.start()
 
     # Ensure clean shutdown on Ctrl+C.

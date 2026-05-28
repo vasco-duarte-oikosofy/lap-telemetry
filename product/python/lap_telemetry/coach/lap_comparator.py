@@ -79,17 +79,35 @@ def compare_laps(
     track_model: TrackCoachingModel,
     thresholds: PhaseDetectionThresholds | None = None,
     top_n: int = 3,
+    lap_number: int | None = None,
 ) -> LapComparisonFacts:
     """Compare a current lap against a reference lap.
 
     Uses phase-detection (throttle lift / speed peak / brake release /
     full throttle) per corner. Delta-t computed via JS pipeline
     (product/web/js/pipeline.js) to match the web UI exactly.
+
+    Args:
+        current_lap_path: Path to Parquet with current session data.
+        reference_lap_path: Path to reference lap Parquet.
+        track_model: Track coaching model for corner definitions.
+        thresholds: Phase detection thresholds (default if None).
+        top_n: Number of top losses/gains to return.
+        lap_number: If set, filter current_lap_path to only this lap number
+            before comparison. This is used by the coach to read data from
+            the session Parquet instead of the bus buffer.
     """
     if thresholds is None:
         thresholds = PhaseDetectionThresholds()
 
     current_table = pq.read_table(current_lap_path)
+
+    # Filter to a specific lap number if requested (for Parquet-based coach path).
+    if lap_number is not None:
+        lap_numbers = current_table.column("lap_number").to_pylist()
+        mask = [ln == lap_number for ln in lap_numbers]
+        current_table = current_table.filter(mask)
+
     ref_table = pq.read_table(reference_lap_path)
 
     current_dist = current_table.column("lap_distance_m").to_pylist()
