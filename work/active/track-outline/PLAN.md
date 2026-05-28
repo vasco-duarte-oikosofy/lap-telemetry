@@ -20,7 +20,7 @@ Tracks are ordered by data quality: TUMFTM first (real widths), then trajectory-
 | `02-spa-endurance` | Spa Endurance Layout (62-car) | Same Spa outline (alias) | Real (alias) | ✅ Done |
 | `03-bahrain-gp` | Bahrain International Circuit (GP) | TUMFTM `Sakhir.csv` | Real | ✅ Done |
 | `04-barcelona` | Circuit de Barcelona-Catalunya | Trajectory | Clean trajectory | ✅ Done |
-| `05-monza` | Monza (with chicanes) | TUMFTM `Monza.csv` | Real | 🔲 Not started |
+| `05-monza` | Monza (with chicanes) | TUMFTM `Monza.csv` | Real | 🔧 05-a ingest done, 05-b visual QA pending |
 | `06-interlagos` | Autódromo José Carlos Pace | TUMFTM `SaoPaulo.csv` | Real | 🔲 Not started |
 | `07-cota-gp` | Circuit of the Americas (GP) | TUMFTM `Austin.csv` | Real | 🔲 Not started |
 | `08-imola` | Autodromo Enzo e Dino Ferrari | No TUMFTM | Clean trajectory | ✅ Done (trajectory) |
@@ -51,7 +51,8 @@ Tracks are ordered by data quality: TUMFTM first (real widths), then trajectory-
 | `33-imola-elms` | Imola ELMS | Verify alias of Imola base | ? | 🔲 Not started |
 
 **Completed:** Spa (base + endurance), Bahrain GP, Barcelona, Imola, Fuji International Speedway.
-**Remaining:** 29 outlines needed (some may be aliases).
+**In progress:** Monza (05-a ingest done, 05-b visual QA pending).
+**Remaining:** 28 outlines needed (some may be aliases).
 
 ### Barcelona note
 
@@ -151,12 +152,18 @@ Each layout needs its own outline unless it's a confirmed alias (same physical t
 
 ### 🔲 Remaining LMU tracks and layouts
 
-#### Monza 🔲
+#### Monza 🔧 In progress (05-a done, 05-b visual QA pending)
 - **Layouts needing outlines:**
-  - Monza (base, with chicanes) — TUMFTM `Monza.csv` available
+  - Monza (base, with chicanes) — TUMFTM `Monza.csv` aligned ✅, visual QA pending
   - Monza Curva Grande Layout — ❌ no TUMFTM separate CSV (different layout)
-- **Session data:** Not yet available
-- **Manifest entries:** `monza`, ?
+- **TUMFTM CSV:** `Monza.csv` → 1159 points with varying widths (5.7–5.9m)
+- **ICP alignment:** scale=0.9994 rot=−0.07° tx=−308 ty=−458 mean error 4.37 sim-units (no flips needed)
+- **Alignment artifacts:** `product/data/track-outlines/alignment-artifacts/autodromo-nazionale-monza/`
+- **Outline:** `autodromo-nazionale-monza.json` — TUMFTM real boundaries (was previously trajectory-only ±5m)
+- **ES module:** `staticAutodromoNazionaleMonzaOutlineData.js` (163 KB)
+- **Manifest entries:** `autodromo-nazionale-monza`, `monza`
+- **Session data:** Using exported lap from reference-lap parquet
+- **TODO (05-b):** Visual QA in `dev/tools/manual_outline_align.html` → verify boundaries enclose sim trajectory at main straight, chicanes, and Parabolica
 
 #### Autódromo José Carlos Pace (Interlagos) 🔲
 - **Layouts:** base only

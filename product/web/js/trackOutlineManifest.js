@@ -44,6 +44,7 @@ const OUTLINES = new Map([
   ['imola', AUTODROMO_DINO_FERRARI_STATIC_OUTLINE],
   // Autodromo Nazionale Monza
   ['autodromo-nazionale-monza', AUTODROMO_NAZIONALE_MONZA_STATIC_OUTLINE],
+  ['monza', AUTODROMO_NAZIONALE_MONZA_STATIC_OUTLINE],
   // Circuit of the Americas
   ['circuit-of-the-americas', CIRCUIT_OF_THE_AMERICAS_STATIC_OUTLINE],
   // Lusail International Circuit
