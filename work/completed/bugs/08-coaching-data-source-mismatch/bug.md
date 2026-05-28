@@ -1,4 +1,9 @@
-# Bug 08: Coaching pipeline reads live frame buffer; compare.html reads full session Parquet
+# Bug 08: Coaching data source mismatch — ✅ FIXED (by bug07 option C)
+
+The dual-path architecture (bug07 option C) ensures after-lap analysis reads from
+the session Parquet written by SessionWriter, the same data compare.html uses.
+Corner-exit analysis uses the live buffer (fast, small window) which is acceptable
+as documented in the design-options.md for option C.
 
 ## The standing rule we're missing
 
