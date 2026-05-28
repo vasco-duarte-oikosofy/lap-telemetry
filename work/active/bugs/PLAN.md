@@ -12,7 +12,7 @@ Active bug investigations. Each bug gets its own numbered slice folder.
 | `02-ollama-auth` | Ollama cloud auth failure — 401 from `api.ollama.com/v1` with key set | ✅ Moved to `work/completed/` |
 | `03-llm-reasoning-leak` | LLM outputs chain-of-thought instead of utterance — prompt guardrails too weak | ✅ Fixed in `50528e5` → moved to completed |
 | `04-contradictory-speed-coaching` | LLM coaches "slow down" when driver speed > reference speed at apex | ✅ Fixed in `f38512f` |
-| `05-utterance-ordering-lag` | Utterance appears 1–2 laps late — 53s LLM round-trip is architectural, not a bug | 📋 Retired → see slice 11 (`low-latency-utterance`) |
+| `05-utterance-ordering-lag` | Utterance arrives 1–2 laps late — 53s LLM round-trip is architectural latency, not a queue bug | 📋 Retired → superseded by slice 11 (`low-latency-utterance`), moved to completed |
 | `06-ghost-lap-comparator-crash` | 1-frame session-end laps crash compare_laps() with ValueError: max() arg is an empty sequence | ✅ Fixed in `50528e5` → moved to completed |
 | `07-coaching-reads-dropped-frames` | Coaching compares against incomplete live frame buffer — should read from the recorded session Parquet instead | ✅ Fixed in `f764b18` → moved to completed |
 | `08-coaching-data-source-mismatch` | compare.html reads full recorded Parquet; coaching pipeline reads live bus frames — same JS pipeline code, different (and inferior) data source | ✅ Fixed in `f764b18` (by bug07 option C) → moved to completed |
