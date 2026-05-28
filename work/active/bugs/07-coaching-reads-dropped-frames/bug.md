@@ -72,16 +72,14 @@ receives every frame and is never affected by queue pressure.
 
 ## Fix direction
 
-Do **not** do the JS pipeline + LLM call on the bus worker thread.
-After `LapCompleted` fires, hand off the heavy work to a separate
-`ThreadPoolExecutor` so the bus worker is free to continue draining
-frames. The `LapCompleted.frames` itself would still be the bus-delivered
-frames (with potential drops), so the deeper fix (bug 08) is to read
-from the session Parquet instead.
+**See [`design-options.md`](design-options.md) for three architectural options, test plans, and recommendation.**
+
+The minimum fix (Option A) is to move `_on_lap_completed` and `_on_corner_exited` off the bus worker thread onto a `ThreadPoolExecutor`. The end state (Option C) is to read after-lap data from the session Parquet instead of the bus buffer. See the design doc for full details.
 
 ## Files
 
-- `product/python/lap_telemetry/coach/coach_tap.py` — `_on_lap_completed`
-  should submit work to a thread pool, not run inline
-- `product/python/lap_telemetry/coach/live_fact_generator.py` — the
-  `generate()` call blocks the worker
+- `product/python/lap_telemetry/coach/coach_tap.py` — `_on_lap_completed` and `_on_corner_exited` should submit work to a thread pool, not run inline
+- `product/python/lap_telemetry/coach/live_fact_generator.py` — the `generate()` call blocks the worker
+- `product/python/lap_telemetry/recorder/bus.py` — `QueuedBus` drops oldest when full
+- `product/python/lap_telemetry/recorder/record.py` — recorder loop that publishes frames
+- `product/python/lap_telemetry/recorder/writer.py` — `SessionWriter`, needs a lap-flush notification hook for Options B and C
