@@ -18,3 +18,4 @@ Active bug investigations. Each bug gets its own numbered slice folder.
 | `08-coaching-data-source-mismatch` | compare.html reads full recorded Parquet; coaching pipeline reads live bus frames — same JS pipeline code, different (and inferior) data source | ✅ Fixed in `f764b18` (by bug07 option C) → moved to completed |
 | `09-utterance-readability` | Utterances hard to parse when spoken: no gain/loss lead-in, gains/losses interleaved, dropped subject | ✅ Fixed in `addb36a` → moved to completed |
 | `10-lap-time-s-undercount` | `max(lap_time_s)` per segment underestimates true lap time by 0–180 ms — `lap_time_s` resets to negative at `lap_number` change | 🔬 10b instrumentation shipped — awaiting live recording to evaluate |
+| `11-schema-column-drift` | Multiple files maintain their own column lists duplicating `_SCHEMA` — adding a column silently breaks any file not updated (crash in `frames_to_parquet.py`, silent miss in JS load gate) | 🐛 Open |
