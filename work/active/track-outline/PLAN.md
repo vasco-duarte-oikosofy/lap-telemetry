@@ -26,7 +26,7 @@ Tracks are ordered by data quality: TUMFTM first (real widths), then trajectory-
 | `08-imola` | Autodromo Enzo e Dino Ferrari | No TUMFTM | Clean trajectory | ✅ Done (trajectory) |
 | `09-fuji` | Fuji International Speedway | No TUMFTM | Clean trajectory | ✅ Done |
 | `10-bahrain-endurance` | Bahrain International Endurance Circuit | No TUMFTM | Clean trajectory | 🔲 Not started |
-| `11-bahrain-outer` | Bahrain International Outer Circuit | No TUMFTM | Clean trajectory | 🔲 Not started |
+| `11-bahrain-outer` | Bahrain International Outer Circuit | No TUMFTM | Clean trajectory | ✅ Done (`cbead00`) |
 | `12-bahrain-paddock` | Bahrain International Paddock Circuit | No TUMFTM | Clean trajectory | 🔲 Not started |
 | `13-monza-curva-grande` | Monza Curva Grande Layout | No TUMFTM | Clean trajectory | 🔲 Not started |
 | `14-cota-national` | COTA National | No TUMFTM | Clean trajectory | 🔲 Not started |
@@ -50,9 +50,9 @@ Tracks are ordered by data quality: TUMFTM first (real widths), then trajectory-
 | `32-fuji-classic` | Fuji Classic Layout (No Chicane) | No TUMFTM | Clean trajectory | 🔲 Not started |
 | `33-imola-elms` | Imola ELMS | Verify alias of Imola base | ? | 🔲 Not started |
 
-**Completed:** Spa (base + endurance), Bahrain GP, Barcelona, Imola, Fuji International Speedway.
+**Completed:** Spa (base + endurance), Bahrain GP, Barcelona, Imola, Fuji International Speedway, Bahrain Outer.
 **In progress:** Monza (05-a ingest done, 05-b visual QA pending).
-**Remaining:** 28 outlines needed (some may be aliases).
+**Remaining:** 27 outlines needed (some may be aliases).
 
 ### Barcelona note
 
@@ -121,7 +121,7 @@ Each layout needs its own outline unless it's a confirmed alias (same physical t
 - **Manifest entries:** `bahrain-international-circuit`, `bahrain`
 - **Remaining layouts** (separate outlines needed):
   - Bahrain International Endurance Circuit 🔲
-  - Bahrain International Outer Circuit 🔲
+  - Bahrain International Outer Circuit ✅ (`cbead00`)
   - Bahrain International Paddock Circuit 🔲
 
 #### Circuit de Barcelona-Catalunya ✅ Done (trajectory)
