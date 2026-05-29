@@ -227,6 +227,7 @@ class SessionWriter:
         self._prev_lap_number: int | None = None
         self._completed_lap_numbers: set[int] = set()
         self._notified_lap_numbers: set[int] = set()
+        self._snapshot_paths: list[Path] = []
 
         # Persist sidecar from session start so a hard kill still leaves
         # identifying metadata (track, sim, started_utc) on disk.
@@ -294,6 +295,22 @@ class SessionWriter:
         """
         self._completed_lap_numbers.add(lap_num)
 
+    def _write_lap_snapshot(self, lap_num: int) -> Path:
+        """Merge all shards written so far, filter to lap_num, write a snapshot file.
+
+        The snapshot is what gets passed to on_lap_flushed so the coach always
+        receives a file containing the complete lap, regardless of how many
+        mid-lap timer flushes occurred.
+        """
+        import pyarrow.compute as pc
+        tables = [pq.read_table(p) for p in self._shard_paths]
+        merged = pa.concat_tables(tables)
+        filtered = merged.filter(pc.equal(merged.column("lap_number"), lap_num))
+        snap_path = self._out_dir / f"{self._stem}.snap{lap_num}.parquet"
+        pq.write_table(filtered, snap_path, compression="snappy")
+        self._snapshot_paths.append(snap_path)
+        return snap_path
+
     def flush_shard(self) -> None:
         if not self._buf["session_time_s"]:
             return
@@ -308,9 +325,9 @@ class SessionWriter:
         self._write_sidecar(in_progress=True, ended_utc=None)
 
         if self._on_lap_flushed is not None and self._completed_lap_numbers:
-            shard_path = path
             for lap_num in sorted(self._completed_lap_numbers):
-                self._on_lap_flushed(shard_path, lap_num)
+                snap = self._write_lap_snapshot(lap_num)
+                self._on_lap_flushed(snap, lap_num)
                 self._notified_lap_numbers.add(lap_num)
             self._completed_lap_numbers.clear()
 
@@ -324,6 +341,8 @@ class SessionWriter:
             final = pa.concat_tables(tables)
             pq.write_table(final, parquet_path, compression="snappy")
             for p in self._shard_paths:
+                p.unlink(missing_ok=True)
+            for p in self._snapshot_paths:
                 p.unlink(missing_ok=True)
             self._row_count = final.num_rows
         else:

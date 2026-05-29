@@ -1,13 +1,17 @@
 """Tests for bug 14: on_lap_flushed fires with the wrong shard after bug-12 fix.
 
-Root cause: record.py called flush_shard() BEFORE append()ing the boundary frame,
-so _completed_lap_numbers was empty at flush time. The callback fired on the
-subsequent timer-shard (which holds lap N+1 data), causing the coach to read
-zero rows for lap N.
+Root cause A (original): record.py called flush_shard() BEFORE append()ing the
+boundary frame, so _completed_lap_numbers was empty at flush time. The callback
+fired on the subsequent timer-shard (which holds lap N+1 data), causing the
+coach to read zero rows for lap N.
 
-Fix: writer.lap_completed(lap_num) lets the caller register a completed lap
-explicitly before flushing; _notified_lap_numbers prevents double-firing via
-the auto-detection in append().
+Root cause B (regression): when a 30-second timer flush fires mid-lap, the
+boundary flush only writes the tail of the lap into shard_N. The callback fires
+with shard_N, which starts mid-track — the coach sees a "tail-partial" lap.
+
+Fix for B: flush_shard() must pass a merged snapshot file that contains ALL
+frames for the completed lap (from every shard written so far), not just the
+most-recently-written shard.
 """
 from __future__ import annotations
 
@@ -112,6 +116,52 @@ def test_timer_flush_does_not_double_fire(tmp_path):
     writer.flush_shard()
     assert notifications == [1], (
         f"on_lap_flushed double-fired: notifications={notifications}"
+    )
+
+    writer.close()
+
+
+def test_on_lap_flushed_complete_lap_after_timer_flush(tmp_path):
+    """on_lap_flushed must deliver ALL frames for the completed lap even when a
+    timer flush occurred mid-lap (regression: callback was receiving only the tail).
+
+    Timeline:
+      - 5 frames lap 1 appended
+      - timer flush writes shard_0 (5 lap-1 frames) — no callback
+      - 3 more frames lap 1 appended
+      - lap_completed(1) + flush_shard() writes shard_1 (3 lap-1 frames)
+        callback fires: must see 8 rows for lap 1, not 3
+    """
+    notifications: list[tuple[int, int]] = []  # (lap_num, row_count_for_lap)
+
+    def on_lap_flushed(path: Path, lap_num: int) -> None:
+        t = pq.read_table(path)
+        rows = sum(1 for ln in t.column("lap_number").to_pylist() if ln == lap_num)
+        notifications.append((lap_num, rows))
+
+    writer = SessionWriter(tmp_path, "lmu", "bahrain-outer-circuit", 50.0,
+                           on_lap_flushed=on_lap_flushed)
+
+    for i in range(5):
+        writer.append(_frame(1, float(i * 15), float(i * 700)))
+
+    # Timer flush mid-lap — no lap_completed, no callback
+    writer.flush_shard()
+    assert notifications == [], "Timer flush must not fire callback"
+
+    for i in range(5, 8):
+        writer.append(_frame(1, float(i * 15), float(i * 700)))
+
+    # Lap boundary — fixed record.py pattern
+    writer.lap_completed(1)
+    writer.flush_shard()
+
+    assert len(notifications) == 1, f"Expected 1 notification, got {notifications}"
+    lap_num, rows = notifications[0]
+    assert lap_num == 1
+    assert rows == 8, (
+        f"Expected 8 complete lap-1 rows in callback file, got {rows} — "
+        "callback is receiving only the post-timer tail shard"
     )
 
     writer.close()
