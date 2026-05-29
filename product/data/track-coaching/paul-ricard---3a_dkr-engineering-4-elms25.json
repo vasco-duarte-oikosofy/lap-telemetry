@@ -13,54 +13,54 @@
     {
       "id": "t1",
       "name": "La Bretelle",
-      "s_start_m": 506.0,
+      "s_start_m": 355.0,
       "apex_s_m": 507.0,
-      "s_end_m": 523.0,
+      "s_end_m": 524.0,
       "apex_side": "right",
       "apex_side_source": "auto"
     },
     {
       "id": "t2",
       "name": "turn 2",
-      "s_start_m": 639.0,
+      "s_start_m": 612.0,
       "apex_s_m": 659.0,
-      "s_end_m": 660.0,
+      "s_end_m": 661.0,
       "apex_side": "right",
       "apex_side_source": "auto"
     },
     {
       "id": "t3",
       "name": "Signes",
-      "s_start_m": 1822.0,
+      "s_start_m": 1738.0,
       "apex_s_m": 1829.0,
-      "s_end_m": 1829.0,
+      "s_end_m": 1830.0,
       "apex_side": "right",
       "apex_side_source": "manual"
     },
     {
       "id": "t4",
       "name": "Beausset 1",
-      "s_start_m": 2322.0,
-      "apex_s_m": 2330.0,
-      "s_end_m": 2330.0,
+      "s_start_m": 2123.0,
+      "apex_s_m": 2239.0,
+      "s_end_m": 2272.0,
       "apex_side": "right",
       "apex_side_source": "manual"
     },
     {
       "id": "t5",
       "name": "Beausset 2",
-      "s_start_m": 2409.0,
-      "apex_s_m": 2422.0,
-      "s_end_m": 2455.0,
+      "s_start_m": 2378.0,
+      "apex_s_m": 2420.0,
+      "s_end_m": 2460.0,
       "apex_side": "right",
       "apex_side_source": "manual"
     },
     {
       "id": "t6",
       "name": "L'Epingle de Bendor",
-      "s_start_m": 2638.0,
+      "s_start_m": 2634.0,
       "apex_s_m": 2786.0,
-      "s_end_m": 2786.0,
+      "s_end_m": 2809.0,
       "apex_side": "right",
       "apex_side_source": "manual"
     },
@@ -76,7 +76,7 @@
     {
       "id": "t8",
       "name": "Virage de la Tour",
-      "s_start_m": 3328.0,
+      "s_start_m": 3296.0,
       "apex_s_m": 3337.0,
       "s_end_m": 3376.0,
       "apex_side": "right",
@@ -85,9 +85,9 @@
     {
       "id": "t9",
       "name": "Virage du Pont",
-      "s_start_m": 3429.0,
+      "s_start_m": 3377.0,
       "apex_s_m": 3434.0,
-      "s_end_m": 3447.0,
+      "s_end_m": 3448.0,
       "apex_side": "right",
       "apex_side_source": "manual"
     }

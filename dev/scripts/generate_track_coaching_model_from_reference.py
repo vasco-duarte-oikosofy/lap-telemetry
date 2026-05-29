@@ -130,8 +130,14 @@ def merge_close_candidates(candidates: list[Candidate], min_separation_m: int) -
     )
     accepted: list[Candidate] = []
     for candidate in strongest_first:
-        if all(abs(candidate.apex_m - kept.apex_m) >= min_separation_m for kept in accepted):
+        nearby = [k for k in accepted if abs(candidate.apex_m - k.apex_m) < min_separation_m]
+        if not nearby:
             accepted.append(candidate)
+        else:
+            # Dropped — but extend the winner's zone so the entry/exit aren't lost.
+            for winner in nearby:
+                winner.s_start_m = min(winner.s_start_m, candidate.s_start_m)
+                winner.s_end_m = max(winner.s_end_m, candidate.s_end_m)
     return sorted(accepted, key=lambda c: c.apex_m)
 
 
@@ -205,6 +211,37 @@ def _find_lift_events(
     if in_event:
         events.append((start, len(throttles) - 1))
     return events
+
+
+def backfill_entries(
+    candidates: list[Candidate],
+    speed: list[float],
+    throttle: list[float],
+    brake: list[float],
+    max_throttle_fraction: float,
+    full_throttle_sentinel: float = 0.98,
+) -> None:
+    """Walk backward from s_start_m and forward from s_end_m to find true
+    entry/exit — the last full-throttle sample before the driver started
+    lifting/braking, and the first sample where throttle returns to the
+    max_throttle_fraction threshold.
+
+    Capped by neighbouring corners to avoid trespassing.  Mutates in place.
+    """
+    for i, c in enumerate(candidates):
+        # --- entry: walk backward to last full-throttle sample ---
+        floor = int(candidates[i - 1].s_end_m) + 1 if i > 0 else 0
+        for m in range(int(c.s_start_m) - 1, floor - 1, -1):
+            if throttle[m] >= full_throttle_sentinel:
+                break
+            c.s_start_m = float(m)
+
+        # --- exit: walk forward to first sample where throttle returns ---
+        ceiling = int(candidates[i + 1].s_start_m) - 1 if i < len(candidates) - 1 else len(throttle) - 1
+        for m in range(int(c.s_end_m) + 1, ceiling + 1):
+            if throttle[m] >= max_throttle_fraction:
+                c.s_end_m = float(m)
+                break
 
 
 def detect_corners_from_signals(
@@ -296,6 +333,7 @@ def detect_corners_from_signals(
     # Merge candidates that are still too close (keep most prominent)
     candidates = merge_close_candidates(candidates, min_separation_m)
     prevent_zone_overlap(candidates)
+    backfill_entries(candidates, speed, throttle, brake, max_throttle_fraction)
     return candidates
 
 
