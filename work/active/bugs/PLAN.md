@@ -19,3 +19,4 @@ Active bug investigations. Each bug gets its own numbered slice folder.
 | `09-utterance-readability` | Utterances hard to parse when spoken: no gain/loss lead-in, gains/losses interleaved, dropped subject | ✅ Fixed in `addb36a` → moved to completed |
 | `10-lap-time-s-undercount` | `max(lap_time_s)` per segment underestimates true lap time by 0–180 ms — `lap_time_s` resets to negative at `lap_number` change | 🔬 10b instrumentation shipped — awaiting live recording to evaluate |
 | `11-schema-column-drift` | Multiple files maintain their own column lists duplicating `_SCHEMA` — adding a column silently breaks any file not updated (crash in `frames_to_parquet.py`, silent miss in JS load gate) | 🐛 Open |
+| `12-partial-lap-bogus-coaching` | One stale cross-lap frame inflates `max(current_dist)` to full-track length; session-end frozen frames fill remaining bins at wrong speed → compare_laps produces 15 s phantom gains on partial laps | 🐛 Open |
