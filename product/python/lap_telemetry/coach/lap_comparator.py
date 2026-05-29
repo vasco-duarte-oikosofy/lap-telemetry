@@ -7,7 +7,7 @@ import pyarrow.parquet as pq
 
 from .entry_detection import find_entry_point, find_brake_point
 from .exit_detection import find_exit_points
-from .facts import PhaseDetectionThresholds, CornerLoss, LapComparisonFacts
+from .facts import PartialLapError, PhaseDetectionThresholds, CornerLoss, LapComparisonFacts
 from .js_pipeline import run_js_pipeline, delta_t_ms_to_seconds
 from .resample import resample_column, compute_delta_time_trace
 from .track_model import TrackCoachingModel, Corner
@@ -107,6 +107,34 @@ def compare_laps(
         lap_numbers = current_table.column("lap_number").to_pylist()
         mask = [ln == lap_number for ln in lap_numbers]
         current_table = current_table.filter(mask)
+
+    # Strip stale cross-lap boundary frames: the first frame(s) of a new lap
+    # sometimes carry the previous lap's position (dist > halfway) with a
+    # negative lap_time_s. These cause the head-partial coverage check to fire
+    # incorrectly and produce phantom speed readings at turn 1.
+    _lt = current_table.column("lap_time_s").to_pylist()
+    _ld = current_table.column("lap_distance_m").to_pylist()
+    stale_mask = [
+        not (lt < 0 and ld > track_model.lap_length_m * 0.5)
+        for lt, ld in zip(_lt, _ld)
+    ]
+    if not all(stale_mask):
+        current_table = current_table.filter(stale_mask)
+
+    # Guard against partial-lap data before the expensive JS pipeline.
+    _guard_dist = current_table.column("lap_distance_m").to_pylist()
+    if not _guard_dist:
+        raise PartialLapError("no frames for requested lap")
+    if min(_guard_dist) > track_model.lap_length_m * 0.10:
+        raise PartialLapError(
+            f"lap starts at {min(_guard_dist):.0f}m — "
+            f"tail-partial shard (threshold {track_model.lap_length_m * 0.10:.0f}m)"
+        )
+    if max(_guard_dist) < track_model.lap_length_m * 0.80:
+        raise PartialLapError(
+            f"lap ends at {max(_guard_dist):.0f}m — "
+            f"head-partial or session-end (threshold {track_model.lap_length_m * 0.80:.0f}m)"
+        )
 
     ref_table = pq.read_table(reference_lap_path)
 

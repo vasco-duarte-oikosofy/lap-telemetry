@@ -5,6 +5,10 @@ from dataclasses import dataclass, field
 from typing import Any
 
 
+class PartialLapError(ValueError):
+    """Raised when a lap's distance coverage is too incomplete for comparison."""
+
+
 @dataclass
 class PhaseDetectionThresholds:
     """Configurable thresholds for entry/exit phase detection.

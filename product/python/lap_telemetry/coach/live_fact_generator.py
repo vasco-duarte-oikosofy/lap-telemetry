@@ -18,7 +18,7 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Callable, Optional
 
-from lap_telemetry.coach.facts import LapComparisonFacts
+from lap_telemetry.coach.facts import LapComparisonFacts, PartialLapError
 from lap_telemetry.coach.frames_to_parquet import frames_to_parquet
 from lap_telemetry.coach.lap_detector import LapCompleted
 from lap_telemetry.coach.reference_resolver import resolve_reference_lap
@@ -274,6 +274,12 @@ class LiveFactGenerator:
             t1 = time.monotonic()
             facts = compare_laps(parquet_path, ref_path, model, lap_number=lap_number)
             t_compare = time.monotonic() - t1
+        except PartialLapError as exc:
+            log.warning(
+                "Skipping coaching for partial lap %d (track=%s): %s",
+                lap_number, track_name, exc,
+            )
+            return None
         except Exception:
             log.exception(
                 "compare_laps() from Parquet failed for track=%s lap=%d",
