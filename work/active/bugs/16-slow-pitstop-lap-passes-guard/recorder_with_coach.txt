@@ -1,0 +1,62 @@
+lap-telemetry: lap boundary -> lap 11
+lap-telemetry: [coach] new lap: lap 11, track=Bahrain Outer Circuit
+lap-telemetry: [coach] lap completed: lap 10, track=Bahrain Outer Circuit, frames=3665, lap_time=73.30s
+lap_telemetry.coach.coach_tap: Parquet flush timeout for lap 10 — falling back to event.frames (3665 frames)
+lap-telemetry: [coach] timing lap=10 convert=93ms compare=156ms llm=0ms total=265ms
+lap-telemetry: [coach] utterance (enqueue +10281ms): You gained five tenths going into turn 1. You braked 20 metres later. You gained seven hundredths exiting turn 5. You got back on throttle five metres earlier.
+lap-telemetry: lap boundary -> lap 12
+lap-telemetry: [coach] new lap: lap 12, track=Bahrain Outer Circuit
+lap-telemetry: [coach] lap completed: lap 11, track=Bahrain Outer Circuit, frames=3562, lap_time=71.32s
+lap_telemetry.coach.coach_tap: Parquet flush timeout for lap 11 — falling back to event.frames (3562 frames)
+lap-telemetry: [coach] timing lap=11 convert=78ms compare=172ms llm=0ms total=250ms
+lap-telemetry: [coach] utterance (enqueue +10266ms): You gained two tenths going into turn 2. You braked 11 metres later. You gained just over a tenth at the apex of turn 4.
+lap-telemetry: lap boundary -> lap 13
+lap-telemetry: [coach] new lap: lap 13, track=Bahrain Outer Circuit
+lap-telemetry: [coach] lap completed: lap 12, track=Bahrain Outer Circuit, frames=3550, lap_time=70.94s
+lap_telemetry.coach.live_fact_generator: Skipping coaching for partial lap 12 (track=Bahrain Outer Circuit): no frames for requested lap
+lap-telemetry: lap boundary -> lap 14
+lap-telemetry: [coach] new lap: lap 14, track=Bahrain Outer Circuit
+lap-telemetry: [coach] lap completed: lap 13, track=Bahrain Outer Circuit, frames=4217, lap_time=84.42s
+lap_telemetry.coach.live_fact_generator: Skipping coaching for partial lap 13 (track=Bahrain Outer Circuit): no frames for requested lap
+lap-telemetry: lap boundary -> lap 15
+lap-telemetry: [coach] new lap: lap 15, track=Bahrain Outer Circuit
+lap-telemetry: [coach] lap completed: lap 14, track=Bahrain Outer Circuit, frames=3584, lap_time=71.56s
+lap_telemetry.coach.coach_tap: Parquet flush timeout for lap 14 — falling back to event.frames (3584 frames)
+lap-telemetry: [coach] timing lap=14 convert=94ms compare=156ms llm=0ms total=250ms
+lap-telemetry: [coach] utterance (enqueue +10266ms): You gained just over a tenth at the apex of turn 4. You carried seven kilometres per hour more, hitting the apex four metres earlier, and got back on throttle two metres earlier.
+lap-telemetry: lap boundary -> lap 16
+lap-telemetry: [coach] new lap: lap 16, track=Bahrain Outer Circuit
+lap-telemetry: [coach] lap completed: lap 15, track=Bahrain Outer Circuit, frames=3582, lap_time=71.60s
+lap_telemetry.coach.coach_tap: Parquet flush timeout for lap 15 — falling back to event.frames (3582 frames)
+lap-telemetry: [coach] timing lap=15 convert=94ms compare=171ms llm=0ms total=265ms
+lap-telemetry: [coach] utterance (enqueue +10281ms): You gained two tenths going into turn 1. You braked ten metres later. You gained a hundredth exiting turn 3. You carried more speed through.
+lap-telemetry: lap boundary -> lap 17
+lap-telemetry: [coach] new lap: lap 17, track=Bahrain Outer Circuit
+lap-telemetry: [coach] lap completed: lap 16, track=Bahrain Outer Circuit, frames=3561, lap_time=71.27s
+lap_telemetry.coach.live_fact_generator: Skipping coaching for partial lap 16 (track=Bahrain Outer Circuit): no frames for requested lap
+lap-telemetry: lap boundary -> lap 18
+lap-telemetry: [coach] new lap: lap 18, track=Bahrain Outer Circuit
+lap-telemetry: [coach] lap completed: lap 17, track=Bahrain Outer Circuit, frames=3552, lap_time=70.96s
+lap_telemetry.coach.coach_tap: Parquet flush timeout for lap 17 — falling back to event.frames (3552 frames)
+lap-telemetry: [coach] timing lap=17 convert=93ms compare=157ms llm=0ms total=250ms
+lap-telemetry: [coach] utterance (enqueue +10266ms): You gained three tenths going into turn 1. You braked five metres later. You gained just over a tenth going into turn 4. You lifted one metres earlier.
+lap-telemetry: lap boundary -> lap 19
+lap-telemetry: [coach] new lap: lap 19, track=Bahrain Outer Circuit
+lap-telemetry: [coach] lap completed: lap 18, track=Bahrain Outer Circuit, frames=3551, lap_time=71.05s
+lap_telemetry.coach.coach_tap: Parquet flush timeout for lap 18 — falling back to event.frames (3551 frames)
+lap-telemetry: [coach] timing lap=18 convert=94ms compare=156ms llm=0ms total=250ms
+lap-telemetry: [coach] utterance (enqueue +10250ms): You gained just over a tenth going into turn 1. You braked eight metres later. You gained a tenth going into turn 5. You braked nine metres later. You gained nine hundredths exiting turn 4.
+lap-telemetry: lap boundary -> lap 20
+lap-telemetry: [coach] new lap: lap 20, track=Bahrain Outer Circuit
+lap-telemetry: [coach] lap completed: lap 19, track=Bahrain Outer Circuit, frames=2720, lap_time=51.09s
+lap_telemetry.coach.coach_tap: Parquet flush timeout for lap 19 — falling back to event.frames (2720 frames)
+lap_telemetry.coach.live_fact_generator: compare_laps() failed for track=Bahrain Outer Circuit — skipping utterance
+Traceback (most recent call last):
+  File "C:\Users\duart\lap-telemetry\product\python\lap_telemetry\coach\live_fact_generator.py", line 150, in generate
+    facts = compare_laps(tmp_path, ref_path, model)
+  File "C:\Users\duart\lap-telemetry\product\python\lap_telemetry\coach\lap_comparator.py", line 134, in compare_laps
+    raise PartialLapError(
+lap_telemetry.coach.facts.PartialLapError: lap ends at 2433m — head-partial or session-end (threshold 2808m)
+lap-telemetry: session saved  -> sessions\session_20260529T143959Z_bahrain-outer-circuit_lmu.parquet
+lap-telemetry:                   sessions\session_20260529T143959Z_bahrain-outer-circuit_lmu.json
+lap-telemetry: stopped. frames=52522 skipped=0
