@@ -14,7 +14,7 @@
       "id": "t1",
       "name": "turn 1",
       "s_start_m": 716.0,
-      "apex_s_m": 739.0,
+      "apex_s_m": 740.0,
       "s_end_m": 757.0,
       "apex_side": "right",
       "apex_side_source": "default_cli_option"
@@ -23,7 +23,7 @@
       "id": "t4",
       "name": "turn 4",
       "s_start_m": 1506.0,
-      "apex_s_m": 1508.0,
+      "apex_s_m": 1515.0,
       "s_end_m": 1560.0,
       "apex_side": "right",
       "apex_side_source": "default_cli_option"
@@ -50,7 +50,7 @@
       "id": "t8",
       "name": "turn 8",
       "s_start_m": 2055.0,
-      "apex_s_m": 2073.0,
+      "apex_s_m": 2077.0,
       "s_end_m": 2130.0,
       "apex_side": "right",
       "apex_side_source": "default_cli_option"
@@ -59,7 +59,7 @@
       "id": "t9",
       "name": "turn 9",
       "s_start_m": 3009.0,
-      "apex_s_m": 3047.0,
+      "apex_s_m": 3035.0,
       "s_end_m": 3065.0,
       "apex_side": "right",
       "apex_side_source": "default_cli_option"
