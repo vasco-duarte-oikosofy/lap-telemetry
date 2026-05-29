@@ -125,6 +125,19 @@ def test_round_trip_new_columns():
         assert row["scoring_total_laps"] == 3
 
 
+def test_frames_to_parquet_includes_new_columns():
+    """frames_to_parquet must also cover all _SCHEMA columns (regression for bug-10b crash)."""
+    from lap_telemetry.coach.frames_to_parquet import frames_to_parquet
+    frame = _make_frame()
+    path = frames_to_parquet([frame])
+    try:
+        table = pq.read_table(path)
+        for col in NEW_COLUMNS:
+            assert col in table.schema.names, f"frames_to_parquet output missing column: {col}"
+    finally:
+        path.unlink(missing_ok=True)
+
+
 def test_round_trip_null_values():
     """When new fields are None, they write and read back as None."""
     frame = _make_frame(
