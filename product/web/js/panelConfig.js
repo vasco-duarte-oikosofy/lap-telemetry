@@ -1,5 +1,9 @@
 // ── Main trace panel configuration ───────────────────────────────────────────
 
+// COLUMNS controls which columns readColumns() requests from hyparquet.
+// Any column needed by a panel or tooltip MUST be listed here — columns
+// absent from this list are silently never loaded (no error, just missing data).
+// When adding a new schema column that the app UI needs, add it here too.
 export const COLUMNS = [
   'lap_number', 'lap_time_s', 'lap_distance_m', 'speed_kph',
   'throttle_norm', 'brake_norm', 'engine_rpm', 'gear',
