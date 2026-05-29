@@ -75,6 +75,11 @@ def frames_to_parquet(frames: list[Frame], suffix: str = ".parquet") -> Path:
     session_type = [f.session_type for f in frames]
     session_time_remaining_s = [f.session_time_remaining_s for f in frames]
     race_laps_total = [f.race_laps_total for f in frames]
+    # Authoritative scoring timing columns (bug 10b)
+    scoring_lap_start_et_s = [f.scoring_lap_start_et_s for f in frames]
+    scoring_last_lap_time_s = [f.scoring_last_lap_time_s for f in frames]
+    scoring_time_into_lap_s = [f.scoring_time_into_lap_s for f in frames]
+    scoring_total_laps = [f.scoring_total_laps for f in frames]
 
     # Build column dicts matching _SCHEMA field names.
     columns = {
@@ -117,6 +122,10 @@ def frames_to_parquet(frames: list[Frame], suffix: str = ".parquet") -> Path:
         "session_type": session_type,
         "session_time_remaining_s": session_time_remaining_s,
         "race_laps_total": race_laps_total,
+        "scoring_lap_start_et_s": scoring_lap_start_et_s,
+        "scoring_last_lap_time_s": scoring_last_lap_time_s,
+        "scoring_time_into_lap_s": scoring_time_into_lap_s,
+        "scoring_total_laps": scoring_total_laps,
     }
 
     table = pa.table(columns, schema=_SCHEMA)
