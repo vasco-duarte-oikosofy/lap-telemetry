@@ -483,7 +483,14 @@ def _all_corners_by_magnitude(
         entries.append((cid, items, False, dom))
 
     if lap_delta_s > 0:
-        entries.sort(key=lambda x: x[3], reverse=True)
+        # Worst loss leads unconditionally; remaining items sorted by magnitude
+        loss_entries = sorted([e for e in entries if not e[2]], key=lambda x: x[3], reverse=True)
+        gain_entries = sorted([e for e in entries if e[2]], key=lambda x: x[3], reverse=True)
+        if loss_entries:
+            rest = sorted(loss_entries[1:] + gain_entries, key=lambda x: x[3], reverse=True)
+            entries = [loss_entries[0]] + rest
+        else:
+            entries.sort(key=lambda x: x[3], reverse=True)
     else:
         # Gain-first: gains before losses, each group sorted by magnitude
         entries.sort(key=lambda x: (not x[2], -x[3]))

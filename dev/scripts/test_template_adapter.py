@@ -362,7 +362,7 @@ result = TemplateAdapter.generate(LapComparisonFacts(
     ],
     constraints={"max_words": 60},
 ))
-ok("You lost" in result, "loss_dominant_lap_mentions_biggest_loss: contains 'You lost'", result)
+ok(result.startswith("You lost"), "loss_dominant_lap_mentions_biggest_loss: utterance starts with 'You lost'", result)
 ok(result.find("lost") < result.find("gained"), "loss_dominant_lap_mentions_biggest_loss: loss before gain", result)
 
 # test_gain_dominant_lap_stays_gain_first
