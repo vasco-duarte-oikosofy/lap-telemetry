@@ -3,9 +3,9 @@
   "track_id": "paul-ricard---3a",
   "layout_id": "3a",
   "reference_lap": {
-    "path": "product\\data\\reference-laps\\paul-ricard---3a_dkr-engineering-4-elms25_time_01.18.392.parquet",
+    "path": "product\\data\\reference-laps\\paul-ricard---3a_dkr-engineering-4-elms25_time_01.17.661.parquet",
     "car_id": "dkr-engineering-4-elms25",
-    "lap_time_s": 78.392,
+    "lap_time_s": 77.661,
     "detection_method": "throttle_brake_v1"
   },
   "lap_length_m": 3760.1,
@@ -13,9 +13,9 @@
     {
       "id": "t1",
       "name": "La Bretelle",
-      "s_start_m": 508.0,
-      "apex_s_m": 521.0,
-      "s_end_m": 532.0,
+      "s_start_m": 506.0,
+      "apex_s_m": 507.0,
+      "s_end_m": 523.0,
       "apex_side": "right",
       "apex_side_source": "auto"
     },
@@ -23,34 +23,34 @@
       "id": "t2",
       "name": "turn 2",
       "s_start_m": 639.0,
-      "apex_s_m": 644.0,
-      "s_end_m": 658.0,
+      "apex_s_m": 659.0,
+      "s_end_m": 660.0,
       "apex_side": "right",
       "apex_side_source": "auto"
     },
     {
       "id": "t3",
       "name": "Signes",
-      "s_start_m": 1825.0,
-      "apex_s_m": 1878.0,
-      "s_end_m": 1880.0,
+      "s_start_m": 1822.0,
+      "apex_s_m": 1829.0,
+      "s_end_m": 1829.0,
       "apex_side": "right",
       "apex_side_source": "manual"
     },
     {
       "id": "t4",
       "name": "Beausset 1",
-      "s_start_m": 2320.0,
-      "apex_s_m": 2338.0,
-      "s_end_m": 2426.0,
+      "s_start_m": 2322.0,
+      "apex_s_m": 2330.0,
+      "s_end_m": 2330.0,
       "apex_side": "right",
       "apex_side_source": "manual"
     },
     {
       "id": "t5",
       "name": "Beausset 2",
-      "s_start_m": 2444.0,
-      "apex_s_m": 2448.0,
+      "s_start_m": 2409.0,
+      "apex_s_m": 2422.0,
       "s_end_m": 2455.0,
       "apex_side": "right",
       "apex_side_source": "manual"
@@ -59,8 +59,8 @@
       "id": "t6",
       "name": "L'Epingle de Bendor",
       "s_start_m": 2638.0,
-      "apex_s_m": 2784.0,
-      "s_end_m": 2802.0,
+      "apex_s_m": 2786.0,
+      "s_end_m": 2786.0,
       "apex_side": "right",
       "apex_side_source": "manual"
     },
@@ -76,18 +76,18 @@
     {
       "id": "t8",
       "name": "Virage de la Tour",
-      "s_start_m": 3140.0,
-      "apex_s_m": 3353.0,
-      "s_end_m": 3374.0,
+      "s_start_m": 3328.0,
+      "apex_s_m": 3337.0,
+      "s_end_m": 3376.0,
       "apex_side": "right",
       "apex_side_source": "manual"
     },
     {
       "id": "t9",
       "name": "Virage du Pont",
-      "s_start_m": 3407.0,
-      "apex_s_m": 3429.0,
-      "s_end_m": 3449.0,
+      "s_start_m": 3429.0,
+      "apex_s_m": 3434.0,
+      "s_end_m": 3447.0,
       "apex_side": "right",
       "apex_side_source": "manual"
     }
