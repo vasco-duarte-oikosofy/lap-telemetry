@@ -821,25 +821,34 @@ function isSlowLapComparedToReference(sessionSeg, refSeg) {
   const s = sessionSeg?.duration || 0, r = refSeg?.duration || 0;
   return s > 0 && r > 0 && s / r > SLOW_LAP_RATIO_THRESHOLD + SLOW_LAP_RATIO_EPSILON;
 }
+function isStaleStartBoundaryFrame(lapTime, lapDist, trackLen) {
+  return Number.isFinite(lapTime) && Number.isFinite(lapDist) && lapTime < 0.5 && lapDist > trackLen * 0.5;
+}
 function annotateSegments(segments, distances, lapTimes, scoringLastLapTime = null) {
   if (!segments.length) return;
   let trackLen = 0;
   for (const seg of segments) {
+    for (let i = seg.start; i < seg.end; i++) {
+      const d = distances[i];
+      if (Number.isFinite(d) && d > trackLen) trackLen = d;
+    }
+  }
+  for (const seg of segments) {
     let mn = Infinity, mx = -Infinity, mt = 0;
     for (let i = seg.start; i < seg.end; i++) {
       const d = distances[i];
+      const t = lapTimes ? lapTimes[i] : null;
+      if (isStaleStartBoundaryFrame(t, d, trackLen)) continue;
       if (Number.isFinite(d)) {
         if (d < mn) mn = d;
         if (d > mx) mx = d;
       }
-      const t = lapTimes ? lapTimes[i] : null;
       if (Number.isFinite(t) && t > mt) mt = t;
     }
     seg.minDist = isFinite(mn) ? mn : 0;
     seg.maxDist = isFinite(mx) ? mx : 0;
     seg.duration = mt;
     seg.durationSource = "lap_time_s";
-    if (seg.maxDist > trackLen) trackLen = seg.maxDist;
   }
   for (let i = 0; i < segments.length; i++) {
     const duration = authDuration(segments, scoringLastLapTime, i);

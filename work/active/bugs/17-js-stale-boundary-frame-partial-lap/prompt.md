@@ -2,7 +2,7 @@
 
 ## Status
 
-🐛 Open
+🔧 Fixed in code by `81e985d`; pending user live-test confirmation before completion move
 
 ## Observed symptom
 
