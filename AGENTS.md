@@ -79,8 +79,10 @@ not acceptable:
 
 - **Slice completed** → mark its row in the mission's `PLAN.md` as ✅ with the
   commit hash.
-- **Bug fixed** → update `bug.md` status to ✅ with the commit hash, then move
-  the folder from `work/active/bugs/` to `work/completed/bugs/`.
+- **Bug fixed** → update `bug.md` (or `prompt.md` if no `bug.md` exists) status
+  to ✅ with the commit hash, then move the folder from `work/active/bugs/` to
+  `work/completed/bugs/`. **A bug is only moved to completed after the user
+  confirms a successful live test — not before.**
 - **Bug retired** (not a bug, now a feature) → update `bug.md` status to 📋
   Retired with a pointer to the feature/slice that replaces it.
 - **Mission completed** → move the entire mission folder from `work/active/`
