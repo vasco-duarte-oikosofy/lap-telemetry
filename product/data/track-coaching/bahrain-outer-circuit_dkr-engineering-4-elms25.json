@@ -20,8 +20,8 @@
       "apex_side_source": "default_cli_option"
     },
     {
-      "id": "t2",
-      "name": "turn 2",
+      "id": "t4",
+      "name": "turn 4",
       "s_start_m": 1506.0,
       "apex_s_m": 1508.0,
       "s_end_m": 1560.0,
@@ -29,8 +29,8 @@
       "apex_side_source": "default_cli_option"
     },
     {
-      "id": "t3",
-      "name": "turn 3",
+      "id": "t6",
+      "name": "turn 6",
       "s_start_m": 1814.0,
       "apex_s_m": 1875.0,
       "s_end_m": 1929.0,
@@ -38,8 +38,8 @@
       "apex_side_source": "default_cli_option"
     },
     {
-      "id": "t4",
-      "name": "turn 4",
+      "id": "t7",
+      "name": "turn 7",
       "s_start_m": 2010.0,
       "apex_s_m": 2038.0,
       "s_end_m": 2048.0,
@@ -47,8 +47,17 @@
       "apex_side_source": "default_cli_option"
     },
     {
-      "id": "t5",
-      "name": "turn 5",
+      "id": "t8",
+      "name": "turn 8",
+      "s_start_m": 2055.0,
+      "apex_s_m": 2093.0,
+      "s_end_m": 2130.0,
+      "apex_side": "right",
+      "apex_side_source": "default_cli_option"
+    },
+    {
+      "id": "t9",
+      "name": "turn 9",
       "s_start_m": 3009.0,
       "apex_s_m": 3047.0,
       "s_end_m": 3065.0,
