@@ -55,6 +55,11 @@ _SCHEMA = pa.schema([
     pa.field("session_type", pa.int8(), nullable=True),
     pa.field("session_time_remaining_s", pa.float32(), nullable=True),
     pa.field("race_laps_total", pa.int32(), nullable=True),
+    # Authoritative scoring timing columns (bug 10b)
+    pa.field("scoring_lap_start_et_s", pa.float32(), nullable=True),
+    pa.field("scoring_last_lap_time_s", pa.float32(), nullable=True),
+    pa.field("scoring_time_into_lap_s", pa.float32(), nullable=True),
+    pa.field("scoring_total_laps", pa.int32(), nullable=True),
 ])
 
 
@@ -267,6 +272,10 @@ class SessionWriter:
         b["session_type"].append(frame.session_type)
         b["session_time_remaining_s"].append(frame.session_time_remaining_s)
         b["race_laps_total"].append(frame.race_laps_total)
+        b["scoring_lap_start_et_s"].append(frame.scoring_lap_start_et_s)
+        b["scoring_last_lap_time_s"].append(frame.scoring_last_lap_time_s)
+        b["scoring_time_into_lap_s"].append(frame.scoring_time_into_lap_s)
+        b["scoring_total_laps"].append(frame.scoring_total_laps)
         self._lap_numbers.add(frame.lap_number)
         self._last_vehicle = frame.vehicle_name
 

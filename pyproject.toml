@@ -25,3 +25,7 @@ lap-telemetry = "lap_telemetry.cli:main"
 where = ["product/python"]
 include = ["lap_telemetry*"]
 exclude = ["vendor*", "pyRfactor2SharedMemory*", "pyLMUSharedMemory*", "tests*"]
+
+[tool.pytest.ini_options]
+pythonpath = ["product/python"]
+testpaths = ["tests"]

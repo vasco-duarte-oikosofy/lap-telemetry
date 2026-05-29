@@ -76,6 +76,11 @@ class Frame:
     session_type: Optional[int] = None
     session_time_remaining_s: Optional[float] = None
     race_laps_total: Optional[int] = None
+    # Authoritative scoring timing fields (bug 10b)
+    scoring_lap_start_et_s: Optional[float] = None
+    scoring_last_lap_time_s: Optional[float] = None
+    scoring_time_into_lap_s: Optional[float] = None
+    scoring_total_laps: Optional[int] = None
 
 
 class _BaseConnection:
@@ -322,6 +327,10 @@ class LMUConnection(_BaseConnection):
             session_type=_valid_session_type(scor_info, "mSession"),
             session_time_remaining_s=_optional_float(scor_info, "mSessionTimeRemaining"),
             race_laps_total=_optional_int(scor_info, "mMaxLaps"),
+            scoring_lap_start_et_s=_optional_float(scor_v, "mLapStartET"),
+            scoring_last_lap_time_s=_positive_float(scor_v, "mLastLapTime"),
+            scoring_time_into_lap_s=_optional_float(scor_v, "mTimeIntoLap"),
+            scoring_total_laps=_optional_int(scor_v, "mTotalLaps"),
         )
 
 
@@ -428,6 +437,10 @@ class RF2Connection(_BaseConnection):
             session_type=_valid_session_type(scor_info, "mSession"),
             session_time_remaining_s=_optional_float(scor_info, "mSessionTimeRemaining"),
             race_laps_total=_optional_int(scor_info, "mMaxLaps"),
+            scoring_lap_start_et_s=_optional_float(scor_v, "mLapStartET"),
+            scoring_last_lap_time_s=_positive_float(scor_v, "mLastLapTime"),
+            scoring_time_into_lap_s=_optional_float(scor_v, "mTimeIntoLap"),
+            scoring_total_laps=_optional_int(scor_v, "mTotalLaps"),
         )
 
 
