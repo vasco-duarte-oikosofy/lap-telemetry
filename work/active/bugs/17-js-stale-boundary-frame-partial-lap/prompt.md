@@ -2,7 +2,7 @@
 
 ## Status
 
-🔧 Fixed in code by `81e985d`; pending user live-test confirmation before completion move
+🔧 Fixed in code by `0e71603`; pending user live-test confirmation before completion move
 
 ## Observed symptom
 
