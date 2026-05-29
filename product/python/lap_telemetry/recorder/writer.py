@@ -226,6 +226,7 @@ class SessionWriter:
         self._setup_file_guess: str | None = _guess_setup_file(sim, track)
         self._prev_lap_number: int | None = None
         self._completed_lap_numbers: set[int] = set()
+        self._notified_lap_numbers: set[int] = set()
 
         # Persist sidecar from session start so a hard kill still leaves
         # identifying metadata (track, sim, started_utc) on disk.
@@ -279,13 +280,19 @@ class SessionWriter:
         self._lap_numbers.add(frame.lap_number)
         self._last_vehicle = frame.vehicle_name
 
-        # Track lap boundaries for on_lap_flushed callback.
-        # We only record the transition, not emit here — the callback
-        # fires when flush_shard() writes the data to disk.
         if self._prev_lap_number is not None and frame.lap_number != self._prev_lap_number:
             if frame.lap_number > self._prev_lap_number:
-                self._completed_lap_numbers.add(self._prev_lap_number)
+                if self._prev_lap_number not in self._notified_lap_numbers:
+                    self._completed_lap_numbers.add(self._prev_lap_number)
         self._prev_lap_number = frame.lap_number
+
+    def lap_completed(self, lap_num: int) -> None:
+        """Explicitly register lap_num as completed for the next flush_shard() call.
+
+        Call from record.py at every lap boundary BEFORE flush_shard(), so the
+        callback fires on the shard that contains the completed lap's data.
+        """
+        self._completed_lap_numbers.add(lap_num)
 
     def flush_shard(self) -> None:
         if not self._buf["session_time_s"]:
@@ -300,12 +307,11 @@ class SessionWriter:
         self._buf = {f.name: [] for f in _SCHEMA}
         self._write_sidecar(in_progress=True, ended_utc=None)
 
-        # Fire on_lap_flushed for any lap numbers completed in this shard.
-        # The current shard file contains the data for these laps.
         if self._on_lap_flushed is not None and self._completed_lap_numbers:
-            shard_path = path  # The shard just written
+            shard_path = path
             for lap_num in sorted(self._completed_lap_numbers):
                 self._on_lap_flushed(shard_path, lap_num)
+                self._notified_lap_numbers.add(lap_num)
             self._completed_lap_numbers.clear()
 
     def close(self) -> tuple[Path, Path]:

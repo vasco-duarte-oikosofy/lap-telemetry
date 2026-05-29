@@ -199,7 +199,8 @@ def run(
                     last_flush_time = time.monotonic()
 
                 if frame.lap_number != last_lap:
-                    if writer is not None:
+                    if writer is not None and last_lap >= 0:
+                        writer.lap_completed(last_lap)
                         writer.flush_shard()  # complete lap before next starts
                     print(
                         f"lap-telemetry: lap boundary -> lap {frame.lap_number}",
