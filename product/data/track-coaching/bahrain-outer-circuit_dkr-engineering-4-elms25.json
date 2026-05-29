@@ -50,7 +50,7 @@
       "id": "t8",
       "name": "turn 8",
       "s_start_m": 2055.0,
-      "apex_s_m": 2093.0,
+      "apex_s_m": 2073.0,
       "s_end_m": 2130.0,
       "apex_side": "right",
       "apex_side_source": "default_cli_option"
