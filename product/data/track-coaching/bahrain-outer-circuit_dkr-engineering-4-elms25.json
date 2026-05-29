@@ -3,12 +3,12 @@
   "track_id": "bahrain-outer-circuit",
   "layout_id": "lmu-default",
   "reference_lap": {
-    "path": "product\\data\\reference-laps\\bahrain-outer-circuit_dkr-engineering-4-elms25_time_01.11.380.parquet",
+    "path": "product\\data\\reference-laps\\bahrain-outer-circuit_dkr-engineering-4-elms25_time_01.10.845.parquet",
     "car_id": "dkr-engineering-4-elms25",
-    "lap_time_s": 71.242,
+    "lap_time_s": 70.845,
     "detection_method": "throttle_brake_v1"
   },
-  "lap_length_m": 3509.6,
+  "lap_length_m": 3510.0,
   "corners": [
     {
       "id": "t1",
