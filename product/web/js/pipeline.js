@@ -72,24 +72,21 @@ export function buildSegments(lapNumbers) {
   return segs;
 }
 
-// Annotate each segment with the distance window it actually covered and the
-// lap_time_s it reached, then flag laps that don't look like a clean racing
-// lap. Three rules, all purely data-driven (no per-track config):
-//   - partial (distance):  the car never reached close to the end of the lap
-//                          (truncated by pit-in, parked, or recorder stopped).
-//   - partial (duration):  the lap_time_s clock barely advanced — typically
-//                          the "ESC a few metres past the finish line" case
-//                          where the F4 distance integrator may report near-
-//                          full distance from a stale anchor, but the time
-//                          counter shows the lap was abandoned almost
-//                          immediately. The reference is the median duration
-//                          of complete-distance non-rolling laps in the same
-//                          file, so the threshold self-calibrates per-track.
-//   - rolling:             the car wasn't near the start/finish line at the
-//                          first frame (rolling-start formation lap, or
-//                          recorder started mid-lap, or race-restart segment).
-// trackLen estimate = the longest maxD seen across all segments in this file.
-export function annotateSegments(segments, distances, lapTimes) {
+function authDuration(segments, scoringLastLapTime, index) {
+  const fallback = segments[index].duration;
+  if (!scoringLastLapTime || index + 1 >= segments.length) return fallback;
+  let best = -Infinity;
+  for (let k = segments[index + 1].start; k < segments[index + 1].end; k++) {
+    const v = scoringLastLapTime[k];
+    if (Number.isFinite(v) && v > best) best = v;
+  }
+  return (Number.isFinite(best) && best > 0 && fallback > 0 && Math.abs(best - fallback) <= 1.0)
+    ? best : fallback;
+}
+
+// Annotate each segment with distance window, duration, partial/rolling flags,
+// and fastest-lap marker. trackLen is the longest maxD seen across all segments.
+export function annotateSegments(segments, distances, lapTimes, scoringLastLapTime = null) {
   if (!segments.length) return;
   let trackLen = 0;
   for (const seg of segments) {
@@ -106,7 +103,15 @@ export function annotateSegments(segments, distances, lapTimes) {
     seg.minDist = isFinite(mn) ? mn : 0;
     seg.maxDist = isFinite(mx) ? mx : 0;
     seg.duration = mt;
+    seg.durationSource = 'lap_time_s';
     if (seg.maxDist > trackLen) trackLen = seg.maxDist;
+  }
+  for (let i = 0; i < segments.length; i++) {
+    const duration = authDuration(segments, scoringLastLapTime, i);
+    if (duration !== segments[i].duration) {
+      segments[i].duration = duration;
+      segments[i].durationSource = 'scoring_last_lap_time_s';
+    }
   }
   // Reference duration: median over candidates that look like real flying laps
   // (full distance + clean start). Falls back to 0 when no candidates exist —

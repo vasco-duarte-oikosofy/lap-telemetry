@@ -30,8 +30,8 @@ from lap_telemetry.coach.track_model import load_track_coaching_model
 from lap_telemetry.recorder.connect import Frame
 from lap_telemetry.recorder.writer import _SCHEMA
 
-_ROOT = Path(__file__).parent.parent
-_SESSIONS = _ROOT / "sessions"
+_ROOT = Path(__file__).parents[2]
+_SESSIONS = _ROOT / "dev" / "sessions"
 _SESSION_FILE = _SESSIONS / "session_20260529T092852Z_bahrain-outer-circuit_lmu.parquet"
 _REF_FILE = _SESSIONS / "reference_lap_session_20260529T092852Z_bahrain-outer-circuit_lmu_seg7.parquet"
 _TRACK_MODEL_FILE = _ROOT / "product/data/track-coaching/bahrain-outer-circuit_dkr-engineering-4-elms25.json"

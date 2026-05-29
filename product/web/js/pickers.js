@@ -26,9 +26,7 @@ export function rebuildPickers() {
     let groupHtml = `<optgroup label="${groupLabel}">`;
     for (let i = 0; i < total; i++) {
       const seg = entry.segments[i];
-      const lapTimes = entry.data.lap_time_s;
-      const sliceTimes = lapTimes.slice(seg.start, seg.end);
-      const dur = sliceTimes.length ? sliceTimes.reduce((a, b) => b > a ? b : a, -Infinity) : 0;
+      const dur = seg.duration || 0;
 
       let label = `  Lap ${i + 1}  (lap# ${seg.lapNum})  ${formatDuration(dur)}`;
       label += lapStatusBadges(seg);

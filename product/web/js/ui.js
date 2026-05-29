@@ -133,6 +133,7 @@ export async function loadFile(file, renderAll) {
 
     const { data, missingCols } = await readColumns(file, [
       'lap_number', 'lap_time_s', 'lap_distance_m', 'speed_kph',
+      'scoring_last_lap_time_s',
       'throttle_norm', 'brake_norm', 'engine_rpm', 'gear',
       'steering_norm', 'slip_angle_fl_deg', 'slip_angle_fr_deg',
       'last_sector_1_s', 'last_sector_2_s',
@@ -152,7 +153,7 @@ export async function loadFile(file, renderAll) {
     warnInvalidTrackOutlineSamples(data, file.name);
 
     const segments = buildSegments(data.lap_number);
-    annotateSegments(segments, data.lap_distance_m, data.lap_time_s);
+    annotateSegments(segments, data.lap_distance_m, data.lap_time_s, data.scoring_last_lap_time_s);
 
     const hasSlip    = data.slip_angle_fl_deg.length > 0;
     const hasSectors = data.last_sector_1_s.length > 0;
@@ -173,6 +174,7 @@ export async function loadFile(file, renderAll) {
 
     const expectedOptional = new Set([
       'last_sector_1_s', 'last_sector_2_s',
+      'scoring_last_lap_time_s',
       'slip_angle_fl_deg', 'slip_angle_fr_deg',
       'abs_active', 'tc_active',
       ...TRACK_OUTLINE_CHANNELS,

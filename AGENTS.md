@@ -112,6 +112,11 @@ about Playwright and headless Chromium that prevent silent, layout-dependent
 failures — and how to wire Python test scripts into the Node-based parallel
 runner (lesson L12: Python tests need a thin `.js` wrapper).
 
+Test scripts live under `dev/scripts/`. Do not add a root-level `tests/`
+directory. Python regression tests may be `.py` files in `dev/scripts/`, but
+they must be invoked from the main suite through a Node `.js` wrapper that
+prints the required `[PASS]`/`[FAIL]` protocol lines.
+
 ### Running tests
 
 Always use `bash scripts/test-summary.sh` to run the test suite. It runs every

@@ -805,7 +805,17 @@ function buildSegments(lapNumbers) {
   segs.push({ lapNum: prev, start, end: lapNumbers.length });
   return segs;
 }
-function annotateSegments(segments, distances, lapTimes) {
+function authDuration(segments, scoringLastLapTime, index) {
+  const fallback = segments[index].duration;
+  if (!scoringLastLapTime || index + 1 >= segments.length) return fallback;
+  let best = -Infinity;
+  for (let k = segments[index + 1].start; k < segments[index + 1].end; k++) {
+    const v = scoringLastLapTime[k];
+    if (Number.isFinite(v) && v > best) best = v;
+  }
+  return Number.isFinite(best) && best > 0 && fallback > 0 && Math.abs(best - fallback) <= 1 ? best : fallback;
+}
+function annotateSegments(segments, distances, lapTimes, scoringLastLapTime = null) {
   if (!segments.length) return;
   let trackLen = 0;
   for (const seg of segments) {
@@ -822,7 +832,15 @@ function annotateSegments(segments, distances, lapTimes) {
     seg.minDist = isFinite(mn) ? mn : 0;
     seg.maxDist = isFinite(mx) ? mx : 0;
     seg.duration = mt;
+    seg.durationSource = "lap_time_s";
     if (seg.maxDist > trackLen) trackLen = seg.maxDist;
+  }
+  for (let i = 0; i < segments.length; i++) {
+    const duration = authDuration(segments, scoringLastLapTime, i);
+    if (duration !== segments[i].duration) {
+      segments[i].duration = duration;
+      segments[i].durationSource = "scoring_last_lap_time_s";
+    }
   }
   const candidateDurs = segments.filter((s) => s.maxDist >= trackLen * PARTIAL_DIST_FRAC && Math.abs(s.minDist) <= ROLLING_DIST_M).map((s) => s.duration).filter((d) => d > 0).sort((a, b) => a - b);
   const medDur = candidateDurs.length ? candidateDurs[Math.floor(candidateDurs.length / 2)] : 0;
@@ -2932,9 +2950,7 @@ function rebuildPickers() {
     let groupHtml = `<optgroup label="${groupLabel}">`;
     for (let i = 0; i < total; i++) {
       const seg = entry.segments[i];
-      const lapTimes = entry.data.lap_time_s;
-      const sliceTimes = lapTimes.slice(seg.start, seg.end);
-      const dur = sliceTimes.length ? sliceTimes.reduce((a, b) => b > a ? b : a, -Infinity) : 0;
+      const dur = seg.duration || 0;
       let label = `  Lap ${i + 1}  (lap# ${seg.lapNum})  ${formatDuration(dur)}`;
       label += lapStatusBadges(seg);
       if (seg.fastest) label += "  \u2605";
@@ -3268,6 +3284,7 @@ async function loadFile(file, renderAll2) {
       "lap_time_s",
       "lap_distance_m",
       "speed_kph",
+      "scoring_last_lap_time_s",
       "throttle_norm",
       "brake_norm",
       "engine_rpm",
@@ -3291,7 +3308,7 @@ async function loadFile(file, renderAll2) {
     }
     warnInvalidTrackOutlineSamples(data, file.name);
     const segments = buildSegments(data.lap_number);
-    annotateSegments(segments, data.lap_distance_m, data.lap_time_s);
+    annotateSegments(segments, data.lap_distance_m, data.lap_time_s, data.scoring_last_lap_time_s);
     const hasSlip = data.slip_angle_fl_deg.length > 0;
     const hasSectors = data.last_sector_1_s.length > 0;
     const stem = fileStem(file.name);
@@ -3308,6 +3325,7 @@ async function loadFile(file, renderAll2) {
     const expectedOptional = /* @__PURE__ */ new Set([
       "last_sector_1_s",
       "last_sector_2_s",
+      "scoring_last_lap_time_s",
       "slip_angle_fl_deg",
       "slip_angle_fr_deg",
       "abs_active",

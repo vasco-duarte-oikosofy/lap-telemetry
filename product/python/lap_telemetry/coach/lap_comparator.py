@@ -5,6 +5,8 @@ from pathlib import Path
 
 import pyarrow.parquet as pq
 
+from lap_telemetry.parquet_utils import authoritative_duration, build_segments
+
 from .entry_detection import find_entry_point, find_brake_point
 from .exit_detection import find_exit_points
 from .facts import PartialLapError, PhaseDetectionThresholds, CornerLoss, LapComparisonFacts
@@ -73,6 +75,44 @@ def _try_column(table, name: str) -> list[float] | None:
         return None
 
 
+def _duration_segment_for_lap(table, lap_number: int | None) -> tuple[int, int, int | None, int | None]:
+    """Find the segment whose duration should describe this comparison lap."""
+    lap_numbers = table.column("lap_number").to_pylist()
+    segments = build_segments(lap_numbers)
+    if not segments:
+        return (0, 0, None, None)
+
+    selected_idx = 0
+    if lap_number is not None:
+        for idx, (seg_lap_number, _start, _end) in enumerate(segments):
+            if seg_lap_number == lap_number:
+                selected_idx = idx
+                break
+
+    _lap_num, start, end = segments[selected_idx]
+    if selected_idx + 1 < len(segments):
+        _next_lap, next_start, next_end = segments[selected_idx + 1]
+        return (start, end, next_start, next_end)
+    return (start, end, None, None)
+
+
+def _segment_duration(
+    table,
+    segment: tuple[int, int, int | None, int | None],
+    *,
+    allow_same_segment_scoring: bool = False,
+) -> float:
+    start, end, next_start, next_end = segment
+    return authoritative_duration(
+        table,
+        start,
+        end,
+        next_start,
+        next_end,
+        allow_same_segment_scoring=allow_same_segment_scoring,
+    )
+
+
 def compare_laps(
     current_lap_path: Path | str,
     reference_lap_path: Path | str,
@@ -100,13 +140,15 @@ def compare_laps(
     if thresholds is None:
         thresholds = PhaseDetectionThresholds()
 
-    current_table = pq.read_table(current_lap_path)
+    full_current_table = pq.read_table(current_lap_path)
+    current_table = full_current_table
+    current_duration_segment = _duration_segment_for_lap(full_current_table, lap_number)
 
     # Filter to a specific lap number if requested (for Parquet-based coach path).
     if lap_number is not None:
-        lap_numbers = current_table.column("lap_number").to_pylist()
+        lap_numbers = full_current_table.column("lap_number").to_pylist()
         mask = [ln == lap_number for ln in lap_numbers]
-        current_table = current_table.filter(mask)
+        current_table = full_current_table.filter(mask)
 
     # Strip stale cross-lap boundary frames: the first frame(s) of a new lap
     # sometimes carry the previous lap's position (dist > halfway) with a
@@ -137,6 +179,7 @@ def compare_laps(
         )
 
     ref_table = pq.read_table(reference_lap_path)
+    ref_duration_segment = _duration_segment_for_lap(ref_table, None)
 
     current_dist = current_table.column("lap_distance_m").to_pylist()
     current_speed = current_table.column("speed_kph").to_pylist()
@@ -177,8 +220,12 @@ def compare_laps(
     ref_brake_grid = js_result.get("ref_brake_norm")
     track_length = js_result["track_length"]
 
-    driver_lap_time = max(t for t in current_lap_times if t is not None and t > 0)
-    ref_lap_time = max(t for t in ref_lap_times if t is not None and t > 0)
+    driver_lap_time = _segment_duration(full_current_table, current_duration_segment)
+    ref_lap_time = _segment_duration(
+        ref_table,
+        ref_duration_segment,
+        allow_same_segment_scoring=True,
+    )
     lap_time_delta = driver_lap_time - ref_lap_time
 
     lap_numbers = current_table.column("lap_number").to_pylist()

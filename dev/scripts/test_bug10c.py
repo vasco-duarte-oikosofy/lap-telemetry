@@ -9,7 +9,7 @@ from pathlib import Path
 import pyarrow as pa
 import pytest
 
-sys.path.insert(0, str(Path(__file__).parent.parent / "dev" / "scripts"))
+sys.path.insert(0, str(Path(__file__).parent))
 from extract_reference_lap import _authoritative_duration, _build_segments
 
 

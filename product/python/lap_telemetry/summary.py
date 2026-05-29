@@ -8,6 +8,8 @@ from pathlib import Path
 
 import pyarrow.parquet as pq
 
+from lap_telemetry.parquet_utils import authoritative_duration, build_segments
+
 
 def _fmt_duration(seconds: float) -> str:
     m, s = divmod(abs(seconds), 60)
@@ -141,7 +143,7 @@ def _run_file(path: Path) -> int:
     s1_col       = t.column("last_sector_1_s").to_pylist() if has_sectors else None
     s2_col       = t.column("last_sector_2_s").to_pylist() if has_sectors else None
 
-    segments = _build_segments(lap_col)
+    segments = build_segments(lap_col)
     num_segs = len(segments)
 
     header = (
@@ -153,8 +155,11 @@ def _run_file(path: Path) -> int:
 
     for seg_idx, (lap_num, start_idx, end_idx) in enumerate(segments):
         frames = end_idx - start_idx
-        seg_lap_t = lap_t_col[start_idx:end_idx]
-        max_lap_t = max(seg_lap_t) if seg_lap_t else 0.0
+        next_start = next_end = None
+        if seg_idx + 1 < num_segs:
+            next_start = segments[seg_idx + 1][1]
+            next_end = segments[seg_idx + 1][2]
+        max_lap_t = authoritative_duration(t, start_idx, end_idx, next_start, next_end)
         duration_str = _fmt_duration(max_lap_t)
 
         # Chronological first/last get the dash-out treatment — not min/max
@@ -205,24 +210,3 @@ def _run_file(path: Path) -> int:
         )
 
     return 0
-
-
-def _build_segments(lap_col: list[int]) -> list[tuple[int, int, int]]:
-    """Contiguous runs of constant lap_number, in time order.
-
-    Returns list of (lap_number, start_idx, end_idx_exclusive). A race
-    restart that rewinds mLapNumber produces multiple segments with the
-    same lap_number; the user can tell them apart from session_time_s.
-    """
-    if not lap_col:
-        return []
-    segs: list[tuple[int, int, int]] = []
-    prev = lap_col[0]
-    start = 0
-    for i in range(1, len(lap_col)):
-        if lap_col[i] != prev:
-            segs.append((prev, start, i))
-            prev = lap_col[i]
-            start = i
-    segs.append((prev, start, len(lap_col)))
-    return segs
