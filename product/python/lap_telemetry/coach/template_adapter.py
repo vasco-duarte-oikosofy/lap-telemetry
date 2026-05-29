@@ -142,7 +142,7 @@ def _loss_exit(cl: CornerLoss) -> str:
         if cl.exit_distance_delta_m < 0:
             return f"You lost {time} exiting {cl.corner_name}. You got back on throttle {d} later."
         return f"You lost {time} exiting {cl.corner_name}. You got back on throttle {d} earlier."
-    return f"You lost {time} exiting {cl.corner_name}. You carried less speed through."
+    return f"You lost {time} exiting {cl.corner_name}."
 
 
 # --- Gain phrases ---
@@ -196,7 +196,7 @@ def _gain_exit(cl: CornerLoss) -> str:
         if cl.exit_distance_delta_m > 0:
             return f"You gained {time} exiting {cl.corner_name}. You got back on throttle {d} earlier."
         return f"You gained {time} exiting {cl.corner_name}. You got back on throttle {d} later."
-    return f"You gained {time} exiting {cl.corner_name}. You carried more speed through."
+    return f"You gained {time} exiting {cl.corner_name}."
 
 
 _PHASE_LOSS = {
@@ -284,7 +284,7 @@ def _loss_detail_exit(cl: CornerLoss) -> str:
         if cl.exit_distance_delta_m < 0:
             return f"got back on throttle {d} later"
         return f"got back on throttle {d} earlier"
-    return "carried less speed through"
+    return None
 
 
 # --- Gain detail clauses ---
@@ -339,7 +339,7 @@ def _gain_detail_exit(cl: CornerLoss) -> str:
         if cl.exit_distance_delta_m > 0:
             return f"got back on throttle {d} earlier"
         return f"got back on throttle {d} later"
-    return "carried more speed through"
+    return None
 
 
 def _loss_detail(cl: CornerLoss, is_dominant: bool = False) -> str | None:
@@ -462,6 +462,35 @@ def _corner_order(
     return [cid for cid, _ in corners_with_dominance]
 
 
+def _all_corners_by_magnitude(
+    gain_by_corner: dict[str, list[CornerLoss]],
+    loss_by_corner: dict[str, list[CornerLoss]],
+    lap_delta_s: float,
+) -> list[tuple[str, list[CornerLoss], bool]]:
+    """Return (corner_id, items, is_gain) sorted by dominant impact.
+
+    When lap_delta_s <= 0 (driver on pace or faster): gains first, then losses,
+    each group sorted by magnitude.
+    When lap_delta_s > 0 (driver slower): all corners interleaved by magnitude
+    so the most impactful moment — gain or loss — comes first.
+    """
+    entries: list[tuple[str, list[CornerLoss], bool, float]] = []
+    for cid, items in gain_by_corner.items():
+        dom = max(abs(c.loss_s) for c in items)
+        entries.append((cid, items, True, dom))
+    for cid, items in loss_by_corner.items():
+        dom = max(abs(c.loss_s) for c in items)
+        entries.append((cid, items, False, dom))
+
+    if lap_delta_s > 0:
+        entries.sort(key=lambda x: x[3], reverse=True)
+    else:
+        # Gain-first: gains before losses, each group sorted by magnitude
+        entries.sort(key=lambda x: (not x[2], -x[3]))
+
+    return [(cid, items, is_gain) for cid, items, is_gain, _ in entries]
+
+
 # ── Word-limit truncation ──────────────────────────────────────────────────
 
 
@@ -539,20 +568,31 @@ class TemplateAdapter:
         for cl in gains:
             gain_by_corner.setdefault(cl.corner_id, []).append(cl)
 
-        # Build phrases: gains first, then losses
-        phrases: list[str] = []
+        # Identify the worst loss phrase before ordering (for hard guarantee below)
+        worst_loss_phrase: str | None = None
+        if loss_by_corner:
+            worst_cid = max(
+                loss_by_corner,
+                key=lambda k: max(abs(c.loss_s) for c in loss_by_corner[k]),
+            )
+            worst_loss_phrase = _dedup_corner(loss_by_corner[worst_cid], is_gain=False)
 
-        for corner_id in _corner_order(gain_by_corner, is_gain=True):
-            phrases.append(_dedup_corner(gain_by_corner[corner_id], is_gain=True))
-
-        for corner_id in _corner_order(loss_by_corner, is_gain=False):
-            phrases.append(_dedup_corner(loss_by_corner[corner_id], is_gain=False))
+        # Build phrases in magnitude order (interleaved when driver is slower)
+        lap_delta = facts.lap_time_delta_s if facts.lap_time_delta_s is not None else 0.0
+        ordered = _all_corners_by_magnitude(gain_by_corner, loss_by_corner, lap_delta)
+        phrases = [_dedup_corner(items, is_gain) for _, items, is_gain in ordered]
 
         result = " ".join(p for p in phrases if p)
 
         # Apply word-limit truncation
-        max_words = facts.constraints.get("max_words", 35)
-        return _truncate_to_word_limit(result, max_words)
+        max_words = facts.constraints.get("max_words", 60)
+        result = _truncate_to_word_limit(result, max_words)
+
+        # Hard guarantee: worst loss phrase must appear when driver is slower
+        if worst_loss_phrase and worst_loss_phrase not in result:
+            result = (result.rstrip() + " " + worst_loss_phrase).strip()
+
+        return result
 
     @staticmethod
     def generate_fuel_phrase(facts: FuelFacts) -> str:

@@ -206,8 +206,8 @@ ok("got back on throttle nine metres later" in result, "exit_throttle loss: nega
 result = TemplateAdapter.generate(make_facts(
     losses=[make_loss(phase="exit", loss_s=0.10, exit_distance_delta_m=None)]
 ))
-ok("carried less speed through" in result, "generic exit loss: carried less speed through",
-   result)
+ok("You lost a tenth exiting" in result and "speed" not in result,
+   "generic exit loss: no false speed claim", result)
 
 # generic exit with exit_distance_delta_m
 result = TemplateAdapter.generate(make_facts(
@@ -337,7 +337,76 @@ result = TemplateAdapter.generate(make_facts(
 
 gain_pos = result.find("gained")
 loss_pos = result.find("lost")
-ok(gain_pos < loss_pos, "Gain comes before loss in mixed utterance", result)
+ok(loss_pos < gain_pos, "Loss (larger magnitude) comes before gain when driver is slower", result)
+
+
+# ══════════════════════════════════════════════════════════════════════════
+# Bug-15 regression tests
+# ══════════════════════════════════════════════════════════════════════════
+
+print("\n── Bug-15 Regressions ──\n")
+
+# test_loss_dominant_lap_mentions_biggest_loss
+result = TemplateAdapter.generate(LapComparisonFacts(
+    type="lap_coaching_summary",
+    track_id="test",
+    lap_number=1,
+    lap_time_delta_s=2.0,
+    top_losses=[make_loss(corner_id="t1", corner_name="turn 1", phase="minimum_speed", loss_s=1.5,
+                          driver_value=100.0, reference_value=110.0)],
+    top_gains=[
+        make_loss(corner_id="t1_entry", corner_name="turn 1", phase="entry", loss_s=-0.5,
+                  driver_value=150.0, reference_value=140.0, entry_distance_delta_m=-20.0),
+        make_loss(corner_id="t5", corner_name="turn 5", phase="exit", loss_s=-0.07,
+                  driver_value=160.0, reference_value=158.0),
+    ],
+    constraints={"max_words": 60},
+))
+ok("You lost" in result, "loss_dominant_lap_mentions_biggest_loss: contains 'You lost'", result)
+ok(result.find("lost") < result.find("gained"), "loss_dominant_lap_mentions_biggest_loss: loss before gain", result)
+
+# test_gain_dominant_lap_stays_gain_first
+result = TemplateAdapter.generate(LapComparisonFacts(
+    type="lap_coaching_summary",
+    track_id="test",
+    lap_number=1,
+    lap_time_delta_s=-0.3,
+    top_losses=[make_loss(corner_id="t2", corner_name="turn 2", phase="minimum_speed", loss_s=0.1,
+                          driver_value=148.0, reference_value=150.0)],
+    top_gains=[make_loss(corner_id="t3", corner_name="turn 3", phase="minimum_speed", loss_s=-0.4,
+                         driver_value=158.0, reference_value=154.0)],
+    constraints={"max_words": 60},
+))
+ok(result.startswith("You gained"), "gain_dominant_lap_stays_gain_first: starts with 'You gained'", result)
+
+# test_exit_gain_no_false_speed_claim
+result = TemplateAdapter.generate(make_facts(
+    gains=[make_loss(phase="exit", loss_s=-0.05, exit_distance_delta_m=None)]
+))
+ok("more speed" not in result and "less speed" not in result,
+   "exit_gain_no_false_speed_claim: no speed direction asserted", result)
+
+# test_word_limit_does_not_drop_dominant_loss (gains fill budget, loss must survive)
+result = TemplateAdapter.generate(LapComparisonFacts(
+    type="lap_coaching_summary",
+    track_id="test",
+    lap_number=1,
+    lap_time_delta_s=0.8,
+    top_losses=[make_loss(corner_id="t5", corner_name="turn 5", phase="minimum_speed", loss_s=0.8,
+                          driver_value=100.0, reference_value=110.0)],
+    top_gains=[
+        make_loss(corner_id="t1", corner_name="turn 1", phase="entry", loss_s=-0.3,
+                  driver_value=160.0, reference_value=150.0, entry_distance_delta_m=-15.0),
+        make_loss(corner_id="t2", corner_name="turn 2", phase="minimum_speed", loss_s=-0.25,
+                  driver_value=155.0, reference_value=148.0),
+        make_loss(corner_id="t3", corner_name="turn 3", phase="exit", loss_s=-0.2,
+                  driver_value=170.0, reference_value=165.0, exit_distance_delta_m=8.0),
+        make_loss(corner_id="t4", corner_name="turn 4", phase="exit_throttle", loss_s=-0.15,
+                  driver_value=145.0, reference_value=140.0, exit_distance_delta_m=6.0),
+    ],
+    constraints={"max_words": 35},
+))
+ok("You lost" in result, "word_limit_does_not_drop_dominant_loss: loss appears despite tight budget", result)
 
 
 # ══════════════════════════════════════════════════════════════════════════
@@ -474,10 +543,10 @@ result = TemplateAdapter.generate(facts_wide)
 ok(len(result) > 0, "barcelona_lap15: non-empty output", result[:100])
 ok("You gained" in result, "barcelona_lap15: has gain phrase", result)
 ok("You lost" in result, "barcelona_lap15: has loss phrase", result)
-# Gain-first: "gained" should appear before "lost"
+# Driver is 1.155s slower — magnitude-first: losses interleave with gains by size
 gained_pos = result.find("gained")
 lost_pos = result.find("lost")
-ok(gained_pos < lost_pos, "barcelona_lap15: gains before losses", result)
+ok(lost_pos < gained_pos, "barcelona_lap15: losses before gains (driver slower, magnitude-first)", result)
 
 # barcelona_single_corner_facts.json
 with open(ROOT / "dev" / "fixtures" / "coach" / "barcelona_single_corner_facts.json") as f:
