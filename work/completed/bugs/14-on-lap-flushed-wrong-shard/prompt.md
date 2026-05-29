@@ -186,3 +186,17 @@ Without calling `writer.lap_completed()`:
   completed lap, with no "Parquet flush timeout" messages and no
   "no frames for requested lap" messages.
 - `pytest tests/` passes.
+
+## Status
+
+✅ Fixed — commit `ad47c65` (2026-05-29)
+
+Two-part fix:
+1. `writer.lap_completed(lap_num)` + `_notified_lap_numbers` guard ensures
+   the callback fires on the correct shard (not the following timer shard).
+2. `_write_lap_snapshot()` merges all shards and filters to lap N before
+   passing the path to the coach — fixes the regression where a mid-lap
+   timer flush caused the callback to receive only the tail of the lap.
+
+Live test confirmed: laps 7–11 all coached via `timing-from-parquet` with
+no timeouts or partial-lap skips (session `20260529T154821Z`).
