@@ -88,3 +88,9 @@ This is an **audit + DRY slice**. The goals are:
   names.
 - `panelConfig.js` has a comment explaining the COLUMNS contract.
 - `pytest tests/` passes.
+
+## Status
+
+✅ Fixed — commit db81fc6 (2026-05-29)
+frames_to_parquet.py now derives all columns from _SCHEMA dynamically.
+Tests in test_bug11.py assert exact schema match (names + order).

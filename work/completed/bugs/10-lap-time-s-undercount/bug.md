@@ -170,4 +170,7 @@ Prints the boundary analysis for every lap in the Bahrain Outer session, showing
 
 ## Status
 
-🐛 Open
+✅ Fixed
+
+- Bug 10b (scoring columns): commit 
+- Bug 10c (authoritative lap duration): commit 

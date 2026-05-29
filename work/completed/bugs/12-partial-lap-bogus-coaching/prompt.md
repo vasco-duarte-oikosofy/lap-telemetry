@@ -175,3 +175,11 @@ Expected output after fix:
 - `dev/tools/inspect_lap8.py` shows no gain > 5s for laps 4, 7, or 8.
 - Partial laps are logged as warnings and produce no utterance.
 - A complete lap (5 or 6) still produces correct sub-second coaching.
+
+## Status
+
+✅ Fixed — commit 1175f88 (2026-05-29)
+Scenario A (tail-partial): boundary flush in record.py + bug-14 snapshot fix ensure
+coach always receives complete lap data.
+Scenario B (head-partial): PartialLapError guard in lap_comparator.py rejects
+laps whose coverage falls outside 10-80% of track length.
