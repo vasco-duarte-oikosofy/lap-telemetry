@@ -26,6 +26,46 @@ import pyarrow.parquet as pq
 import pyarrow as pa
 
 
+def _authoritative_duration(
+    table: "pa.Table",
+    seg_idx: int,
+    segments: list[tuple[int, int, int]],
+) -> float:
+    """Return authoritative lap duration for segments[seg_idx].
+
+    Reads scoring_last_lap_time_s from the NEXT segment (where mLastLapTime
+    holds this lap's official time). Falls back to max(lap_time_s) if:
+      - the column is absent (pre-10b parquet)
+      - no next segment exists (last lap)
+      - the next segment's value is None or > 1 s away from max(lap_time_s)
+        (lap didn't count, so mLastLapTime didn't update)
+    """
+    _, start, end = segments[seg_idx]
+    lap_t_col = table.column("lap_time_s").to_pylist()[start:end]
+    fallback = max(lap_t_col) if lap_t_col else 0.0
+
+    if seg_idx + 1 >= len(segments):
+        return fallback
+
+    if "scoring_last_lap_time_s" not in table.schema.names:
+        return fallback
+
+    _, next_start, next_end = segments[seg_idx + 1]
+    next_vals = [
+        v for v in table.column("scoring_last_lap_time_s").to_pylist()[next_start:next_end]
+        if v is not None
+    ]
+    if not next_vals:
+        return fallback
+
+    candidate = max(next_vals)
+
+    if abs(candidate - fallback) > 1.0:
+        return fallback
+
+    return candidate
+
+
 def _build_segments(lap_col: list[int]) -> list[tuple[int, int, int]]:
     """Contiguous runs of constant lap_number, in time order.
     Returns list of (lap_number, start_idx, end_idx_exclusive).
@@ -72,8 +112,7 @@ def main() -> int:
     print(f"Session: {args.session}")
     print(f"Total segments: {len(segments)}")
     for i, (lap_num, start, end) in enumerate(segments):
-        lap_t_col = t.column("lap_time_s").to_pylist()[start:end]
-        duration = max(lap_t_col) if lap_t_col else 0.0
+        duration = _authoritative_duration(t, i, segments)
         m, s = divmod(duration, 60)
         valid_tag = f"  {'[valid]' if _is_valid_seg(start, end) else '[INVALID]'}" if valid_col is not None else ""
         print(f"  Segment {i+1}: lap_number={lap_num}, frames={end-start}, duration={int(m)}:{s:06.3f}{valid_tag}")
@@ -96,14 +135,14 @@ def main() -> int:
             if not matching:
                 print(f"error: no valid segment found for lap_number {args.lap} (--valid-only)", file=sys.stderr)
                 return 1
-        # Pick the segment with the shortest lap time (handles multi-stint sessions)
+        # Pick the segment with the shortest authoritative duration
         best_i, _ = min(
             matching,
-            key=lambda x: max(t.column('lap_time_s').to_pylist()[x[1][1]:x[1][2]])
+            key=lambda x: _authoritative_duration(t, x[0], segments)
         )
         n = best_i + 1
         lap_num, start, end = segments[best_i]
-        duration = max(t.column('lap_time_s').to_pylist()[start:end])
+        duration = _authoritative_duration(t, best_i, segments)
         m, s = divmod(duration, 60)
         print(f"Using segment {n} for lap_number={lap_num} ({end - start} rows, {int(m)}:{s:06.3f})")
     else:
@@ -116,7 +155,7 @@ def main() -> int:
             print(f"error: segment {n} (lap_number={lap_num}) has invalid rows (--valid-only)", file=sys.stderr)
             return 1
     slice_table = t.slice(start, end - start)
-    extracted_duration = max(t.column('lap_time_s').to_pylist()[start:end])
+    extracted_duration = _authoritative_duration(t, n - 1, segments)
     mins, secs = divmod(extracted_duration, 60)
 
     out_path = args.out
