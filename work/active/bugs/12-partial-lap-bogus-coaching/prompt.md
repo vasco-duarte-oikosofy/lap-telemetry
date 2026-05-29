@@ -1,140 +1,177 @@
-# Bug 12: Partial lap produces bogus coaching gains
+# Bug 12: Partial lap data produces bogus coaching gains
 
 ## Observed symptom
 
 ```
-lap-telemetry: [coach] lap completed: lap 8, track=Bahrain Outer Circuit, frames=1237, lap_time=21.64s
-lap-telemetry: [coach] timing-from-parquet lap=8 parquet_read=125ms compare=125ms llm=0ms total=125ms
-lap-telemetry: [coach] utterance (enqueue +8578ms): You gained 15 seconds at the apex of turn 4.
+[coach] lap completed: lap 4, frames=3941, lap_time=78.88s
+[coach] timing-from-parquet lap=4  ...
+[coach] utterance: You gained 14 seconds at the apex of turn 1.
+
+[coach] lap completed: lap 7, frames=3635, lap_time=72.62s
+[coach] timing-from-parquet lap=7  ...
+[coach] utterance: You gained 14 seconds at the apex of turn 1.
+
+[coach] lap completed: lap 8, frames=1237, lap_time=21.64s
+[coach] timing-from-parquet lap=8  ...
+[coach] utterance: You gained 15 seconds at the apex of turn 4.
 ```
 
-Bahrain Outer reference lap = 1:11.380 (71.38s). A 15-second gain on a 71-second lap
-is physically impossible.
+Bahrain Outer reference = 1:11.380 (71.4s, track = 3509m). Gains of 14–15 seconds
+are physically impossible on a 71-second lap.
 
-## Reproduction
+Session file: `sessions/session_20260529T092852Z_bahrain-outer-circuit_lmu.parquet`
 
-Session file in repo (committed as fixture reference):
+## Root cause — two different partial-lap scenarios
+
+Both share the same underlying flaw: `compare_laps()` receives incomplete lap data
+and silently extrapolates, producing phantom gains.
+
+### Scenario A — tail-partial (laps 4 and 7)
+
+`_FLUSH_INTERVAL_S = 30.0` in `record.py`. Bahrain Outer laps are ~71s.
+
+Timeline for lap 4 (79s):
+1. Lap 3 ends → lap 4 starts. Buffer accumulates lap 4 frames.
+2. **Flush at T+30s** into lap 4: buffer (first ~30s of lap 4) is written as shard N.
+   `_completed_lap_numbers = {3}` → `on_lap_flushed(shard N, 3)` fires. Buffer resets.
+3. More lap 4 frames accumulate from ~1500m onwards.
+4. Lap 4 ends (lap 5 starts). `_completed_lap_numbers = {4}`.
+5. **Next flush** (≤ 30s later): shard N+1 is written with only the **tail** of lap 4
+   (frames since step 2's flush, i.e. `lap_time_s >= ~30s`, starting at ~1500m).
+   `on_lap_flushed(shard N+1, 4)` fires.
+6. Coach reads shard N+1 → `compare_laps(shard, ref, model, lap_number=4)`.
+   Filtered data: `dist=[~1500m .. 3510m]`, `lap_time_s=[~30s .. 78.88s]`.
+
+Bins 0–1499m are clamped to `lap_time_s ≈ 30s`. Reference has `lap_time_s ≈ 0–30s`
+at those same bins. Delta_t at 0m = `(30s − 0s) × 1000 = +30 000 ms`. It falls
+across the first half of the track. At turn 1 (739m), delta drops from 30s to ~16s
+— a phantom `loss_s ≈ −14s` for every corner in the first half.
+
+**Reproduced** by simulating the shard cut:
 ```
-sessions/session_20260529T092852Z_bahrain-outer-circuit_lmu.parquet
+# lap 4 tail (lap_time_s >= 30s):  loss_s=-13.803 at t1 minimum_speed
+# lap 7 tail (lap_time_s >= 30s):  loss_s=-13.803 at t1 minimum_speed  ← same number
 ```
-Reference lap: `product/data/reference-laps/bahrain-outer-circuit_dkr-engineering-4-elms25_time_01.11.380.parquet`
-Track model:   `product/data/track-coaching/bahrain-outer-circuit_dkr-engineering-4-elms25.json`
+The `driver=94.1–95.1 kph` at turn 1 apex is the clamped speed from ~1500m
+(the car's speed when recording resumed), not the real turn 1 speed.
 
-Run `dev/tools/inspect_lap8.py` to see the raw data and reproduce the bogus compare_laps output.
+### Scenario B — head-partial (lap 8)
 
+The session was stopped while lap 8 was in progress. The car only reached 1046m
+(turn 4 is at 2038m — never reached). Additionally, one stale cross-lap frame
+at the start of lap 8 carries `dist_m=3510.3m, lap_time_s=-0.163` from the end
+of lap 7.
+
+`max(current_dist)` = 3510m (from the stale frame). The JS pipeline resamples to
+3510 bins. Bins 1047–3510 are filled with the frozen session-end speed (151.9 kph).
+Reference has real corner speeds (105 kph at turn 4). Phantom gain: −15s at turn 4.
+
+**Reproduced** directly:
 ```
-$ python dev/tools/inspect_lap8.py
-compare_laps(lap 8) top_gains:
-  t4 minimum_speed: loss_s=-15.153  apex_m=2038  driver=151.9  ref=105.0
-  t4 exit:          loss_s=-14.033  apex_m=2038  driver=151.9  ref=108.1
-  t5 minimum_speed: loss_s=-10.711  apex_m=3047  driver=151.9  ref=99.1
+# lap 8 (with stale frame): loss_s=-15.153 at t4 minimum_speed
+# lap 8 (stale stripped):   loss_s=-15.153 at t4 minimum_speed  ← still wrong
 ```
+Stripping the stale frame doesn't fix scenario B alone — the frozen frames
+at the end still extrapolate the wrong speed.
 
-## Root cause (two overlapping issues)
+## Detection: both scenarios share the same signal
 
-### Issue A — stale cross-lap frame inflates max(current_dist)
+After filtering to `lap_number` and stripping stale frames (`lap_time_s < 0`):
 
-Lap 8 in the parquet contains one stale frame from the lap 7→8 boundary:
+| Scenario | `min(dist)` | `max(dist)` | Failure |
+|---|---|---|---|
+| Full lap | ≈ 0–10m | ≈ 3510m | — |
+| Tail-partial (A) | ≈ 1500m | ≈ 3510m | min too high |
+| Head-partial (B) | ≈ 0m | ≈ 1046m | max too low |
 
+**Guard condition** (two checks, both must pass):
+```python
+TRACK_START_FRAC = 0.10   # data must start within first 10% of track
+TRACK_END_FRAC   = 0.80   # data must reach at least 80% of track
+
+if min(current_dist) > track_model.lap_length_m * TRACK_START_FRAC:
+    raise PartialLapError("lap starts mid-track (tail-partial shard)")
+if max(current_dist) < track_model.lap_length_m * TRACK_END_FRAC:
+    raise PartialLapError("lap ends mid-track (session-end or head-partial)")
 ```
-index 31257: lap_number=8, lap_time_s=-0.163, dist_m=3510.3, raw_dist=3498.7, speed=224.2
-index 31258: lap_number=8, lap_time_s= 0.037, dist_m=   -0.0, raw_dist=  -0.0, speed=224.3
-```
-
-`lap_number` already incremented to 8 (telemetry cadence) but `mLapDist` had not yet
-reset in the scoring data. `dist_m=3510.3` is the end-of-lap-7 position.
-
-`compare_laps(lap_number=8)` pulls all rows where `lap_number==8`.
-`max(current_dist)` = **3510.3m** (from that one stale frame).
-The JS pipeline therefore resamples to 3510 bins, as if this were a full lap.
-
-### Issue B — frozen session-end frames fill the gap
-
-The session was stopped while lap 8 was in progress. The last ~20 frames are frozen:
-
-```
-index 32474-32493: lap_time_s=21.637, dist_m=1046.5, speed=151.9
-```
-
-The car reached 1046m (out of 3510m total) before the session ended. Turn 4 is at
-2038m — **never reached in lap 8**.
-
-After the stale frame inflates `max_dist` to 3510m, the JS pipeline has:
-- Current lap: real data for bins 0–1046, then **extrapolated/clamped at 151.9 kph**
-  for bins 1047–3510 (the frozen session-end speed)
-- Reference lap: real corner speeds for all 3510 bins
-
-At turn 4 (2038m): driver = 151.9 kph (fake frozen value) vs reference = 105.0 kph
-(real corner minimum). Δspeed = +46.9 kph. Delta-t integration computes a fake
-**-15.15-second gain** for the driver.
 
 ## Files to fix
 
-### `product/python/lap_telemetry/coach/lap_comparator.py`
+### `product/python/lap_telemetry/recorder/record.py`
 
-**Fix 1 — strip stale frames when filtering by lap_number** (fixes Issue A):
-
-When `lap_number` is provided, additionally drop rows where `lap_time_s < 0`.
-These are cross-lap boundary artifacts where `lap_number` already incremented
-but `mLapDist` / `lap_time_s` still reflect the previous lap.
+**Root fix for Scenario A**: trigger a shard flush at every lap boundary so the
+ENTIRE completed lap is always in one shard, not split across two.
 
 ```python
-if lap_number is not None:
-    lap_numbers = current_table.column("lap_number").to_pylist()
-    lap_times   = current_table.column("lap_time_s").to_pylist()
-    mask = [ln == lap_number and lt >= 0 for ln, lt in zip(lap_numbers, lap_times)]
-    current_table = current_table.filter(mask)
+if frame.lap_number != last_lap:
+    writer.flush_shard()          # <-- flush before changing lap context
+    last_lap = frame.lap_number
 ```
 
-**Fix 2 — guard against partial laps** (fixes Issue B):
+This ensures the shard passed to `on_lap_flushed(shard, N)` always contains the
+complete data from the start of lap N to its finish line crossing — regardless of
+where the 30-second timer lands.
 
-After filtering, check coverage. If `max(current_dist) < track_model.lap_length_m * 0.80`,
-raise `PartialLapError` (or return an empty/skipped `LapComparisonFacts`) so the
-caller knows not to generate a coaching utterance.
+### `product/python/lap_telemetry/coach/lap_comparator.py`
 
-The threshold 80% (= ~2808m for Bahrain Outer) is conservative: even a lap that
-aborts at turn 4 (2038m = 58%) would be caught. Any lap that crosses the
-finish line normally will have dist ≥ ~3400m.
+**Defensive guard** (fixes both scenarios, provides protection even if record.py
+is patched or shards are read from elsewhere):
+
+1. After filtering by `lap_number`, strip stale frames:
+   ```python
+   # drop cross-lap boundary artifacts: high dist, negative lap_time_s
+   mask = [ln == lap_number and not (lt < 0 and ld > track_model.lap_length_m * 0.5)
+           for ln, lt, ld in zip(lap_numbers, lap_times, lap_dists)]
+   ```
+
+2. Check coverage:
+   ```python
+   if min(current_dist) > track_model.lap_length_m * 0.10:
+       raise PartialLapError(f"lap starts at {min(current_dist):.0f}m (tail-partial)")
+   if max(current_dist) < track_model.lap_length_m * 0.80:
+       raise PartialLapError(f"lap ends at {max(current_dist):.0f}m (head-partial)")
+   ```
 
 ### `product/python/lap_telemetry/coach/live_fact_generator.py`
 
-`generate_from_parquet()` should catch `PartialLapError` and log a warning instead
-of passing it up:
-
-```python
-except PartialLapError as e:
-    log.warning("Skipping partial lap %d: %s", lap_number, e)
-    return None
-```
+Catch `PartialLapError` in `generate_from_parquet()` and log a warning instead of
+producing a coaching utterance.
 
 ## Files to investigate (no change expected)
 
-- `product/python/lap_telemetry/recorder/connect.py` — the stale frame is produced
-  because `lap_number` is read from telemetry (fast) while `mLapDist` is in scoring
-  (slow, ~5 Hz). This is the same boundary inconsistency tracked by bug 10. The
-  recorder fix (if any) belongs to bug 10b; the comparator must defend itself
-  regardless.
+- `product/python/lap_telemetry/recorder/writer.py` — `on_lap_flushed` fires with
+  the shard path that was just written. The path is correct; the data in the shard
+  is what's incomplete. Fix is in `record.py` (flush at lap boundary).
+
+## Reproduction script
+
+`dev/tools/inspect_lap8.py` — reproduces both scenarios from the merged session
+parquet. The shard-cut scenario is simulated by filtering `lap_time_s >= 30`.
+
+Run: `python dev/tools/inspect_lap8.py`
+
+Expected output after fix:
+- Lap 4 full: largest gain ≈ −0.23s (not 14s)
+- Lap 7 full: largest gain ≈ −0.10s (not 14s)
+- Lap 8: `PartialLapError` raised, no utterance generated
 
 ## Tests to add
 
-Use `sessions/session_20260529T092852Z_bahrain-outer-circuit_lmu.parquet` as the
-test fixture (or extract lap 8 rows into `dev/fixtures/coach/bahrain_outer_lap8.parquet`).
+1. **test_tail_partial**: filter a known full-lap parquet to `lap_time_s >= 30`
+   → assert `compare_laps` raises `PartialLapError` (min_dist too high).
 
-1. **Test: stale-frame stripping** — assert that after filtering to
-   `lap_number=8` + `lap_time_s >= 0`, the frame with `dist_m=3510.3` is absent
-   and `max(current_dist) < 1100`.
+2. **test_head_partial**: use lap 8 from the session file
+   → assert `compare_laps` raises `PartialLapError` (max_dist too low).
 
-2. **Test: partial-lap guard** — assert that `compare_laps(session, ref, model,
-   lap_number=8)` raises `PartialLapError` (or returns an empty result), not a
-   facts object with gains > 5 seconds.
+3. **test_full_lap_unaffected**: lap 5 or 6 from the session file
+   → assert `compare_laps` returns valid facts with `|loss_s| < 3s`.
 
-3. **Test: good lap unaffected** — assert that `compare_laps(session, ref, model,
-   lap_number=5)` still returns a valid `LapComparisonFacts` with
-   `|lap_time_delta_s| < 5s` and `|loss_s| < 3s` for all gains/losses.
+4. **test_lap_boundary_flush**: simulate `record.py` lap boundary → verify
+   `flush_shard()` is called at the lap crossing so the shard contains the
+   complete completed lap.
 
 ## Acceptance
 
-- `dev/tools/inspect_lap8.py` shows no gain > 5 seconds for lap 8.
-- The test suite for the coach passes.
-- A partial lap (< 80% track coverage) is silently skipped by the coaching pipeline
-  with a log warning, not an utterance.
+- `dev/tools/inspect_lap8.py` shows no gain > 5s for laps 4, 7, or 8.
+- Partial laps are logged as warnings and produce no utterance.
+- A complete lap (5 or 6) still produces correct sub-second coaching.
