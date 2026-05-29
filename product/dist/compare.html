@@ -754,6 +754,8 @@ function loadPersistedZoom(maxDist) {
 var PARTIAL_DIST_FRAC = 0.95;
 var PARTIAL_DUR_FRAC = 0.5;
 var ROLLING_DIST_M = 50;
+var SLOW_LAP_RATIO_THRESHOLD = 1.15;
+var SLOW_LAP_RATIO_EPSILON = 1e-9;
 function fileToAsyncBuffer(file) {
   return {
     byteLength: file.size,
@@ -815,6 +817,10 @@ function authDuration(segments, scoringLastLapTime, index) {
   }
   return Number.isFinite(best) && best > 0 && fallback > 0 && Math.abs(best - fallback) <= 1 ? best : fallback;
 }
+function isSlowLapComparedToReference(sessionSeg, refSeg) {
+  const s = sessionSeg?.duration || 0, r = refSeg?.duration || 0;
+  return s > 0 && r > 0 && s / r > SLOW_LAP_RATIO_THRESHOLD + SLOW_LAP_RATIO_EPSILON;
+}
 function annotateSegments(segments, distances, lapTimes, scoringLastLapTime = null) {
   if (!segments.length) return;
   let trackLen = 0;
@@ -848,7 +854,8 @@ function annotateSegments(segments, distances, lapTimes, scoringLastLapTime = nu
   for (const seg of segments) {
     const distTruncated = seg.maxDist < trackLen * PARTIAL_DIST_FRAC;
     const durTruncated = durFloor > 0 && seg.duration > 0 && seg.duration < durFloor;
-    seg.partial = distTruncated || durTruncated;
+    const slowLap = medDur > 0 && isSlowLapComparedToReference(seg, { duration: medDur });
+    seg.partial = distTruncated || durTruncated || slowLap;
     seg.rolling = Math.abs(seg.minDist) > ROLLING_DIST_M;
     seg.fastest = false;
   }

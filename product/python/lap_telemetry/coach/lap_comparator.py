@@ -15,6 +15,10 @@ from .resample import resample_column, compute_delta_time_trace
 from .track_model import TrackCoachingModel, Corner
 
 
+_SLOW_LAP_RATIO_THRESHOLD = 1.15
+_SLOW_LAP_RATIO_EPSILON = 1e-9
+
+
 def compute_minimum_speed_per_corner(
     driver_speed: list[float],
     ref_speed: list[float],
@@ -113,6 +117,15 @@ def _segment_duration(
     )
 
 
+def _is_implausibly_slow_lap(driver_lap_time: float, ref_lap_time: float) -> bool:
+    if driver_lap_time <= 0 or ref_lap_time <= 0:
+        return False
+    return (
+        (driver_lap_time / ref_lap_time)
+        > (_SLOW_LAP_RATIO_THRESHOLD + _SLOW_LAP_RATIO_EPSILON)
+    )
+
+
 def compare_laps(
     current_lap_path: Path | str,
     reference_lap_path: Path | str,
@@ -180,6 +193,18 @@ def compare_laps(
 
     ref_table = pq.read_table(reference_lap_path)
     ref_duration_segment = _duration_segment_for_lap(ref_table, None)
+    driver_lap_time = _segment_duration(full_current_table, current_duration_segment)
+    ref_lap_time = _segment_duration(
+        ref_table,
+        ref_duration_segment,
+        allow_same_segment_scoring=True,
+    )
+    if _is_implausibly_slow_lap(driver_lap_time, ref_lap_time):
+        ratio = driver_lap_time / ref_lap_time
+        raise PartialLapError(
+            f"lap duration {driver_lap_time:.1f}s is {ratio * 100:.0f}% of "
+            f"reference {ref_lap_time:.1f}s — likely pitstop or safety-car lap"
+        )
 
     current_dist = current_table.column("lap_distance_m").to_pylist()
     current_speed = current_table.column("speed_kph").to_pylist()
@@ -220,12 +245,6 @@ def compare_laps(
     ref_brake_grid = js_result.get("ref_brake_norm")
     track_length = js_result["track_length"]
 
-    driver_lap_time = _segment_duration(full_current_table, current_duration_segment)
-    ref_lap_time = _segment_duration(
-        ref_table,
-        ref_duration_segment,
-        allow_same_segment_scoring=True,
-    )
     lap_time_delta = driver_lap_time - ref_lap_time
 
     lap_numbers = current_table.column("lap_number").to_pylist()

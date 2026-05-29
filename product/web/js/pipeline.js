@@ -1,14 +1,9 @@
-// ── Data pipeline module ─────────────────────────────────────────────────────
 // Pure computation functions for loading, resampling, and processing telemetry.
-// No DOM access, no global state — all functions are pure or async-pure.
-
-// ── Constants ─────────────────────────────────────────────────────────────────
-
 export const PARTIAL_DIST_FRAC = 0.95;  // maxD must be ≥ 95% of trackLen
 export const PARTIAL_DUR_FRAC  = 0.5;   // duration must be ≥ 50% of median complete-lap dur
 export const ROLLING_DIST_M    = 50;    // |minD| at the first frame may be up to ±50 m
-
-// ── File I/O ──────────────────────────────────────────────────────────────────
+export const SLOW_LAP_RATIO_THRESHOLD = 1.15;
+const SLOW_LAP_RATIO_EPSILON = 1e-9;
 
 export function fileToAsyncBuffer(file) {
   return {
@@ -55,8 +50,6 @@ export async function readColumns(file, columns) {
   return { data: result, missingCols };
 }
 
-// ── Segment builder ───────────────────────────────────────────────────────────
-
 export function buildSegments(lapNumbers) {
   if (!lapNumbers.length) return [];
   const segs = [];
@@ -84,8 +77,12 @@ function authDuration(segments, scoringLastLapTime, index) {
     ? best : fallback;
 }
 
-// Annotate each segment with distance window, duration, partial/rolling flags,
-// and fastest-lap marker. trackLen is the longest maxD seen across all segments.
+export function isSlowLapComparedToReference(sessionSeg, refSeg) {
+  const s = sessionSeg?.duration || 0, r = refSeg?.duration || 0;
+  return s > 0 && r > 0 && (s / r) > (SLOW_LAP_RATIO_THRESHOLD + SLOW_LAP_RATIO_EPSILON);
+}
+
+// Annotate segments with distance window, duration, flags, and fastest marker.
 export function annotateSegments(segments, distances, lapTimes, scoringLastLapTime = null) {
   if (!segments.length) return;
   let trackLen = 0;
@@ -128,7 +125,8 @@ export function annotateSegments(segments, distances, lapTimes, scoringLastLapTi
   for (const seg of segments) {
     const distTruncated = seg.maxDist < trackLen * PARTIAL_DIST_FRAC;
     const durTruncated  = durFloor > 0 && seg.duration > 0 && seg.duration < durFloor;
-    seg.partial = distTruncated || durTruncated;
+    const slowLap = medDur > 0 && isSlowLapComparedToReference(seg, { duration: medDur });
+    seg.partial = distTruncated || durTruncated || slowLap;
     seg.rolling = Math.abs(seg.minDist) > ROLLING_DIST_M;
     seg.fastest = false;
   }
