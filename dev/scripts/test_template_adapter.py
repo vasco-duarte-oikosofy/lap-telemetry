@@ -626,6 +626,70 @@ facts_json = _json.loads(res2.stdout)
 ok(facts_json["type"] == "lap_coaching_summary", "--print-facts outputs valid facts")
 
 
+# ══════════════════════════════════════════════════════════════════════════
+# 13. Bug 18 — hard-guarantee must not duplicate lead sentence after truncation
+# ══════════════════════════════════════════════════════════════════════════
+
+print("\n── Bug 18: no duplicate lead after truncation ──\n")
+
+# Turn 9 exit: two phases → dedup produces a long phrase (lead + detail sentence).
+# max_words=8 keeps only the lead. The hard guarantee must not re-append the full
+# phrase and duplicate the lead.
+_b18_losses = [
+    make_loss(corner_id="t9", corner_name="turn 9", phase="exit_brake",
+              loss_s=0.7, driver_value=0.0, reference_value=0.0,
+              exit_distance_delta_m=15.0),
+    make_loss(corner_id="t9", corner_name="turn 9", phase="exit_throttle",
+              loss_s=0.3, driver_value=0.0, reference_value=0.0,
+              exit_distance_delta_m=8.0),
+]
+_b18_facts_tight = LapComparisonFacts(
+    type="lap_coaching_summary", track_id="test", lap_number=1,
+    lap_time_delta_s=0.7,
+    top_losses=_b18_losses, top_gains=[],
+    constraints={"max_words": 8},
+)
+_b18_utterance = TemplateAdapter.generate(_b18_facts_tight)
+_b18_lead = "You lost seven tenths exiting turn 9."
+ok(_b18_lead in _b18_utterance,
+   "bug18: lead sentence present after tight truncation", _b18_utterance)
+ok(_b18_utterance.count(_b18_lead) == 1,
+   "bug18: lead sentence not duplicated", _b18_utterance)
+
+# With max_words=200, full phrase fits without appending — also no duplicate.
+_b18_facts_wide = LapComparisonFacts(
+    type="lap_coaching_summary", track_id="test", lap_number=1,
+    lap_time_delta_s=0.7,
+    top_losses=_b18_losses, top_gains=[],
+    constraints={"max_words": 200},
+)
+_b18_wide = TemplateAdapter.generate(_b18_facts_wide)
+ok(_b18_wide.count(_b18_lead) == 1,
+   "bug18: no duplicate at wide word limit", _b18_wide)
+
+# Hard guarantee still kicks in when the lead is completely absent (all phrases
+# squeezed out by a tiny gain-only budget with worst-loss corner not representable).
+# Use driver slower (delta > 0) so guarantee is active.
+_b18_gains = [
+    make_loss(corner_id="t2", corner_name="turn 2", phase="entry",
+              loss_s=-0.5, entry_distance_delta_m=-5.0),
+    make_loss(corner_id="t3", corner_name="turn 3", phase="entry",
+              loss_s=-0.4, entry_distance_delta_m=-3.0),
+]
+_b18_facts_loss_absent = LapComparisonFacts(
+    type="lap_coaching_summary", track_id="test", lap_number=2,
+    lap_time_delta_s=1.0,
+    top_losses=[make_loss(corner_id="t1", corner_name="turn 1",
+                          phase="minimum_speed", loss_s=1.0,
+                          driver_value=100.0, reference_value=110.0)],
+    top_gains=_b18_gains,
+    constraints={"max_words": 200},
+)
+_b18_absent = TemplateAdapter.generate(_b18_facts_loss_absent)
+ok("You lost" in _b18_absent,
+   "bug18: guarantee still inserts loss when absent", _b18_absent)
+
+
 # ── Summary ───────────────────────────────────────────────────────────────
 
 print(f"\n{'-' * 60}")

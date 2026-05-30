@@ -595,9 +595,14 @@ class TemplateAdapter:
         max_words = facts.constraints.get("max_words", 60)
         result = _truncate_to_word_limit(result, max_words)
 
-        # Hard guarantee: worst loss phrase must appear when driver is slower
-        if worst_loss_phrase and worst_loss_phrase not in result:
-            result = (result.rstrip() + " " + worst_loss_phrase).strip()
+        # Hard guarantee: worst loss lead sentence must appear when driver is slower.
+        # Check only the lead (first sentence), not the full phrase — truncation may
+        # have kept the lead but stripped the detail clause, and a full-phrase check
+        # would incorrectly re-append, duplicating the lead sentence (bug 18).
+        if worst_loss_phrase:
+            worst_loss_lead = worst_loss_phrase.split(". ")[0] + "."
+            if worst_loss_lead not in result:
+                result = (result.rstrip() + " " + worst_loss_phrase).strip()
 
         return result
 
