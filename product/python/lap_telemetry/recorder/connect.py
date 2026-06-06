@@ -196,10 +196,14 @@ def _positive_float(obj, attr: str) -> Optional[float]:
 
 
 def _valid_session_type(obj, attr: str) -> Optional[int]:
-    """Read session type, return int if valid (0-10), else None."""
+    """Read session type, return int if valid (0-13), else None.
+
+    LMU/rF2 mSession values: 0=test day, 1-4=practice, 5-8=qualifying,
+    9=warmup, 10-13=race.
+    """
     try:
         v = int(getattr(obj, attr))
-        return v if 0 <= v <= 10 else None
+        return v if 0 <= v <= 13 else None
     except (AttributeError, ValueError):
         return None
 

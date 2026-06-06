@@ -21,7 +21,7 @@ Tracks are ordered by data quality: TUMFTM first (real widths), then trajectory-
 | `03-bahrain-gp` | Bahrain International Circuit (GP) | TUMFTM `Sakhir.csv` | Real | ✅ Done |
 | `04-barcelona` | Circuit de Barcelona-Catalunya | Trajectory | Clean trajectory | ✅ Done |
 | `05-monza` | Monza (with chicanes) | TUMFTM `Monza.csv` | Real | ✅ Done |
-| `06-interlagos` | Autódromo José Carlos Pace | TUMFTM `SaoPaulo.csv` | Real | 🔲 Not started |
+| `06-interlagos` | Autódromo José Carlos Pace | TUMFTM `SaoPaulo.csv` | Real | ✅ Done |
 | `07-cota-gp` | Circuit of the Americas (GP) | TUMFTM `Austin.csv` | Real | 🔲 Not started |
 | `08-imola` | Autodromo Enzo e Dino Ferrari | No TUMFTM | Clean trajectory | ✅ Done (trajectory) |
 | `09-fuji` | Fuji International Speedway | No TUMFTM | Clean trajectory | ✅ Done |
@@ -72,16 +72,16 @@ TUMFTM `Catalunya.csv` is the old F1 layout (pre-2007 chicane). LMU uses the Mot
 3. Visual-check the output in `tools/manual_outline_align.html`. Adjust alignment if needed.
 4. Run `node dev/scripts/generate_outline_module.js product/data/track-outlines/<slug>.json` to create the ES module.
 5. Import the new module in `product/web/js/trackOutlineManifest.js` and add slug entries to the `OUTLINES` map.
-6. Run `bash scripts/test-summary.sh` — must pass.
-7. Run `npm run build` — `dist/compare.html` must be current.
+6. **Run `npm run build`** — `dist/compare.html` is a pre-built bundle and will NOT show the new outline until rebuilt.
+7. Run `bash scripts/test-summary.sh` — must pass.
 
 **Steps (trajectory tracks):**
 1. Generate a trajectory outline from session data (single fast lap or median of fastest laps).
 2. Write the outline JSON with `source: "clean trajectory"` and constant-width boundaries.
 3. Run `node dev/scripts/generate_outline_module.js` to create the ES module.
 4. Import and wire into `trackOutlineManifest.js`.
-5. Run `bash scripts/test-summary.sh` — must pass.
-6. Run `npm run build` — must succeed.
+5. **Run `npm run build`** — `dist/compare.html` will not reflect the change until rebuilt.
+6. Run `bash scripts/test-summary.sh` — must pass.
 
 ### Slice N-b: Map render + scale QA for `<track-name>`
 
@@ -165,11 +165,15 @@ Each layout needs its own outline unless it's a confirmed alias (same physical t
 - **Session data:** Using exported lap from reference-lap parquet
 - **Visual QA:** Done — boundaries verified around the sim trajectory at main straight, chicanes, and Parabolica
 
-#### Autódromo José Carlos Pace (Interlagos) 🔲
+#### Autódromo José Carlos Pace (Interlagos) ✅ Done
 - **Layouts:** base only
-- **TUMFTM CSV:** `SaoPaulo.csv`
-- **Session data:** Not yet available (2024 Pack 3 DLC)
-- **Manifest entries:** `autodromo-jose-carlos-pace`, `interlagos`
+- **TUMFTM CSV:** `SaoPaulo.csv` (862 points)
+- **Session data:** `session_20260606T064918Z_autdromo-jos-carlos-pace_lmu_practice` (22 laps)
+- **Reference lap:** lap 19, 1:31.770, `autdromo-jos-carlos-pace_dkr-engineering-4-elms25_time_01.31.770.parquet`
+- **Outline:** `autodromo-jose-carlos-pace.json` — TUMFTM real boundaries, manually aligned
+- **ES module:** `staticAutodromoJoseCarlosPaceOutlineData.js` (121 KB)
+- **Manifest entries:** `autdromo-jos-carlos-pace` (slugify result from sim track name), `interlagos`
+- **Note:** Recorder strips accented chars from "Autódromo José Carlos Pace" → slug `autdromo-jos-carlos-pace`
 
 #### Circuit of the Americas 🔲
 - **Layouts needing outlines:**

@@ -75,6 +75,24 @@ def _track_slug(track: str) -> str:
     return slug or "unknown"
 
 
+def _session_type_slug(session_type: int | None) -> str | None:
+    """Map mSession int to a human-readable filename suffix.
+
+    LMU/rF2 values: 0=test day, 1-4=practice, 5-8=qualifying,
+    9=warmup, 10-13=race. Test day and warmup are treated as practice.
+    Returns None for unknown/None (no suffix appended).
+    """
+    if session_type is None:
+        return None
+    if 10 <= session_type <= 13:
+        return "race"
+    if 5 <= session_type <= 8:
+        return "quali"
+    if 0 <= session_type <= 4 or session_type == 9:
+        return "practice"
+    return None
+
+
 def _utc_compact() -> str:
     return datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
 
@@ -164,15 +182,16 @@ def recover_orphaned_shards(out_dir: Path) -> None:
                 new_sidecar = existing
         else:
             # No sidecar from the killed session — best-effort from the
-            # filename stem: session_<YYYYMMDDTHHMMSSZ>_<track-slug>_<sim>
-            parts = stem.split("_", 3)
+            # filename stem: session_<ts>_<track-slug>_<sim>[_<type>]
+            # Split at most 4 times so the track slug (hyphens only) stays whole.
+            parts = stem.split("_", 4)
             started = parts[1] if len(parts) > 1 else "unknown"
             try:
                 started_iso = datetime.strptime(started, "%Y%m%dT%H%M%SZ").strftime("%Y-%m-%dT%H:%M:%SZ")
             except ValueError:
                 started_iso = started
-            sim_name   = parts[3] if len(parts) > 3 else "unknown"
             track_slug = parts[2] if len(parts) > 2 else "unknown"
+            sim_name   = parts[3] if len(parts) > 3 else "unknown"
             new_sidecar = {
                 "schema_version": "2",
                 "recorder_version": __version__,
@@ -207,14 +226,18 @@ class SessionWriter:
         track: str,
         rate_hz: float,
         on_lap_flushed: Callable[[Path, int], None] | None = None,
+        session_type: int | None = None,
     ) -> None:
         self._out_dir = out_dir
         self._sim = sim
         self._track = track
         self._rate_hz = rate_hz
         self._on_lap_flushed = on_lap_flushed
+        self._session_type = session_type
         self._started_utc = _utc_iso()
-        stem = f"session_{_utc_compact()}_{_track_slug(track)}_{sim}"
+        type_slug = _session_type_slug(session_type)
+        base = f"session_{_utc_compact()}_{_track_slug(track)}_{sim}"
+        stem = f"{base}_{type_slug}" if type_slug else base
         self._stem = stem
         self._sidecar_path = out_dir / f"{stem}.json"
         self._shard_index = 0
@@ -367,6 +390,7 @@ class SessionWriter:
             "track": self._track,
             "vehicle_name": self._last_vehicle,
             "setup_file_guess": self._setup_file_guess,
+            "session_type_label": _session_type_slug(self._session_type),
             "sample_rate_hz": self._rate_hz,
             "row_count": self._row_count,
             "lap_count": len(self._lap_numbers),

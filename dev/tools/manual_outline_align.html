@@ -46,6 +46,8 @@
     <p class="hint">Drag canvas to pan; mouse wheel zooms around the cursor. View zoom does not affect exported coordinates.</p>
     <button id="reset-view-button">Reset view</button>
     <button id="reset-button">Reset transform</button>
+    <label>Track name (for export)</label>
+    <input id="track-name-input" type="text" placeholder="e.g. Autódromo José Carlos Pace" style="width:100%;box-sizing:border-box;margin-bottom:4px;">
     <button id="export-button">Export aligned outline JSON</button>
     <button id="copy-button">Copy export</button>
     <a id="download-link" download="aligned-outline-spike.json"></a>
@@ -219,7 +221,8 @@
 
   function exportObject() {
     const geom = transformedGeometry(); if (!geom) throw new Error('load track geometry first');
-    return { schema_version: 0, source: 'TUMFTM manual alignment spike', track_name: 'Spa-Francorchamps', alignment: param(), centerline: geom.center, left_boundary: geom.left, right_boundary: geom.right };
+    const trackName = $('track-name-input').value.trim() || 'unknown track';
+    return { schema_version: 0, source: 'TUMFTM manual alignment spike', track_name: trackName, alignment: param(), centerline: geom.center, left_boundary: geom.left, right_boundary: geom.right };
   }
   $('export-button').onclick = () => {
     const obj = exportObject(); const text = JSON.stringify(obj, null, 2); state.exportObject = obj; $('export-text').value = text;

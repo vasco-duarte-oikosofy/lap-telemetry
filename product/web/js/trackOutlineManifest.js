@@ -19,6 +19,7 @@ import { CIRCUIT_OF_THE_AMERICAS_STATIC_OUTLINE } from './staticCircuitOfTheAmer
 import { LUSAIL_INTERNATIONAL_CIRCUIT_STATIC_OUTLINE } from './staticLusailInternationalCircuitOutlineData.js';
 import { PAUL_RICARD___3A_STATIC_OUTLINE } from './staticPaulRicard3aOutlineData.js';
 import { BAHRAIN_OUTER_CIRCUIT_STATIC_OUTLINE } from './staticBahrainOuterCircuitOutlineData.js';
+import { AUTODROMO_JOSE_CARLOS_PACE_STATIC_OUTLINE } from './staticAutodromoJoseCarlosPaceOutlineData.js';
 
 // slug normalization: lowercase, collapse whitespace to single dash, strip non-alnum/dash
 function slugify(name) {
@@ -54,6 +55,9 @@ const OUTLINES = new Map([
   ['paul-ricard---3a', PAUL_RICARD___3A_STATIC_OUTLINE],
   // Bahrain Outer Circuit
   ['bahrain-outer-circuit', BAHRAIN_OUTER_CIRCUIT_STATIC_OUTLINE],
+  // Autódromo José Carlos Pace (Interlagos)
+  ['autdromo-jos-carlos-pace', AUTODROMO_JOSE_CARLOS_PACE_STATIC_OUTLINE],
+  ['interlagos', AUTODROMO_JOSE_CARLOS_PACE_STATIC_OUTLINE],
 ]);
 
 /**

@@ -24,6 +24,10 @@ _PROBE_STATUS_INTERVAL_S = 30.0
 # How long to wait without a recordable frame before declaring the session
 # over (sim quit to main menu, loading screen overshoot, etc.).
 _SESSION_IDLE_TIMEOUT_S = 5.0
+# session_time_s drop larger than this is treated as a sim restart (in-game
+# session reset without track/vehicle change). 30 s gives enough margin to
+# ignore normal scoring-clock jitter while reliably catching a full reset.
+_SESSION_RESTART_THRESHOLD_S = 30.0
 
 
 def _format_frame(f: Frame) -> str:
@@ -130,6 +134,7 @@ def run(
     last_lap = -1
     last_track = ""
     last_vehicle = ""
+    last_session_time_s: float = -1.0
     n_frames = 0
     n_skipped = 0
     writer: Optional[SessionWriter] = None
@@ -138,7 +143,7 @@ def run(
     next_tick = time.monotonic()
 
     def _close_writer(reason: str) -> None:
-        nonlocal writer, last_track, last_vehicle, last_lap
+        nonlocal writer, last_track, last_vehicle, last_lap, last_session_time_s
         if writer is None:
             return
         parquet_path, json_path = writer.close()
@@ -148,6 +153,7 @@ def run(
         last_track = ""
         last_vehicle = ""
         last_lap = -1
+        last_session_time_s = -1.0
 
     try:
         while not stopping:
@@ -182,6 +188,15 @@ def run(
                 ):
                     _close_writer("session changed")
 
+                # Sim restart without track/vehicle change: session_time_s
+                # dropped backward by more than the threshold (bug 19).
+                if (
+                    writer is not None
+                    and last_session_time_s >= 0
+                    and frame.session_time_s < last_session_time_s - _SESSION_RESTART_THRESHOLD_S
+                ):
+                    _close_writer("sim restart detected")
+
                 if writer is None:
                     print(
                         f"lap-telemetry: track={frame.track_name} "
@@ -193,10 +208,16 @@ def run(
                     on_lap_flushed = None
                     if bus is not None and hasattr(bus, 'on_lap_flushed') and bus.on_lap_flushed is not None:
                         on_lap_flushed = bus.on_lap_flushed
-                    writer = SessionWriter(out_dir, conn.sim, frame.track_name, rate_hz, on_lap_flushed=on_lap_flushed)
+                    writer = SessionWriter(
+                        out_dir, conn.sim, frame.track_name, rate_hz,
+                        on_lap_flushed=on_lap_flushed,
+                        session_type=frame.session_type,
+                    )
                     last_track = frame.track_name
                     last_vehicle = frame.vehicle_name
                     last_flush_time = time.monotonic()
+
+                last_session_time_s = frame.session_time_s
 
                 if frame.lap_number != last_lap:
                     if writer is not None and last_lap >= 0:

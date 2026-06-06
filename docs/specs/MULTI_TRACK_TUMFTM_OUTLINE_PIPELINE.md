@@ -172,18 +172,21 @@ Edit `web/js/trackOutlineManifest.js`:
 1. Import the new static outline data module
 2. Add entries to the `OUTLINES` map with appropriate slug keys
 
-The outline is now used automatically when a session with the matching track name is loaded.
 No changes needed in `trackHeatmapMap.js` or `circuitMap.js` — they already import from the manifest.
 
-### Step 8: Verify
+**Important:** `web/compare.html` imports modules directly and will pick up the change immediately. `dist/compare.html` is a pre-built bundle and will NOT reflect the new outline until you run the build in step 8.
+
+### Step 8: Build and verify
 
 ```bash
+# Rebuild the distribution bundle — required for dist/compare.html to include the new outline
+npm run build
+
 # Run tests
 bash scripts/test-summary.sh
-
-# Build and check
-npm run build
 ```
+
+Open `product/dist/compare.html`, load a session for the new track, and confirm the circuit map appears in the sidebar.
 
 ---
 
