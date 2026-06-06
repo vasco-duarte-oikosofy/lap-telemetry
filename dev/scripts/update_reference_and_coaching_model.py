@@ -1,33 +1,56 @@
 #!/usr/bin/env python3
 """
-Extract the fastest lap from a session, install it as the new reference lap,
-and update the coaching model's corner geometry while preserving turn names/IDs.
+Refresh a track's coaching model from its fastest reference lap while
+preserving curated turn names/IDs/apex sides — and, when a session contains a
+faster lap, update the reference lap first.
+
+The reference export is delegated to export_fastest_reference_laps.py
+(bug 23): this script no longer extracts laps itself, so it inherits the
+segment-slice extraction, authoritative timing, abandoned-lap rejection,
+faster-only replacement, and the mandatory single-change audit.
+
+All checks run BEFORE any write. In particular, if any corner of the existing
+(curated) coaching model has no matching braking event on the new lap, the
+script aborts without touching anything — curated models must never silently
+lose hand-tuned detail (Bahrain Outer rule). Pass --allow-unmatched to keep
+the old geometry for unmatched corners and proceed anyway.
 
 Usage:
+    # normal: scan session(s) of ONE (track, vehicle), update ref if faster,
+    # then refresh the model from the current reference
     python dev/scripts/update_reference_and_coaching_model.py \
-        --session sessions/session_20260529T174714Z_paul-ricard---3a_lmu.parquet \
-        --track-id paul-ricard---3a \
-        --layout-id 3a
+        --session sessions/session_20260529T180345Z_paul-ricard---3a_lmu.parquet \
+        --track-id paul-ricard---3a
+
+    # refresh the model from an explicit existing reference parquet
+    python dev/scripts/update_reference_and_coaching_model.py \
+        --ref product/data/reference-laps/paul-ricard---3a_..._time_01.17.166.parquet \
+        --track-id paul-ricard---3a
 """
 from __future__ import annotations
 
 import argparse
 import json
-import re
+import subprocess
 import sys
+import tempfile
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent.parent
 sys.path.insert(0, str(ROOT / "product" / "python"))
+sys.path.insert(0, str(ROOT / "dev" / "scripts"))
 
-import pyarrow as pa
-import pyarrow.compute as pc
 import pyarrow.parquet as pq
 
 from lap_telemetry.coach.lap_comparator import resample_column
 
-# Reuse detection logic from the generation script
-sys.path.insert(0, str(ROOT / "dev" / "scripts"))
+from export_fastest_reference_laps import (
+    existing_refs,
+    find_complete_laps,
+    parse_lap_time_from_name,
+    read_vehicle_name,
+    vehicle_slug,
+)
 from generate_track_coaching_model_from_reference import (
     detect_corners_from_signals,
     detect_apex_candidates,
@@ -37,67 +60,10 @@ from generate_track_coaching_model_from_reference import (
     DETECTION_METHOD_V2,
 )
 
-MIN_LAP_TIME_S = 60.0
-MIN_LAP_POINTS = 100
+EXPORT_SCRIPT = ROOT / "dev" / "scripts" / "export_fastest_reference_laps.py"
 REF_LAP_DIR = ROOT / "product" / "data" / "reference-laps"
 COACHING_DIR = ROOT / "product" / "data" / "track-coaching"
-
-
-def format_lap_time(seconds: float) -> str:
-    minutes = int(seconds // 60)
-    remaining = seconds - minutes * 60
-    secs = int(remaining)
-    millis = int(round((remaining - secs) * 1000))
-    if millis == 1000:
-        secs += 1
-        millis = 0
-    return f"{minutes:02d}.{secs:02d}.{millis:03d}"
-
-
-def vehicle_slug(vehicle_name: str) -> str:
-    s = vehicle_name.lower()
-    s = re.sub(r"#", "", s)
-    s = re.sub(r"[:/]", "-", s)
-    s = re.sub(r"\s+", "-", s)
-    s = re.sub(r"-+", "-", s)
-    return s.strip("-")
-
-
-def find_fastest_lap(table: pa.Table) -> tuple[int, float] | None:
-    if "lap_number" not in table.schema.names or "lap_time_s" not in table.schema.names:
-        return None
-
-    lap_numbers = table.column("lap_number").to_pylist()
-    lap_times_col = table.column("lap_time_s").to_pylist()
-
-    lap_time_map: dict[int, float] = {}
-    for ln, lt in zip(lap_numbers, lap_times_col):
-        if ln is None or ln < 1:
-            continue
-        if lt is not None and not (lt != lt):
-            cur = lap_time_map.get(int(ln), 0.0)
-            lap_time_map[int(ln)] = max(cur, float(lt))
-
-    candidates = []
-    for lap_num, lap_time in lap_time_map.items():
-        if lap_time <= MIN_LAP_TIME_S:
-            continue
-        mask = pc.equal(table.column("lap_number"), lap_num)
-        row_count = pc.sum(mask.cast(pa.int32())).as_py()
-        if row_count < MIN_LAP_POINTS:
-            continue
-        candidates.append((lap_num, lap_time, row_count))
-
-    if not candidates:
-        return None
-
-    row_counts = sorted(c[2] for c in candidates)
-    median_rows = row_counts[len(row_counts) // 2]
-    threshold = median_rows * 0.95
-    valid = [(lap_num, lap_time) for lap_num, lap_time, rc in candidates if rc >= threshold]
-    if not valid:
-        return None
-    return min(valid, key=lambda x: x[1])
+MAX_APEX_DELTA_M = 150
 
 
 def detect_corners(ref_parquet: Path) -> tuple[list, str]:
@@ -133,135 +99,189 @@ def detect_corners(ref_parquet: Path) -> tuple[list, str]:
         return candidates, DETECTION_METHOD_V1
 
 
+def match_corners(existing_corners: list[dict], candidates: list) -> tuple[list[tuple[dict, object | None]], list]:
+    """Nearest-apex matching (each old corner claims the closest unclaimed
+    candidate within MAX_APEX_DELTA_M). Returns [(old_corner, match_or_None)]
+    plus the unclaimed candidates."""
+    apexes = [float(c.apex_m) for c in candidates]
+    claimed = [False] * len(candidates)
+
+    def nearest(old_apex: float) -> int | None:
+        best_idx, best_dist = None, float("inf")
+        for i, apex in enumerate(apexes):
+            if claimed[i]:
+                continue
+            dist = abs(apex - old_apex)
+            if dist < best_dist:
+                best_dist, best_idx = dist, i
+        if best_idx is not None and best_dist <= MAX_APEX_DELTA_M:
+            return best_idx
+        return None
+
+    pairs: list[tuple[dict, object | None]] = []
+    for old_c in existing_corners:
+        idx = nearest(float(old_c["apex_s_m"]))
+        if idx is not None:
+            claimed[idx] = True
+            pairs.append((old_c, candidates[idx]))
+        else:
+            pairs.append((old_c, None))
+    leftover = [candidates[i] for i, used in enumerate(claimed) if not used]
+    return pairs, leftover
+
+
 def parse_args() -> argparse.Namespace:
-    p = argparse.ArgumentParser(description=__doc__)
-    p.add_argument("--session", type=Path, required=True)
-    p.add_argument("--track-id", required=True)
-    p.add_argument("--layout-id", required=True)
+    p = argparse.ArgumentParser(
+        description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter
+    )
+    src = p.add_mutually_exclusive_group(required=True)
+    src.add_argument(
+        "--session", type=Path, nargs="+",
+        help="session parquet file(s), all of the same (track, vehicle)",
+    )
+    src.add_argument(
+        "--ref", type=Path,
+        help="existing reference-lap parquet to refresh the model from (skips export)",
+    )
+    p.add_argument("--track-id", required=True, help="track slug, e.g. paul-ricard---3a")
+    p.add_argument(
+        "--layout-id", default=None,
+        help="accepted for backwards compatibility; the layout is read from the existing model",
+    )
+    p.add_argument(
+        "--allow-unmatched", action="store_true",
+        help="proceed even if curated corners have no match on the new lap "
+             "(their old geometry is kept); default is to abort with no changes",
+    )
     return p.parse_args()
 
 
 def main() -> int:
     args = parse_args()
 
-    # --- 1. Read session and find fastest lap ---
-    print(f"Reading {args.session} ...")
-    table = pq.read_table(args.session)
-    result = find_fastest_lap(table)
-    if result is None:
-        print("ERROR: No complete laps found in session.", file=sys.stderr)
-        return 1
-    best_lap_num, best_time = result
-    print(f"Fastest lap: #{best_lap_num} in {best_time:.3f}s ({format_lap_time(best_time)})")
+    # --- 1. Resolve vehicle and the lap that will back the model -----------
+    export_needed = False
+    candidate_time: float | None = None
+    tmp_lap: Path | None = None
 
-    # --- 2. Read vehicle info from sidecar ---
-    sidecar = args.session.with_suffix(".json")
-    vehicle_name = ""
-    if sidecar.exists():
-        vehicle_name = json.loads(sidecar.read_text()).get("vehicle_name", "")
-    vslug = vehicle_slug(vehicle_name) if vehicle_name else "unknown"
-    print(f"Vehicle: {vehicle_name!r} -> slug: {vslug}")
+    if args.ref is not None:
+        if not args.ref.exists():
+            print(f"ERROR: reference not found: {args.ref}", file=sys.stderr)
+            return 1
+        ref_time = parse_lap_time_from_name(args.ref)
+        if ref_time is None:
+            print(f"ERROR: cannot parse lap time from {args.ref.name}", file=sys.stderr)
+            return 1
+        name_no_time = args.ref.name.split("_time_")[0]
+        if not name_no_time.startswith(f"{args.track_id}_"):
+            print(f"ERROR: {args.ref.name} is not a {args.track_id} reference", file=sys.stderr)
+            return 1
+        vslug = name_no_time[len(args.track_id) + 1:]
+        backing_lap = args.ref
+        backing_time = ref_time
+        print(f"Mode: --ref  ({args.ref.name}, {ref_time:.3f}s, vehicle {vslug})")
+    else:
+        vnames = {read_vehicle_name(s) for s in args.session}
+        if len(vnames) != 1 or "" in vnames:
+            print(f"ERROR: sessions span vehicles {sorted(vnames)!r} - pass ONE (track, vehicle)",
+                  file=sys.stderr)
+            return 1
+        vslug = vehicle_slug(vnames.pop())
 
-    # --- 3. Export new reference lap parquet ---
-    time_str = format_lap_time(best_time)
-    new_ref_name = f"{args.track_id}_{vslug}_time_{time_str}.parquet"
-    new_ref_path = REF_LAP_DIR / new_ref_name
+        best = None
+        for s in args.session:
+            table = pq.read_table(s)
+            for lap_num, lap_time, seg_start, seg_end in find_complete_laps(table):
+                if best is None or lap_time < best[1]:
+                    best = (lap_num, lap_time, seg_start, seg_end, s, table)
+        if best is None:
+            print("ERROR: no complete laps found in the given session(s).", file=sys.stderr)
+            return 1
+        lap_num, candidate_time, seg_start, seg_end, best_session, best_table = best
+        print(f"Fastest lap in session(s): lap {lap_num} @ {candidate_time:.3f}s "
+              f"({best_session.name}, vehicle {vslug})")
 
-    mask = pc.equal(table.column("lap_number"), best_lap_num)
-    lap_table = table.filter(mask)
-    print(f"Exporting {lap_table.num_rows} rows -> {new_ref_path}")
+        existing = existing_refs(args.track_id, vslug)
+        existing_best = min((t for _, t in existing), default=None)
+        if existing_best is not None and candidate_time > existing_best - 0.001:
+            ref_path = min(existing, key=lambda x: x[1])[0]
+            backing_lap, backing_time = ref_path, existing_best
+            print(f"Not faster than existing reference {existing_best:.3f}s - "
+                  f"reference stays; model will be checked against {ref_path.name}")
+        else:
+            export_needed = True
+            tmp_lap = Path(tempfile.gettempdir()) / "ref_model_update_candidate.parquet"
+            pq.write_table(best_table.slice(seg_start, seg_end - seg_start), tmp_lap)
+            backing_lap, backing_time = tmp_lap, candidate_time
+            print(f"Faster than existing reference - will export after corner check")
 
-    # Remove any existing reference lap for this track+vehicle
-    pattern = f"{args.track_id}_{vslug}_time_*.parquet"
-    old_refs = list(REF_LAP_DIR.glob(pattern))
-    for old in old_refs:
-        if old != new_ref_path:
-            print(f"Removing old reference lap: {old.name}")
-            old.unlink()
-
-    REF_LAP_DIR.mkdir(parents=True, exist_ok=True)
-    pq.write_table(lap_table, new_ref_path)
-
-    # --- 4. Run corner detection on new reference lap ---
-    print("Running corner detection ...")
-    new_candidates, detection_method = detect_corners(new_ref_path)
-    print(f"Detected {len(new_candidates)} corners via {detection_method}")
-
-    # --- 5. Load existing coaching model to preserve turn names ---
-    coaching_pattern = f"{args.track_id}_{vslug}.json"
-    coaching_path = COACHING_DIR / coaching_pattern
+    # --- 2. Load the existing coaching model -------------------------------
+    coaching_path = COACHING_DIR / f"{args.track_id}_{vslug}.json"
     if not coaching_path.exists():
-        print(f"ERROR: Coaching model not found: {coaching_path}", file=sys.stderr)
+        print(f"ERROR: coaching model not found: {coaching_path}\n"
+              f"Use generate_track_coaching_model_from_reference.py to create one.",
+              file=sys.stderr)
         return 1
-
     existing_model = json.loads(coaching_path.read_text())
     existing_corners = existing_model["corners"]
-    print(f"Existing coaching model has {len(existing_corners)} corners, new detection has {len(new_candidates)}")
 
-    # --- 6. Merge: match old corners to new candidates by nearest apex ---
-    # Each old corner claims the closest unmatched new candidate within MAX_APEX_DELTA_M.
-    # Old corners with no match keep their existing geometry (with a warning).
-    MAX_APEX_DELTA_M = 150
+    # --- 3. Corner dry-check BEFORE any write (bug 23) ---------------------
+    candidates, detection_method = detect_corners(backing_lap)
+    pairs, leftover = match_corners(existing_corners, candidates)
+    unmatched = [old_c["name"] for old_c, m in pairs if m is None]
+    print(f"Corner check: model has {len(existing_corners)}, lap yields {len(candidates)} "
+          f"({len(existing_corners) - len(unmatched)} matched)")
+    if unmatched and not args.allow_unmatched:
+        print(f"\nABORTED - curated corners not reproduced on this lap: {', '.join(unmatched)}\n"
+              f"No files were changed. Re-run with --allow-unmatched to keep their old\n"
+              f"geometry, or leave the reference and model as they are.", file=sys.stderr)
+        if tmp_lap is not None:
+            tmp_lap.unlink(missing_ok=True)
+        return 2
+    for name in unmatched:
+        print(f"  WARNING: {name} keeps old geometry (--allow-unmatched)")
+    for c in leftover:
+        print(f"  INFO: new corner at apex={c.apex_m}m not in the model - ignored")
 
-    new_apex_positions = [float(c.apex_m) for c in new_candidates]
-    claimed = [False] * len(new_candidates)
+    # --- 4. Export the reference (delegated, guarded, audited) -------------
+    if export_needed:
+        cmd = [sys.executable, str(EXPORT_SCRIPT)] + [str(s) for s in args.session]
+        print(f"\nExporting reference via export_fastest_reference_laps.py ...")
+        result = subprocess.run(cmd, cwd=ROOT)
+        if tmp_lap is not None:
+            tmp_lap.unlink(missing_ok=True)
+        if result.returncode != 0:
+            print("ERROR: reference export failed - coaching model NOT touched.", file=sys.stderr)
+            return result.returncode
+        refs = existing_refs(args.track_id, vslug)
+        backing_lap = min(refs, key=lambda x: x[1])[0]
+        backing_time = min(refs, key=lambda x: x[1])[1]
 
-    def find_nearest_unclaimed(old_apex_m: float) -> int | None:
-        best_idx = None
-        best_dist = float("inf")
-        for i, apex in enumerate(new_apex_positions):
-            if claimed[i]:
-                continue
-            dist = abs(apex - old_apex_m)
-            if dist < best_dist:
-                best_dist = dist
-                best_idx = i
-        if best_idx is not None and best_dist <= MAX_APEX_DELTA_M:
-            return best_idx
-        return None
-
+    # --- 5. Write the refreshed model (names/IDs/apex sides preserved) -----
     updated_corners = []
-    for old_c in existing_corners:
-        old_apex = old_c["apex_s_m"]
-        match_idx = find_nearest_unclaimed(old_apex)
-        if match_idx is not None:
-            new_c = new_candidates[match_idx]
-            claimed[match_idx] = True
+    for old_c, m in pairs:
+        if m is None:
+            updated_corners.append(dict(old_c))
+        else:
             updated_corners.append({
                 "id": old_c["id"],
                 "name": old_c["name"],
-                "s_start_m": round(new_c.s_start_m, 1),
-                "apex_s_m": round(float(new_c.apex_m), 1),
-                "s_end_m": round(new_c.s_end_m, 1),
+                "s_start_m": round(m.s_start_m, 1),
+                "apex_s_m": round(float(m.apex_m), 1),
+                "s_end_m": round(m.s_end_m, 1),
                 "apex_side": old_c["apex_side"],
                 "apex_side_source": old_c["apex_side_source"],
             })
-        else:
-            print(
-                f"  WARNING: no match for {old_c['name']} (apex {old_apex}m) within {MAX_APEX_DELTA_M}m "
-                f"-- keeping old geometry",
-                file=sys.stderr,
-            )
-            updated_corners.append(dict(old_c))
 
-    unmatched_new = [new_candidates[i] for i, used in enumerate(claimed) if not used]
-    if unmatched_new:
-        for c in unmatched_new:
-            print(
-                f"  INFO: new corner at apex={c.apex_m}m not matched to any existing turn -- ignored",
-                file=sys.stderr,
-            )
-
-    # Rebuild model with updated reference and corner geometry
-    ref_rel_path = str(new_ref_path.relative_to(ROOT))
+    backing_rel = backing_lap if not backing_lap.is_absolute() else backing_lap.relative_to(ROOT)
     updated_model = {
         "schema_version": existing_model["schema_version"],
         "track_id": existing_model["track_id"],
         "layout_id": existing_model["layout_id"],
         "reference_lap": {
-            "path": ref_rel_path,
+            "path": str(backing_rel),
             "car_id": vslug,
-            "lap_time_s": round(best_time, 3),
+            "lap_time_s": round(backing_time, 3),
             "detection_method": detection_method,
         },
         "lap_length_m": existing_model["lap_length_m"],
@@ -269,15 +289,17 @@ def main() -> int:
         "straight_zones": existing_model.get("straight_zones", []),
     }
 
-    coaching_path.write_text(json.dumps(updated_model, indent=2) + "\n", encoding="utf-8")
-    print(f"Updated coaching model -> {coaching_path}")
+    new_text = json.dumps(updated_model, indent=2) + "\n"
+    if new_text == coaching_path.read_text():
+        print(f"\nCoaching model already up to date ({coaching_path.name}) - nothing written.")
+        return 0
 
-    # Write diagnostics
+    coaching_path.write_text(new_text, encoding="utf-8")
     diag_path = coaching_path.with_suffix(".diagnostics.txt")
-    diag_path.write_text(diagnostics_text(new_candidates, detection_method), encoding="utf-8")
+    diag_path.write_text(diagnostics_text(candidates, detection_method), encoding="utf-8")
+    print(f"\nUpdated coaching model -> {coaching_path}")
     print(f"Updated diagnostics -> {diag_path}")
 
-    # Print corner-by-corner diff
     print("\nCorner geometry changes:")
     print(f"  {'Turn':<25} {'Entry':>8} {'Apex':>8} {'Exit':>8}  (was Entry/Apex/Exit)")
     for old_c, updated in zip(existing_corners, updated_corners):
@@ -286,7 +308,6 @@ def main() -> int:
             f"{updated['s_start_m']:>8.1f} {updated['apex_s_m']:>8.1f} {updated['s_end_m']:>8.1f}"
             f"  (was {old_c['s_start_m']:.1f} / {old_c['apex_s_m']:.1f} / {old_c['s_end_m']:.1f})"
         )
-
     return 0
 
 
