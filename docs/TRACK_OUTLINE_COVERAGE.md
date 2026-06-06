@@ -36,6 +36,7 @@ kerb or far from the outside wall.
 | Fuji Speedway | `fuji-speedway` | Trajectory | Single lap (lap 7) | Constant 3m each side | ❌ No |
 | Autodromo Enzo e Dino Ferrari | `autodromo-enzo-e-dino-ferrari` | ❌ None | — | — | — |
 | Lusail International Circuit | `lusail-international-circuit` | Trajectory | Single lap (lap 12, 1:52.200, 2026-05-22) | Constant 5m each side | ❌ No |
+| Fuji Speedway Classic | `fuji-speedway-classic` | Trajectory | Single lap (lap 3, 1:38.541, 2026-06-06) | Constant 5m each side | ❌ No |
 
 ---
 
@@ -82,7 +83,8 @@ kerb or far from the outside wall.
 
 | Track | Options |
 |-------|---------|
-| Fuji Speedway | OSM extraction (`highway=raceway`) |
+| Fuji Speedway | ✅ Trajectory outline done; OSM extraction needed for real widths |
+| Fuji Speedway Classic | ✅ Trajectory outline done; OSM extraction needed for real widths |
 | Circuit de la Sarthe (Le Mans) | OSM extraction |
 | Lusail International Circuit | ✅ Trajectory outline done; OSM extraction needed for real widths |
 | Sebring International Raceway | OSM or satellite imagery |

@@ -18,10 +18,17 @@ import { AUTODROMO_NAZIONALE_MONZA_STATIC_OUTLINE } from './staticAutodromoNazio
 import { CIRCUIT_OF_THE_AMERICAS_STATIC_OUTLINE } from './staticCircuitOfTheAmericasOutlineData.js';
 import { LUSAIL_INTERNATIONAL_CIRCUIT_STATIC_OUTLINE } from './staticLusailInternationalCircuitOutlineData.js';
 import { PAUL_RICARD___3A_STATIC_OUTLINE } from './staticPaulRicard3aOutlineData.js';
+import { BAHRAIN_OUTER_CIRCUIT_STATIC_OUTLINE } from './staticBahrainOuterCircuitOutlineData.js';
+import { AUTODROMO_JOSE_CARLOS_PACE_STATIC_OUTLINE } from './staticAutodromoJoseCarlosPaceOutlineData.js';
 
-// slug normalization: lowercase, collapse whitespace to single dash, strip non-alnum/dash
+// slug normalization: lowercase, collapse whitespace to single dash,
+// transliterate accents via NFKD (ó→o, é→e), strip non-alnum/dash.
 function slugify(name) {
-  return String(name || '').toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
+  // NFKD decomposes accented chars into base + combining marks.
+  // e.g. "ó" → "o" + "\u0301" (combining acute). We then strip combining marks.
+  const decomposed = String(name || '').normalize('NFKD');
+  const withoutCombining = decomposed.replace(/[\u0300-\u036f]/g, '');
+  return withoutCombining.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
 }
 
 const OUTLINES = new Map([
@@ -51,6 +58,12 @@ const OUTLINES = new Map([
   ['lusail-international-circuit', LUSAIL_INTERNATIONAL_CIRCUIT_STATIC_OUTLINE],
   // Paul Ricard - 3A
   ['paul-ricard---3a', PAUL_RICARD___3A_STATIC_OUTLINE],
+  // Bahrain Outer Circuit
+  ['bahrain-outer-circuit', BAHRAIN_OUTER_CIRCUIT_STATIC_OUTLINE],
+  // Autódromo José Carlos Pace (Interlagos)
+  ['autodromo-jose-carlos-pace', AUTODROMO_JOSE_CARLOS_PACE_STATIC_OUTLINE],
+  ['autdromo-jos-carlos-pace', AUTODROMO_JOSE_CARLOS_PACE_STATIC_OUTLINE], // legacy stripped-accent form
+  ['interlagos', AUTODROMO_JOSE_CARLOS_PACE_STATIC_OUTLINE],
 ]);
 
 /**

@@ -1,0 +1,96 @@
+{
+  "schema_version": "1",
+  "track_id": "fuji-speedway-classic",
+  "layout_id": "classic",
+  "reference_lap": {
+    "path": "product\\data\\reference-laps\\fuji-speedway-classic_vista-af-corsa-2026-54-wec_time_01.38.541.parquet",
+    "car_id": "vista-af-corsa-2026-54-wec",
+    "lap_time_s": 98.352,
+    "detection_method": "throttle_brake_v1"
+  },
+  "lap_length_m": 4510.1,
+  "corners": [
+    {
+      "id": "first_corner",
+      "name": "First Corner",
+      "s_start_m": 594.0,
+      "apex_s_m": 765.0,
+      "s_end_m": 772.0,
+      "apex_side": "right",
+      "apex_side_source": "manual"
+    },
+    {
+      "id": "coca_cola",
+      "name": "Coca-Cola",
+      "s_start_m": 1193.0,
+      "apex_s_m": 1316.0,
+      "s_end_m": 1318.0,
+      "apex_side": "left",
+      "apex_side_source": "manual"
+    },
+    {
+      "id": "100r",
+      "name": "100R",
+      "s_start_m": 1574.0,
+      "apex_s_m": 1736.0,
+      "s_end_m": 1739.0,
+      "apex_side": "right",
+      "apex_side_source": "manual"
+    },
+    {
+      "id": "hairpin",
+      "name": "Hairpin",
+      "s_start_m": 1895.0,
+      "apex_s_m": 1999.0,
+      "s_end_m": 2034.0,
+      "apex_side": "left",
+      "apex_side_source": "manual"
+    },
+    {
+      "id": "dunlop_bypass",
+      "name": "Dunlop Bypass",
+      "s_start_m": 2690.0,
+      "apex_s_m": 2838.0,
+      "s_end_m": 2844.0,
+      "apex_side": "right",
+      "apex_side_source": "manual"
+    },
+    {
+      "id": "13th_corner",
+      "name": "13th Corner",
+      "s_start_m": 3005.0,
+      "apex_s_m": 3123.0,
+      "s_end_m": 3143.0,
+      "apex_side": "right",
+      "apex_side_source": "manual"
+    },
+    {
+      "id": "netz",
+      "name": "Netz",
+      "s_start_m": 3246.0,
+      "apex_s_m": 3291.0,
+      "s_end_m": 3291.0,
+      "apex_side": "left",
+      "apex_side_source": "manual"
+    },
+    {
+      "id": "netz_hairpin",
+      "name": "Netz Hairpin",
+      "s_start_m": 3292.0,
+      "apex_s_m": 3385.0,
+      "s_end_m": 3404.0,
+      "apex_side": "left",
+      "apex_side_source": "manual"
+    },
+    {
+      "id": "panasonic",
+      "name": "Panasonic",
+      "s_start_m": 3535.0,
+      "apex_s_m": 3654.0,
+      "s_end_m": 3683.0,
+      "apex_side": "right",
+      "apex_side_source": "manual"
+    }
+  ],
+  "straight_zones": []
+}
