@@ -70,7 +70,14 @@ def _distance_to_track_edge(frame: Frame) -> float | None:
 
 
 def _track_slug(track: str) -> str:
-    slug = track.lower().replace(" ", "-")
+    # Decompose accented chars into base + combining, then strip combining marks.
+    # e.g. "ó" → "o" + "\u0301" → "o".  This transliterates instead of stripping,
+    # so "Autódromo José Carlos Pace" → "autodromo-jose-carlos-pace", not
+    # "autdromo-jos-carlos-pace".
+    import unicodedata
+    slug = unicodedata.normalize("NFKD", track)
+    slug = "".join(c for c in slug if not unicodedata.combining(c))
+    slug = slug.lower().replace(" ", "-")
     slug = re.sub(r"[^a-z0-9-]", "", slug)
     return slug or "unknown"
 

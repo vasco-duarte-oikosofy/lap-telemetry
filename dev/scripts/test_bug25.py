@@ -84,6 +84,19 @@ ok(ricard_model is not None, "T5a: track model — Paul Ricard 3A resolves")
 ricard_ref = resolve_reference_lap("Paul Ricard - 3A", search_dir=REF_DIR)
 ok(ricard_ref is not None, "T5b: reference — Paul Ricard 3A resolves")
 
+
+# T6: Accent transliteration -- Autodromo Jose Carlos Pace (with accents) resolves.
+jose_model = resolve_track_model("Autódromo José Carlos Pace", search_dir=MODEL_DIR)
+ok(jose_model is not None, "T6a: track model -- Autodromo Jose Carlos Pace resolves")
+ok(jose_model is not None and "autodromo-jose-carlos-pace" in jose_model.stem,
+   "T6b: track model -- matched correct transliterated file",
+   f"got {jose_model}")
+jose_ref = resolve_reference_lap("Autódromo José Carlos Pace", search_dir=REF_DIR)
+ok(jose_ref is not None, "T6c: reference -- Autodromo Jose Carlos Pace resolves")
+ok(jose_ref is not None and "autodromo-jose-carlos-pace" in jose_ref.stem,
+   "T6d: reference -- matched correct transliterated file",
+   f"got {jose_ref}")
+
 # ══════════════════════════════════════════════════════════════════════════
 # Summary
 # ══════════════════════════════════════════════════════════════════════════

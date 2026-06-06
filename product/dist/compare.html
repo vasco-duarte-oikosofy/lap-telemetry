@@ -1238,7 +1238,9 @@ function pointsToSvg(points, trackTransform2) {
 
 // product/web/js/trackOutlineManifest.js
 function slugify(name) {
-  return String(name || "").toLowerCase().replace(/\s+/g, "-").replace(/[^a-z0-9-]/g, "");
+  const decomposed = String(name || "").normalize("NFKD");
+  const withoutCombining = decomposed.replace(/[\u0300-\u036f]/g, "");
+  return withoutCombining.toLowerCase().replace(/\s+/g, "-").replace(/[^a-z0-9-]/g, "");
 }
 var OUTLINES = /* @__PURE__ */ new Map([
   // Spa (works for both regular and endurance layouts in LMU)
@@ -1270,7 +1272,9 @@ var OUTLINES = /* @__PURE__ */ new Map([
   // Bahrain Outer Circuit
   ["bahrain-outer-circuit", BAHRAIN_OUTER_CIRCUIT_STATIC_OUTLINE],
   // Autódromo José Carlos Pace (Interlagos)
+  ["autodromo-jose-carlos-pace", AUTODROMO_JOSE_CARLOS_PACE_STATIC_OUTLINE],
   ["autdromo-jos-carlos-pace", AUTODROMO_JOSE_CARLOS_PACE_STATIC_OUTLINE],
+  // legacy stripped-accent form
   ["interlagos", AUTODROMO_JOSE_CARLOS_PACE_STATIC_OUTLINE]
 ]);
 function findOutlineByTrackName(trackName) {

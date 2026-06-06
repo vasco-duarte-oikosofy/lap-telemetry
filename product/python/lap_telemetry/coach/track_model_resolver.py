@@ -24,11 +24,21 @@ _DEFAULT_DIR = Path(__file__).resolve().parents[3] / "data" / "track-coaching"
 def _track_slug(track_name: str) -> str:
     """Slugify a track name the same way SessionWriter does.
 
+    Accented characters are transliterated (ó→o, é→e)
+    via NFKD normalization, not stripped. This ensures "Autódromo José Carlos
+    Pace" becomes "autodromo-jose-carlos-pace" (readable) instead of
+    "autdromo-jos-carlos-pace" (broken).
+
     Example: ``""Circuit de Barcelona""`` → ``"circuit-de-barcelona"``.
     """
     import re
+    import unicodedata
 
-    slug = track_name.lower().replace(" ", "-")
+    # Decompose accented chars into base + combining, then strip combining marks.
+    # e.g. "ó" (o with accent) → "o" + "\u0301" (combining acute) → "o"
+    slug = unicodedata.normalize("NFKD", track_name)
+    slug = "".join(c for c in slug if not unicodedata.combining(c))
+    slug = slug.lower().replace(" ", "-")
     slug = re.sub(r"[^a-z0-9-]", "", slug)
     return slug or "unknown"
 
