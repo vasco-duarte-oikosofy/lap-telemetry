@@ -1,0 +1,6 @@
+# Bug 25 learnings
+
+- **Prefix matching was solving a hypothetical problem**: The `slug.startswith(track_part + "-")` heuristic was added for the "Circuit de Barcelona-Catalunya" → "circuit-de-barcelona" case, but no LMU session has ever used that track name. Every real LMU track name slugifies to an exact match in the data directories.
+- **Layout variants vs name variations**: The prefix matcher couldn't distinguish "Fuji Speedway Classic" (different circuit layout) from "Circuit de Barcelona-Catalunya" (same layout, longer name). Exact matching eliminates the ambiguity — if data exists for the exact track slug, it's used; otherwise coaching is correctly suppressed.
+- **Spa Endurance is already exact-match**: Both `circuit-de-spa-francorchamps` and `circuit-de-spa-francorchamps-endurance` have their own separate data files with exact-match slugs, confirming that layout variants should have their own data files.
+- **Bahrain International Circuit files exist** but no LMU session uses that name; they're just unused data. Same for the standalone `circuit-de-barcelona.json` model file (no vehicle suffix).

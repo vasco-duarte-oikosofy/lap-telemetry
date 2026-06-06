@@ -6,10 +6,9 @@ the one with the smallest lap time (``_time_`` suffix in the filename).
 
 Caches the resolved path so disk scanning happens once per track.
 
-The track name from LMU may differ slightly from the slug in the filename
-(e.g. "Circuit de Barcelona-Catalunya" vs "circuit-de-barcelona"). The
-resolver uses a flexible prefix match: either the live slug equals the
-file's track prefix, or the live slug extends the file's track prefix.
+Uses exact slug matching only. Prefix matching was removed because it
+caused false positives between layout variants (e.g. "fuji-speedway-classic"
+incorrectly matching "fuji-speedway" data — a different circuit layout).
 """
 from __future__ import annotations
 
@@ -26,7 +25,7 @@ _DEFAULT_DIR = Path(__file__).resolve().parents[3] / "data" / "reference-laps"
 def _track_slug(track_name: str) -> str:
     """Slugify a track name the same way SessionWriter does.
 
-    Example: ``"Circuit de Barcelona-Catalunya"`` → ``"circuit-de-barcelona-catalunya"``.
+    Example: ``""Circuit de Barcelona""`` → ``"circuit-de-barcelona"``.
     """
     slug = track_name.lower().replace(" ", "-")
     slug = re.sub(r"[^a-z0-9-]", "", slug)
@@ -45,13 +44,12 @@ def resolve_reference_lap(
 ) -> Path | None:
     """Find the fastest reference lap Parquet for a track.
 
-    Matching is flexible: the file's track prefix (part before the first ``_``)
-    must either equal the live slug or be a prefix of the live slug followed by
-    a ``-``. This handles cases where LMU sends a longer track name than what
-    was used when the reference lap was saved.
+    Matching is exact: the file's track prefix (part before the first ``_``)
+    must equal the live slug. Prefix matching was removed because it caused
+    false positives between layout variants.
 
     Args:
-        track_name: Track name from LMU (e.g. ``"Circuit de Barcelona-Catalunya"``).
+        track_name: Track name from LMU (e.g. ``"Fuji Speedway"``).
         search_dir: Directory containing reference lap files.
             Defaults to ``product/data/reference-laps/``.
         _cache: Optional mutable cache dict for avoiding repeated disk scans.
@@ -80,8 +78,11 @@ def resolve_reference_lap(
         log.debug("No reference laps found in %s", search_dir)
         result = None
     else:
-        # Filter: match files whose track prefix equals the slug or is a
-        # prefix of the slug (handles name variations).
+        # Filter: match files whose track prefix equals the slug.
+        # We use exact slug matching only — prefix matching (slug.startswith(track_part))
+        # was removed because it caused false positives between layout variants
+        # (e.g. "fuji-speedway-classic" incorrectly matching "fuji-speedway" data,
+        # which is a different circuit layout, not a name variation).
         matching = []
         for p in candidates:
             stem = p.stem  # e.g. "circuit-de-barcelona_dkr-engineering-4-elms25_time_01.36.456"
@@ -90,8 +91,7 @@ def resolve_reference_lap(
                 continue
             prefix = stem.split("_time_")[0]  # e.g. "circuit-de-barcelona_dkr-engineering-4-elms25"
             track_part = prefix.split("_")[0]  # e.g. "circuit-de-barcelona"
-            # Match if track_part == slug, or slug extends track_part (with "-").
-            if track_part == slug or slug.startswith(track_part + "-"):
+            if track_part == slug:
                 matching.append(p)
 
         if not matching:

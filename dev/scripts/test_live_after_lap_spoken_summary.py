@@ -96,7 +96,10 @@ print("-- Reference resolver --")
 REAL_REF_DIR = ROOT / "product" / "data" / "reference-laps"
 
 # T1: Known track resolves to a reference lap.
-ref = resolve_reference_lap("Circuit de Barcelona-Catalunya", search_dir=REAL_REF_DIR)
+# Uses "Circuit de Barcelona" (slugifies to "circuit-de-barcelona") which has
+# exact-match data files. Not "Circuit de Barcelona-Catalunya" (slugifies to
+# "circuit-de-barcelona-catalunya") which would require prefix matching.
+ref = resolve_reference_lap("Circuit de Barcelona", search_dir=REAL_REF_DIR)
 ok(ref is not None, "T1a: reference resolver — known track returns path")
 ok(ref is not None and ref.exists(), "T1b: reference resolver — path exists on disk",
    str(ref))
@@ -108,13 +111,13 @@ ok(no_ref is None, "T2: reference resolver — unknown track returns None")
 
 # T3: Caching — same track twice uses cached path.
 cache: dict[str, Path | None] = {}
-ref3a = resolve_reference_lap("circuit-de-barcelona", search_dir=REAL_REF_DIR, _cache=cache)
-ref3b = resolve_reference_lap("circuit-de-barcelona", search_dir=REAL_REF_DIR, _cache=cache)
+ref3a = resolve_reference_lap("Circuit de Barcelona", search_dir=REAL_REF_DIR, _cache=cache)
+ref3b = resolve_reference_lap("Circuit de Barcelona", search_dir=REAL_REF_DIR, _cache=cache)
 ok(ref3a == ref3b, "T3: reference resolver — caching returns same path")
 ok("circuit-de-barcelona" in cache, "T3b: cache dict populated")
 
 # T4: _track_slug matches SessionWriter convention.
-ok(_track_slug("Circuit de Barcelona-Catalunya") == "circuit-de-barcelona-catalunya",
+ok(_track_slug("Circuit de Barcelona") == "circuit-de-barcelona",
    "T4a: _track_slug — spaced track name")
 ok(_track_slug("circuit-de-barcelona") == "circuit-de-barcelona",
    "T4b: _track_slug — already slugified")
@@ -130,7 +133,8 @@ print("\n-- Track model resolver --")
 REAL_MODEL_DIR = ROOT / "product" / "data" / "track-coaching"
 
 # T5: Known track resolves to a model file.
-model = resolve_track_model("Circuit de Barcelona-Catalunya", search_dir=REAL_MODEL_DIR)
+# Uses "Circuit de Barcelona" (slugifies to "circuit-de-barcelona") for exact match.
+model = resolve_track_model("Circuit de Barcelona", search_dir=REAL_MODEL_DIR)
 ok(model is not None, "T5a: track model resolver — known track returns path")
 ok(model is not None and model.exists(), "T5b: track model resolver — path exists on disk",
    str(model))
@@ -142,8 +146,8 @@ ok(no_model is None, "T6: track model resolver — unknown track returns None")
 
 # T7: Caching — same track twice uses cached path.
 model_cache: dict[str, Path | None] = {}
-model7a = resolve_track_model("circuit-de-barcelona", search_dir=REAL_MODEL_DIR, _cache=model_cache)
-model7b = resolve_track_model("circuit-de-barcelona", search_dir=REAL_MODEL_DIR, _cache=model_cache)
+model7a = resolve_track_model("Circuit de Barcelona", search_dir=REAL_MODEL_DIR, _cache=model_cache)
+model7b = resolve_track_model("Circuit de Barcelona", search_dir=REAL_MODEL_DIR, _cache=model_cache)
 ok(model7a == model7b, "T7: track model resolver — caching returns same path")
 ok("circuit-de-barcelona" in model_cache, "T7b: cache dict populated")
 

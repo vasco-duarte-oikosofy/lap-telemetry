@@ -23,84 +23,39 @@ circuit configuration.
 
 Both `track_model_resolver.py` and `reference_resolver.py` use a **prefix-matching
 heuristic** to handle track name variations between LMU's track name and the slug
-used in data files. The logic is (line 89 of `track_model_resolver.py`, line 88
-of `reference_resolver.py`):
+used in data files. The logic was:
 
 ```python
 if track_part == slug or slug.startswith(track_part + "-"):
     matching.append(p)
 ```
 
-This correctly handles cases like:
-- `"Circuit de Barcelona-Catalunya"` → slug `circuit-de-barcelona-catalunya` →
-  matches `circuit-de-barcelona` (the model file's prefix)
+This correctly handled cases like `"Circuit de Barcelona-Catalunya"` matching
+`circuit-de-barcelona` model files, but **incorrectly** matched layout variants:
 
-But it **incorrectly** matches layout variants:
 - `"Fuji Speedway Classic"` → slug `fuji-speedway-classic`
-- Track part of model file: `fuji-speedway` (from file `fuji-speedway_dkr-engineering-4-elms25.json`)
-- `"fuji-speedway-classic".startswith("fuji-speedway-")` → **`True`**
+- Track part of model file: `fuji-speedway`
+- `"fuji-speedway-classic".startswith("fuji-speedway-")` → `True`
 
-The resolver returns the fuji-speedway model as a match, even though "Classic" is
-a **different circuit layout** (different corners, different lap length), not a
-name variant of the same circuit.
+The resolver returned the fuji-speedway model as a match, even though "Classic" is
+a **different circuit layout**, not a name variant.
 
-The same false match occurs in `reference_resolver.py` for the reference lap file.
+## Fix
 
-## Impact
+Removed prefix matching from both resolvers. Only exact slug matches are now
+accepted. This is safe because every real LMU track name already has an exact
+match in both data directories — the prefix matching was designed for a
+hypothetical Barcelona-Catalunya case that doesn't exist in production.
 
-1. **Wrong coaching model loaded**: The Fuji Speedway model (lap_length 4538.9 m,
-   specific corner definitions) is applied to Fuji Speedway Classic (likely a
-   different length with different corners). Corner detection and distance-based
-   segmentation will be wrong.
-
-2. **Wrong reference lap used**: The fuji-speedway reference lap is compared against
-   Classic layout data, producing meaningless delta times and coaching advice.
-
-3. **Silent misuse**: No warning or error — the user hears coaching as if it's
-   authoritative, but the data is from a different layout.
-
-## Proposed fix
-
-The prefix-matching heuristic needs to distinguish between:
-
-| Live slug               | File track_part           | Should match? | Why                          |
-|--------------------------|---------------------------|---------------|------------------------------|
-| `circuit-de-barcelona-catalunya` | `circuit-de-barcelona` | ✅ Yes        | Same layout, longer name     |
-| `fuji-speedway-classic`  | `fuji-speedway`           | ❌ No          | Different layout (variant)   |
-| `fuji-speedway`           | `fuji-speedway`           | ✅ Yes        | Exact match                  |
-
-Options:
-
-1. **Remove prefix matching entirely**: Only allow exact slug matches. This is the
-   safest but requires renaming existing data files (e.g., `circuit-de-barcelona_*`
-   → `circuit-de-barcelona-catalunya_*`) to match LMU's full track names.
-
-2. **Add a blocklist of known layout suffixes**: Reject prefix matches where the
-   extra suffix is a known layout word (`classic`, `endurance`, `short`, `oval`,
-   `grand-prix`, `national`, etc.). Fragile — new layouts may be added.
-
-3. **Match on the data file's own metadata instead of filename parsing**: Load each
-   candidate JSON file's `track_id`/`layout_id` fields and compare to the live
-   track name. For reference laps (Parquet), check the Parquet metadata or a
-   companion sidecar file. This is robust but requires reading all candidates.
-
-4. **Reverse the match direction**: Instead of checking `slug.startswith(track_part)`,
-   check `track_part == slug OR (file has a metadata field confirming it covers
-   the slug's layout)`. This avoids the false positive while preserving the
-   Barcelona-Catalunya case.
-
-**Recommended**: Option 3 (metadata-based matching) for `track_model_resolver.py`
-since JSON files already contain `track_id` and `layout_id`. For
-`reference_resolver.py`, add a companion sidecar or embedded Parquet metadata
-check. As a quick interim fix, Option 1 (exact match only) is safest.
-
-## Affected files
-
-- `product/python/lap_telemetry/coach/track_model_resolver.py` (line 89)
-- `product/python/lap_telemetry/coach/reference_resolver.py` (line 88)
-- `product/python/lap_telemetry/coach/live_fact_generator.py` (calls both resolvers)
-- `product/python/lap_telemetry/coach/live_corner_fact_generator.py` (calls both resolvers)
+Changes:
+- `product/python/lap_telemetry/coach/track_model_resolver.py`: removed
+  `slug.startswith(track_part + "-")` condition and the exact-vs-prefix
+  disambiguation logic.
+- `product/python/lap_telemetry/coach/reference_resolver.py`: same removal.
+- `dev/scripts/test_live_after_lap_spoken_summary.py`: updated test track names
+  from "Circuit de Barcelona-Catalunya" to "Circuit de Barcelona" (exact match).
+- `dev/scripts/test_bug25.py` + `dev/scripts/test_bug25.js`: new regression test.
 
 ## Status
 
-🐛 Open
+✅ Fixed

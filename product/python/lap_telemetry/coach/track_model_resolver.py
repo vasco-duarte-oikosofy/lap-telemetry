@@ -6,8 +6,9 @@ suffixes), picks the first match.
 
 Caches the resolved path so disk scanning happens once per track.
 
-Uses the same flexible prefix-matching as ``reference_resolver`` to handle
-track name variations.
+Uses exact slug matching only. Prefix matching was removed because it
+caused false positives between layout variants (e.g. "fuji-speedway-classic"
+incorrectly matching "fuji-speedway" data — a different circuit layout).
 """
 from __future__ import annotations
 
@@ -23,7 +24,7 @@ _DEFAULT_DIR = Path(__file__).resolve().parents[3] / "data" / "track-coaching"
 def _track_slug(track_name: str) -> str:
     """Slugify a track name the same way SessionWriter does.
 
-    Example: ``"Circuit de Barcelona-Catalunya"`` → ``"circuit-de-barcelona-catalunya"``.
+    Example: ``""Circuit de Barcelona""`` → ``"circuit-de-barcelona"``.
     """
     import re
 
@@ -39,12 +40,11 @@ def resolve_track_model(
 ) -> Path | None:
     """Find a track coaching model JSON for a track.
 
-    Matching is flexible: the file's stem prefix (before the first ``_``
-    or the entire stem) must either equal the live slug or be a prefix
-    of the live slug.
+    Matching is exact: the file's stem prefix (before the first ``_``
+    or the entire stem) must equal the live slug.
 
     Args:
-        track_name: Track name from LMU (e.g. ``"Circuit de Barcelona-Catalunya"``).
+        track_name: Track name from LMU (e.g. ``"Fuji Speedway"``).
         search_dir: Directory containing track coaching model files.
             Defaults to ``product/data/track-coaching/``.
         _cache: Optional mutable cache dict for avoiding repeated disk scans.
@@ -73,25 +73,24 @@ def resolve_track_model(
         if not p.name.endswith(".diagnostics.txt")
     )
 
-    # Filter: match files whose track prefix equals the slug or is a prefix
-    # of the slug (handles name variations like "Circuit de Barcelona-Catalunya"
-    # matching "circuit-de-barcelona" model).
+    # Filter: match files whose track prefix equals the slug.
+    # We use exact slug matching only — prefix matching (slug.startswith(track_part))
+    # was removed because it caused false positives between layout variants
+    # (e.g. "fuji-speedway-classic" incorrectly matching "fuji-speedway" data,
+    # which is a different circuit layout, not a name variation).
     matching = []
     for p in candidates:
         stem = p.stem  # e.g. "circuit-de-barcelona_dkr-engineering-4-elms25" or "circuit-de-barcelona"
         # The track part is the first segment before any "_"
         track_part = stem.split("_")[0]
-        # Match if track_part == slug, or slug extends track_part (with "-").
-        if track_part == slug or slug.startswith(track_part + "-"):
+        if track_part == slug:
             matching.append(p)
 
     if not matching:
         log.debug("No track model found for track=%s (slug=%s)", track_name, slug)
         result = None
     else:
-        # Prefer an exact slug match, then fall back to the first prefix match.
-        exact = [p for p in matching if p.stem.split("_")[0] == slug]
-        result = exact[0] if exact else matching[0]
+        result = matching[0]
 
     if _cache is not None:
         _cache[slug] = result
