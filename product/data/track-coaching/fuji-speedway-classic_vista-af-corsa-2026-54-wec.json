@@ -50,7 +50,7 @@
       "id": "dunlop_bypass",
       "name": "Dunlop Bypass",
       "s_start_m": 2690.0,
-      "apex_s_m": 2838.0,
+      "apex_s_m": 2808.0,
       "s_end_m": 2844.0,
       "apex_side": "right",
       "apex_side_source": "manual"
