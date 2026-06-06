@@ -78,6 +78,33 @@ def read_vehicle_name(session_parquet: Path) -> str:
     return ""
 
 
+def segment_covers_full_lap(table: pa.Table, seg_start: int, seg_end: int) -> bool:
+    """True if the segment's lap_distance_m traces a complete lap.
+
+    Rejects abandoned laps (driver ESC'd to garage mid-lap): those end at a
+    negative garage distance while lap_time_s keeps ticking, so they can pass
+    the wall-clock check. A real lap wraps to ~0 m at the line and ends at the
+    segment's maximum distance (the line again). Note the first few frames of
+    a segment can still carry the PREVIOUS lap's end distance — the lap
+    counter increments before the ~5 Hz mLapDist anchor wraps — so the wrap
+    is checked via the segment minimum, not the first frame.
+    """
+    if "lap_distance_m" not in table.schema.names:
+        return True  # nothing to check against
+    values = table.column("lap_distance_m").to_pylist()[seg_start:seg_end]
+    numeric = [float(v) for v in values if isinstance(v, (int, float))]
+    if len(numeric) < 2:
+        return False
+    last, low, peak = numeric[-1], min(numeric), max(numeric)
+    if low < -50.0:            # garage/pit-lane teleport frames inside the lap
+        return False
+    if low > 100.0:            # never wrapped to the line
+        return False
+    if last < peak - 200.0:    # did not end at the line (distance rewound)
+        return False
+    return peak > 1000.0       # sanity: a lap is at least a kilometre
+
+
 def segment_wall_clock_span(table: pa.Table, seg_start: int, seg_end: int) -> float | None:
     """Wall-clock span of a segment from session_time_s (None if unavailable)."""
     if "session_time_s" not in table.schema.names:
@@ -128,6 +155,8 @@ def find_complete_laps(table: pa.Table) -> list[tuple[int, float, int, int]]:
             continue
         span = segment_wall_clock_span(table, seg_start, seg_end)
         if span is not None and abs(span - lap_time) > max(3.0, 0.05 * lap_time):
+            continue
+        if not segment_covers_full_lap(table, seg_start, seg_end):
             continue
         candidates.append((lap_num, lap_time, seg_start, seg_end))
 
