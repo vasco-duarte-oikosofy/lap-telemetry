@@ -79,6 +79,8 @@ Run after recording a session in which you may have beaten the current reference
 
 To update several circuits, run once per circuit and give each its own commit. Never script a loop that rewrites the whole `product/data/reference-laps/` folder in one pass.
 
+**Track has a coaching model?** Use `dev/scripts/update_reference_and_coaching_model.py --session <session> --track-id <slug>` instead of calling this script directly: it dry-checks the curated corners against the new lap first (aborting with no changes if they don't reproduce), then delegates the export here and refreshes the model with names preserved. See "Pipeline B" in `docs/HOW_TO_CREATE_A_COACHING_MODEL.md`.
+
 ---
 
 ## How the Script Works
@@ -121,6 +123,7 @@ In `product/dist/compare.html`, use the file picker to load any file from `produ
 ## See Also
 
 - `dev/scripts/export_fastest_reference_laps.py` — the automated export script
+- `dev/scripts/update_reference_and_coaching_model.py` — guarded ref+model update for tracks with a coaching model
 - `dev/scripts/validate_reference_laps.py` — post-export folder validation
 - `dev/scripts/EXTRACT_AND_STORE_REFERENCE_LAP.md` — workflow doc + manual fallback procedure
 - `product/data/reference-laps/` — output directory

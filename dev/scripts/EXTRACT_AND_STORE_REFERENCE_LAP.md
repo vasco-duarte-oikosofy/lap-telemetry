@@ -46,6 +46,8 @@ python dev/scripts/validate_reference_laps.py
 
 This checks every reference lap for internal consistency (single contiguous lap, duration matches filename) and provenance (a source session exists on the same track, in the same car, with a matching lap time).
 
+**If the track+car already has a coaching model**, do not export the reference directly — use `update_reference_and_coaching_model.py --session <session.parquet> --track-id <track-slug>` instead. It runs the corner-reproduction check *before* exporting (so the reference and model can never go out of sync), delegates the export to this script's guards, and refreshes the model's geometry while preserving curated corner names. See "Pipeline B" in [`docs/HOW_TO_CREATE_A_COACHING_MODEL.md`](../../docs/HOW_TO_CREATE_A_COACHING_MODEL.md).
+
 ## Pitfalls
 
 ### Multi-shard sessions

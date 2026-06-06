@@ -12,7 +12,10 @@ product/data/track-coaching/<track-slug>_<car-id>.diagnostics.txt
 - `<track-slug>`: circuit name as it appears in session filenames (e.g. `lusail-international-circuit`).
 - `<car-id>`: car identifier (e.g. `dkr-engineering-4-elms25`).
 
-One model per track+car combination. If a model already exists for the track+car, replacing it is safe — the script overwrites.
+One model per track+car combination. The script **overwrites** the output file, which destroys any curated content (real corner names, manual apex sides, manually added turns). Therefore (bug 24):
+
+- **New track+car (no model yet):** use this script.
+- **Track+car already has a model:** do NOT re-run this script. Use `update_reference_and_coaching_model.py`, which refreshes corner geometry while preserving curated names/IDs/apex sides and aborts (no changes) if any curated corner does not reproduce on the new lap. See "Pipeline B" in [`docs/HOW_TO_CREATE_A_COACHING_MODEL.md`](../../docs/HOW_TO_CREATE_A_COACHING_MODEL.md).
 
 ## Prerequisites
 
