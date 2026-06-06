@@ -1,5 +1,12 @@
 # lap-telemetry — Claude Code context
 
+**MANDATORY: read [AGENTS.md](AGENTS.md) before doing any work in this
+repository.** It holds the standing rules (one slice at a time, test-first,
+commit cadence, file-size ceilings) and the index of operational procedures —
+in particular the guarded reference-lap / coaching-model pipeline, which is the
+only permitted way to change `product/data/`. The rules in AGENTS.md override
+convenience and apply to every commit.
+
 See [SETUP.md](SETUP.md) for environment setup (venv, pip install, verify).
 
 See [DESIGN.md](DESIGN.md) for architecture, file format, and milestone plan.
@@ -46,13 +53,17 @@ before the sim and leave it running across an evening of mixed sessions.
 The probe retries until LMU/rF2 appears (`--probe-timeout 0` = forever).
 The frame gate ignores the broken `mInRealtime` flag; recordable = non-None
 frame with non-empty track + vehicle. One session file is written per
-`(track, vehicle)` combo; combo changes (or 5 s of idle) close the writer
-cleanly and start a fresh one on the next recordable frame. `SessionWriter`
-writes the JSON sidecar at session start, refreshes it on every shard
-flush, and finalises it at close — so a hard kill still leaves identifying
-metadata on disk. Orphan recovery on next startup stamps `recovered: true`
-and recomputes counts. Sidecar also carries a heuristic `setup_file_guess`
-(the most-recently-modified `.svm` in the sim's per-track Settings folder).
+`(track, vehicle, session_type)` combo; combo changes, 5 s of idle, or a
+`session_time_s` regression of >30 s (sim restart detected, bug 19) close
+the writer cleanly and start a fresh one on the next recordable frame.
+Session type (`mSession`) is read from the sim and mapped to `practice`,
+`quali`, or `race`; it is appended as a filename suffix and stored as
+`session_type_label` in the JSON sidecar. `SessionWriter` writes the JSON
+sidecar at session start, refreshes it on every shard flush, and finalises
+it at close — so a hard kill still leaves identifying metadata on disk.
+Orphan recovery on next startup stamps `recovered: true` and recomputes
+counts. Sidecar also carries a heuristic `setup_file_guess` (the
+most-recently-modified `.svm` in the sim's per-track Settings folder).
 
 **F4 distance integration** (`connect.py` `_estimate_dist`) drives the
 50 Hz position axis: between scoring-rate `mLapDist` anchors (~5 Hz)

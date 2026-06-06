@@ -244,17 +244,49 @@ python3 -m lap_telemetry.coach.generate_utterance --facts dev/fixtures/coach/bar
 export COACH_CONFIG=/path/to/lap-telemetry/coach_config.toml
 ```
 
-## Reference-lap extraction and storage
+## Reference laps and coaching models (guarded pipeline — bugs 22/23/24)
 
-To extract the fastest lap from a session file and store it as the reference lap for a circuit, follow the procedure in [`dev/scripts/EXTRACT_AND_STORE_REFERENCE_LAP.md`](dev/scripts/EXTRACT_AND_STORE_REFERENCE_LAP.md).
+`product/data/` is curated, committed data. Every change to it goes through a
+guarded script — never hand-filter laps by `lap_number` (it merges sim-restart
+stints), never hand-copy files into `product/data/reference-laps/`, never
+re-generate a coaching model that has curated corner names. One (track,
+vehicle) per run; we never export all reference laps at once.
 
-For sessions recorded as many `.part*.parquet` shards, see the **Multi-shard sessions** pitfall section in that doc — merge shards to a single file before running the extraction scripts.
+The processes and where they are documented:
 
-## Generating a track coaching model
+- **Find the fastest lap** — `lap-telemetry summary <file|dir>`: per-lap
+  overview of a session (times, sectors, validity). The scan step before any
+  export.
+- **Export a reference lap** — `dev/scripts/export_fastest_reference_laps.py`:
+  exports the fastest complete lap of ONE (track, vehicle); segment-slice
+  extraction, authoritative timing, abandoned-lap rejection, replaces an
+  existing ref only when faster, and a mandatory post-run audit that fails if
+  more than one reference changed. Guide:
+  [`dev/tools/README-REFERENCE-LAPS.md`](dev/tools/README-REFERENCE-LAPS.md);
+  naming/pitfalls/manual fallback:
+  [`dev/scripts/EXTRACT_AND_STORE_REFERENCE_LAP.md`](dev/scripts/EXTRACT_AND_STORE_REFERENCE_LAP.md).
+- **Validate the reference-lap folder** —
+  `dev/scripts/validate_reference_laps.py`: every ref must be a single
+  contiguous lap matching its filename time, traced to a source session with
+  the same track and car. Run after any export, before committing.
+- **Create a coaching model (new track+car only)** —
+  `dev/scripts/generate_track_coaching_model_from_reference.py`: corner
+  detection from a reference lap. It OVERWRITES — only for tracks without an
+  existing model. Details:
+  [`dev/scripts/GENERATE_TRACK_COACHING_MODEL.md`](dev/scripts/GENERATE_TRACK_COACHING_MODEL.md).
+- **Update a track that already has a model** —
+  `dev/scripts/update_reference_and_coaching_model.py`: checks that every
+  curated corner reproduces on the new lap BEFORE writing anything (aborts
+  otherwise — curated models never lose hand-tuned content), delegates the
+  ref export to the guarded script, refreshes geometry preserving
+  names/IDs/apex sides. `--allow-unmatched` to keep old geometry for missing
+  corners; `--ref` to refresh from an existing reference.
+- **End-to-end procedure with worked examples for both pipelines** —
+  [`docs/HOW_TO_CREATE_A_COACHING_MODEL.md`](docs/HOW_TO_CREATE_A_COACHING_MODEL.md).
 
-For the full end-to-end procedure (find fastest lap → extract → store reference → generate model → name corners → verify), see [`docs/HOW_TO_CREATE_A_COACHING_MODEL.md`](docs/HOW_TO_CREATE_A_COACHING_MODEL.md).
-
-For detection algorithm details and tuning flags only, see [`dev/scripts/GENERATE_TRACK_COACHING_MODEL.md`](dev/scripts/GENERATE_TRACK_COACHING_MODEL.md).
+For sessions recorded as many `.part*.parquet` shards, see the **Multi-shard
+sessions** pitfall in `EXTRACT_AND_STORE_REFERENCE_LAP.md` — merge shards to a
+single file first.
 
 ## Generating a track outline
 
