@@ -12,4 +12,4 @@ The implementation scripts used by the outline-generation workflow live here, in
 
 ## Reference lap export
 
-`export_fastest_reference_laps.py` scans all session parquets and writes one fastest-lap parquet per track to `product/data/reference-laps/`. See [`../tools/README-REFERENCE-LAPS.md`](../tools/README-REFERENCE-LAPS.md) for when and how to re-run it.
+`export_fastest_reference_laps.py` exports the fastest lap of **one** (track, vehicle) combo per run to `product/data/reference-laps/` — it refuses multi-combo targets and audits that at most one reference changed (we never export all laps at once; bug 22). Validate the folder afterwards with `validate_reference_laps.py`. See [`../tools/README-REFERENCE-LAPS.md`](../tools/README-REFERENCE-LAPS.md) for the full workflow.

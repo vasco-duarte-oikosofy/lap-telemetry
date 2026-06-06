@@ -1,17 +1,50 @@
 # Extracting and Storing a Reference Lap
 
-A **reference lap** is the fastest known clean lap for a given circuit, stored as a single-lap Parquet file under `product/data/reference-laps/`. It is used by the compare view and delta-time analysis as the benchmark lap.
+A **reference lap** is the fastest known clean lap for a given circuit and car, stored as a single-lap Parquet file under `product/data/reference-laps/`. It is used by the compare view and delta-time analysis as the benchmark lap.
+
+## ⚠️ Cardinal rule: one reference lap per export run
+
+**We NEVER export all reference laps at the same time.** Every export run targets exactly one (track, vehicle) combo and may change at most one reference file. Bulk re-export silently corrupted the entire curated set once (bug 22: restarted-session stints merged into single files, curated refs overwritten, wrong-car laps exported) — the export script now refuses multi-combo targets and runs a **mandatory post-export audit** that fails the run if more than one reference changed on disk. If the audit ever fails, recover `product/data/reference-laps/` via git before committing anything.
 
 ## Naming convention
 
 ```
-product/data/reference-laps/<track-slug>_time_<MM>.<SS>.<mmm>.parquet
+product/data/reference-laps/<track-slug>_<vehicle-slug>_time_<MM>.<SS>.<mmm>.parquet
 ```
 
 - `<track-slug>`: circuit name as it appears in session filenames (e.g. `circuit-de-barcelona`).
+- `<vehicle-slug>`: slugified `vehicle_name` from the session's JSON sidecar (e.g. `dkr-engineering-4-elms25`).
 - `<MM>.<SS>.<mmm>`: fastest lap time formatted as `minutes.seconds.milliseconds`.
 
-When a new fastest time is found, **replace the old file** (delete it) and create a new one with the updated time in the filename. There should be at most one reference-lap file per track.
+When a new fastest time is found, **replace the old file** (delete it) and create a new one with the updated time in the filename. There should be at most one reference-lap file per (track, vehicle).
+
+## Procedure (preferred): `export_fastest_reference_laps.py`
+
+One command per circuit — pass the session file(s) to consider, all from the same track and car:
+
+```powershell
+python dev/scripts/export_fastest_reference_laps.py `
+    sessions/session_20260606T064918Z_autdromo-jos-carlos-pace_lmu_practice.parquet
+```
+
+The script:
+
+1. **Refuses to run** if the targets span more than one (track, vehicle) combo, or if no targets are given (`--help` shows usage).
+2. Finds complete laps **per contiguous segment** (never by grouping `lap_number` — see Pitfalls), validates each candidate's wall-clock span against its claimed time, and picks the fastest.
+3. Keeps the existing reference unless the new lap is faster by more than 1 ms; when replacing, it deletes the superseded file.
+4. **Audits the output directory** before/after and hard-fails if anything other than that single reference changed:
+
+```
+AUDIT: 1 reference lap changed (added: [...], superseded: [...]). OK.
+```
+
+A run is only valid if it ends with an `AUDIT:` line reporting 0 or 1 changed laps. Then validate the whole folder and commit:
+
+```powershell
+python dev/scripts/validate_reference_laps.py
+```
+
+This checks every reference lap for internal consistency (single contiguous lap, duration matches filename) and provenance (a source session exists on the same track, in the same car, with a matching lap time).
 
 ## Pitfalls
 
@@ -46,7 +79,7 @@ Some sessions end mid-lap when the driver exits. The resulting "lap" can have a 
 - Is the row count consistent with other complete laps in the same session?
 - Is the `lap_distance_m` in the right range?
 
-## Procedure (single circuit)
+## Procedure (manual fallback, single circuit)
 
 ### 1. Survey laps across all sessions for the circuit
 
@@ -114,26 +147,6 @@ Commit the deletion of the old file and addition of the new one. The commit mess
 ref: update circuit-de-barcelona reference lap 01.36.810 → 01.36.456
 ```
 
-## Procedure (all circuits)
+## Updating several circuits
 
-To update reference laps for every circuit at once:
-
-### 1. List current reference laps
-
-```bash
-ls product/data/reference-laps/
-```
-
-Note each circuit's current time.
-
-### 2. Survey all sessions by circuit
-
-For each circuit slug in `dev/sessions/`, run `explore_and_export_laps.py` on every session and collect the fastest-lap time. Cross-reference with `extract_reference_lap.py --segment 1` for sessions where the "Fastest" line looks suspiciously fast or comes from a multi-stint session.
-
-### 3. Compare and decide
-
-For each circuit, compare the fastest available lap time against the current reference. Only update if the new time is **strictly faster** (lower). If no session beats the current reference, leave it unchanged.
-
-### 4. Extract, verify, replace, commit
-
-For each circuit that needs updating, follow steps 2–6 of the single-circuit procedure above. Each circuit gets its own commit.
+There is **no bulk procedure** — see the cardinal rule at the top. To update more than one circuit, run the preferred procedure once per circuit, in separate runs, and give each circuit its own commit. Never script a loop that rewrites the whole `product/data/reference-laps/` folder in one pass (that is exactly what caused bug 22).
