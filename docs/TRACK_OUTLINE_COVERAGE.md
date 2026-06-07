@@ -33,7 +33,7 @@ kerb or far from the outside wall.
 | Circuit de Spa-Francorchamps Endurance | `circuit-de-spa-francorchamps-endurance` | **Real** | Same Spa outline | Same | ✅ Yes |
 | Circuit de Barcelona-Catalunya | `circuit-de-barcelona` | Trajectory | Median of 5 fastest laps | Constant 5m each side | ❌ No |
 | Bahrain International Circuit | `bahrain-international-circuit` | **Real** | TUMFTM `Sakhir.csv` | Varies per point | ✅ Yes |
-| Fuji Speedway | `fuji-speedway` | Trajectory | Single lap (lap 7) | Constant 3m each side | ❌ No |
+| Fuji Speedway | `fuji-speedway` | Trajectory | Single lap (lap 14, 1:38.097, 2026-06-07) | Constant 5m each side | ❌ No |
 | Autodromo Enzo e Dino Ferrari | `autodromo-enzo-e-dino-ferrari` | ❌ None | — | — | — |
 | Lusail International Circuit | `lusail-international-circuit` | Trajectory | Single lap (lap 12, 1:52.200, 2026-05-22) | Constant 5m each side | ❌ No |
 | Fuji Speedway Classic | `fuji-speedway-classic` | Trajectory | Single lap (lap 3, 1:38.541, 2026-06-06) | Constant 5m each side | ❌ No |

@@ -20,6 +20,7 @@ import { LUSAIL_INTERNATIONAL_CIRCUIT_STATIC_OUTLINE } from './staticLusailInter
 import { PAUL_RICARD___3A_STATIC_OUTLINE } from './staticPaulRicard3aOutlineData.js';
 import { BAHRAIN_OUTER_CIRCUIT_STATIC_OUTLINE } from './staticBahrainOuterCircuitOutlineData.js';
 import { AUTODROMO_JOSE_CARLOS_PACE_STATIC_OUTLINE } from './staticAutodromoJoseCarlosPaceOutlineData.js';
+import { FUJI_SPEEDWAY_CLASSIC_STATIC_OUTLINE } from './staticFujiSpeedwayClassicOutlineData.js';
 
 // slug normalization: lowercase, collapse whitespace to single dash,
 // transliterate accents via NFKD (ó→o, é→e), strip non-alnum/dash.
@@ -64,6 +65,8 @@ const OUTLINES = new Map([
   ['autodromo-jose-carlos-pace', AUTODROMO_JOSE_CARLOS_PACE_STATIC_OUTLINE],
   ['autdromo-jos-carlos-pace', AUTODROMO_JOSE_CARLOS_PACE_STATIC_OUTLINE], // legacy stripped-accent form
   ['interlagos', AUTODROMO_JOSE_CARLOS_PACE_STATIC_OUTLINE],
+  // Fuji Speedway Classic
+  ['fuji-speedway-classic', FUJI_SPEEDWAY_CLASSIC_STATIC_OUTLINE],
 ]);
 
 /**

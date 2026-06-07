@@ -1,12 +1,11 @@
 detection_method=throttle_brake_v1
-1 "First Corner" apex=770m start=587m end=783m min=148.9kph entry=158.9kph exit=148.9kph side=right (curated)
-3 "Coca-Cola" apex=1301m start=1195m end=1307m min=86.8kph entry=97.2kph exit=95.3kph side=left (curated)
-100r "100R" apex=1751m start=1556m end=1766m min=93.7kph entry=100.0kph exit=93.7kph side=right (curated)
-hairpin "Hairpin" apex=2010m start=1889m end=2027m min=62.1kph entry=62.9kph exit=74.7kph side=left (curated)
-dunlop_bypass "Dunlop Bypass" apex=2844m start=2579m end=2852m min=70.7kph entry=70.7kph exit=77.9kph side=right (curated)
-11 "Turn 11" apex=2900m start=2877m end=2925m min=85.3kph entry=85.5kph exit=89.8kph side=right (curated)
-12 "Turn 12" apex=3080m start=3050m end=3100m side=right (curated)
-13th_corner "13th Corner" apex=3151m start=3100m end=3161m min=85.5kph entry=85.5kph exit=89.8kph side=right (curated)
-netz "Netz" apex=3340m start=3302m end=3370m side=left (curated)
-netz_hairpin "Netz Hairpin" apex=3413m start=3370m end=3439m min=85.3kph entry=85.5kph exit=89.8kph side=left (curated)
-panasonic "Panasonic" apex=3676m start=3572m end=3684m min=124.4kph entry=129.0kph exit=125.2kph side=right (curated)
+t1 apex=774m start=579m end=785m min=69.6kph entry=86.6kph exit=78.6kph drop=60.5kph recovery=67.2kph prominence=60.5kph accepted
+t2 apex=1310m start=1193m end=1323m min=153.5kph entry=168.4kph exit=154.7kph drop=40.2kph recovery=19.7kph prominence=19.7kph accepted
+t3 apex=1766m start=1536m end=1812m min=171.1kph entry=204.1kph exit=174.3kph drop=10.2kph recovery=8.7kph prominence=8.7kph accepted
+t4 apex=2013m start=1886m end=2028m min=97.0kph entry=99.2kph exit=101.7kph drop=54.6kph recovery=41.9kph prominence=41.9kph accepted
+t5 apex=2844m start=2685m end=2855m min=59.7kph entry=62.1kph exit=66.5kph drop=93.4kph recovery=35.0kph prominence=35.0kph accepted
+t6 apex=2914m start=2875m end=2917m min=78.0kph entry=86.8kph exit=80.3kph drop=16.7kph recovery=50.5kph prominence=16.7kph accepted
+t7 apex=3132m start=3060m end=3155m min=91.3kph entry=91.5kph exit=103.1kph drop=61.6kph recovery=44.8kph prominence=44.8kph accepted
+t8 apex=3310m start=3284m end=3310m min=157.8kph entry=160.6kph exit=157.8kph drop=3.6kph recovery=-1.2kph prominence=-1.2kph accepted
+t9 apex=3396m start=3311m end=3438m min=83.6kph entry=96.8kph exit=88.5kph drop=70.2kph recovery=44.6kph prominence=44.6kph accepted
+t10 apex=3671m start=3566m end=3709m min=84.9kph entry=91.9kph exit=86.2kph drop=60.1kph recovery=40.2kph prominence=40.2kph accepted
