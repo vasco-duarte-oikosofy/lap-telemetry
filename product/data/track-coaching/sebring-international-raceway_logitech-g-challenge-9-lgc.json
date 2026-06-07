@@ -1,0 +1,105 @@
+{
+  "schema_version": "1",
+  "track_id": "sebring-international-raceway",
+  "layout_id": "lmu-default",
+  "reference_lap": {
+    "path": "product\\data\\reference-laps\\sebring-international-raceway_logitech-g-challenge-9-lgc_time_02.04.384.parquet",
+    "car_id": "logitech-g-challenge-9-lgc",
+    "lap_time_s": 124.384,
+    "detection_method": "throttle_brake_v1"
+  },
+  "lap_length_m": 5828.2,
+  "corners": [
+    {
+      "id": "t1",
+      "name": "turn 1",
+      "s_start_m": 302.0,
+      "apex_s_m": 499.0,
+      "s_end_m": 500.0,
+      "apex_side": "right",
+      "apex_side_source": "default_cli_option"
+    },
+    {
+      "id": "t2",
+      "name": "turn 2",
+      "s_start_m": 817.0,
+      "apex_s_m": 939.0,
+      "s_end_m": 959.0,
+      "apex_side": "right",
+      "apex_side_source": "default_cli_option"
+    },
+    {
+      "id": "t3",
+      "name": "turn 3",
+      "s_start_m": 1038.0,
+      "apex_s_m": 1109.0,
+      "s_end_m": 1110.0,
+      "apex_side": "right",
+      "apex_side_source": "default_cli_option"
+    },
+    {
+      "id": "t4",
+      "name": "turn 4",
+      "s_start_m": 1818.0,
+      "apex_s_m": 1971.0,
+      "s_end_m": 1999.0,
+      "apex_side": "right",
+      "apex_side_source": "default_cli_option"
+    },
+    {
+      "id": "t5",
+      "name": "turn 5",
+      "s_start_m": 2624.0,
+      "apex_s_m": 2762.0,
+      "s_end_m": 2777.0,
+      "apex_side": "right",
+      "apex_side_source": "default_cli_option"
+    },
+    {
+      "id": "t6",
+      "name": "turn 6",
+      "s_start_m": 3136.0,
+      "apex_s_m": 3254.0,
+      "s_end_m": 3264.0,
+      "apex_side": "right",
+      "apex_side_source": "default_cli_option"
+    },
+    {
+      "id": "t7",
+      "name": "turn 7",
+      "s_start_m": 3884.0,
+      "apex_s_m": 4034.0,
+      "s_end_m": 4041.0,
+      "apex_side": "right",
+      "apex_side_source": "default_cli_option"
+    },
+    {
+      "id": "t8",
+      "name": "turn 8",
+      "s_start_m": 4161.0,
+      "apex_s_m": 4234.0,
+      "s_end_m": 4270.0,
+      "apex_side": "right",
+      "apex_side_source": "default_cli_option"
+    },
+    {
+      "id": "t9",
+      "name": "turn 9",
+      "s_start_m": 5148.0,
+      "apex_s_m": 5301.0,
+      "s_end_m": 5318.0,
+      "apex_side": "right",
+      "apex_side_source": "default_cli_option"
+    },
+    {
+      "id": "t10",
+      "name": "turn 10",
+      "s_start_m": 5319.0,
+      "apex_s_m": 5378.0,
+      "s_end_m": 5443.0,
+      "apex_side": "right",
+      "apex_side_source": "default_cli_option"
+    }
+  ],
+  "straight_zones": []
+}

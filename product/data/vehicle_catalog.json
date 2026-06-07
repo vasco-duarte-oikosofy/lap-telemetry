@@ -1,0 +1,45 @@
+{
+  "_comment": "Maps LMU vehicle_name from session sidecars to canonical car identity. Used to group sessions by car model regardless of team livery/number.",
+  "United Autosports 2025 #23:ELMS": {
+    "brand": "McLaren",
+    "model": "720S GT3 Evo",
+    "car_class": "LMGT3",
+    "slug": "mclaren-720s-gt3-evo"
+  },
+  "Logitech G Challenge #9:LGC": {
+    "brand": "McLaren",
+    "model": "720S GT3",
+    "car_class": "LMGT3",
+    "slug": "mclaren-720s-gt3"
+  },
+  "DKR Engineering #4:ELMS25": {
+    "brand": "Ginetta",
+    "model": "LMP3",
+    "car_class": "LMP3",
+    "slug": "ginetta-lmp3"
+  },
+  "GR Racing 2025 #86:ELMS": {
+    "brand": "Ferrari",
+    "model": "296 GT3",
+    "car_class": "LMGT3",
+    "slug": "ferrari-296-gt3"
+  },
+  "Richard Mille AF Corse 2025 #50:ELMS": {
+    "brand": "Ferrari",
+    "model": "296 GT3",
+    "car_class": "LMGT3",
+    "slug": "ferrari-296-gt3"
+  },
+  "Vista AF Corse 2025 #21:LM": {
+    "brand": "Ferrari",
+    "model": "296 GT3",
+    "car_class": "LMGT3",
+    "slug": "ferrari-296-gt3"
+  },
+  "Vista AF Corsa 2026 #54:WEC": {
+    "brand": "Ferrari",
+    "model": "296 GT3",
+    "car_class": "LMGT3",
+    "slug": "ferrari-296-gt3"
+  }
+}
