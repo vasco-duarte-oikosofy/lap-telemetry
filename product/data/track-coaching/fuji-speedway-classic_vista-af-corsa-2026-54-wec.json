@@ -5,7 +5,7 @@
   "reference_lap": {
     "path": "product\\data\\reference-laps\\fuji-speedway-classic_vista-af-corsa-2026-54-wec_time_01.38.541.parquet",
     "car_id": "vista-af-corsa-2026-54-wec",
-    "lap_time_s": 98.352,
+    "lap_time_s": 98.541,
     "detection_method": "throttle_brake_v1"
   },
   "lap_length_m": 4510.1,
@@ -31,7 +31,7 @@
     {
       "id": "100r",
       "name": "100R",
-      "s_start_m": 1574.0,
+      "s_start_m": 1677.0,
       "apex_s_m": 1736.0,
       "s_end_m": 1739.0,
       "apex_side": "right",
@@ -50,7 +50,7 @@
       "id": "dunlop_bypass",
       "name": "Dunlop Bypass",
       "s_start_m": 2690.0,
-      "apex_s_m": 2808.0,
+      "apex_s_m": 2838.0,
       "s_end_m": 2844.0,
       "apex_side": "right",
       "apex_side_source": "manual"
@@ -58,7 +58,7 @@
     {
       "id": "13th_corner",
       "name": "13th Corner",
-      "s_start_m": 3005.0,
+      "s_start_m": 3089.0,
       "apex_s_m": 3123.0,
       "s_end_m": 3143.0,
       "apex_side": "right",
@@ -68,15 +68,15 @@
       "id": "netz",
       "name": "Netz",
       "s_start_m": 3246.0,
-      "apex_s_m": 3291.0,
-      "s_end_m": 3291.0,
+      "apex_s_m": 3324.0,
+      "s_end_m": 3324.0,
       "apex_side": "left",
       "apex_side_source": "manual"
     },
     {
       "id": "netz_hairpin",
       "name": "Netz Hairpin",
-      "s_start_m": 3292.0,
+      "s_start_m": 3325.0,
       "apex_s_m": 3385.0,
       "s_end_m": 3404.0,
       "apex_side": "left",
@@ -85,7 +85,7 @@
     {
       "id": "panasonic",
       "name": "Panasonic",
-      "s_start_m": 3535.0,
+      "s_start_m": 3606.0,
       "apex_s_m": 3654.0,
       "s_end_m": 3683.0,
       "apex_side": "right",
