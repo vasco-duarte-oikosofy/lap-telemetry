@@ -3,9 +3,9 @@
   "track_id": "circuit-of-the-americas",
   "layout_id": "lmu-default",
   "reference_lap": {
-    "path": "product\\data\\reference-laps\\circuit-of-the-americas_dkr-engineering-4-elms25_time_02.03.820.parquet",
+    "path": "product\\data\\reference-laps\\circuit-of-the-americas_dkr-engineering-4-elms25_time_02.03.733.parquet",
     "car_id": "dkr-engineering-4-elms25",
-    "lap_time_s": 123.82,
+    "lap_time_s": 123.733,
     "detection_method": "throttle_brake_v1"
   },
   "lap_length_m": 5498.8,
@@ -13,8 +13,8 @@
     {
       "id": "t1",
       "name": "turn 1",
-      "s_start_m": 509.0,
-      "apex_s_m": 657.0,
+      "s_start_m": 507.0,
+      "apex_s_m": 662.0,
       "s_end_m": 675.0,
       "apex_side": "right",
       "apex_side_source": "default_cli_option"
@@ -22,45 +22,45 @@
     {
       "id": "t4",
       "name": "turn 4",
-      "s_start_m": 1199.0,
-      "apex_s_m": 1221.0,
-      "s_end_m": 1251.0,
+      "s_start_m": 1161.0,
+      "apex_s_m": 1209.0,
+      "s_end_m": 1250.0,
       "apex_side": "right",
       "apex_side_source": "manual"
     },
     {
       "id": "t5",
       "name": "turn 5",
-      "s_start_m": 1285.0,
-      "apex_s_m": 1325.0,
-      "s_end_m": 1382.0,
+      "s_start_m": 1250.0,
+      "apex_s_m": 1291.0,
+      "s_end_m": 1350.0,
       "apex_side": "right",
       "apex_side_source": "manual"
     },
     {
       "id": "t6",
       "name": "turn 6",
-      "s_start_m": 1458.0,
-      "apex_s_m": 1557.0,
-      "s_end_m": 1599.0,
+      "s_start_m": 1428.0,
+      "apex_s_m": 1512.0,
+      "s_end_m": 1550.0,
       "apex_side": "right",
       "apex_side_source": "manual"
     },
     {
       "id": "t7",
       "name": "turn 7",
-      "s_start_m": 1643.0,
-      "apex_s_m": 1709.0,
-      "s_end_m": 1717.0,
+      "s_start_m": 1594.0,
+      "apex_s_m": 1711.0,
+      "s_end_m": 1716.0,
       "apex_side": "right",
       "apex_side_source": "manual"
     },
     {
       "id": "t8",
       "name": "turn 8",
-      "s_start_m": 1805.0,
-      "apex_s_m": 1892.0,
-      "s_end_m": 1941.0,
+      "s_start_m": 1803.0,
+      "apex_s_m": 1907.0,
+      "s_end_m": 1928.0,
       "apex_side": "right",
       "apex_side_source": "manual"
     },
@@ -76,18 +76,18 @@
     {
       "id": "t11",
       "name": "turn 11",
-      "s_start_m": 2439.0,
-      "apex_s_m": 2594.0,
-      "s_end_m": 2608.0,
+      "s_start_m": 2431.0,
+      "apex_s_m": 2589.0,
+      "s_end_m": 2598.0,
       "apex_side": "right",
       "apex_side_source": "default_cli_option"
     },
     {
       "id": "t12",
       "name": "turn 12",
-      "s_start_m": 3617.0,
-      "apex_s_m": 3794.0,
-      "s_end_m": 3800.0,
+      "s_start_m": 3614.0,
+      "apex_s_m": 3793.0,
+      "s_end_m": 3799.0,
       "apex_side": "right",
       "apex_side_source": "default_cli_option"
     },
@@ -95,17 +95,17 @@
       "id": "t13",
       "name": "turn 13",
       "s_start_m": 3923.0,
-      "apex_s_m": 4004.0,
-      "s_end_m": 4061.0,
+      "apex_s_m": 4006.0,
+      "s_end_m": 4048.0,
       "apex_side": "right",
       "apex_side_source": "default_cli_option"
     },
     {
       "id": "t16",
       "name": "turn 16",
-      "s_start_m": 4180.0,
-      "apex_s_m": 4286.0,
-      "s_end_m": 4308.0,
+      "s_start_m": 4179.0,
+      "apex_s_m": 4292.0,
+      "s_end_m": 4331.0,
       "apex_side": "right",
       "apex_side_source": "default_cli_option"
     },
@@ -121,18 +121,18 @@
     {
       "id": "t19",
       "name": "turn 19",
-      "s_start_m": 4918.0,
-      "apex_s_m": 5038.0,
-      "s_end_m": 5058.0,
+      "s_start_m": 4920.0,
+      "apex_s_m": 5033.0,
+      "s_end_m": 5067.0,
       "apex_side": "right",
       "apex_side_source": "manual"
     },
     {
       "id": "t20",
       "name": "turn 20",
-      "s_start_m": 5229.0,
-      "apex_s_m": 5345.0,
-      "s_end_m": 5364.0,
+      "s_start_m": 5226.0,
+      "apex_s_m": 5356.0,
+      "s_end_m": 5369.0,
       "apex_side": "right",
       "apex_side_source": "default_cli_option"
     }
