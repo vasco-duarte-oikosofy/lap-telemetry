@@ -21,6 +21,7 @@ import { PAUL_RICARD___3A_STATIC_OUTLINE } from './staticPaulRicard3aOutlineData
 import { BAHRAIN_OUTER_CIRCUIT_STATIC_OUTLINE } from './staticBahrainOuterCircuitOutlineData.js';
 import { AUTODROMO_JOSE_CARLOS_PACE_STATIC_OUTLINE } from './staticAutodromoJoseCarlosPaceOutlineData.js';
 import { FUJI_SPEEDWAY_CLASSIC_STATIC_OUTLINE } from './staticFujiSpeedwayClassicOutlineData.js';
+import { SEBRING_INTERNATIONAL_RACEWAY_STATIC_OUTLINE } from './staticSebringInternationalRacewayOutlineData.js';
 
 // slug normalization: lowercase, collapse whitespace to single dash,
 // transliterate accents via NFKD (ó→o, é→e), strip non-alnum/dash.
@@ -67,6 +68,8 @@ const OUTLINES = new Map([
   ['interlagos', AUTODROMO_JOSE_CARLOS_PACE_STATIC_OUTLINE],
   // Fuji Speedway Classic
   ['fuji-speedway-classic', FUJI_SPEEDWAY_CLASSIC_STATIC_OUTLINE],
+  // Sebring International Raceway
+  ['sebring-international-raceway', SEBRING_INTERNATIONAL_RACEWAY_STATIC_OUTLINE],
 ]);
 
 /**
