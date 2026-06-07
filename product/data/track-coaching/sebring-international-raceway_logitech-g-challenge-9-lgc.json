@@ -16,8 +16,8 @@
       "s_start_m": 302.0,
       "apex_s_m": 499.0,
       "s_end_m": 500.0,
-      "apex_side": "right",
-      "apex_side_source": "default_cli_option"
+      "apex_side": "left",
+      "apex_side_source": "curated"
     },
     {
       "id": "3",
@@ -25,8 +25,8 @@
       "s_start_m": 817.0,
       "apex_s_m": 939.0,
       "s_end_m": 957.0,
-      "apex_side": "right",
-      "apex_side_source": "default_cli_option"
+      "apex_side": "left",
+      "apex_side_source": "curated"
     },
     {
       "id": "5",
@@ -34,8 +34,8 @@
       "s_start_m": 1038.0,
       "apex_s_m": 1109.0,
       "s_end_m": 1110.0,
-      "apex_side": "right",
-      "apex_side_source": "default_cli_option"
+      "apex_side": "left",
+      "apex_side_source": "curated"
     },
     {
       "id": "7",
@@ -44,7 +44,7 @@
       "apex_s_m": 1971.0,
       "s_end_m": 1999.0,
       "apex_side": "right",
-      "apex_side_source": "default_cli_option"
+      "apex_side_source": "curated"
     },
     {
       "id": "10",
@@ -53,7 +53,7 @@
       "apex_s_m": 2762.0,
       "s_end_m": 2777.0,
       "apex_side": "right",
-      "apex_side_source": "default_cli_option"
+      "apex_side_source": "curated"
     },
     {
       "id": "13",
@@ -62,7 +62,7 @@
       "apex_s_m": 3254.0,
       "s_end_m": 3264.0,
       "apex_side": "right",
-      "apex_side_source": "default_cli_option"
+      "apex_side_source": "curated"
     },
     {
       "id": "15",
@@ -71,7 +71,7 @@
       "apex_s_m": 4034.0,
       "s_end_m": 4041.0,
       "apex_side": "right",
-      "apex_side_source": "default_cli_option"
+      "apex_side_source": "curated"
     },
     {
       "id": "16",
@@ -80,7 +80,7 @@
       "apex_s_m": 4234.0,
       "s_end_m": 4270.0,
       "apex_side": "right",
-      "apex_side_source": "default_cli_option"
+      "apex_side_source": "curated"
     },
     {
       "id": "17a",
@@ -89,7 +89,7 @@
       "apex_s_m": 5301.0,
       "s_end_m": 5318.0,
       "apex_side": "right",
-      "apex_side_source": "default_cli_option"
+      "apex_side_source": "curated"
     },
     {
       "id": "17b",
@@ -98,7 +98,7 @@
       "apex_s_m": 5378.0,
       "s_end_m": 5443.0,
       "apex_side": "right",
-      "apex_side_source": "default_cli_option"
+      "apex_side_source": "curated"
     }
   ],
   "straight_zones": []
