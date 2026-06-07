@@ -50,7 +50,7 @@
       "id": "dunlop_bypass",
       "name": "Dunlop Bypass",
       "s_start_m": 2690.0,
-      "apex_s_m": 2838.0,
+      "apex_s_m": 2814.0,
       "s_end_m": 2844.0,
       "apex_side": "right",
       "apex_side_source": "manual"
@@ -68,16 +68,16 @@
       "id": "netz",
       "name": "Netz",
       "s_start_m": 3246.0,
-      "apex_s_m": 3324.0,
-      "s_end_m": 3324.0,
+      "apex_s_m": 3343.0,
+      "s_end_m": 3343.0,
       "apex_side": "left",
       "apex_side_source": "manual"
     },
     {
       "id": "netz_hairpin",
       "name": "Netz Hairpin",
-      "s_start_m": 3325.0,
-      "apex_s_m": 3385.0,
+      "s_start_m": 3344.0,
+      "apex_s_m": 3379.0,
       "s_end_m": 3404.0,
       "apex_side": "left",
       "apex_side_source": "manual"
@@ -85,9 +85,9 @@
     {
       "id": "panasonic",
       "name": "Panasonic",
-      "s_start_m": 3606.0,
-      "apex_s_m": 3654.0,
-      "s_end_m": 3683.0,
+      "s_start_m": 3547.0,
+      "apex_s_m": 3624.0,
+      "s_end_m": 3679.0,
       "apex_side": "right",
       "apex_side_source": "manual"
     }
