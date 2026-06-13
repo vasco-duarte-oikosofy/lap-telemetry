@@ -1,37 +1,20 @@
-Curated coaching model for Circuit de la Sarthe (DKR Engineering #4 ELMS25 LMP3)
-
-Original detection method: throttle_brake_v1
-Reference lap: product\data\reference-laps\circuit-de-la-sarthe_dkr-engineering-4-elms25_time_03.54.917.parquet
-Lap time: 3:54.917 (234.917s)
-Lap length: 13625.9m
-
-Detected 17 corners via throttle_brake_v1, curated to 16 named corners:
-- Merged t3+t4 (Esses de la Forêt entry + flat continuation) into single corner
-- Named all corners with real Circuit de la Sarthe corner names
-- Manual apex_side assignments based on track layout (clockwise circuit)
-
-Corner mapping (detected → curated):
-  t1  → dunlop_curve       (Dunlop Curve)            apex=698m   min=230.7kph
-  t2  → dunlop_chicane     (Dunlop Chicane)          apex=834m   min=91.7kph
-  t3+t4 → esses_forest     (Esses de la Forêt)       apex=1474m  min=149.8kph (merged, zone 1338-1597m)
-  t5  → tertre_rouge       (Tertre Rouge)             apex=1908m  min=178.1kph
-  t6  → 1st_chicane        (1st Mulsanne Chicane)    apex=4108m  min=106.7kph
-  t7  → 2nd_chicane_entry  (2nd Mulsanne Chicane Entry) apex=5988m  min=150.2kph
-  t8  → 2nd_chicane_exit   (2nd Mulsanne Chicane Exit)  apex=6101m  min=99.6kph
-  t9  → mulsanne           (Mulsanne Corner)          apex=7722m  min=80.6kph
-  t10 → indianapolis_entry (Indianapolis Entry)       apex=9835m  min=95.9kph
-  t11 → arnage             (Indianapolis Apex / Arnage) apex=10160m min=67.0kph
-  t12 → porsche_entry      (Porsche Curves Entry)     apex=11538m min=193.4kph
-  t13 → porsche_middle     (Porsche Curves Middle)    apex=11995m min=227.7kph
-  t14 → porsche_exit       (Porsche Curves Exit)      apex=12190m min=178.9kph
-  t15 → karting            (Karting Esses)             apex=12415m min=172.7kph
-  t16 → ford_entry         (Ford Chicane Entry)        apex=13305m min=120.4kph
-  t17 → ford_exit          (Ford Chicane Exit)         apex=13429m min=83.6kph
-
-Notes:
-- Arnage corner is not separately detected because the LMP3 car carries speed
-  through Indianapolis and brakes once for both Indianapolis apex and Arnage.
-  The t11 event covers both Indianapolis apex and Arnage.
-- Esses de la Forêt was split by the detector into two events (t3, t4) but
-  merged into a single coaching corner since t4 is a flat continuation (3.1 kph drop).
-- No dedicated Arnage event detected between Indianapolis and Porsche Curves.
+detection_method=throttle_brake_v1
+t1 apex=852m start=678m end=942m min=100.2kph entry=108.3kph exit=103.4kph drop=56.0kph recovery=18.7kph prominence=18.7kph accepted
+t2 apex=1458m start=1328m end=1483m min=143.6kph entry=146.1kph exit=148.0kph drop=34.2kph recovery=21.3kph prominence=21.3kph accepted
+t3 apex=1895m start=1821m end=1902m min=184.6kph entry=185.7kph exit=185.2kph drop=34.8kph recovery=13.4kph prominence=13.4kph accepted
+t4 apex=4035m start=3873m end=4035m min=119.3kph entry=288.5kph exit=119.3kph drop=76.8kph recovery=-0.5kph prominence=-0.5kph accepted
+t5 apex=4101m start=4036m end=4144m min=107.2kph entry=107.9kph exit=116.1kph drop=21.9kph recovery=32.5kph prominence=21.9kph accepted
+t6 apex=5994m start=5850m end=5994m min=142.7kph entry=282.1kph exit=142.7kph drop=79.0kph recovery=-1.0kph prominence=-1.0kph accepted
+t7 apex=6081m start=5995m end=6123m min=111.2kph entry=114.2kph exit=119.6kph drop=27.8kph recovery=31.1kph prominence=27.8kph accepted
+t8 apex=7725m start=7530m end=7771m min=84.3kph entry=90.0kph exit=102.2kph drop=74.5kph recovery=43.4kph prominence=43.4kph accepted
+t9 apex=9622m start=9523m end=9626m min=234.7kph entry=236.7kph exit=234.8kph drop=44.7kph recovery=4.9kph prominence=4.9kph accepted
+t10 apex=9835m start=9679m end=9855m min=96.7kph entry=97.9kph exit=105.0kph drop=79.3kph recovery=45.1kph prominence=45.1kph accepted
+t11 apex=10169m start=10054m end=10192m min=67.3kph entry=82.4kph exit=89.8kph drop=80.5kph recovery=67.6kph prominence=67.6kph accepted
+t12 apex=11467m start=11395m end=11467m min=232.1kph entry=270.1kph exit=232.1kph drop=38.7kph recovery=-0.3kph prominence=-0.3kph accepted
+t13 apex=11602m start=11468m end=11654m min=207.3kph entry=231.8kph exit=211.0kph drop=15.2kph recovery=8.2kph prominence=8.2kph accepted
+t14 apex=12126m start=12056m end=12126m min=206.4kph entry=239.8kph exit=206.4kph drop=33.9kph recovery=-0.5kph prominence=-0.5kph accepted
+t15 apex=12240m start=12127m end=12246m min=177.0kph entry=184.3kph exit=177.6kph drop=22.1kph recovery=15.3kph prominence=15.3kph accepted
+t16 apex=12451m start=12346m end=12460m min=189.2kph entry=194.9kph exit=189.6kph drop=4.0kph recovery=14.1kph prominence=4.0kph accepted
+t17 apex=13238m start=13133m end=13238m min=152.0kph entry=256.3kph exit=152.0kph drop=82.9kph recovery=-0.6kph prominence=-0.6kph accepted
+t18 apex=13320m start=13239m end=13354m min=121.9kph entry=128.4kph exit=129.6kph drop=29.1kph recovery=8.2kph prominence=8.2kph accepted
+t19 apex=13418m start=13355m end=13452m min=85.5kph entry=93.0kph exit=98.8kph drop=44.6kph recovery=45.6kph prominence=44.6kph accepted
