@@ -23,16 +23,16 @@
       "id": "dunlop_chicane_1",
       "name": "Dunlop Chicane 1",
       "s_start_m": 696.0,
-      "apex_s_m": 855.0,
-      "s_end_m": 858.0,
+      "apex_s_m": 857.0,
+      "s_end_m": 861.0,
       "apex_side": "left",
       "apex_side_source": "manual"
     },
     {
       "id": "dunlop_chicane_2",
       "name": "Dunlop Chicane 2",
-      "s_start_m": 877.0,
-      "apex_s_m": 902.0,
+      "s_start_m": 879.0,
+      "apex_s_m": 907.0,
       "s_end_m": 921.0,
       "apex_side": "right",
       "apex_side_source": "manual"
@@ -41,16 +41,16 @@
       "id": "esses_forest",
       "name": "Esses de la Foret",
       "s_start_m": 1341.0,
-      "apex_s_m": 1465.0,
-      "s_end_m": 1479.0,
+      "apex_s_m": 1469.0,
+      "s_end_m": 1498.0,
       "apex_side": "right",
       "apex_side_source": "manual"
     },
     {
       "id": "tertre_rouge",
       "name": "Tertre Rouge",
-      "s_start_m": 1833.0,
-      "apex_s_m": 1901.0,
+      "s_start_m": 1827.0,
+      "apex_s_m": 1905.0,
       "s_end_m": 1906.0,
       "apex_side": "right",
       "apex_side_source": "manual"
@@ -58,17 +58,17 @@
     {
       "id": "daytona",
       "name": "Daytona",
-      "s_start_m": 3886.0,
-      "apex_s_m": 4127.0,
-      "s_end_m": 4143.0,
+      "s_start_m": 3884.0,
+      "apex_s_m": 4130.0,
+      "s_end_m": 4145.0,
       "apex_side": "left",
       "apex_side_source": "manual"
     },
     {
       "id": "michelin",
       "name": "Michelin",
-      "s_start_m": 5866.0,
-      "apex_s_m": 6100.0,
+      "s_start_m": 5864.0,
+      "apex_s_m": 6104.0,
       "s_end_m": 6122.0,
       "apex_side": "left",
       "apex_side_source": "manual"
@@ -76,8 +76,8 @@
     {
       "id": "mulsanne",
       "name": "Mulsanne Corner",
-      "s_start_m": 7535.0,
-      "apex_s_m": 7725.0,
+      "s_start_m": 7534.0,
+      "apex_s_m": 7729.0,
       "s_end_m": 7750.0,
       "apex_side": "right",
       "apex_side_source": "manual"
@@ -85,9 +85,9 @@
     {
       "id": "indianapolis",
       "name": "Indianapolis Entry",
-      "s_start_m": 9558.0,
+      "s_start_m": 9557.0,
       "apex_s_m": 9824.0,
-      "s_end_m": 9856.0,
+      "s_end_m": 9867.0,
       "apex_side": "right",
       "apex_side_source": "manual"
     },
@@ -95,17 +95,17 @@
       "id": "arnage",
       "name": "Arnage",
       "s_start_m": 10048.0,
-      "apex_s_m": 10153.0,
-      "s_end_m": 10175.0,
+      "apex_s_m": 10155.0,
+      "s_end_m": 10178.0,
       "apex_side": "right",
       "apex_side_source": "manual"
     },
     {
       "id": "porsche",
       "name": "Porsche",
-      "s_start_m": 11402.0,
-      "apex_s_m": 11528.0,
-      "s_end_m": 11561.0,
+      "s_start_m": 11400.0,
+      "apex_s_m": 11561.0,
+      "s_end_m": 11563.0,
       "apex_side": "right",
       "apex_side_source": "manual"
     },
@@ -131,17 +131,17 @@
       "id": "karting",
       "name": "Karting",
       "s_start_m": 12055.0,
-      "apex_s_m": 12163.0,
-      "s_end_m": 12168.0,
+      "apex_s_m": 12233.0,
+      "s_end_m": 12238.0,
       "apex_side": "left",
       "apex_side_source": "manual"
     },
     {
       "id": "corvette",
       "name": "Corvette",
-      "s_start_m": 12321.0,
-      "apex_s_m": 12424.0,
-      "s_end_m": 12428.0,
+      "s_start_m": 12307.0,
+      "apex_s_m": 12427.0,
+      "s_end_m": 12429.0,
       "apex_side": "right",
       "apex_side_source": "manual"
     },
@@ -157,9 +157,9 @@
     {
       "id": "ford_chicane_2",
       "name": "Ford Chicane 2",
-      "s_start_m": 13254.0,
-      "apex_s_m": 13317.0,
-      "s_end_m": 13333.0,
+      "s_start_m": 13248.0,
+      "apex_s_m": 13298.0,
+      "s_end_m": 13327.0,
       "apex_side": "right",
       "apex_side_source": "manual"
     },
