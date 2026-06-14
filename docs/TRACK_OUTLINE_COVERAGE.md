@@ -38,6 +38,7 @@ kerb or far from the outside wall.
 | Lusail International Circuit | `lusail-international-circuit` | Trajectory | Single lap (lap 12, 1:52.200, 2026-05-22) | Constant 5m each side | ❌ No |
 | Fuji Speedway Classic | `fuji-speedway-classic` | Trajectory | Single lap (lap 3, 1:38.541, 2026-06-06) | Constant 5m each side | ❌ No |
 | Sebring International Raceway | `sebring-international-raceway` | Trajectory | Single lap (lap 3, 2:04.384, 2026-06-07) | Constant 5m each side | ❌ No |
+| Circuit de la Sarthe | `circuit-de-la-sarthe` | Trajectory | Single lap (lap 3, 3:50.650, 2026-06-14) | Constant 5m each side | ❌ No |
 
 ---
 
@@ -86,7 +87,7 @@ kerb or far from the outside wall.
 |-------|---------|
 | Fuji Speedway | ✅ Trajectory outline done; OSM extraction needed for real widths |
 | Fuji Speedway Classic | ✅ Trajectory outline done; OSM extraction needed for real widths |
-| Circuit de la Sarthe (Le Mans) | OSM extraction |
+| Circuit de la Sarthe (Le Mans) | ✅ Trajectory outline done; OSM extraction needed for real widths |
 | Lusail International Circuit | ✅ Trajectory outline done; OSM extraction needed for real widths |
 | Sebring International Raceway | ✅ Trajectory outline done; OSM or satellite imagery for real widths |
 

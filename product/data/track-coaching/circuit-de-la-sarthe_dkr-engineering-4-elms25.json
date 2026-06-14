@@ -3,9 +3,9 @@
   "track_id": "circuit-de-la-sarthe",
   "layout_id": "lmu-default",
   "reference_lap": {
-    "path": "product\\data\\reference-laps\\circuit-de-la-sarthe_dkr-engineering-4-elms25_time_03.51.999.parquet",
+    "path": "product\\data\\reference-laps\\circuit-de-la-sarthe_dkr-engineering-4-elms25_time_03.50.650.parquet",
     "car_id": "dkr-engineering-4-elms25",
-    "lap_time_s": 231.999,
+    "lap_time_s": 230.65,
     "detection_method": "throttle_brake_v1"
   },
   "lap_length_m": 13625.9,

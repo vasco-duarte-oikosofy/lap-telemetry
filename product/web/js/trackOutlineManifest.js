@@ -22,6 +22,7 @@ import { BAHRAIN_OUTER_CIRCUIT_STATIC_OUTLINE } from './staticBahrainOuterCircui
 import { AUTODROMO_JOSE_CARLOS_PACE_STATIC_OUTLINE } from './staticAutodromoJoseCarlosPaceOutlineData.js';
 import { FUJI_SPEEDWAY_CLASSIC_STATIC_OUTLINE } from './staticFujiSpeedwayClassicOutlineData.js';
 import { SEBRING_INTERNATIONAL_RACEWAY_STATIC_OUTLINE } from './staticSebringInternationalRacewayOutlineData.js';
+import { CIRCUIT_LA_SARTHE_STATIC_OUTLINE } from './staticCircuitLaSartheOutlineData.js';
 
 // slug normalization: lowercase, collapse whitespace to single dash,
 // transliterate accents via NFKD (ó→o, é→e), strip non-alnum/dash.
@@ -70,6 +71,8 @@ const OUTLINES = new Map([
   ['fuji-speedway-classic', FUJI_SPEEDWAY_CLASSIC_STATIC_OUTLINE],
   // Sebring International Raceway
   ['sebring-international-raceway', SEBRING_INTERNATIONAL_RACEWAY_STATIC_OUTLINE],
+  // Circuit de la Sarthe
+  ['circuit-de-la-sarthe', CIRCUIT_LA_SARTHE_STATIC_OUTLINE],
 ]);
 
 /**
