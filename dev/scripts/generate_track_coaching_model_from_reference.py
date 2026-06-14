@@ -76,9 +76,14 @@ def parse_args() -> argparse.Namespace:
                         help="For pure-lift zones: if min throttle within zone drops at or below this "
                              "fraction the corner qualifies even if speed drop < min-speed-drop-kph "
                              "(catches fast chicanes; default 0.50)")
+    parser.add_argument("--hard-lift-threshold", type=float, default=0.30,
+                        help="For pure-lift zones: if min throttle drops at or below this fraction, "
+                             "the corner always qualifies regardless of speed drop — the driver "
+                             "lifted hard enough to mean it (chicane kinks with no brake; default 0.30)")
     parser.add_argument("--min-speed-drop-lift-kph", type=float, default=3.0,
                         help="Minimum speed drop for a throttle-lift corner that qualifies via "
-                             "max-throttle-significant (prevents near-zero speed kinks; default 3.0)")
+                             "max-throttle-significant (not hard-lift; prevents near-zero speed kinks; "
+                             "default 3.0)")
     parser.add_argument("--min-separation-m", type=int, default=68,
                         help="Minimum apex-to-apex distance; closer ones are merged (default 68)")
     # v1 fallback parameters
@@ -122,7 +127,13 @@ def moving_average(values: list[float], window: int) -> list[float]:
     return smoothed
 
 
-def merge_close_candidates(candidates: list[Candidate], min_separation_m: int) -> list[Candidate]:
+def merge_close_candidates(
+    candidates: list[Candidate],
+    min_separation_m: int,
+    throttle: list[float] | None = None,
+    wot_gap_threshold: float = 0.95,
+    wot_min_gap_m: int = 3,
+) -> list[Candidate]:
     strongest_first = sorted(
         candidates,
         key=lambda c: (c.prominence_kph, -c.min_speed_kph),
@@ -134,6 +145,28 @@ def merge_close_candidates(candidates: list[Candidate], min_separation_m: int) -
         if not nearby:
             accepted.append(candidate)
         else:
+            # Check for a full-throttle gap between the zones —
+            # if the driver went WOT between them, these are separate chicanes.
+            if throttle is not None:
+                has_wot_gap = False
+                for winner in nearby:
+                    # Gap is between the two zones: from the end of the
+                    # earlier zone to the start of the later zone.
+                    earlier_end = int(min(winner.s_end_m, candidate.s_end_m))
+                    later_start = int(max(winner.s_start_m, candidate.s_start_m))
+                    if later_start <= earlier_end:
+                        continue  # zones overlap, no gap
+                    gap_start = earlier_end + 1
+                    gap_end = later_start - 1
+                    gap_len = gap_end - gap_start + 1
+                    if gap_len >= wot_min_gap_m:
+                        gap_samples = throttle[gap_start:gap_end + 1]
+                        if gap_samples and min(gap_samples) >= wot_gap_threshold:
+                            has_wot_gap = True
+                            break
+                if has_wot_gap:
+                    accepted.append(candidate)
+                    continue
             # Dropped — but extend the winner's zone so the entry/exit aren't lost.
             for winner in nearby:
                 winner.s_start_m = min(winner.s_start_m, candidate.s_start_m)
@@ -255,6 +288,7 @@ def detect_corners_from_signals(
     min_event_length_m: int = 5,
     min_speed_drop_kph: float = 10.0,
     max_throttle_significant: float = 0.50,
+    hard_lift_threshold: float = 0.30,
     min_speed_drop_lift_kph: float = 3.0,
 ) -> list[Candidate]:
     """Detect corners using throttle and brake signals.
@@ -278,11 +312,15 @@ def detect_corners_from_signals(
     if not tagged_zones:
         return []
 
-    # Merge overlapping zones (brake wins over lift when merged)
+    # Merge overlapping or contiguous zones (brake wins over lift when merged).
+    # Contiguous brake→lift zones are one corner: the driver braked, then
+    # coasted (throttle still low, brake released) before the apex.
+    max_contiguous_gap: int = 2
     tagged_zones.sort(key=lambda z: z[0])
     merged: list[list] = [list(tagged_zones[0])]
     for s, e, kind in tagged_zones[1:]:
-        if s <= merged[-1][1]:
+        gap = s - merged[-1][1]
+        if gap <= max_contiguous_gap:
             merged[-1][1] = max(merged[-1][1], e)
             if kind == "brake":
                 merged[-1][2] = "brake"
@@ -315,23 +353,27 @@ def detect_corners_from_signals(
         )
 
         # Qualify: brake zones → speed drop >= threshold
-        #          lift zones → speed drop >= threshold OR min throttle <= max_throttle_significant
+        #          lift zones → hard lift always qualifies;
+        #                       significant lift needs min speed drop;
+        #                       minor lift needs full speed drop
         if kind == "brake":
             if c.speed_drop_kph < min_speed_drop_kph:
                 continue
         else:  # pure lift
             zone_throttle = throttle[s:e + 1]
             min_throttle = min(zone_throttle) if zone_throttle else 1.0
+            hard_lift = min_throttle <= hard_lift_threshold
             significant_lift = min_throttle <= max_throttle_significant
             if c.speed_drop_kph < min_speed_drop_kph:
-                # Allow via significant lift, but still require a minimum speed drop
-                if not significant_lift or c.speed_drop_kph < min_speed_drop_lift_kph:
+                if hard_lift:
+                    pass  # driver lifted hard enough to mean it
+                elif not significant_lift or c.speed_drop_kph < min_speed_drop_lift_kph:
                     continue
 
         candidates.append(c)
 
     # Merge candidates that are still too close (keep most prominent)
-    candidates = merge_close_candidates(candidates, min_separation_m)
+    candidates = merge_close_candidates(candidates, min_separation_m, throttle=throttle)
     prevent_zone_overlap(candidates)
     backfill_entries(candidates, speed, throttle, brake, max_throttle_fraction)
     return candidates
@@ -594,6 +636,7 @@ def main() -> int:
                 min_event_length_m=args.min_event_length_m,
                 min_speed_drop_kph=args.min_speed_drop_kph,
                 max_throttle_significant=args.max_throttle_significant,
+                hard_lift_threshold=args.hard_lift_threshold,
                 min_speed_drop_lift_kph=args.min_speed_drop_lift_kph,
             )
             detection_method = DETECTION_METHOD_V2
