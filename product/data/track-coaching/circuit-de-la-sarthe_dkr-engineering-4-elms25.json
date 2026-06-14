@@ -3,9 +3,9 @@
   "track_id": "circuit-de-la-sarthe",
   "layout_id": "lmu-default",
   "reference_lap": {
-    "path": "product\\data\\reference-laps\\circuit-de-la-sarthe_dkr-engineering-4-elms25_time_03.50.650.parquet",
+    "path": "product\\data\\reference-laps\\circuit-de-la-sarthe_dkr-engineering-4-elms25_time_03.51.999.parquet",
     "car_id": "dkr-engineering-4-elms25",
-    "lap_time_s": 230.65,
+    "lap_time_s": 231.999,
     "detection_method": "throttle_brake_v1"
   },
   "lap_length_m": 13625.9,
@@ -40,9 +40,9 @@
     {
       "id": "esses_forest",
       "name": "Esses de la Foret",
-      "s_start_m": 1338.0,
-      "apex_s_m": 1459.0,
-      "s_end_m": 1490.0,
+      "s_start_m": 1341.0,
+      "apex_s_m": 1465.0,
+      "s_end_m": 1479.0,
       "apex_side": "right",
       "apex_side_source": "manual"
     },
@@ -51,7 +51,7 @@
       "name": "Tertre Rouge",
       "s_start_m": 1833.0,
       "apex_s_m": 1901.0,
-      "s_end_m": 1926.0,
+      "s_end_m": 1906.0,
       "apex_side": "right",
       "apex_side_source": "manual"
     },
@@ -76,9 +76,9 @@
     {
       "id": "mulsanne",
       "name": "Mulsanne Corner",
-      "s_start_m": 7532.0,
-      "apex_s_m": 7722.0,
-      "s_end_m": 7764.0,
+      "s_start_m": 7535.0,
+      "apex_s_m": 7725.0,
+      "s_end_m": 7750.0,
       "apex_side": "right",
       "apex_side_source": "manual"
     },
@@ -87,15 +87,15 @@
       "name": "Indianapolis Entry",
       "s_start_m": 9558.0,
       "apex_s_m": 9824.0,
-      "s_end_m": 9858.0,
+      "s_end_m": 9856.0,
       "apex_side": "right",
       "apex_side_source": "manual"
     },
     {
       "id": "arnage",
       "name": "Arnage",
-      "s_start_m": 10050.0,
-      "apex_s_m": 10159.0,
+      "s_start_m": 10048.0,
+      "apex_s_m": 10153.0,
       "s_end_m": 10175.0,
       "apex_side": "right",
       "apex_side_source": "manual"
@@ -105,7 +105,7 @@
       "name": "Porsche",
       "s_start_m": 11402.0,
       "apex_s_m": 11528.0,
-      "s_end_m": 11568.0,
+      "s_end_m": 11561.0,
       "apex_side": "right",
       "apex_side_source": "manual"
     },
@@ -130,9 +130,9 @@
     {
       "id": "karting",
       "name": "Karting",
-      "s_start_m": 12069.0,
-      "apex_s_m": 12162.0,
-      "s_end_m": 12162.0,
+      "s_start_m": 12055.0,
+      "apex_s_m": 12163.0,
+      "s_end_m": 12168.0,
       "apex_side": "left",
       "apex_side_source": "manual"
     },
@@ -141,7 +141,7 @@
       "name": "Corvette",
       "s_start_m": 12321.0,
       "apex_s_m": 12424.0,
-      "s_end_m": 12443.0,
+      "s_end_m": 12428.0,
       "apex_side": "right",
       "apex_side_source": "manual"
     },
@@ -159,7 +159,7 @@
       "name": "Ford Chicane 2",
       "s_start_m": 13254.0,
       "apex_s_m": 13317.0,
-      "s_end_m": 13352.0,
+      "s_end_m": 13333.0,
       "apex_side": "right",
       "apex_side_source": "manual"
     },
