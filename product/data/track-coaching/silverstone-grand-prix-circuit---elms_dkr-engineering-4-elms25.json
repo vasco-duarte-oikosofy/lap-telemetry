@@ -1,0 +1,141 @@
+{
+  "schema_version": "1",
+  "track_id": "silverstone-grand-prix-circuit---elms",
+  "layout_id": "lmu-default",
+  "reference_lap": {
+    "path": "product\\data\\reference-laps\\silverstone-grand-prix-circuit---elms_dkr-engineering-4-elms25_time_01.54.258.parquet",
+    "car_id": "dkr-engineering-4-elms25",
+    "lap_time_s": 114.258,
+    "detection_method": "throttle_brake_v1"
+  },
+  "lap_length_m": 5867.7,
+  "corners": [
+    {
+      "id": "copse",
+      "name": "Copse",
+      "s_start_m": 255.0,
+      "apex_s_m": 409.0,
+      "s_end_m": 475.0,
+      "apex_side": "right",
+      "apex_side_source": "manual"
+    },
+    {
+      "id": "maggots",
+      "name": "Maggots",
+      "s_start_m": 975.0,
+      "apex_s_m": 1175.0,
+      "s_end_m": 1225.0,
+      "apex_side": "left",
+      "apex_side_source": "manual"
+    },
+    {
+      "id": "becketts",
+      "name": "Becketts",
+      "s_start_m": 1225.0,
+      "apex_s_m": 1300.0,
+      "s_end_m": 1350.0,
+      "apex_side": "right",
+      "apex_side_source": "manual"
+    },
+    {
+      "id": "chapel",
+      "name": "Chapel",
+      "s_start_m": 1350.0,
+      "apex_s_m": 1450.0,
+      "s_end_m": 1525.0,
+      "apex_side": "left",
+      "apex_side_source": "manual"
+    },
+    {
+      "id": "stowe",
+      "name": "Stowe",
+      "s_start_m": 2166.0,
+      "apex_s_m": 2350.0,
+      "s_end_m": 2400.0,
+      "apex_side": "right",
+      "apex_side_source": "manual"
+    },
+    {
+      "id": "vale",
+      "name": "Vale",
+      "s_start_m": 2650.0,
+      "apex_s_m": 2800.0,
+      "s_end_m": 2850.0,
+      "apex_side": "left",
+      "apex_side_source": "manual"
+    },
+    {
+      "id": "club",
+      "name": "Club",
+      "s_start_m": 2850.0,
+      "apex_s_m": 2875.0,
+      "s_end_m": 3025.0,
+      "apex_side": "right",
+      "apex_side_source": "manual"
+    },
+    {
+      "id": "abbey",
+      "name": "Abbey",
+      "s_start_m": 3485.0,
+      "apex_s_m": 3570.0,
+      "s_end_m": 3650.0,
+      "apex_side": "right",
+      "apex_side_source": "manual"
+    },
+    {
+      "id": "village",
+      "name": "Village",
+      "s_start_m": 3922.0,
+      "apex_s_m": 4000.0,
+      "s_end_m": 4050.0,
+      "apex_side": "right",
+      "apex_side_source": "manual"
+    },
+    {
+      "id": "the_loop",
+      "name": "The Loop",
+      "s_start_m": 4050.0,
+      "apex_s_m": 4075.0,
+      "s_end_m": 4125.0,
+      "apex_side": "right",
+      "apex_side_source": "manual"
+    },
+    {
+      "id": "aintree",
+      "name": "Aintree",
+      "s_start_m": 4125.0,
+      "apex_s_m": 4225.0,
+      "s_end_m": 4300.0,
+      "apex_side": "left",
+      "apex_side_source": "manual"
+    },
+    {
+      "id": "brooklands",
+      "name": "Brooklands",
+      "s_start_m": 4975.0,
+      "apex_s_m": 5157.0,
+      "s_end_m": 5200.0,
+      "apex_side": "left",
+      "apex_side_source": "manual"
+    },
+    {
+      "id": "luffield",
+      "name": "Luffield",
+      "s_start_m": 5225.0,
+      "apex_s_m": 5325.0,
+      "s_end_m": 5400.0,
+      "apex_side": "right",
+      "apex_side_source": "manual"
+    },
+    {
+      "id": "woodcote",
+      "name": "Woodcote",
+      "s_start_m": 5450.0,
+      "apex_s_m": 5500.0,
+      "s_end_m": 5575.0,
+      "apex_side": "right",
+      "apex_side_source": "manual"
+    }
+  ],
+  "straight_zones": []
+}

@@ -39,6 +39,7 @@ kerb or far from the outside wall.
 | Fuji Speedway Classic | `fuji-speedway-classic` | Trajectory | Single lap (lap 3, 1:38.541, 2026-06-06) | Constant 5m each side | ❌ No |
 | Sebring International Raceway | `sebring-international-raceway` | Trajectory | Single lap (lap 3, 2:04.384, 2026-06-07) | Constant 5m each side | ❌ No |
 | Circuit de la Sarthe | `circuit-de-la-sarthe` | Trajectory | Single lap (lap 3, 3:50.650, 2026-06-14) | Constant 5m each side | ❌ No |
+| Silverstone Grand Prix Circuit | `silverstone-grand-prix-circuit---elms` | **Real** | TUMFTM `Silverstone.csv` | Varies per point (5.4–8.9m right, 5.8–9.0m left) | ✅ Yes |
 
 ---
 
@@ -62,6 +63,7 @@ kerb or far from the outside wall.
 |-------|-----------|--------|
 | Circuit de Spa-Francorchamps | `Spa.csv` | ✅ Done |
 | Bahrain International Circuit | `Sakhir.csv` | ✅ Done |
+| Silverstone Circuit | `Silverstone.csv` | ✅ Done |
 | Autódromo José Carlos Pace (Interlagos) | `SaoPaulo.csv` | No session data yet |
 | Autodromo Nazionale Monza | `Monza.csv` | No session data yet |
 | Circuit of the Americas | `Austin.csv` | No session data yet |

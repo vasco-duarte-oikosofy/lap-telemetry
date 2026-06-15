@@ -13,6 +13,7 @@
 | `circuit-de-spa-francorchamps-endurance` | ✅ | Same Spa outline | ✅ covered by spa outline | ✅ via manifest alias |
 | `circuit-de-barcelona` | ✅ | `Catalunya.csv` | ✅ `circuit-de-barcelona.json` (auto-aligned, pending visual QA) | ✅ via manifest |
 | `autodromo-enzo-e-dino-ferrari` (Imola) | ✅ | ❌ not in TUMFTM | ❌ | ❌ |
+| `silverstone-grand-prix-circuit---elms` | ✅ | `Silverstone.csv` | ✅ `silverstone-grand-prix-circuit---elms.json` | ✅ via manifest |
 | `fuji-speedway` | ✅ | ❌ not in TUMFTM | ❌ | ❌ |
 
 Tracks without TUMFTM data cannot be aligned with this pipeline. A future spec should address alternative data sources or hand-drawn outlines.
@@ -42,6 +43,7 @@ The TUMFTM racetrack database lives at:
 |---|---|---|
 | Circuit de Spa-Francorchamps | `Spa.csv` | Already aligned |
 | Circuit de Barcelona | `Catalunya.csv` | Auto-aligned, needs visual QA |
+| Silverstone Grand Prix Circuit | `Silverstone.csv` | Auto-aligned, needs visual QA |
 | Autodromo Enzo e Dino Ferrari | — | **No TUMFTM data** |
 | Fuji Speedway | — | **No TUMFTM data** |
 
