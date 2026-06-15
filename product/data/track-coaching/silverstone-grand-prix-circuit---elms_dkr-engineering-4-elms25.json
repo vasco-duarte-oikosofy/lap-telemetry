@@ -47,6 +47,15 @@
       "apex_side_source": "manual"
     },
     {
+      "id": "chapel",
+      "name": "Chapel",
+      "s_start_m": 1438.0,
+      "apex_s_m": 1468.0,
+      "s_end_m": 1498.0,
+      "apex_side": "left",
+      "apex_side_source": "manual"
+    },
+    {
       "id": "stowe",
       "name": "Stowe",
       "s_start_m": 2166.0,
@@ -150,7 +159,7 @@
       "name": "Luffield 2",
       "s_start_m": 5348.0,
       "apex_s_m": 5362.0,
-      "s_end_m": 5379.0,
+      "s_end_m": 5409.0,
       "apex_side": "right",
       "apex_side_source": "manual"
     },
