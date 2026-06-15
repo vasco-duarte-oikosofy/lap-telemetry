@@ -22,28 +22,28 @@
     {
       "id": "maggots",
       "name": "Maggots",
-      "s_start_m": 975.0,
-      "apex_s_m": 1175.0,
-      "s_end_m": 1225.0,
-      "apex_side": "left",
-      "apex_side_source": "manual"
-    },
-    {
-      "id": "becketts",
-      "name": "Becketts",
-      "s_start_m": 1225.0,
-      "apex_s_m": 1300.0,
-      "s_end_m": 1350.0,
+      "s_start_m": 953.0,
+      "apex_s_m": 1028.0,
+      "s_end_m": 1039.0,
       "apex_side": "right",
       "apex_side_source": "manual"
     },
     {
-      "id": "chapel",
-      "name": "Chapel",
-      "s_start_m": 1350.0,
-      "apex_s_m": 1450.0,
-      "s_end_m": 1525.0,
+      "id": "becketts_entry",
+      "name": "Becketts Entry",
+      "s_start_m": 1082.0,
+      "apex_s_m": 1172.0,
+      "s_end_m": 1202.0,
       "apex_side": "left",
+      "apex_side_source": "manual"
+    },
+    {
+      "id": "becketts_exit",
+      "name": "Becketts Exit",
+      "s_start_m": 1227.0,
+      "apex_s_m": 1301.0,
+      "s_end_m": 1305.0,
+      "apex_side": "right",
       "apex_side_source": "manual"
     },
     {
@@ -56,20 +56,29 @@
       "apex_side_source": "manual"
     },
     {
-      "id": "vale",
-      "name": "Vale",
-      "s_start_m": 2650.0,
-      "apex_s_m": 2800.0,
-      "s_end_m": 2850.0,
+      "id": "vale_1",
+      "name": "Vale 1",
+      "s_start_m": 2666.0,
+      "apex_s_m": 2816.0,
+      "s_end_m": 2824.0,
       "apex_side": "left",
+      "apex_side_source": "manual"
+    },
+    {
+      "id": "vale_2",
+      "name": "Vale 2",
+      "s_start_m": 2849.0,
+      "apex_s_m": 2862.0,
+      "s_end_m": 2867.0,
+      "apex_side": "right",
       "apex_side_source": "manual"
     },
     {
       "id": "club",
       "name": "Club",
-      "s_start_m": 2850.0,
-      "apex_s_m": 2875.0,
-      "s_end_m": 3025.0,
+      "s_start_m": 2975.0,
+      "apex_s_m": 3055.0,
+      "s_end_m": 3125.0,
       "apex_side": "right",
       "apex_side_source": "manual"
     },
@@ -77,62 +86,80 @@
       "id": "abbey",
       "name": "Abbey",
       "s_start_m": 3485.0,
-      "apex_s_m": 3570.0,
-      "s_end_m": 3650.0,
+      "apex_s_m": 3563.0,
+      "s_end_m": 3573.0,
       "apex_side": "right",
+      "apex_side_source": "manual"
+    },
+    {
+      "id": "farm",
+      "name": "Farm",
+      "s_start_m": 3775.0,
+      "apex_s_m": 3805.0,
+      "s_end_m": 3835.0,
+      "apex_side": "left",
       "apex_side_source": "manual"
     },
     {
       "id": "village",
       "name": "Village",
-      "s_start_m": 3922.0,
-      "apex_s_m": 4000.0,
-      "s_end_m": 4050.0,
+      "s_start_m": 3923.0,
+      "apex_s_m": 4074.0,
+      "s_end_m": 4087.0,
       "apex_side": "right",
       "apex_side_source": "manual"
     },
     {
       "id": "the_loop",
       "name": "The Loop",
-      "s_start_m": 4050.0,
-      "apex_s_m": 4075.0,
-      "s_end_m": 4125.0,
-      "apex_side": "right",
+      "s_start_m": 4145.0,
+      "apex_s_m": 4216.0,
+      "s_end_m": 4229.0,
+      "apex_side": "left",
       "apex_side_source": "manual"
     },
     {
       "id": "aintree",
       "name": "Aintree",
-      "s_start_m": 4125.0,
-      "apex_s_m": 4225.0,
-      "s_end_m": 4300.0,
+      "s_start_m": 4381.0,
+      "apex_s_m": 4411.0,
+      "s_end_m": 4441.0,
       "apex_side": "left",
       "apex_side_source": "manual"
     },
     {
       "id": "brooklands",
       "name": "Brooklands",
-      "s_start_m": 4975.0,
-      "apex_s_m": 5157.0,
-      "s_end_m": 5200.0,
+      "s_start_m": 4976.0,
+      "apex_s_m": 5179.0,
+      "s_end_m": 5187.0,
       "apex_side": "left",
       "apex_side_source": "manual"
     },
     {
-      "id": "luffield",
-      "name": "Luffield",
-      "s_start_m": 5225.0,
-      "apex_s_m": 5325.0,
-      "s_end_m": 5400.0,
+      "id": "luffield_1",
+      "name": "Luffield 1",
+      "s_start_m": 5237.0,
+      "apex_s_m": 5315.0,
+      "s_end_m": 5332.0,
+      "apex_side": "right",
+      "apex_side_source": "manual"
+    },
+    {
+      "id": "luffield_2",
+      "name": "Luffield 2",
+      "s_start_m": 5348.0,
+      "apex_s_m": 5362.0,
+      "s_end_m": 5379.0,
       "apex_side": "right",
       "apex_side_source": "manual"
     },
     {
       "id": "woodcote",
       "name": "Woodcote",
-      "s_start_m": 5450.0,
-      "apex_s_m": 5500.0,
-      "s_end_m": 5575.0,
+      "s_start_m": 5675.0,
+      "apex_s_m": 5705.0,
+      "s_end_m": 5735.0,
       "apex_side": "right",
       "apex_side_source": "manual"
     }
