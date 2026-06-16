@@ -94,9 +94,10 @@
     {
       "id": "abbey",
       "name": "Abbey",
-      "s_start_m": 3499.0,
-      "apex_s_m": 3585.0,
-      "s_end_m": 3589.0,
+      "s_start_m": 3488.0,
+      "apex_s_m": 3512.0,
+      "s_end_m": 3538.0,
+      "target_throttle_pct": 50.0,
       "apex_side": "right",
       "apex_side_source": "manual"
     },

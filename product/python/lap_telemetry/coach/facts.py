@@ -44,6 +44,7 @@ class CornerLoss:
     entry_distance_delta_m: float | None = None  # for entry: ref_entry - driver_entry; positive = driver lifted later
     exit_distance_delta_m: float | None = None  # for exit: ref_exit - driver_exit; negative = driver exited earlier
     reference_phase_distance_m: float | None = None  # reference's corresponding phase distance
+    target_throttle_pct: float | None = None  # corner's throttle target from model, if set
 
 
 @dataclass
@@ -90,6 +91,8 @@ class LapComparisonFacts:
                 d["exit_distance_delta_m"] = round(c.exit_distance_delta_m, 1)
             if c.reference_phase_distance_m is not None:
                 d["reference_phase_distance_m"] = round(c.reference_phase_distance_m, 1)
+            if c.target_throttle_pct is not None:
+                d["target_throttle_pct"] = c.target_throttle_pct
             return d
 
         return {

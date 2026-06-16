@@ -280,6 +280,7 @@ def compare_laps(
                 reference_apex_distance_m=ref_apex_m,
                 apex_offset_m=ref_apex_m - driver_apex_m,
                 gain_end_distance_m=float(straight_end),
+                target_throttle_pct=corner.target_throttle_pct,
             ))
 
         # --- Entry phase ---
@@ -324,6 +325,7 @@ def compare_laps(
                     gain_end_distance_m=float(apex_idx),
                     entry_distance_delta_m=entry_distance_delta_m,
                     reference_phase_distance_m=reference_phase_distance_m,
+                    target_throttle_pct=corner.target_throttle_pct,
                 ))
 
         # --- Exit phase(s) ---
@@ -376,6 +378,7 @@ def compare_laps(
                         gain_end_distance_m=float(straight_end),
                         exit_distance_delta_m=exit_distance_delta_m,
                         reference_phase_distance_m=ref_phase_distance_m,
+                        target_throttle_pct=corner.target_throttle_pct,
                     ))
 
     corner_losses.sort(key=lambda x: x.loss_s, reverse=True)

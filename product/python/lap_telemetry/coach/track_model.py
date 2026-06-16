@@ -16,6 +16,7 @@ class Corner:
     apex_s_m: float
     s_end_m: float
     apex_side: str  # "left" | "right"
+    target_throttle_pct: float | None = None  # 0–100, optional throttle target at apex
 
     def contains(self, distance_m: float) -> bool:
         """Check if a distance is within this corner zone."""
@@ -85,6 +86,14 @@ def validate_corner(data: dict[str, Any], index: int) -> Corner:
             f"Corner {data['id']}: s_start_m <= apex_s_m <= s_end_m must hold"
         )
 
+    throttle = data.get("target_throttle_pct")
+    if throttle is not None:
+        throttle = float(throttle)
+        if not (0 <= throttle <= 100):
+            raise TrackModelValidationError(
+                f"Corner {data['id']}: target_throttle_pct must be 0–100, got {throttle}"
+            )
+
     return Corner(
         id=data["id"],
         name=data["name"],
@@ -92,6 +101,7 @@ def validate_corner(data: dict[str, Any], index: int) -> Corner:
         apex_s_m=float(data["apex_s_m"]),
         s_end_m=float(data["s_end_m"]),
         apex_side=data["apex_side"],
+        target_throttle_pct=throttle,
     )
 
 
