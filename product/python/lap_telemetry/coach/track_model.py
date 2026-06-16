@@ -19,8 +19,16 @@ class Corner:
     target_throttle_pct: float | None = None  # 0–100, optional throttle target at apex
 
     def contains(self, distance_m: float) -> bool:
-        """Check if a distance is within this corner zone."""
-        return self.s_start_m <= distance_m <= self.s_end_m
+        """Check if a distance is within this corner zone.
+
+        Handles wrap-around corners where apex/exit precede entry
+        (e.g. decreasing-radius / late-braking corners).
+        """
+        if self.s_start_m <= self.s_end_m:
+            return self.s_start_m <= distance_m <= self.s_end_m
+        else:
+            # Wrap-around: zone spans from entry to lap-length, then 0 to exit
+            return distance_m >= self.s_start_m or distance_m <= self.s_end_m
 
 
 @dataclass
@@ -81,10 +89,14 @@ def validate_corner(data: dict[str, Any], index: int) -> Corner:
             f"Corner {data['id']}: apex_side must be 'left' or 'right', got {data['apex_side']}"
         )
 
-    if not (data["s_start_m"] <= data["apex_s_m"] <= data["s_end_m"]):
+    # s_end_m must be positive but may be less than s_start_m for
+    # decreasing-radius / late-braking corners (apex before entry marker)
+    if data["s_end_m"] <= 0:
         raise TrackModelValidationError(
-            f"Corner {data['id']}: s_start_m <= apex_s_m <= s_end_m must hold"
+            f"Corner {data['id']}: s_end_m must be positive, got {data['s_end_m']}"
         )
+    # apex_s_m may be outside [s_start_m, s_end_m] for decreasing-radius
+    # or late-braking corners where the apex occurs before the entry marker
 
     throttle = data.get("target_throttle_pct")
     if throttle is not None:

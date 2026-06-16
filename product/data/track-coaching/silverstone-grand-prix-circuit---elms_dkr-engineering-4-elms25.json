@@ -149,20 +149,22 @@
     {
       "id": "luffield_1",
       "name": "Luffield 1",
-      "s_start_m": 5233.0,
-      "apex_s_m": 5315.0,
-      "s_end_m": 5330.0,
+      "s_start_m": 5234.0,
+      "apex_s_m": 5304.0,
+      "s_end_m": 5308.0,
       "apex_side": "right",
-      "apex_side_source": "manual"
+      "apex_side_source": "manual",
+      "target_throttle_pct": 45.0
     },
     {
       "id": "luffield_2",
       "name": "Luffield 2",
-      "s_start_m": 5327.0,
+      "s_start_m": 5323.0,
       "apex_s_m": 5337.0,
-      "s_end_m": 5345.0,
+      "s_end_m": 5343.0,
       "apex_side": "right",
-      "apex_side_source": "manual"
+      "apex_side_source": "manual",
+      "target_throttle_pct": 54.0
     },
     {
       "id": "woodcote",
