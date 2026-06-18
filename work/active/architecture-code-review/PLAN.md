@@ -18,7 +18,7 @@ suite) is verified only to characterise current state, not to gate a code change
 
 | Slice | Status | Vertical outcome |
 |---|---|---|
-| `01-architecture-code-review` | ✅ Complete | Read-only review of recorder, coach, and web layers; findings written to `20260617_architecture_code_review_glm5.2.md` |
+| `01-architecture-code-review` | ✅ Complete | Read-only review of recorder, coach, and web layers; independent findings written by multiple models: `20260617_architecture_code_review_glm5.2.md`, `…_gpt-5.5.md`, `…_kimi2.7.md`, `…_opus4.8.md` |
 
 ---
 
