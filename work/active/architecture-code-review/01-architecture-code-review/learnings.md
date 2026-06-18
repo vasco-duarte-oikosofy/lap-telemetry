@@ -56,3 +56,34 @@ Surprises and context not already in the spec/docs.
   ✅, but most web `features.*` flags in `appState.js` default to `false` — completed
   features remain behind feature flags. Worth knowing if someone wonders why "done"
   features aren't visible by default.
+
+## Addendum — Kimi K2.7 review run (2026-06-18)
+
+- **Independent review surfaced a real correctness bug the first review missed.**
+  The fuel-engineer module (`fuel_facts.py`) maps `mSession` values to session-type
+  strings using a table that contradicts both the design docs and the recorder's own
+  `_session_type_slug`. Consequence: race sessions will often be classified as
+  "practice"/"other", and the fuel-engineer call (slice 08) will be silently
+  skipped. This was not in the earlier glm5.2 / gpt-5.5 reviews, showing the value
+  of running multiple models.
+
+- **The Node.js dependency of the coach is still invisible in architecture docs.**
+  Both reviews flagged it, but it remains undocumented in `README.md` and
+  `ARCHITECTURE.md`. Any packaging or distribution work will hit this first.
+
+- **Dead code is easy to spot when reading fresh.** The broken first loop in
+  `panels.js:40-52` (`for (const { key } of Object.values(bins))`) is a
+  straightforward mistake that multiple passes found. It does not affect rendering
+  today because a later loop recomputes the same thing, but it is misleading and
+  should be removed.
+
+- **Approximate constants in feature flags are fragile.** The
+  `rangeKey === '0:4650'` heuristic in `trackHeatmapController.js` works only for
+  ~4.65 km tracks and is already technical debt before the feature ships. Numeric
+  comparisons against `currentMaxDist` are safer.
+
+- **Multiple-model review is cheap and high-value for analysis missions.** Two
+  reviews agreed on the big rocks (`.pi/` suite failure, template/connector size,
+  schema-sync risk, Node dependency) while each found distinct details (fuel map bug,
+  dead imports, Ollama URL, activity-strip off-by-one). The overlap increases
+  confidence; the differences expand coverage.

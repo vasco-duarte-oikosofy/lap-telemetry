@@ -62,3 +62,33 @@ leverage next actions:
 - Re-measure line numbers before acting on any finding; the codebase is actively
   curated (recent Silverstone/Fuji/Sebring/Le Mans commits).
 - This mission has **no `testFeatures` entry** and needs none — it ships no code.
+
+---
+
+## Addendum — 2026-06-18 (Kimi K2.7 review run)
+
+A second independent review was produced:
+`work/active/architecture-code-review/01-architecture-code-review/20260617_architecture_code_review_kimi2.7.md`.
+
+### What changed on disk
+
+- New file: `20260617_architecture_code_review_kimi2.7.md`.
+- No production code changed.
+- `git status` remains clean outside the mission folder.
+
+### New / independently confirmed findings
+
+- Confirmed the pre-existing `.pi/` test failure (P0-1 in the new doc).
+- Identified a new **P0 correctness bug** in `fuel_facts.py:SESSION_TYPE_MAP` that contradicts the documented `mSession` values and `writer.py:_session_type_slug`. This will break fuel-engineer calls in the wrong session types.
+- Flagged the Node.js runtime dependency of the core coach analysis as an undeclared deployment constraint.
+- Added P1 findings on dead code in `panels.js`, hard-coded full-track heuristic in `trackHeatmapController.js`, duplicated utterance dispatch, misleading Ollama default base URL, and multiple hard-ceiling violations.
+
+### Verification re-run
+
+- `npm run build` → ✅ green, `product/dist/compare.html` current.
+- `bash scripts/test-summary.sh` → same 1 pre-existing failure (`test_repo_reorg_root_cleanup.js` / `.pi/`).
+- Playwright suite not run (no UI/product code touched).
+
+### Recommended next action
+
+Pick up `repo-hygiene-pi` and `fuel-session-type-fix` first; both are small, isolated, and move the suite or coaching correctness from red/grey to green.
