@@ -30,6 +30,16 @@
       "apex_side_source": "manual"
     },
     {
+      "id": "t3",
+      "name": "Curva do Sol",
+      "s_start_m": 698.0,
+      "apex_s_m": 698.0,
+      "s_end_m": 698.0,
+      "apex_side": "left",
+      "apex_side_source": "manual",
+      "target_throttle_pct": 100
+    },
+    {
       "id": "t4",
       "name": "Descida do Lago",
       "s_start_m": 1260.0,
@@ -38,6 +48,16 @@
       "apex_side": "left",
       "apex_side_source": "manual",
       "target_throttle_pct": 68
+    },
+    {
+      "id": "t5",
+      "name": "turn 5",
+      "s_start_m": 1605.0,
+      "apex_s_m": 1605.0,
+      "s_end_m": 1605.0,
+      "apex_side": "left",
+      "apex_side_source": "manual",
+      "target_throttle_pct": 100
     },
     {
       "id": "t6",
