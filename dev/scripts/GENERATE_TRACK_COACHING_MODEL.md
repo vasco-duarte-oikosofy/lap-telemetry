@@ -84,8 +84,46 @@ The generator uses `throttle_brake_v1` when throttle/brake columns are present (
 
 Falls back to `speed_local_minimum_v1` (smoothed speed local minima) for sessions without brake/throttle data.
 
+## Flat corners, throttle targets, and degenerate zones
+
+A coaching corner is normally a braking zone with distinct
+`s_start_m` / `apex_s_m` / `s_end_m`. Two extra capabilities of the schema
+(see `track_model.py`) let you encode more of the real track:
+
+- **`target_throttle_pct`** (0–100, optional) records the apex throttle target
+  for a corner. The coach detects entry/exit phases dynamically from the
+  reference lap, but this field pins the *coaching target*. Add it when you
+  know the apex throttle (e.g. a 51% Junção).
+- **Flat corners** — corners taken flat-out (no braking) never produce a
+  detection event, so the generator misses them. They are still real track
+  geometry worth listing for completeness/map markers. The validator accepts
+  **degenerate zones** where `s_start_m == apex_s_m == s_end_m` (a zero-width
+  point at the apex) and allows `apex_s_m` outside `[s_start_m, s_end_m]` for
+  late-braking / decreasing-radius corners. Encode a flat corner as:
+
+  ```json
+  { "id": "t14", "name": "Subida das Boxes",
+    "s_start_m": 3680.0, "apex_s_m": 3680.0, "s_end_m": 3680.0,
+    "apex_side": "left", "apex_side_source": "manual",
+    "target_throttle_pct": 100 }
+  ```
+
+  A degenerate zone never matches `get_corner_at()` during a live lap (it is a
+  single point), so flat corners are *not* coached — they exist as reference
+  markers. Do **not** put a corner you want coached into a degenerate zone;
+  give it a real entry/exit.
+
+- **Deriving `apex_side` from data.** `apex_side` is metadata only (the coach
+  runtime does not consume it), but it should still be correct for the track
+  map and reviewers. Rather than guessing, derive it from the reference lap's
+  `steering_norm`: sample a small window around each apex, average the
+  steering, and calibrate the sign against one known corner (e.g. confirm a
+  left-hander, then `negative ⇒ left`). Six known corners agreeing is a strong
+  check. `curvature` from `pos_x/pos_y` is noisy at this scale — trust
+  steering, then set `apex_side_source: "manual"`.
+
 ## Known limitations
 
-- `apex_side` (left/right) defaults to `right` and is not inferred automatically — mark it for review.
+- `apex_side` (left/right) defaults to `right` and is not inferred automatically — mark it for review (see “Deriving `apex_side` from data” above).
 - Multi-apex complexes appear as separate corners.
 - Very fast chicanes with brief throttle lifts may be merged or missed — check the diagnostics.

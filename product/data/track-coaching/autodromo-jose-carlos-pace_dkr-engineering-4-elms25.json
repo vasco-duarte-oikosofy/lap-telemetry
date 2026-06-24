@@ -3,102 +3,129 @@
   "track_id": "autodromo-jose-carlos-pace",
   "layout_id": "default",
   "reference_lap": {
-    "path": "product\\data\\reference-laps\\autdromo-jos-carlos-pace_dkr-engineering-4-elms25_time_01.32.367.parquet",
+    "path": "product/data/reference-laps/autodromo-jose-carlos-pace_dkr-engineering-4-elms25_time_01.30.707.parquet",
     "car_id": "dkr-engineering-4-elms25",
-    "lap_time_s": 92.367,
+    "lap_time_s": 90.707,
     "detection_method": "throttle_brake_v1"
   },
-  "lap_length_m": 4271.1,
+  "lap_length_m": 4271.98,
   "corners": [
     {
       "id": "t1",
-      "name": "turn 1",
-      "s_start_m": 197.0,
-      "apex_s_m": 395.0,
-      "s_end_m": 405.0,
-      "apex_side": "right",
-      "apex_side_source": "default_cli_option"
+      "name": "Senna S 1",
+      "s_start_m": 202.0,
+      "apex_s_m": 385.0,
+      "s_end_m": 410.0,
+      "apex_side": "left",
+      "apex_side_source": "manual",
+      "target_throttle_pct": 64
     },
     {
       "id": "t2",
-      "name": "turn 2",
-      "s_start_m": 435.0,
+      "name": "Senna S 2",
+      "s_start_m": 444.0,
       "apex_s_m": 453.0,
       "s_end_m": 458.0,
       "apex_side": "right",
-      "apex_side_source": "default_cli_option"
+      "apex_side_source": "manual"
     },
     {
-      "id": "t3",
-      "name": "turn 3",
-      "s_start_m": 1268.0,
-      "apex_s_m": 1441.0,
-      "s_end_m": 1446.0,
-      "apex_side": "right",
-      "apex_side_source": "default_cli_option"
-    },
-    {
-      "id": "t5a",
-      "name": "turn 5a",
-      "s_start_m": 1939.0,
-      "apex_s_m": 2041.0,
-      "s_end_m": 2119.0,
-      "apex_side": "right",
-      "apex_side_source": "default_cli_option"
-    },
-    {
-      "id": "t5b",
-      "name": "turn 5b",
-      "s_start_m": 2119.0,
-      "apex_s_m": 2191.0,
-      "s_end_m": 2191.0,
-      "apex_side": "right",
-      "apex_side_source": "default_cli_option"
+      "id": "t4",
+      "name": "Descida do Lago",
+      "s_start_m": 1260.0,
+      "apex_s_m": 1429.0,
+      "s_end_m": 1431.0,
+      "apex_side": "left",
+      "apex_side_source": "manual",
+      "target_throttle_pct": 68
     },
     {
       "id": "t6",
-      "name": "turn 6",
-      "s_start_m": 2246.0,
-      "apex_s_m": 2355.0,
-      "s_end_m": 2380.0,
+      "name": "Ferradura",
+      "s_start_m": 1944.0,
+      "apex_s_m": 2075.0,
+      "s_end_m": 2084.0,
       "apex_side": "right",
-      "apex_side_source": "default_cli_option"
+      "apex_side_source": "manual"
     },
     {
       "id": "t7",
-      "name": "turn 7",
-      "s_start_m": 2409.0,
-      "apex_s_m": 2480.0,
-      "s_end_m": 2488.0,
+      "name": "Laranjinha",
+      "s_start_m": 2125.0,
+      "apex_s_m": 2152.0,
+      "s_end_m": 2160.0,
       "apex_side": "right",
-      "apex_side_source": "default_cli_option"
+      "apex_side_source": "manual",
+      "target_throttle_pct": 70
     },
     {
       "id": "t8",
       "name": "turn 8",
-      "s_start_m": 2658.0,
-      "apex_s_m": 2763.0,
-      "s_end_m": 2795.0,
+      "s_start_m": 2251.0,
+      "apex_s_m": 2349.0,
+      "s_end_m": 2356.0,
       "apex_side": "right",
-      "apex_side_source": "default_cli_option"
+      "apex_side_source": "manual",
+      "target_throttle_pct": 57
     },
     {
       "id": "t9",
-      "name": "turn 9",
-      "s_start_m": 2921.0,
-      "apex_s_m": 2954.0,
-      "s_end_m": 2961.0,
-      "apex_side": "right",
-      "apex_side_source": "default_cli_option"
+      "name": "Pinheirinho",
+      "s_start_m": 2407.0,
+      "apex_s_m": 2469.0,
+      "s_end_m": 2478.0,
+      "apex_side": "left",
+      "apex_side_source": "manual",
+      "target_throttle_pct": 82
     },
     {
       "id": "t10",
-      "name": "turn 10",
-      "s_start_m": 3130.0,
-      "apex_s_m": 3274.0,
-      "s_end_m": 3286.0,
+      "name": "Bico de Pato",
+      "s_start_m": 2659.0,
+      "apex_s_m": 2763.0,
+      "s_end_m": 2771.0,
       "apex_side": "right",
-      "apex_side_source": "default_cli_option"
+      "apex_side_source": "manual",
+      "target_throttle_pct": 53
+    },
+    {
+      "id": "t11",
+      "name": "Mergulho",
+      "s_start_m": 2924.0,
+      "apex_s_m": 2949.0,
+      "s_end_m": 2953.0,
+      "apex_side": "left",
+      "apex_side_source": "manual"
+    },
+    {
+      "id": "t12",
+      "name": "Junção",
+      "s_start_m": 3141.0,
+      "apex_s_m": 3252.0,
+      "s_end_m": 3255.0,
+      "apex_side": "left",
+      "apex_side_source": "manual",
+      "target_throttle_pct": 51
+    },
+    {
+      "id": "t13",
+      "name": "turn 13",
+      "s_start_m": 3391.0,
+      "apex_s_m": 3391.0,
+      "s_end_m": 3391.0,
+      "apex_side": "left",
+      "apex_side_source": "manual",
+      "target_throttle_pct": 100
+    },
+    {
+      "id": "t14",
+      "name": "Subida das Boxes",
+      "s_start_m": 3680.0,
+      "apex_s_m": 3680.0,
+      "s_end_m": 3680.0,
+      "apex_side": "left",
+      "apex_side_source": "manual",
+      "target_throttle_pct": 100
     }
   ],
   "straight_zones": []

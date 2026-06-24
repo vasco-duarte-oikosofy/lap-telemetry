@@ -153,6 +153,13 @@ def parse_args() -> argparse.Namespace:
         help="proceed even if curated corners have no match on the new lap "
              "(their old geometry is kept); default is to abort with no changes",
     )
+    p.add_argument(
+        "--max-geometry-delta-m", type=float, default=None,
+        help="abort (no writes) if any matched corner's entry/apex/exit would "
+             "move more than this many metres from the existing model, and print "
+             "the flagged corners for manual review. The reference lap is still "
+             "exported only when this check passes.",
+    )
     return p.parse_args()
 
 
@@ -242,6 +249,37 @@ def main() -> int:
         print(f"  WARNING: {name} keeps old geometry (--allow-unmatched)")
     for c in leftover:
         print(f"  INFO: new corner at apex={c.apex_m}m not in the model - ignored")
+
+    # --- 3b. Geometry-delta guard BEFORE any write -------------------------
+    if args.max_geometry_delta_m is not None:
+        threshold = args.max_geometry_delta_m
+        flagged = []
+        for old_c, m in pairs:
+            if m is None:
+                continue
+            d_entry = abs(float(m.s_start_m) - float(old_c["s_start_m"]))
+            d_apex = abs(float(m.apex_m) - float(old_c["apex_s_m"]))
+            d_exit = abs(float(m.s_end_m) - float(old_c["s_end_m"]))
+            if max(d_entry, d_apex, d_exit) > threshold:
+                flagged.append((old_c, m, d_entry, d_apex, d_exit))
+        if flagged:
+            print(f"\nFLAGGED - {len(flagged)} corner(s) would move > {threshold:g} m "
+                  f"(entry/apex/exit). Model NOT overwritten; review manually.")
+            print(f"  {'Turn':<25} {'dEntry':>8} {'dApex':>8} {'dExit':>8}  "
+                  f"-> new Entry/Apex/Exit (was ...)")
+            for old_c, m, de, da, dx in flagged:
+                print(
+                    f"  {old_c['name']:<25} {de:>8.1f} {da:>8.1f} {dx:>8.1f}  "
+                    f"-> {m.s_start_m:.1f}/{m.apex_m:.1f}/{m.s_end_m:.1f} "
+                    f"(was {old_c['s_start_m']:.1f}/{old_c['apex_s_m']:.1f}/{old_c['s_end_m']:.1f})"
+                )
+            print("\nABORTED - no files were changed (reference not exported, "
+                  "model not overwritten).", file=sys.stderr)
+            if tmp_lap is not None:
+                tmp_lap.unlink(missing_ok=True)
+            return 2
+        else:
+            print(f"Geometry guard: all matched corners within {threshold:g} m - OK")
 
     # --- 4. Export the reference (delegated, guarded, audited) -------------
     if export_needed:
