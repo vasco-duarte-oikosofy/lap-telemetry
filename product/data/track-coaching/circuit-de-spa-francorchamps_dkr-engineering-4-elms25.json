@@ -1,114 +1,185 @@
 {
-  "schema_version": "1",
-  "track_id": "circuit-de-spa-francorchamps",
-  "layout_id": "lmu-default",
-  "reference_lap": {
-    "path": "product\\data\\reference-laps\\circuit-de-spa-francorchamps_dkr-engineering-4-elms25_time_02.13.835.parquet",
-    "car_id": "dkr-engineering-4-elms25",
-    "lap_time_s": 133.835,
-    "detection_method": "speed_local_minimum_v1"
-  },
-  "lap_length_m": 6978.8,
-  "corners": [
-    {
-      "id": "t1",
-      "name": "turn 1",
-      "s_start_m": 242.0,
-      "apex_s_m": 271.0,
-      "s_end_m": 390.0,
-      "apex_side": "right",
-      "apex_side_source": "default_cli_option"
+    "schema_version": "1",
+    "track_id": "circuit-de-spa-francorchamps",
+    "layout_id": "lmu-default",
+    "reference_lap": {
+        "path": "product/data/reference-laps/circuit-de-spa-francorchamps_dkr-engineering-4-elms25_time_02.13.835.parquet",
+        "car_id": "dkr-engineering-4-elms25",
+        "lap_time_s": 133.835,
+        "detection_method": "curated"
     },
-    {
-      "id": "t2",
-      "name": "turn 2",
-      "s_start_m": 2257.0,
-      "apex_s_m": 2310.0,
-      "s_end_m": 2351.0,
-      "apex_side": "right",
-      "apex_side_source": "default_cli_option"
-    },
-    {
-      "id": "t3",
-      "name": "turn 3",
-      "s_start_m": 2351.0,
-      "apex_s_m": 2392.0,
-      "s_end_m": 2458.0,
-      "apex_side": "right",
-      "apex_side_source": "default_cli_option"
-    },
-    {
-      "id": "t4",
-      "name": "turn 4",
-      "s_start_m": 2458.0,
-      "apex_s_m": 2525.0,
-      "s_end_m": 2644.0,
-      "apex_side": "right",
-      "apex_side_source": "default_cli_option"
-    },
-    {
-      "id": "t5",
-      "name": "turn 5",
-      "s_start_m": 2877.0,
-      "apex_s_m": 2918.0,
-      "s_end_m": 3037.0,
-      "apex_side": "right",
-      "apex_side_source": "default_cli_option"
-    },
-    {
-      "id": "t6",
-      "name": "turn 6",
-      "s_start_m": 3106.0,
-      "apex_s_m": 3177.0,
-      "s_end_m": 3296.0,
-      "apex_side": "right",
-      "apex_side_source": "default_cli_option"
-    },
-    {
-      "id": "t7",
-      "name": "turn 7",
-      "s_start_m": 3616.0,
-      "apex_s_m": 3735.0,
-      "s_end_m": 3854.0,
-      "apex_side": "right",
-      "apex_side_source": "default_cli_option"
-    },
-    {
-      "id": "t8",
-      "name": "turn 8",
-      "s_start_m": 4335.0,
-      "apex_s_m": 4383.0,
-      "s_end_m": 4463.0,
-      "apex_side": "right",
-      "apex_side_source": "default_cli_option"
-    },
-    {
-      "id": "t9",
-      "name": "turn 9",
-      "s_start_m": 4463.0,
-      "apex_s_m": 4544.0,
-      "s_end_m": 4663.0,
-      "apex_side": "right",
-      "apex_side_source": "default_cli_option"
-    },
-    {
-      "id": "t10",
-      "name": "turn 10",
-      "s_start_m": 4777.0,
-      "apex_s_m": 4816.0,
-      "s_end_m": 4935.0,
-      "apex_side": "right",
-      "apex_side_source": "default_cli_option"
-    },
-    {
-      "id": "t11",
-      "name": "turn 11",
-      "s_start_m": 6612.0,
-      "apex_s_m": 6630.0,
-      "s_end_m": 6652.0,
-      "apex_side": "right",
-      "apex_side_source": "default_cli_option"
-    }
-  ],
-  "straight_zones": []
+    "lap_length_m": 6978.8,
+    "corners": [
+        {
+            "id": "t1",
+            "name": "La Source",
+            "s_start_m": 128.0,
+            "apex_s_m": 272.0,
+            "s_end_m": 275.0,
+            "apex_side": "right",
+            "apex_side_source": "manual",
+            "target_throttle_pct": 37
+        },
+        {
+            "id": "t2",
+            "name": "Eau Rouge",
+            "s_start_m": 1096.0,
+            "apex_s_m": 1096.0,
+            "s_end_m": 1096.0,
+            "apex_side": "right",
+            "apex_side_source": "manual",
+            "target_throttle_pct": 100
+        },
+        {
+            "id": "t3",
+            "name": "Radillon",
+            "s_start_m": 1169.0,
+            "apex_s_m": 1169.0,
+            "s_end_m": 1169.0,
+            "apex_side": "left",
+            "apex_side_source": "manual",
+            "target_throttle_pct": 100
+        },
+        {
+            "id": "t4",
+            "name": "Les Combes",
+            "s_start_m": 2147.0,
+            "apex_s_m": 2296.0,
+            "s_end_m": 2307.0,
+            "apex_side": "right",
+            "apex_side_source": "manual",
+            "target_throttle_pct": 47
+        },
+        {
+            "id": "t5",
+            "name": "T5",
+            "s_start_m": 2343.0,
+            "apex_s_m": 2392.0,
+            "s_end_m": 2402.0,
+            "apex_side": "left",
+            "apex_side_source": "manual",
+            "target_throttle_pct": 62
+        },
+        {
+            "id": "t6",
+            "name": "Malmedy",
+            "s_start_m": 2474.0,
+            "apex_s_m": 2493.0,
+            "s_end_m": 2527.0,
+            "apex_side": "right",
+            "apex_side_source": "manual",
+            "target_throttle_pct": 55
+        },
+        {
+            "id": "t7",
+            "name": "Bruxelles",
+            "s_start_m": 2782.0,
+            "apex_s_m": 2956.0,
+            "s_end_m": 2964.0,
+            "apex_side": "right",
+            "apex_side_source": "manual",
+            "target_throttle_pct": 34
+        },
+        {
+            "id": "t8",
+            "name": "Speaker's Corner",
+            "s_start_m": 3081.0,
+            "apex_s_m": 3168.0,
+            "s_end_m": 3180.0,
+            "apex_side": "left",
+            "apex_side_source": "manual",
+            "target_throttle_pct": 100
+        },
+        {
+            "id": "t9",
+            "name": "Double left of Pouhon",
+            "s_start_m": 3573.0,
+            "apex_s_m": 3713.0,
+            "s_end_m": 3720.0,
+            "apex_side": "left",
+            "apex_side_source": "manual",
+            "target_throttle_pct": 100
+        },
+        {
+            "id": "t10",
+            "name": "Pif-Paf 1",
+            "s_start_m": 4238.0,
+            "apex_s_m": 4366.0,
+            "s_end_m": 4375.0,
+            "apex_side": "right",
+            "apex_side_source": "manual",
+            "target_throttle_pct": 60
+        },
+        {
+            "id": "t11",
+            "name": "Pif-Paf 2",
+            "s_start_m": 4480.0,
+            "apex_s_m": 4538.0,
+            "s_end_m": 4549.0,
+            "apex_side": "left",
+            "apex_side_source": "manual",
+            "target_throttle_pct": 95
+        },
+        {
+            "id": "t12",
+            "name": "Campus",
+            "s_start_m": 4717.0,
+            "apex_s_m": 4811.0,
+            "s_end_m": 4821.0,
+            "apex_side": "right",
+            "apex_side_source": "manual",
+            "target_throttle_pct": 100
+        },
+        {
+            "id": "t13",
+            "name": "Stavelot",
+            "s_start_m": 5012.0,
+            "apex_s_m": 5012.0,
+            "s_end_m": 5012.0,
+            "apex_side": "right",
+            "apex_side_source": "manual",
+            "target_throttle_pct": 100
+        },
+        {
+            "id": "t14",
+            "name": "Courbe Paul-Fr\u00e8re",
+            "s_start_m": 5503.0,
+            "apex_s_m": 5503.0,
+            "s_end_m": 5503.0,
+            "apex_side": "right",
+            "apex_side_source": "manual",
+            "target_throttle_pct": 100
+        },
+        {
+            "id": "t15",
+            "name": "Blanchimont",
+            "s_start_m": 6070.0,
+            "apex_s_m": 6070.0,
+            "s_end_m": 6070.0,
+            "apex_side": "left",
+            "apex_side_source": "manual",
+            "target_throttle_pct": 100
+        },
+        {
+            "id": "t16",
+            "name": "Bus Stop 1",
+            "s_start_m": 6451.0,
+            "apex_s_m": 6613.0,
+            "s_end_m": 6620.0,
+            "apex_side": "right",
+            "apex_side_source": "manual",
+            "target_throttle_pct": 21
+        },
+        {
+            "id": "t17",
+            "name": "Bus Stop 2",
+            "s_start_m": 6642.0,
+            "apex_s_m": 6666.0,
+            "s_end_m": 6672.0,
+            "apex_side": "left",
+            "apex_side_source": "manual",
+            "target_throttle_pct": 29
+        }
+    ],
+    "straight_zones": []
 }
