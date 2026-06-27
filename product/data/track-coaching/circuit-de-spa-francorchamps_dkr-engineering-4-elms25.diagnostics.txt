@@ -1,16 +1,16 @@
 detection_method=curated
-t1 La Source apex=272m start=128m end=275m min=64.0kph entry=217.1kph exit=74.6kph throttle=37% side=right
+t1 La Source apex=271m start=242m end=390m throttle=37% side=right
 t2 Eau Rouge apex=1096m start=1096m end=1096m throttle=flat side=right
 t3 Radillon apex=1169m start=1169m end=1169m throttle=flat side=left
-t4 Les Combes apex=2296m start=2147m end=2307m throttle=47% side=right
-t5 T5 apex=2392m start=2343m end=2402m throttle=62% side=left
-t6 Malmedy apex=2493m start=2474m end=2527m throttle=55% side=right
-t7 Bruxelles apex=2956m start=2782m end=2964m throttle=34% side=right
+t4 Les Combes apex=2310m start=2257m end=2351m throttle=47% side=right
+t5 T5 apex=2392m start=2351m end=2458m throttle=62% side=left
+t6 Malmedy apex=2525m start=2458m end=2644m throttle=55% side=right
+t7 Bruxelles apex=2918m start=2877m end=3037m throttle=34% side=right
 t8 Speaker's Corner apex=3168m start=3081m end=3180m throttle=flat side=left
-t9 Double left of Pouhon apex=3713m start=3573m end=3720m throttle=flat side=left
-t10 Pif-Paf 1 apex=4366m start=4238m end=4375m throttle=60% side=right
-t11 Pif-Paf 2 apex=4538m start=4480m end=4549m throttle=95% side=left
-t12 Campus apex=4811m start=4717m end=4821m throttle=flat side=right
+t9 Double left of Pouhon apex=3735m start=3616m end=3854m throttle=flat side=left
+t10 Pif-Paf 1 apex=4383m start=4335m end=4463m throttle=60% side=right
+t11 Pif-Paf 2 apex=4544m start=4463m end=4663m throttle=95% side=left
+t12 Campus apex=4816m start=4777m end=4935m throttle=flat side=right
 t13 Stavelot apex=5012m start=5012m end=5012m throttle=flat side=right
 t14 Courbe Paul-Frère apex=5503m start=5503m end=5503m throttle=flat side=right
 t15 Blanchimont apex=6070m start=6070m end=6070m throttle=flat side=left
