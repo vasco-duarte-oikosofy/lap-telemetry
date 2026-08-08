@@ -25,6 +25,7 @@ import { SEBRING_INTERNATIONAL_RACEWAY_STATIC_OUTLINE } from './staticSebringInt
 import { CIRCUIT_LA_SARTHE_STATIC_OUTLINE } from './staticCircuitLaSartheOutlineData.js';
 import { SILVERSTONE_GRAND_PRIX_CIRCUIT___ELMS_STATIC_OUTLINE } from './staticSilverstoneGrandPrixCircuitElmsOutlineData.js';
 import { DAYTONA_INTERNATIONAL_SPEEDWAY_ROAD_COURSE_STATIC_OUTLINE } from './staticDaytonaInternationalSpeedwayRoadCourseOutlineData.js';
+import { WEATHERTECH_RACEWAY_LAGUNA_SECA_STATIC_OUTLINE } from './staticWeathertechRacewayLagunaSecaOutlineData.js';
 
 // slug normalization: lowercase, collapse whitespace to single dash,
 // transliterate accents via NFKD (ó→o, é→e), strip non-alnum/dash.
@@ -79,6 +80,8 @@ const OUTLINES = new Map([
   ['silverstone-grand-prix-circuit---elms', SILVERSTONE_GRAND_PRIX_CIRCUIT___ELMS_STATIC_OUTLINE],
   // Daytona International Speedway Road Course
   ['daytona-international-speedway-road-course', DAYTONA_INTERNATIONAL_SPEEDWAY_ROAD_COURSE_STATIC_OUTLINE],
+  // WeatherTech Raceway Laguna Seca
+  ['weathertech-raceway-laguna-seca', WEATHERTECH_RACEWAY_LAGUNA_SECA_STATIC_OUTLINE],
 ]);
 
 /**

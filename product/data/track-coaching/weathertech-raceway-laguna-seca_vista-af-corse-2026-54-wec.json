@@ -1,0 +1,114 @@
+{
+  "schema_version": "1",
+  "track_id": "weathertech-raceway-laguna-seca",
+  "layout_id": "lmu-default",
+  "reference_lap": {
+    "path": "product\\data\\reference-laps\\weathertech-raceway-laguna-seca_vista-af-corse-2026-54-wec_time_01.27.905.parquet",
+    "car_id": "vista-af-corse-2026-54-wec",
+    "lap_time_s": 87.905,
+    "detection_method": "throttle_brake_v1"
+  },
+  "lap_length_m": 3588.7,
+  "corners": [
+    {
+      "id": "t1",
+      "name": "Turn 1",
+      "s_start_m": 323.0,
+      "apex_s_m": 522.0,
+      "s_end_m": 524.0,
+      "apex_side": "right",
+      "apex_side_source": "manual"
+    },
+    {
+      "id": "andretti",
+      "name": "Andretti Hairpin",
+      "s_start_m": 697.0,
+      "apex_s_m": 785.0,
+      "s_end_m": 814.0,
+      "apex_side": "left",
+      "apex_side_source": "manual"
+    },
+    {
+      "id": "t3",
+      "name": "Turn 3",
+      "s_start_m": 963.0,
+      "apex_s_m": 1035.0,
+      "s_end_m": 1038.0,
+      "apex_side": "right",
+      "apex_side_source": "manual"
+    },
+    {
+      "id": "t4",
+      "name": "Turn 4",
+      "s_start_m": 1407.0,
+      "apex_s_m": 1509.0,
+      "s_end_m": 1554.0,
+      "apex_side": "right",
+      "apex_side_source": "manual"
+    },
+    {
+      "id": "t5",
+      "name": "Turn 5",
+      "s_start_m": 1843.0,
+      "apex_s_m": 1928.0,
+      "s_end_m": 1931.0,
+      "apex_side": "right",
+      "apex_side_source": "manual"
+    },
+    {
+      "id": "t6",
+      "name": "Turn 6",
+      "s_start_m": 2315.0,
+      "apex_s_m": 2453.0,
+      "s_end_m": 2499.0,
+      "apex_side": "left",
+      "apex_side_source": "manual"
+    },
+    {
+      "id": "t7",
+      "name": "Turn 7",
+      "s_start_m": 2617.0,
+      "apex_s_m": 2718.0,
+      "s_end_m": 2720.0,
+      "apex_side": "right",
+      "apex_side_source": "manual"
+    },
+    {
+      "id": "corkscrew",
+      "name": "Corkscrew (Turn 8)",
+      "s_start_m": 2744.0,
+      "apex_s_m": 2767.0,
+      "s_end_m": 2771.0,
+      "apex_side": "left",
+      "apex_side_source": "manual"
+    },
+    {
+      "id": "rainey",
+      "name": "Rainey Curve (Turn 9)",
+      "s_start_m": 2886.0,
+      "apex_s_m": 2986.0,
+      "s_end_m": 2992.0,
+      "apex_side": "left",
+      "apex_side_source": "manual"
+    },
+    {
+      "id": "t10",
+      "name": "Turn 10",
+      "s_start_m": 3150.0,
+      "apex_s_m": 3200.0,
+      "s_end_m": 3260.0,
+      "apex_side": "right",
+      "apex_side_source": "manual"
+    },
+    {
+      "id": "t11",
+      "name": "Turn 11",
+      "s_start_m": 3260.0,
+      "apex_s_m": 3277.0,
+      "s_end_m": 3302.0,
+      "apex_side": "right",
+      "apex_side_source": "manual"
+    }
+  ],
+  "straight_zones": []
+}

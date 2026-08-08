@@ -41,6 +41,7 @@ kerb or far from the outside wall.
 | Circuit de la Sarthe | `circuit-de-la-sarthe` | Trajectory | Single lap (lap 3, 3:50.650, 2026-06-14) | Constant 5m each side | ❌ No |
 | Silverstone Grand Prix Circuit | `silverstone-grand-prix-circuit---elms` | **Real** | TUMFTM `Silverstone.csv` | Varies per point (5.4–8.9m right, 5.8–9.0m left) | ✅ Yes |
 | Daytona International Speedway Road Course | `daytona-international-speedway-road-course` | Trajectory | Single lap (lap 11, 1:45.596, 2026-08-08) | Constant 5m each side | ❌ No |
+| WeatherTech Raceway Laguna Seca | `weathertech-raceway-laguna-seca` | Trajectory | Single lap (lap 4, 1:27.905, 2026-08-08) | Constant 5m each side | ❌ No |
 
 ---
 

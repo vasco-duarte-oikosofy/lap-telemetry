@@ -50,6 +50,7 @@ Tracks are ordered by data quality: TUMFTM first (real widths), then trajectory-
 | `32-fuji-classic` | Fuji Classic Layout (No Chicane) | No TUMFTM | Clean trajectory | 🔲 Not started |
 | `33-imola-elms` | Imola ELMS | Verify alias of Imola base | ? | 🔲 Not started |
 | `34-daytona` | Daytona International Speedway Road Course | No TUMFTM | Clean trajectory + coaching + ref | ✅ Done (this slice) |
+| `35-laguna-seca` | WeatherTech Raceway Laguna Seca | No TUMFTM | Clean trajectory + coaching + ref | ✅ Done (this slice) |
 
 **Completed:** Spa (base + endurance), Bahrain GP, Barcelona, Monza, Imola, Fuji International Speedway, Bahrain Outer.
 **In progress:** None.
