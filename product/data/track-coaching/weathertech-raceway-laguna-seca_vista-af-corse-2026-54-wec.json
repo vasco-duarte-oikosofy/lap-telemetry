@@ -13,101 +13,122 @@
     {
       "id": "t1",
       "name": "Turn 1",
-      "s_start_m": 323.0,
-      "apex_s_m": 522.0,
-      "s_end_m": 524.0,
-      "apex_side": "right",
-      "apex_side_source": "manual"
+      "s_start_m": 240.0,
+      "apex_s_m": 263.0,
+      "s_end_m": 300.0,
+      "apex_side": "left",
+      "apex_side_source": "manual",
+      "target_throttle_pct": null
     },
     {
       "id": "andretti",
       "name": "Andretti Hairpin",
-      "s_start_m": 697.0,
-      "apex_s_m": 785.0,
-      "s_end_m": 814.0,
+      "s_start_m": 323.0,
+      "apex_s_m": 519.0,
+      "s_end_m": 524.0,
       "apex_side": "left",
-      "apex_side_source": "manual"
+      "apex_side_source": "manual",
+      "target_throttle_pct": null
     },
     {
       "id": "t3",
       "name": "Turn 3",
-      "s_start_m": 963.0,
-      "apex_s_m": 1035.0,
-      "s_end_m": 1038.0,
+      "s_start_m": 697.0,
+      "apex_s_m": 785.0,
+      "s_end_m": 794.0,
       "apex_side": "right",
-      "apex_side_source": "manual"
+      "apex_side_source": "manual",
+      "target_throttle_pct": 60
     },
     {
       "id": "t4",
       "name": "Turn 4",
-      "s_start_m": 1407.0,
-      "apex_s_m": 1509.0,
-      "s_end_m": 1554.0,
+      "s_start_m": 965.0,
+      "apex_s_m": 1027.0,
+      "s_end_m": 1034.0,
       "apex_side": "right",
-      "apex_side_source": "manual"
+      "apex_side_source": "manual",
+      "target_throttle_pct": 55
     },
     {
       "id": "t5",
       "name": "Turn 5",
-      "s_start_m": 1843.0,
-      "apex_s_m": 1928.0,
-      "s_end_m": 1931.0,
+      "s_start_m": 1406.0,
+      "apex_s_m": 1506.0,
+      "s_end_m": 1518.0,
       "apex_side": "right",
-      "apex_side_source": "manual"
+      "apex_side_source": "manual",
+      "target_throttle_pct": null
     },
     {
       "id": "t6",
       "name": "Turn 6",
-      "s_start_m": 2315.0,
-      "apex_s_m": 2453.0,
-      "s_end_m": 2499.0,
+      "s_start_m": 1841.0,
+      "apex_s_m": 1922.0,
+      "s_end_m": 1927.0,
       "apex_side": "left",
-      "apex_side_source": "manual"
+      "apex_side_source": "manual",
+      "target_throttle_pct": null
     },
     {
       "id": "t7",
       "name": "Turn 7",
-      "s_start_m": 2617.0,
-      "apex_s_m": 2718.0,
-      "s_end_m": 2720.0,
+      "s_start_m": 2280.0,
+      "apex_s_m": 2296.0,
+      "s_end_m": 2310.0,
       "apex_side": "right",
-      "apex_side_source": "manual"
+      "apex_side_source": "manual",
+      "target_throttle_pct": null
     },
     {
-      "id": "corkscrew",
+      "id": "t8",
       "name": "Corkscrew (Turn 8)",
-      "s_start_m": 2744.0,
-      "apex_s_m": 2767.0,
-      "s_end_m": 2771.0,
+      "s_start_m": 2317.0,
+      "apex_s_m": 2453.0,
+      "s_end_m": 2460.0,
       "apex_side": "left",
-      "apex_side_source": "manual"
+      "apex_side_source": "manual",
+      "target_throttle_pct": 17
+    },
+    {
+      "id": "t8a",
+      "name": "Corkscrew 8a",
+      "s_start_m": 2476.0,
+      "apex_s_m": 2493.0,
+      "s_end_m": 2498.0,
+      "apex_side": "right",
+      "apex_side_source": "manual",
+      "target_throttle_pct": null
     },
     {
       "id": "rainey",
       "name": "Rainey Curve (Turn 9)",
-      "s_start_m": 2886.0,
-      "apex_s_m": 2986.0,
-      "s_end_m": 2992.0,
+      "s_start_m": 2621.0,
+      "apex_s_m": 2737.0,
+      "s_end_m": 2742.0,
       "apex_side": "left",
-      "apex_side_source": "manual"
+      "apex_side_source": "manual",
+      "target_throttle_pct": null
     },
     {
       "id": "t10",
       "name": "Turn 10",
-      "s_start_m": 3150.0,
-      "apex_s_m": 3200.0,
-      "s_end_m": 3260.0,
+      "s_start_m": 2887.0,
+      "apex_s_m": 2986.0,
+      "s_end_m": 2996.0,
       "apex_side": "right",
-      "apex_side_source": "manual"
+      "apex_side_source": "manual",
+      "target_throttle_pct": 75
     },
     {
       "id": "t11",
       "name": "Turn 11",
-      "s_start_m": 3260.0,
-      "apex_s_m": 3277.0,
-      "s_end_m": 3302.0,
+      "s_start_m": 3177.0,
+      "apex_s_m": 3279.0,
+      "s_end_m": 3282.0,
       "apex_side": "right",
-      "apex_side_source": "manual"
+      "apex_side_source": "manual",
+      "target_throttle_pct": 60
     }
   ],
   "straight_zones": []
