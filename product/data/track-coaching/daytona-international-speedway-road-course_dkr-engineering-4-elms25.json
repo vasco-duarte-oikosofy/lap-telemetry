@@ -13,74 +13,122 @@
     {
       "id": "t1",
       "name": "Turn 1",
-      "s_start_m": 229.0,
-      "apex_s_m": 466.0,
-      "s_end_m": 494.0,
+      "s_start_m": 199.0,
+      "apex_s_m": 462.0,
+      "s_end_m": 481.0,
       "apex_side": "left",
-      "apex_side_source": "manual"
+      "apex_side_source": "manual",
+      "target_throttle_pct": null
     },
     {
       "id": "t2kink",
       "name": "Turn 2 (Kink)",
-      "s_start_m": 640.0,
-      "apex_s_m": 700.0,
-      "s_end_m": 760.0,
+      "s_start_m": 618.0,
+      "apex_s_m": 659.0,
+      "s_end_m": 700.0,
       "apex_side": "left",
-      "apex_side_source": "manual"
+      "apex_side_source": "manual",
+      "target_throttle_pct": 100
     },
     {
       "id": "horseshoe",
       "name": "International Horseshoe",
-      "s_start_m": 822.0,
-      "apex_s_m": 956.0,
-      "s_end_m": 980.0,
+      "s_start_m": 806.0,
+      "apex_s_m": 968.0,
+      "s_end_m": 973.0,
       "apex_side": "right",
-      "apex_side_source": "manual"
+      "apex_side_source": "manual",
+      "target_throttle_pct": 50
     },
     {
       "id": "t4kink",
       "name": "Turn 4 (Kink)",
-      "s_start_m": 1350.0,
-      "apex_s_m": 1475.0,
-      "s_end_m": 1525.0,
+      "s_start_m": 1342.0,
+      "apex_s_m": 1466.0,
+      "s_end_m": 1492.0,
       "apex_side": "left",
-      "apex_side_source": "manual"
+      "apex_side_source": "manual",
+      "target_throttle_pct": 100
     },
     {
       "id": "t5",
-      "name": "Turn 5",
-      "s_start_m": 1565.0,
-      "apex_s_m": 1768.0,
-      "s_end_m": 1793.0,
+      "name": "Turn 5 (West Horseshoe)",
+      "s_start_m": 1575.0,
+      "apex_s_m": 1751.0,
+      "s_end_m": 1756.0,
       "apex_side": "right",
-      "apex_side_source": "manual"
+      "apex_side_source": "manual",
+      "target_throttle_pct": 58
     },
     {
       "id": "t6",
       "name": "Turn 6",
-      "s_start_m": 1813.0,
-      "apex_s_m": 1832.0,
-      "s_end_m": 1835.0,
+      "s_start_m": 2029.0,
+      "apex_s_m": 2140.0,
+      "s_end_m": 2145.0,
       "apex_side": "left",
-      "apex_side_source": "manual"
+      "apex_side_source": "manual",
+      "target_throttle_pct": 50
     },
     {
       "id": "t7",
       "name": "Turn 7",
-      "s_start_m": 2033.0,
-      "apex_s_m": 2137.0,
-      "s_end_m": 2178.0,
+      "s_start_m": 2309.0,
+      "apex_s_m": 2466.0,
+      "s_end_m": 2624.0,
       "apex_side": "left",
-      "apex_side_source": "manual"
+      "apex_side_source": "manual",
+      "target_throttle_pct": 100
     },
     {
-      "id": "busstop",
-      "name": "Bus Stop",
-      "s_start_m": 3652.0,
-      "apex_s_m": 3904.0,
-      "s_end_m": 3977.0,
+      "id": "t8",
+      "name": "Turn 8",
+      "s_start_m": 2749.0,
+      "apex_s_m": 2922.0,
+      "s_end_m": 3095.0,
+      "apex_side": "left",
+      "apex_side_source": "manual",
+      "target_throttle_pct": 100
+    },
+    {
+      "id": "t9",
+      "name": "Turn 9 (Bus Stop 1)",
+      "s_start_m": 3671.0,
+      "apex_s_m": 3817.0,
+      "s_end_m": 3824.0,
+      "apex_side": "left",
+      "apex_side_source": "manual",
+      "target_throttle_pct": 20
+    },
+    {
+      "id": "t10",
+      "name": "Turn 10 (Bus Stop 2)",
+      "s_start_m": 3845.0,
+      "apex_s_m": 3903.0,
+      "s_end_m": 3927.0,
       "apex_side": "right",
-      "apex_side_source": "manual"
+      "apex_side_source": "manual",
+      "target_throttle_pct": 70
+    },
+    {
+      "id": "t11",
+      "name": "Turn 11",
+      "s_start_m": 4336.0,
+      "apex_s_m": 4446.0,
+      "s_end_m": 4556.0,
+      "apex_side": "left",
+      "apex_side_source": "manual",
+      "target_throttle_pct": 100
+    },
+    {
+      "id": "t12",
+      "name": "Turn 12",
+      "s_start_m": 4775.0,
+      "apex_s_m": 4903.0,
+      "s_end_m": 5031.0,
+      "apex_side": "left",
+      "apex_side_source": "manual",
+      "target_throttle_pct": 100
     }
   ],
   "straight_zones": []
