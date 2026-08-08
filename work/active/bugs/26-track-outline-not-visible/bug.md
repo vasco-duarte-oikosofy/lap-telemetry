@@ -6,6 +6,16 @@ The static track outline (the faint grey boundary + dashed centerline drawn
 around the circuit map) does not appear in the `compare.html` viewer, even for
 tracks that have a registered outline (e.g. Daytona, Laguna Seca, Spa, etc.).
 
+**Key clue:** the outline **IS visible for Monza**, but not for the others.
+This proves the rendering pipeline works, so the issue is specific to certain
+outlines (likely the newly added trajectory outlines vs. the Monza TUMFTM
+outline).
+
+**Tracks confirmed NOT working** (user-tested): Spa, Sebring, Le Mans,
+Sao Paulo, Silverstone, Fuji — plus Daytona and Laguna Seca. So it is **not**
+just the trajectory outlines: Spa, Silverstone and Sao Paulo are TUMFTM real
+outlines and they also fail. Only **Monza** renders.
+
 ## What has been verified as WORKING (so far)
 
 Investigation ruled out the obvious causes:
