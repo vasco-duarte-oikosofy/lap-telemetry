@@ -1,0 +1,87 @@
+{
+  "schema_version": "1",
+  "track_id": "daytona-international-speedway-road-course",
+  "layout_id": "lmu-default",
+  "reference_lap": {
+    "path": "product\\data\\reference-laps\\daytona-international-speedway-road-course_dkr-engineering-4-elms25_time_01.45.596.parquet",
+    "car_id": "dkr-engineering-4-elms25",
+    "lap_time_s": 105.596,
+    "detection_method": "throttle_brake_v1"
+  },
+  "lap_length_m": 5732.3,
+  "corners": [
+    {
+      "id": "t1",
+      "name": "Turn 1",
+      "s_start_m": 229.0,
+      "apex_s_m": 466.0,
+      "s_end_m": 494.0,
+      "apex_side": "left",
+      "apex_side_source": "manual"
+    },
+    {
+      "id": "t2kink",
+      "name": "Turn 2 (Kink)",
+      "s_start_m": 640.0,
+      "apex_s_m": 700.0,
+      "s_end_m": 760.0,
+      "apex_side": "left",
+      "apex_side_source": "manual"
+    },
+    {
+      "id": "horseshoe",
+      "name": "International Horseshoe",
+      "s_start_m": 822.0,
+      "apex_s_m": 956.0,
+      "s_end_m": 980.0,
+      "apex_side": "right",
+      "apex_side_source": "manual"
+    },
+    {
+      "id": "t4kink",
+      "name": "Turn 4 (Kink)",
+      "s_start_m": 1350.0,
+      "apex_s_m": 1475.0,
+      "s_end_m": 1525.0,
+      "apex_side": "left",
+      "apex_side_source": "manual"
+    },
+    {
+      "id": "t5",
+      "name": "Turn 5",
+      "s_start_m": 1565.0,
+      "apex_s_m": 1768.0,
+      "s_end_m": 1793.0,
+      "apex_side": "right",
+      "apex_side_source": "manual"
+    },
+    {
+      "id": "t6",
+      "name": "Turn 6",
+      "s_start_m": 1813.0,
+      "apex_s_m": 1832.0,
+      "s_end_m": 1835.0,
+      "apex_side": "left",
+      "apex_side_source": "manual"
+    },
+    {
+      "id": "t7",
+      "name": "Turn 7",
+      "s_start_m": 2033.0,
+      "apex_s_m": 2137.0,
+      "s_end_m": 2178.0,
+      "apex_side": "left",
+      "apex_side_source": "manual"
+    },
+    {
+      "id": "busstop",
+      "name": "Bus Stop",
+      "s_start_m": 3652.0,
+      "apex_s_m": 3904.0,
+      "s_end_m": 3977.0,
+      "apex_side": "right",
+      "apex_side_source": "manual"
+    }
+  ],
+  "straight_zones": []
+}

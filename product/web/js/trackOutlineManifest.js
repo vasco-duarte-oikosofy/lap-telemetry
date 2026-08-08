@@ -24,6 +24,7 @@ import { FUJI_SPEEDWAY_CLASSIC_STATIC_OUTLINE } from './staticFujiSpeedwayClassi
 import { SEBRING_INTERNATIONAL_RACEWAY_STATIC_OUTLINE } from './staticSebringInternationalRacewayOutlineData.js';
 import { CIRCUIT_LA_SARTHE_STATIC_OUTLINE } from './staticCircuitLaSartheOutlineData.js';
 import { SILVERSTONE_GRAND_PRIX_CIRCUIT___ELMS_STATIC_OUTLINE } from './staticSilverstoneGrandPrixCircuitElmsOutlineData.js';
+import { DAYTONA_INTERNATIONAL_SPEEDWAY_ROAD_COURSE_STATIC_OUTLINE } from './staticDaytonaInternationalSpeedwayRoadCourseOutlineData.js';
 
 // slug normalization: lowercase, collapse whitespace to single dash,
 // transliterate accents via NFKD (ó→o, é→e), strip non-alnum/dash.
@@ -76,6 +77,8 @@ const OUTLINES = new Map([
   ['circuit-de-la-sarthe', CIRCUIT_LA_SARTHE_STATIC_OUTLINE],
   // Silverstone Circuit
   ['silverstone-grand-prix-circuit---elms', SILVERSTONE_GRAND_PRIX_CIRCUIT___ELMS_STATIC_OUTLINE],
+  // Daytona International Speedway Road Course
+  ['daytona-international-speedway-road-course', DAYTONA_INTERNATIONAL_SPEEDWAY_ROAD_COURSE_STATIC_OUTLINE],
 ]);
 
 /**
