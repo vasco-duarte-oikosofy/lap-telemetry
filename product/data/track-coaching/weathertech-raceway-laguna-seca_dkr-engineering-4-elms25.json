@@ -1,0 +1,126 @@
+{
+  "schema_version": "1",
+  "track_id": "weathertech-raceway-laguna-seca",
+  "layout_id": "lmu-default",
+  "reference_lap": {
+    "path": "product\\data\\reference-laps\\weathertech-raceway-laguna-seca_dkr-engineering-4-elms25_time_01.21.495.parquet",
+    "car_id": "dkr-engineering-4-elms25",
+    "lap_time_s": 81.495,
+    "detection_method": "throttle_brake_v1"
+  },
+  "lap_length_m": 3588.7,
+  "corners": [
+    {
+      "id": "t1",
+      "name": "Turn 1",
+      "s_start_m": 240.0,
+      "apex_s_m": 263.0,
+      "s_end_m": 300.0,
+      "apex_side": "left",
+      "apex_side_source": "manual",
+      "target_throttle_pct": null
+    },
+    {
+      "id": "andretti",
+      "name": "Andretti Hairpin",
+      "s_start_m": 311.0,
+      "apex_s_m": 511.0,
+      "s_end_m": 539.0,
+      "apex_side": "left",
+      "apex_side_source": "manual"
+    },
+    {
+      "id": "t3",
+      "name": "Turn 3",
+      "s_start_m": 689.0,
+      "apex_s_m": 800.0,
+      "s_end_m": 810.0,
+      "apex_side": "right",
+      "apex_side_source": "manual"
+    },
+    {
+      "id": "t4",
+      "name": "Turn 4",
+      "s_start_m": 962.0,
+      "apex_s_m": 1087.0,
+      "s_end_m": 1105.0,
+      "apex_side": "right",
+      "apex_side_source": "manual"
+    },
+    {
+      "id": "t5",
+      "name": "Turn 5",
+      "s_start_m": 1409.0,
+      "apex_s_m": 1540.0,
+      "s_end_m": 1546.0,
+      "apex_side": "right",
+      "apex_side_source": "manual"
+    },
+    {
+      "id": "t6",
+      "name": "Turn 6",
+      "s_start_m": 1846.0,
+      "apex_s_m": 1951.0,
+      "s_end_m": 1957.0,
+      "apex_side": "left",
+      "apex_side_source": "manual"
+    },
+    {
+      "id": "t7",
+      "name": "Turn 7",
+      "s_start_m": 2280.0,
+      "apex_s_m": 2296.0,
+      "s_end_m": 2310.0,
+      "apex_side": "right",
+      "apex_side_source": "manual",
+      "target_throttle_pct": null
+    },
+    {
+      "id": "t8",
+      "name": "Corkscrew (Turn 8)",
+      "s_start_m": 2320.0,
+      "apex_s_m": 2477.0,
+      "s_end_m": 2515.0,
+      "apex_side": "left",
+      "apex_side_source": "manual"
+    },
+    {
+      "id": "t8a",
+      "name": "Corkscrew 8a",
+      "s_start_m": 2476.0,
+      "apex_s_m": 2493.0,
+      "s_end_m": 2498.0,
+      "apex_side": "right",
+      "apex_side_source": "manual",
+      "target_throttle_pct": null
+    },
+    {
+      "id": "rainey",
+      "name": "Rainey Curve (Turn 9)",
+      "s_start_m": 2629.0,
+      "apex_s_m": 2737.0,
+      "s_end_m": 2748.0,
+      "apex_side": "left",
+      "apex_side_source": "manual"
+    },
+    {
+      "id": "t10",
+      "name": "Turn 10",
+      "s_start_m": 2885.0,
+      "apex_s_m": 2985.0,
+      "s_end_m": 2991.0,
+      "apex_side": "right",
+      "apex_side_source": "manual"
+    },
+    {
+      "id": "t11",
+      "name": "Turn 11",
+      "s_start_m": 3166.0,
+      "apex_s_m": 3288.0,
+      "s_end_m": 3297.0,
+      "apex_side": "right",
+      "apex_side_source": "manual"
+    }
+  ],
+  "straight_zones": []
+}
