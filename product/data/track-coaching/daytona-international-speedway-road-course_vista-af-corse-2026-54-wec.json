@@ -12,57 +12,57 @@
   "corners": [
     {
       "id": "t1",
-      "name": "turn 1",
+      "name": "Turn 1",
       "s_start_m": 198.0,
       "apex_s_m": 455.0,
       "s_end_m": 522.0,
-      "apex_side": "right",
-      "apex_side_source": "default_cli_option"
+      "apex_side": "left",
+      "apex_side_source": "manual"
     },
     {
-      "id": "t2",
-      "name": "turn 2",
+      "id": "horseshoe",
+      "name": "International Horseshoe",
       "s_start_m": 821.0,
       "apex_s_m": 960.0,
       "s_end_m": 989.0,
       "apex_side": "right",
-      "apex_side_source": "default_cli_option"
+      "apex_side_source": "manual"
     },
     {
-      "id": "t3",
-      "name": "turn 3",
+      "id": "t5",
+      "name": "Turn 5 (West Horseshoe)",
       "s_start_m": 1568.0,
       "apex_s_m": 1754.0,
       "s_end_m": 1771.0,
       "apex_side": "right",
-      "apex_side_source": "default_cli_option"
-    },
-    {
-      "id": "t4",
-      "name": "turn 4",
-      "s_start_m": 2038.0,
-      "apex_s_m": 2147.0,
-      "s_end_m": 2163.0,
-      "apex_side": "right",
-      "apex_side_source": "default_cli_option"
-    },
-    {
-      "id": "t5",
-      "name": "turn 5",
-      "s_start_m": 3679.0,
-      "apex_s_m": 3937.0,
-      "s_end_m": 3946.0,
-      "apex_side": "right",
-      "apex_side_source": "default_cli_option"
+      "apex_side_source": "manual"
     },
     {
       "id": "t6",
-      "name": "turn 6",
+      "name": "Turn 6",
+      "s_start_m": 2038.0,
+      "apex_s_m": 2147.0,
+      "s_end_m": 2163.0,
+      "apex_side": "left",
+      "apex_side_source": "manual"
+    },
+    {
+      "id": "t9",
+      "name": "Turn 9 (Bus Stop 1)",
+      "s_start_m": 3679.0,
+      "apex_s_m": 3937.0,
+      "s_end_m": 3946.0,
+      "apex_side": "left",
+      "apex_side_source": "manual"
+    },
+    {
+      "id": "t10",
+      "name": "Turn 10 (Bus Stop 2)",
       "s_start_m": 3950.0,
       "apex_s_m": 3951.0,
       "s_end_m": 3985.0,
       "apex_side": "right",
-      "apex_side_source": "default_cli_option"
+      "apex_side_source": "manual"
     }
   ],
   "straight_zones": []
