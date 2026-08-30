@@ -1,0 +1,69 @@
+{
+  "schema_version": "1",
+  "track_id": "daytona-international-speedway-road-course",
+  "layout_id": "lmu-default",
+  "reference_lap": {
+    "path": "product\\data\\reference-laps\\daytona-international-speedway-road-course_vista-af-corse-2026-54-wec_time_01.48.619.parquet",
+    "car_id": "vista-af-corse-2026-54-wec",
+    "lap_time_s": 108.579,
+    "detection_method": "throttle_brake_v1"
+  },
+  "lap_length_m": 5733.4,
+  "corners": [
+    {
+      "id": "t1",
+      "name": "turn 1",
+      "s_start_m": 198.0,
+      "apex_s_m": 455.0,
+      "s_end_m": 522.0,
+      "apex_side": "right",
+      "apex_side_source": "default_cli_option"
+    },
+    {
+      "id": "t2",
+      "name": "turn 2",
+      "s_start_m": 821.0,
+      "apex_s_m": 960.0,
+      "s_end_m": 989.0,
+      "apex_side": "right",
+      "apex_side_source": "default_cli_option"
+    },
+    {
+      "id": "t3",
+      "name": "turn 3",
+      "s_start_m": 1568.0,
+      "apex_s_m": 1754.0,
+      "s_end_m": 1771.0,
+      "apex_side": "right",
+      "apex_side_source": "default_cli_option"
+    },
+    {
+      "id": "t4",
+      "name": "turn 4",
+      "s_start_m": 2038.0,
+      "apex_s_m": 2147.0,
+      "s_end_m": 2163.0,
+      "apex_side": "right",
+      "apex_side_source": "default_cli_option"
+    },
+    {
+      "id": "t5",
+      "name": "turn 5",
+      "s_start_m": 3679.0,
+      "apex_s_m": 3937.0,
+      "s_end_m": 3946.0,
+      "apex_side": "right",
+      "apex_side_source": "default_cli_option"
+    },
+    {
+      "id": "t6",
+      "name": "turn 6",
+      "s_start_m": 3950.0,
+      "apex_s_m": 3951.0,
+      "s_end_m": 3985.0,
+      "apex_side": "right",
+      "apex_side_source": "default_cli_option"
+    }
+  ],
+  "straight_zones": []
+}
