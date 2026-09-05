@@ -1,0 +1,15 @@
+{
+  "schema_version": "2",
+  "recorder_version": "0.1.0a1",
+  "started_utc": "2026-09-05T06:58:12Z",
+  "ended_utc": null,
+  "sim": "lmu",
+  "track": "Lusail International Circuit",
+  "vehicle_name": "DKR Engineering #4:ELMS25",
+  "setup_file_guess": null,
+  "session_type_label": "practice",
+  "sample_rate_hz": 50.0,
+  "row_count": 44759,
+  "lap_count": 8,
+  "in_progress": true
+}
