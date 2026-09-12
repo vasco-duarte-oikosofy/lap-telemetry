@@ -1,0 +1,132 @@
+{
+  "schema_version": "1",
+  "track_id": "lusail-international-circuit",
+  "layout_id": "lmu-default",
+  "reference_lap": {
+    "path": "product\\data\\reference-laps\\lusail-international-circuit_vista-af-corse-2026-54-wec_time_02.00.576.parquet",
+    "car_id": "vista-af-corse-2026-54-wec",
+    "lap_time_s": 120.531,
+    "detection_method": "throttle_brake_v1"
+  },
+  "lap_length_m": 5404.5,
+  "corners": [
+    {
+      "id": "t1",
+      "name": "turn 1",
+      "s_start_m": 594.0,
+      "apex_s_m": 775.0,
+      "s_end_m": 853.0,
+      "apex_side": "right",
+      "apex_side_source": "default_cli_option"
+    },
+    {
+      "id": "t2",
+      "name": "turn 2",
+      "s_start_m": 980.0,
+      "apex_s_m": 1088.0,
+      "s_end_m": 1153.0,
+      "apex_side": "right",
+      "apex_side_source": "default_cli_option"
+    },
+    {
+      "id": "t3",
+      "name": "turn 3",
+      "s_start_m": 1601.0,
+      "apex_s_m": 1730.0,
+      "s_end_m": 1738.0,
+      "apex_side": "right",
+      "apex_side_source": "default_cli_option"
+    },
+    {
+      "id": "t4",
+      "name": "turn 4",
+      "s_start_m": 1825.0,
+      "apex_s_m": 1947.0,
+      "s_end_m": 1952.0,
+      "apex_side": "right",
+      "apex_side_source": "default_cli_option"
+    },
+    {
+      "id": "t5",
+      "name": "turn 5",
+      "s_start_m": 2092.0,
+      "apex_s_m": 2194.0,
+      "s_end_m": 2250.0,
+      "apex_side": "right",
+      "apex_side_source": "default_cli_option"
+    },
+    {
+      "id": "t6",
+      "name": "turn 6",
+      "s_start_m": 2473.0,
+      "apex_s_m": 2620.0,
+      "s_end_m": 2629.0,
+      "apex_side": "right",
+      "apex_side_source": "default_cli_option"
+    },
+    {
+      "id": "t7",
+      "name": "turn 7",
+      "s_start_m": 2863.0,
+      "apex_s_m": 2955.0,
+      "s_end_m": 2958.0,
+      "apex_side": "right",
+      "apex_side_source": "default_cli_option"
+    },
+    {
+      "id": "t8",
+      "name": "turn 8",
+      "s_start_m": 3058.0,
+      "apex_s_m": 3162.0,
+      "s_end_m": 3181.0,
+      "apex_side": "right",
+      "apex_side_source": "default_cli_option"
+    },
+    {
+      "id": "t9",
+      "name": "turn 9",
+      "s_start_m": 3675.0,
+      "apex_s_m": 3840.0,
+      "s_end_m": 3844.0,
+      "apex_side": "right",
+      "apex_side_source": "default_cli_option"
+    },
+    {
+      "id": "t10",
+      "name": "turn 10",
+      "s_start_m": 3905.0,
+      "apex_s_m": 3976.0,
+      "s_end_m": 3981.0,
+      "apex_side": "right",
+      "apex_side_source": "default_cli_option"
+    },
+    {
+      "id": "t11",
+      "name": "turn 11",
+      "s_start_m": 4105.0,
+      "apex_s_m": 4184.0,
+      "s_end_m": 4213.0,
+      "apex_side": "right",
+      "apex_side_source": "default_cli_option"
+    },
+    {
+      "id": "t12",
+      "name": "turn 12",
+      "s_start_m": 4409.0,
+      "apex_s_m": 4516.0,
+      "s_end_m": 4521.0,
+      "apex_side": "right",
+      "apex_side_source": "default_cli_option"
+    },
+    {
+      "id": "t13",
+      "name": "turn 13",
+      "s_start_m": 4848.0,
+      "apex_s_m": 4976.0,
+      "s_end_m": 5027.0,
+      "apex_side": "right",
+      "apex_side_source": "default_cli_option"
+    }
+  ],
+  "straight_zones": []
+}
