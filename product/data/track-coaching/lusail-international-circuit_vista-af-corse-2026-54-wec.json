@@ -3,9 +3,9 @@
   "track_id": "lusail-international-circuit",
   "layout_id": "lmu-default",
   "reference_lap": {
-    "path": "product\\data\\reference-laps\\lusail-international-circuit_vista-af-corse-2026-54-wec_time_01.58.640.parquet",
+    "path": "product\\data\\reference-laps\\lusail-international-circuit_vista-af-corse-2026-54-wec_time_01.58.629.parquet",
     "car_id": "vista-af-corse-2026-54-wec",
-    "lap_time_s": 118.64,
+    "lap_time_s": 118.629,
     "detection_method": "throttle_brake_v1"
   },
   "lap_length_m": 5404.5,
@@ -13,18 +13,18 @@
     {
       "id": "t1",
       "name": "turn 1",
-      "s_start_m": 611.0,
-      "apex_s_m": 790.0,
-      "s_end_m": 792.0,
+      "s_start_m": 609.0,
+      "apex_s_m": 779.0,
+      "s_end_m": 781.0,
       "apex_side": "right",
       "apex_side_source": "manual"
     },
     {
       "id": "t2",
       "name": "turn 2",
-      "s_start_m": 982.0,
-      "apex_s_m": 1104.0,
-      "s_end_m": 1123.0,
+      "s_start_m": 979.0,
+      "apex_s_m": 1100.0,
+      "s_end_m": 1116.0,
       "apex_side": "left",
       "apex_side_source": "manual"
     },
@@ -40,27 +40,27 @@
     {
       "id": "t4",
       "name": "turn 4",
-      "s_start_m": 1598.0,
-      "apex_s_m": 1772.0,
-      "s_end_m": 1775.0,
+      "s_start_m": 1599.0,
+      "apex_s_m": 1741.0,
+      "s_end_m": 1744.0,
       "apex_side": "right",
       "apex_side_source": "manual"
     },
     {
       "id": "t5",
       "name": "turn 5",
-      "s_start_m": 1822.0,
-      "apex_s_m": 1901.0,
-      "s_end_m": 1907.0,
+      "s_start_m": 1809.0,
+      "apex_s_m": 1927.0,
+      "s_end_m": 1931.0,
       "apex_side": "right",
       "apex_side_source": "manual"
     },
     {
       "id": "t6",
       "name": "turn 6",
-      "s_start_m": 2079.0,
-      "apex_s_m": 2210.0,
-      "s_end_m": 2245.0,
+      "s_start_m": 2086.0,
+      "apex_s_m": 2200.0,
+      "s_end_m": 2239.0,
       "apex_side": "left",
       "apex_side_source": "manual"
     },
@@ -68,7 +68,7 @@
       "id": "t7",
       "name": "turn 7",
       "s_start_m": 2480.0,
-      "apex_s_m": 2604.0,
+      "apex_s_m": 2603.0,
       "s_end_m": 2606.0,
       "apex_side": "right",
       "apex_side_source": "manual"
@@ -85,18 +85,18 @@
     {
       "id": "t9",
       "name": "turn 9",
-      "s_start_m": 2870.0,
-      "apex_s_m": 2939.0,
-      "s_end_m": 2941.0,
+      "s_start_m": 2865.0,
+      "apex_s_m": 2973.0,
+      "s_end_m": 2976.0,
       "apex_side": "right",
       "apex_side_source": "manual"
     },
     {
       "id": "t10",
       "name": "turn 10",
-      "s_start_m": 3063.0,
-      "apex_s_m": 3164.0,
-      "s_end_m": 3199.0,
+      "s_start_m": 3060.0,
+      "apex_s_m": 3156.0,
+      "s_end_m": 3198.0,
       "apex_side": "left",
       "apex_side_source": "manual"
     },
@@ -112,45 +112,45 @@
     {
       "id": "t12",
       "name": "turn 12",
-      "s_start_m": 3669.0,
-      "apex_s_m": 3815.0,
-      "s_end_m": 3817.0,
+      "s_start_m": 3668.0,
+      "apex_s_m": 3835.0,
+      "s_end_m": 3838.0,
       "apex_side": "right",
       "apex_side_source": "manual"
     },
     {
       "id": "t13",
       "name": "turn 13",
-      "s_start_m": 3894.0,
-      "apex_s_m": 3984.0,
-      "s_end_m": 3986.0,
+      "s_start_m": 3892.0,
+      "apex_s_m": 3970.0,
+      "s_end_m": 3971.0,
       "apex_side": "right",
       "apex_side_source": "manual"
     },
     {
       "id": "t14",
       "name": "turn 14",
-      "s_start_m": 4080.0,
-      "apex_s_m": 4206.0,
-      "s_end_m": 4207.0,
+      "s_start_m": 4087.0,
+      "apex_s_m": 4193.0,
+      "s_end_m": 4195.0,
       "apex_side": "right",
       "apex_side_source": "manual"
     },
     {
       "id": "t15",
       "name": "turn 15",
-      "s_start_m": 4388.0,
-      "apex_s_m": 4510.0,
-      "s_end_m": 4514.0,
+      "s_start_m": 4410.0,
+      "apex_s_m": 4520.0,
+      "s_end_m": 4533.0,
       "apex_side": "left",
       "apex_side_source": "manual"
     },
     {
       "id": "t16",
       "name": "turn 16",
-      "s_start_m": 4840.0,
-      "apex_s_m": 4969.0,
-      "s_end_m": 4972.0,
+      "s_start_m": 4855.0,
+      "apex_s_m": 4965.0,
+      "s_end_m": 4967.0,
       "apex_side": "right",
       "apex_side_source": "manual"
     }
