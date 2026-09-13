@@ -439,3 +439,43 @@ Python-only slice, running 25 browser processes per test cycle wastes
 ~15 s with zero chance of catching a regression. The fast suite catches
 all Python- and Node-level regressions. UI regressions are only relevant
 when UI code changes.
+
+---
+
+## L16. Windows: use `python` (or the venv), not `python3`, in `.js` wrappers
+
+**Problem.** The Python-test wrappers (L12 template) call `spawnSync('python3', [script])`. On Windows, `python3` resolves to the Microsoft Store app-execution alias (a stub) unless real Python was installed via the Store. Under the parallel runner the stub returns exit code **9009** ("Python was not found; run without arguments to install from the Microsoft Store"), so every `python3`-based wrapper fails while the same `.py` run directly with the venv passes.
+
+**Symptom.** `bash scripts/test-summary.sh` reports `status 9009` for all Python-backed `.js` wrappers; `node dev/scripts/test_foo.js` singly also fails with 9009; but `.venv/Scripts/python.exe dev/scripts/test_foo.py` passes.
+
+**Solution.** Put the project venv on `PATH` before running the suite so both `python` and `python3` resolve to the venv interpreter:
+
+```bash
+export PATH=".venv/Scripts:$PATH"
+bash scripts/test-summary.sh --feature interactive-race-coach
+```
+
+Prefer `python` over `python3` in new wrappers (the repo is currently inconsistent → some use `python`, some `python3`; `python` is the safer default on Windows). The L12 template's `python3` is a Linux-ism.
+
+---
+
+## L17. Windows: set `PYTHONUTF8=1` for tests that print Unicode
+
+**Problem.** Several Python tests print Unicode characters (e.g. `→`, `\u2713`, em-dashes) to stdout. On Windows the default console encoding is cp1252, which cannot encode those characters, so the test crashes mid-run with:
+
+```text
+UnicodeEncodeError: 'charmap' codec can't encode character '\u2192' in position ...
+```
+
+The test exits non-zero, the wrapper reports a failure, and the real assertion result is never reached → even though the test logic is correct.
+
+**Symptom.** A test passes under `-X utf8` (or on Linux) but fails in the runner on Windows with a `UnicodeEncodeError` from `cp1252.py`.
+
+**Solution.** Force UTF-8 for the run:
+
+```bash
+export PYTHONUTF8=1
+bash scripts/test-summary.sh --feature interactive-race-coach
+```
+
+(Combine with L16: `export PATH=".venv/Scripts:$PATH" PYTHONUTF8=1`.) `PYTHONUTF8=1` enables Python's UTF-8 mode globally for the spawned children, so `print()` of Unicode no longer hits the cp1252 encoder.

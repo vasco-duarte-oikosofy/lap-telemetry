@@ -244,13 +244,18 @@ python3 -m lap_telemetry.coach.generate_utterance --facts dev/fixtures/coach/bar
 export COACH_CONFIG=/path/to/lap-telemetry/coach_config.toml
 ```
 
-## Reference laps and coaching models (guarded pipeline — bugs 22/23/24)
+## Reference laps and coaching models (guarded pipeline — bugs 22/23/24/27)
 
 `product/data/` is curated, committed data. Every change to it goes through a
 guarded script — never hand-filter laps by `lap_number` (it merges sim-restart
 stints), never hand-copy files into `product/data/reference-laps/`, never
 re-generate a coaching model that has curated corner names. One (track,
-vehicle) per run; we never export all reference laps at once.
+vehicle) per run; we never export all reference laps at once. The live
+coach resolves the reference and coaching model by **(track, car)** via
+`product/data/vehicle_catalog.json` (bug 27): liveries of one car model share a
+canonical `slug`. When adding a **new car**, add its `vehicle_name` → `slug`
+entry to the catalog, or the coach will fall back to car-blind resolution →
+see [`docs/HOW_TO_CREATE_A_COACHING_MODEL.md`](docs/HOW_TO_CREATE_A_COACHING_MODEL.md) "Step 0".
 
 The processes and where they are documented:
 

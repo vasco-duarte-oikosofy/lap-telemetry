@@ -34,6 +34,8 @@ circuit-de-barcelona_dkr-engineering-4-elms25_time_01.36.456.parquet
 
 The vehicle slug is derived from the sidecar JSON's `vehicle_name` field so users know which car produced the reference lap.
 
+**Vehicle catalog.** The live coach picks the reference whose car matches the live vehicle via `product/data/vehicle_catalog.json` (liveries of one model share a canonical `slug`). When adding a **new car**, add its `vehicle_name` → `slug` entry to the catalog, or the coach won't resolve it. See `docs/HOW_TO_CREATE_A_COACHING_MODEL.md` "Step 0".
+
 ---
 
 ## Quick Start

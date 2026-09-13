@@ -20,16 +20,30 @@ There are two pipelines. Pick the right one first:
 | Track+car has **no** coaching model yet | **A — New track** (steps 1–7 below) |
 | Track+car **already has** a coaching model | **B — Update** (guarded updater; see "Pipeline B") |
 
-### ⚠️ Cardinal rules (bugs 22, 23, 24)
+### ⚠️ Cardinal rules (bugs 22, 23, 24, 27)
 
 1. **One (track, vehicle) per run.** We never export all reference laps at once. The export script refuses multi-combo targets and audits that at most one reference changed on disk.
 2. **Never extract a lap by filtering on `lap_number`.** Sessions recorded across a sim restart repeat lap numbers; a `lap_number == N` filter merges two different laps into one file (this corrupted the Monza reference — bug 22). All lap selection is per contiguous *segment*; the scripts below do this for you.
 3. **Curated models never lose hand-tuned content.** Re-running the generator on a track that already has a model **overwrites** corner names, manual apex sides, and manually added turns. Updates go through `update_reference_and_coaching_model.py`, which preserves them and aborts if corners don't reproduce.
 4. **Never hand-copy files into `product/data/reference-laps/`.** The export script enforces naming, supersedes the old file, and runs the audit.
+5. **The live coach resolves by (track, car), not track alone (bug 27).** `reference_resolver` and `track_model_resolver` use `product/data/vehicle_catalog.json` to group liveries of the same car model (e.g. every Ferrari 296 GT3 entry → `ferrari-296-gt3`) and pick the reference/model whose car matches the live vehicle. Before curating for a car, confirm the catalog has an entry for that exact `vehicle_name`; without it the live coach silently falls back to the legacy car-blind behaviour (fastest/first file) and may compare your car against a different, faster car class. See "Step 0 — Vehicle catalog check" below.
 
 ---
 
 ## Pipeline A — New track+car (no model exists yet)
+
+### Step 0 — Vehicle catalog check (both pipelines)
+
+The live coach picks the reference lap and coaching model for the **same car** as the live vehicle via `product/data/vehicle_catalog.json`. The catalog maps each LMU `vehicle_name` to a canonical `{brand, model, car_class, slug}`; liveries of the same model share one `slug`.
+
+Before exporting or curating for a car, open `product/data/vehicle_catalog.json` and confirm:
+
+- There is an entry whose key is the **exact** `vehicle_name` from the session sidecar (`sessions/*.json` → `vehicle_name`).
+- Its `slug` groups it with the right car model (e.g. all Ferrari 296 GT3 entries use `ferrari-296-gt3`).
+
+If the entry is missing, add it. **Spelling variants bite**: the same car can appear under different `vehicle_name` strings across sessions (e.g. `"Vista AF Corse 2026 #54:WEC"` and `"Vista AF Corsa 2026 #54:WEC"` both occur in real sessions). Add every spelling that occurs, or that livery won't canonicalise and the coach will fall back.
+
+The `<car-id>` in reference/model filenames is `vehicle_slug(vehicle_name)` → `#` deleted, `:` and `/` → `-`, whitespace → `-` (e.g. `Vista AF Corse 2026 #54:WEC` → `vista-af-corse-2026-54-wec`). This is **not** the same as the track-slug rule (which deletes `#:` outright), so don't slugify vehicle names with the track-slug function.
 
 ### Step 1 — Find the fastest lap with the summary tool
 
@@ -197,6 +211,8 @@ Check that:
 ---
 
 ## Pipeline B — Updating an existing track (new fastest lap)
+
+*(Run the **Step 0 — Vehicle catalog check** above first if this is a new car for the track — the updater does not add catalog entries for you.)*
 
 When a session contains a lap faster than the current reference for a track that **already has** a coaching model, use the guarded updater. It finds the fastest lap (same segment-based guards as the export script), dry-checks the curated corners against that lap **before writing anything**, delegates the reference export to `export_fastest_reference_laps.py` (inheriting its audit), and refreshes the model's corner geometry while preserving names, IDs, and manual apex sides:
 

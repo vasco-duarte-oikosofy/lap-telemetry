@@ -18,6 +18,8 @@ product/data/reference-laps/<track-slug>_<vehicle-slug>_time_<MM>.<SS>.<mmm>.par
 
 When a new fastest time is found, **replace the old file** (delete it) and create a new one with the updated time in the filename. There should be at most one reference-lap file per (track, vehicle).
 
+**Vehicle catalog.** The live coach resolves the reference for the *same car* as the live vehicle via `product/data/vehicle_catalog.json`, grouping liveries of one model under a canonical `slug`. When you introduce a **new car** (not just a new lap for an existing car), add its `vehicle_name` → `slug` entry to the catalog, else the coach won't match it. See `docs/HOW_TO_CREATE_A_COACHING_MODEL.md` "Step 0 — Vehicle catalog check".
+
 ## Procedure (preferred): `export_fastest_reference_laps.py`
 
 One command per circuit — pass the session file(s) to consider, all from the same track and car:
