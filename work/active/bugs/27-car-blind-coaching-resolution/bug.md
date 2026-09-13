@@ -87,4 +87,4 @@ One vertical slice — **car-aware, per-session-cached coaching data resolution*
 
 ## Status
 
-Fixed in commit (see git log) — awaiting user live-test confirmation before move to work/completed/bugs/.
+Fixed in commit 5b744ba — awaiting user live-test confirmation before move to work/completed/bugs/.
