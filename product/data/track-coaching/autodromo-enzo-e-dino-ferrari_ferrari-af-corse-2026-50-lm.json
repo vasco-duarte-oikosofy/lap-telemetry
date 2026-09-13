@@ -1,0 +1,114 @@
+{
+  "schema_version": "1",
+  "track_id": "autodromo-enzo-e-dino-ferrari",
+  "layout_id": "lmu-default",
+  "reference_lap": {
+    "path": "product\\data\\reference-laps\\autodromo-enzo-e-dino-ferrari_ferrari-af-corse-2026-50-lm_time_01.33.546.parquet",
+    "car_id": "ferrari-af-corse-2026-50-lm",
+    "lap_time_s": 93.546,
+    "detection_method": "throttle_brake_v1"
+  },
+  "lap_length_m": 4899.6,
+  "corners": [
+    {
+      "id": "t1",
+      "name": "Tamburello",
+      "s_start_m": 511.0,
+      "apex_s_m": 699.0,
+      "s_end_m": 704.0,
+      "apex_side": "right",
+      "apex_side_source": "default_cli_option"
+    },
+    {
+      "id": "t2",
+      "name": "Variante Villeneuve 1",
+      "s_start_m": 1210.0,
+      "apex_s_m": 1417.0,
+      "s_end_m": 1420.0,
+      "apex_side": "right",
+      "apex_side_source": "default_cli_option"
+    },
+    {
+      "id": "t3",
+      "name": "Variante Villeneuve 2",
+      "s_start_m": 1420.0,
+      "apex_s_m": 1423.0,
+      "s_end_m": 1427.0,
+      "apex_side": "right",
+      "apex_side_source": "default_cli_option"
+    },
+    {
+      "id": "t4",
+      "name": "Tosa",
+      "s_start_m": 1589.0,
+      "apex_s_m": 1708.0,
+      "s_end_m": 1724.0,
+      "apex_side": "right",
+      "apex_side_source": "default_cli_option"
+    },
+    {
+      "id": "t5",
+      "name": "Piratella",
+      "s_start_m": 2187.0,
+      "apex_s_m": 2331.0,
+      "s_end_m": 2339.0,
+      "apex_side": "right",
+      "apex_side_source": "default_cli_option"
+    },
+    {
+      "id": "t6",
+      "name": "Acque Minerali 1",
+      "s_start_m": 2637.0,
+      "apex_s_m": 2842.0,
+      "s_end_m": 2848.0,
+      "apex_side": "right",
+      "apex_side_source": "default_cli_option"
+    },
+    {
+      "id": "t7",
+      "name": "Acque Minerali 2",
+      "s_start_m": 2848.0,
+      "apex_s_m": 2855.0,
+      "s_end_m": 2860.0,
+      "apex_side": "right",
+      "apex_side_source": "default_cli_option"
+    },
+    {
+      "id": "t8",
+      "name": "Variante Alta 1",
+      "s_start_m": 3213.0,
+      "apex_s_m": 3383.0,
+      "s_end_m": 3389.0,
+      "apex_side": "right",
+      "apex_side_source": "default_cli_option"
+    },
+    {
+      "id": "t9",
+      "name": "Variante Alta 2",
+      "s_start_m": 3389.0,
+      "apex_s_m": 3395.0,
+      "s_end_m": 3399.0,
+      "apex_side": "right",
+      "apex_side_source": "default_cli_option"
+    },
+    {
+      "id": "t10",
+      "name": "Rivazza 1",
+      "s_start_m": 3951.0,
+      "apex_s_m": 4136.0,
+      "s_end_m": 4147.0,
+      "apex_side": "right",
+      "apex_side_source": "default_cli_option"
+    },
+    {
+      "id": "t11",
+      "name": "Rivazza 2",
+      "s_start_m": 4191.0,
+      "apex_s_m": 4261.0,
+      "s_end_m": 4291.0,
+      "apex_side": "right",
+      "apex_side_source": "default_cli_option"
+    }
+  ],
+  "straight_zones": []
+}

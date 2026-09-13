@@ -53,5 +53,11 @@
     "model": "296 GT3",
     "car_class": "LMGT3",
     "slug": "ferrari-296-gt3"
+  },
+  "Ferrari AF Corse 2026 #50:LM": {
+    "brand": "Ferrari",
+    "model": "499P",
+    "car_class": "Hypercar",
+    "slug": "ferrari-499p"
   }
 }
