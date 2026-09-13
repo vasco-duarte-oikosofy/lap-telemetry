@@ -48,9 +48,27 @@ def _extract_prefix(slug: str) -> str:
     return slug.split("_")[0] if "_" in slug else slug
 
 
+def _ref_car_id(path: Path, track_slug: str) -> str:
+    """Extract the car-id slug from a reference-lap filename.
+
+    ``lusail-..._vista-af-corse-2026-54-wec_time_01.58.640`` →
+    ``"vista-af-corse-2026-54-wec"``. Returns ``""`` for a car-agnostic file.
+    """
+    stem = path.stem
+    if "_time_" not in stem:
+        return ""
+    prefix = stem.split("_time_")[0]
+    if prefix == track_slug:
+        return ""
+    if prefix.startswith(track_slug + "_"):
+        return prefix[len(track_slug) + 1:]
+    return ""
+
+
 def resolve_reference_lap(
     track_name: str,
     search_dir: Path | None = None,
+    vehicle_name: str | None = None,
     _cache: dict[str, Path | None] | None = None,
 ) -> Path | None:
     """Find the fastest reference lap Parquet for a track.
@@ -59,10 +77,19 @@ def resolve_reference_lap(
     must equal the live slug. Prefix matching was removed because it caused
     false positives between layout variants.
 
+    When ``vehicle_name`` is given, candidates are narrowed to the live
+    vehicle's car via ``product/data/vehicle_catalog.json`` (liveries of the
+    same car model are grouped). When the vehicle has no matching reference
+    for this track, ``None`` is returned — another car's reference is never
+    used. When ``vehicle_name`` is None, the fastest match is returned
+    regardless of car (legacy behaviour).
+
     Args:
         track_name: Track name from LMU (e.g. ``"Fuji Speedway"``).
         search_dir: Directory containing reference lap files.
             Defaults to ``product/data/reference-laps/``.
+        vehicle_name: Live LMU vehicle name (e.g. ``"Vista AF Corse 2026 #54:WEC"``).
+            When given, restricts the match to the same canonical car.
         _cache: Optional mutable cache dict for avoiding repeated disk scans.
             Pass ``{}`` to enable caching across calls.
 
@@ -73,13 +100,14 @@ def resolve_reference_lap(
         search_dir = _DEFAULT_DIR
 
     slug = _track_slug(track_name)
+    cache_key = f"{slug}|{vehicle_name or ''}"
 
     # Check cache first.
-    if _cache is not None and slug in _cache:
-        cached = _cache[slug]
+    if _cache is not None and cache_key in _cache:
+        cached = _cache[cache_key]
         if cached is not None and not cached.exists():
             # Cache entry is stale — file was removed.
-            del _cache[slug]
+            del _cache[cache_key]
         else:
             return cached
 
@@ -108,19 +136,23 @@ def resolve_reference_lap(
         if not matching:
             log.debug("No reference lap match for track=%s (slug=%s)", track_name, slug)
             result = None
-        elif len(matching) == 1:
-            result = matching[0]
         else:
-            # Pick the fastest — smallest _time_ value in the filename.
+            # Sort by fastest (smallest _time_ value) — stable base order.
             def _parse_time(p: Path) -> float:
                 m = re.search(r"_time_(\d+\.\d+)", p.name)
                 return float(m.group(1)) if m else float("inf")
 
             matching.sort(key=_parse_time)
-            result = matching[0]
+            # Narrow to the live vehicle's car when a vehicle is given.
+            from lap_telemetry.coach.car_catalog import prioritize_for_car
+
+            matching = prioritize_for_car(
+                matching, vehicle_name, lambda p: _ref_car_id(p, slug)
+            )
+            result = matching[0] if matching else None
 
     if _cache is not None:
-        _cache[slug] = result
+        _cache[cache_key] = result
 
     if result is not None:
         log.info("Resolved reference lap for track=%s → %s", track_name, result.name)

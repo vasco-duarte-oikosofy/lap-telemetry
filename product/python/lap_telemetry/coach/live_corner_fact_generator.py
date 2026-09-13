@@ -92,11 +92,13 @@ class LiveCornerFactGenerator:
             Utterance string, or ``None`` if skipped.
         """
         track_name = event.track_name
+        vehicle_name = event.vehicle_name
 
         # 1. Resolve reference lap.
         ref_path = resolve_reference_lap(
             track_name,
             search_dir=self._config.reference_search_dir,
+            vehicle_name=vehicle_name,
             _cache=self._ref_cache if self._config.enable_cache else None,
         )
         if ref_path is None:
@@ -107,6 +109,7 @@ class LiveCornerFactGenerator:
         model_path = resolve_track_model(
             track_name,
             search_dir=self._config.track_model_search_dir,
+            vehicle_name=vehicle_name,
             _cache=self._model_cache if self._config.enable_cache else None,
         )
         if model_path is None:

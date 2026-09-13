@@ -35,6 +35,7 @@ class CornerExited:
     exit_distance_m: float
     lap_number: int
     track_name: str
+    vehicle_name: str = ""
 
 
 class CornerExitDetector:
@@ -128,6 +129,7 @@ class CornerExitDetector:
                         exit_distance_m=distance,
                         lap_number=frame.lap_number,
                         track_name=frame.track_name,
+                        vehicle_name=frame.vehicle_name,
                     )
 
                     if self.on_corner_exited is not None:

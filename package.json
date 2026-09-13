@@ -36,7 +36,8 @@
       "dev/scripts/test_bug_python_regressions.js",
       "dev/scripts/test_bug13_authoritative_duration.js",
       "dev/scripts/test_bug16_slow_lap_guard.js",
-      "dev/scripts/test_bug17_js_stale_boundary_frame.js"
+      "dev/scripts/test_bug17_js_stale_boundary_frame.js",
+      "dev/scripts/test_bug27.js"
     ],
     "llm-text-adapter": [
       "dev/scripts/test_runner_self_test.js",

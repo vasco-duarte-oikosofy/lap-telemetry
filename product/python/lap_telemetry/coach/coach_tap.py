@@ -230,6 +230,7 @@ class CoachTap:
                     parquet_path=parquet_path,
                     lap_number=event.lap_number,
                     track_name=event.track_name,
+                    vehicle_name=event.vehicle_name,
                     top=self._config.top,
                 )
             except Exception:

@@ -49,7 +49,7 @@ def _make_frame(
     lap_distance_m: float = 0.0,
     lap_time_s: float = 0.0,
     track_name: str = "circuit-de-barcelona",
-    vehicle_name: str = "DKR4",
+    vehicle_name: str = "DKR Engineering #4:ELMS25",
     speed_kph: float = 200.0,
     throttle_norm: float = 0.5,
     brake_norm: float = 0.0,
@@ -114,7 +114,7 @@ cache: dict[str, Path | None] = {}
 ref3a = resolve_reference_lap("Circuit de Barcelona", search_dir=REAL_REF_DIR, _cache=cache)
 ref3b = resolve_reference_lap("Circuit de Barcelona", search_dir=REAL_REF_DIR, _cache=cache)
 ok(ref3a == ref3b, "T3: reference resolver — caching returns same path")
-ok("circuit-de-barcelona" in cache, "T3b: cache dict populated")
+ok(any(k.startswith("circuit-de-barcelona|") for k in cache), "T3b: cache dict populated")
 
 # T4: _track_slug matches SessionWriter convention.
 ok(_track_slug("Circuit de Barcelona") == "circuit-de-barcelona",
@@ -149,7 +149,7 @@ model_cache: dict[str, Path | None] = {}
 model7a = resolve_track_model("Circuit de Barcelona", search_dir=REAL_MODEL_DIR, _cache=model_cache)
 model7b = resolve_track_model("Circuit de Barcelona", search_dir=REAL_MODEL_DIR, _cache=model_cache)
 ok(model7a == model7b, "T7: track model resolver — caching returns same path")
-ok("circuit-de-barcelona" in model_cache, "T7b: cache dict populated")
+ok(any(k.startswith("circuit-de-barcelona|") for k in model_cache), "T7b: cache dict populated")
 
 # ══════════════════════════════════════════════════════════════════════════
 # Frames-to-Parquet tests

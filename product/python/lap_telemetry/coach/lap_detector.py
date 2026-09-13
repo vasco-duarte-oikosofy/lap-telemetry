@@ -32,6 +32,7 @@ class LapCompleted:
     track_name: str
     lap_time_s: float
     frame_count: int
+    vehicle_name: str = ""
     frames: list[Frame] = field(default_factory=list)
 
 
@@ -40,6 +41,7 @@ class NewLap:
     """Emitted when a new lap starts."""
     lap_number: int
     track_name: str
+    vehicle_name: str = ""
 
 
 class LapDetector:
@@ -59,6 +61,7 @@ class LapDetector:
         self.current_lap_frames: list[Frame] = []
         self._prev_lap_number: Optional[int] = None
         self._prev_track_name: Optional[str] = None
+        self._prev_vehicle_name: Optional[str] = None
 
     def feed(self, frame: Frame) -> None:
         """Process a single frame for lap boundary detection."""
@@ -89,10 +92,15 @@ class LapDetector:
         self.current_lap_frames.append(frame)
         self._prev_lap_number = frame.lap_number
         self._prev_track_name = frame.track_name
+        self._prev_vehicle_name = frame.vehicle_name
 
     def _emit_new_lap(self, frame: Frame) -> None:
         if self.on_new_lap is not None:
-            self.on_new_lap(NewLap(lap_number=frame.lap_number, track_name=frame.track_name))
+            self.on_new_lap(NewLap(
+                lap_number=frame.lap_number,
+                track_name=frame.track_name,
+                vehicle_name=frame.vehicle_name,
+            ))
 
     def _emit_lap_completed(self, first_frame_of_new_lap: Frame) -> None:
         if self.on_lap_completed is None or self._prev_lap_number is None:
@@ -104,5 +112,6 @@ class LapDetector:
             track_name=self._prev_track_name or "",
             lap_time_s=lap_time,
             frame_count=len(frames),
+            vehicle_name=self._prev_vehicle_name or "",
             frames=frames,
         ))

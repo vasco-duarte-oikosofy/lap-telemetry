@@ -19,6 +19,7 @@ from pathlib import Path
 from typing import Callable, Optional
 
 from lap_telemetry.coach.facts import LapComparisonFacts, PartialLapError
+from lap_telemetry.coach.track_model import TrackCoachingModel
 from lap_telemetry.coach.frames_to_parquet import frames_to_parquet
 from lap_telemetry.coach.lap_detector import LapCompleted
 from lap_telemetry.coach.reference_resolver import resolve_reference_lap
@@ -83,6 +84,23 @@ class LiveFactGenerator:
         self._config = config or LiveFactGeneratorConfig()
         self._ref_cache: dict[str, Path | None] = {}
         self._model_cache: dict[str, Path | None] = {}
+        # Loaded coaching models, cached per resolved path so the JSON is
+        # parsed once per session (not reloaded on every lap).
+        self._loaded_models: dict[Path, TrackCoachingModel] = {}
+
+    def _cached_model(self, model_path: Path, loader) -> TrackCoachingModel:
+        """Load and cache the coaching model for ``model_path``.
+
+        The model is parsed once and kept in memory for the whole session;
+        subsequent laps reuse the cached object. A failed load is not cached
+        so the next lap can retry.
+        """
+        cached = self._loaded_models.get(model_path)
+        if cached is not None:
+            return cached
+        model = loader(model_path)
+        self._loaded_models[model_path] = model
+        return model
 
     def generate(self, event: LapCompleted, top: int = 3) -> str | None:
         """Generate a coaching utterance from a LapCompleted event.
@@ -106,10 +124,11 @@ class LiveFactGenerator:
             )
             return None
 
-        # 1. Resolve reference lap.
+        # 1. Resolve reference lap (car-aware via the live vehicle).
         ref_path = resolve_reference_lap(
             track_name,
             search_dir=self._config.reference_search_dir,
+            vehicle_name=event.vehicle_name,
             _cache=self._ref_cache if self._config.enable_cache else None,
         )
         if ref_path is None:
@@ -123,6 +142,7 @@ class LiveFactGenerator:
         model_path = resolve_track_model(
             track_name,
             search_dir=self._config.track_model_search_dir,
+            vehicle_name=event.vehicle_name,
             _cache=self._model_cache if self._config.enable_cache else None,
         )
         if model_path is None:
@@ -141,11 +161,11 @@ class LiveFactGenerator:
             return None
         t_convert = time.monotonic() - t0
 
-        # 4. Load track model and compare laps.
+        # 4. Load track model (cached per session) and compare laps.
         try:
             from lap_telemetry.coach.track_model import load_track_coaching_model
             from lap_telemetry.coach.lap_comparator import compare_laps
-            model = load_track_coaching_model(model_path)
+            model = self._cached_model(model_path, load_track_coaching_model)
             t1 = time.monotonic()
             facts = compare_laps(tmp_path, ref_path, model)
             t_compare = time.monotonic() - t1
@@ -220,6 +240,7 @@ class LiveFactGenerator:
         lap_number: int,
         track_name: str,
         top: int = 3,
+        vehicle_name: str | None = None,
     ) -> str | None:
         """Generate a coaching utterance from a session Parquet file.
 
@@ -233,15 +254,18 @@ class LiveFactGenerator:
             lap_number: Which lap to filter for comparison.
             track_name: Track name for resolving reference/model.
             top: Number of coaching items per call.
+            vehicle_name: Live LMU vehicle name. When given, restricts the
+                reference/model to the same canonical car.
 
         Returns the utterance string, or ``None`` if any step fails.
         """
         t_start = time.monotonic()
 
-        # 1. Resolve reference lap.
+        # 1. Resolve reference lap (car-aware via the live vehicle).
         ref_path = resolve_reference_lap(
             track_name,
             search_dir=self._config.reference_search_dir,
+            vehicle_name=vehicle_name,
             _cache=self._ref_cache if self._config.enable_cache else None,
         )
         if ref_path is None:
@@ -255,6 +279,7 @@ class LiveFactGenerator:
         model_path = resolve_track_model(
             track_name,
             search_dir=self._config.track_model_search_dir,
+            vehicle_name=vehicle_name,
             _cache=self._model_cache if self._config.enable_cache else None,
         )
         if model_path is None:
@@ -264,13 +289,13 @@ class LiveFactGenerator:
             )
             return None
 
-        # 3. Load track model and compare laps (filtering to lap_number).
+        # 3. Load track model (cached per session) and compare laps (filtering to lap_number).
         #    No frames_to_parquet step — we read directly from the session file.
         t0 = time.monotonic()
         try:
             from lap_telemetry.coach.track_model import load_track_coaching_model
             from lap_telemetry.coach.lap_comparator import compare_laps
-            model = load_track_coaching_model(model_path)
+            model = self._cached_model(model_path, load_track_coaching_model)
             t1 = time.monotonic()
             facts = compare_laps(parquet_path, ref_path, model, lap_number=lap_number)
             t_compare = time.monotonic() - t1
