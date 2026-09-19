@@ -26,6 +26,7 @@ import { CIRCUIT_LA_SARTHE_STATIC_OUTLINE } from './staticCircuitLaSartheOutline
 import { SILVERSTONE_GRAND_PRIX_CIRCUIT___ELMS_STATIC_OUTLINE } from './staticSilverstoneGrandPrixCircuitElmsOutlineData.js';
 import { DAYTONA_INTERNATIONAL_SPEEDWAY_ROAD_COURSE_STATIC_OUTLINE } from './staticDaytonaInternationalSpeedwayRoadCourseOutlineData.js';
 import { WEATHERTECH_RACEWAY_LAGUNA_SECA_STATIC_OUTLINE } from './staticWeathertechRacewayLagunaSecaOutlineData.js';
+import { PAUL_RICARD___1A_V2_SHORT_STATIC_OUTLINE } from './staticPaulRicard1aV2ShortOutlineData.js';
 
 // slug normalization: lowercase, collapse whitespace to single dash,
 // transliterate accents via NFKD (ó→o, é→e), strip non-alnum/dash.
@@ -82,6 +83,8 @@ const OUTLINES = new Map([
   ['daytona-international-speedway-road-course', DAYTONA_INTERNATIONAL_SPEEDWAY_ROAD_COURSE_STATIC_OUTLINE],
   // WeatherTech Raceway Laguna Seca
   ['weathertech-raceway-laguna-seca', WEATHERTECH_RACEWAY_LAGUNA_SECA_STATIC_OUTLINE],
+  // Paul Ricard - 1A-V2-Short
+  ['paul-ricard---1a-v2-short', PAUL_RICARD___1A_V2_SHORT_STATIC_OUTLINE],
 ]);
 
 /**
