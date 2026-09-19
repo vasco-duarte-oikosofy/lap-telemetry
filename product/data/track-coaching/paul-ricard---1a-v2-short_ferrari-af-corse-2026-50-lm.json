@@ -1,0 +1,87 @@
+{
+  "schema_version": "1",
+  "track_id": "paul-ricard---1a-v2-short",
+  "layout_id": "lmu-default",
+  "reference_lap": {
+    "path": "product\\data\\reference-laps\\paul-ricard---1a-v2-short_ferrari-af-corse-2026-50-lm_time_01.38.774.parquet",
+    "car_id": "ferrari-af-corse-2026-50-lm",
+    "lap_time_s": 98.774,
+    "detection_method": "throttle_brake_v1"
+  },
+  "lap_length_m": 5169.0,
+  "corners": [
+    {
+      "id": "t1",
+      "name": "Turn 1: Sainte-Baume",
+      "s_start_m": 476.0,
+      "apex_s_m": 673.0,
+      "s_end_m": 683.0,
+      "apex_side": "right",
+      "apex_side_source": "manual"
+    },
+    {
+      "id": "t2",
+      "name": "Turn 2: S de la Verrerie",
+      "s_start_m": 695.0,
+      "apex_s_m": 753.0,
+      "s_end_m": 759.0,
+      "apex_side": "left",
+      "apex_side_source": "manual"
+    },
+    {
+      "id": "t3",
+      "name": "Turn 3: Virage du Camp",
+      "s_start_m": 1137.0,
+      "apex_s_m": 1520.0,
+      "s_end_m": 1530.0,
+      "apex_side": "left",
+      "apex_side_source": "manual"
+    },
+    {
+      "id": "t4",
+      "name": "Turn 4: Virage de l'Hotel",
+      "s_start_m": 1578.0,
+      "apex_s_m": 1646.0,
+      "s_end_m": 1656.0,
+      "apex_side": "left",
+      "apex_side_source": "manual"
+    },
+    {
+      "id": "t5",
+      "name": "Turn 5: Virage de Bendor",
+      "s_start_m": 3623.0,
+      "apex_s_m": 4049.0,
+      "s_end_m": 4058.0,
+      "apex_side": "left",
+      "apex_side_source": "manual"
+    },
+    {
+      "id": "t6",
+      "name": "Turn 6: S du Village",
+      "s_start_m": 4122.0,
+      "apex_s_m": 4123.0,
+      "s_end_m": 4133.0,
+      "apex_side": "right",
+      "apex_side_source": "manual"
+    },
+    {
+      "id": "t7",
+      "name": "Turn 7: Virage de la Tour",
+      "s_start_m": 4134.0,
+      "apex_s_m": 4203.0,
+      "s_end_m": 4228.0,
+      "apex_side": "right",
+      "apex_side_source": "manual"
+    },
+    {
+      "id": "t8",
+      "name": "Turn 8: Virage du Pont",
+      "s_start_m": 4520.0,
+      "apex_s_m": 4844.0,
+      "s_end_m": 4874.0,
+      "apex_side": "left",
+      "apex_side_source": "manual"
+    }
+  ],
+  "straight_zones": []
+}
