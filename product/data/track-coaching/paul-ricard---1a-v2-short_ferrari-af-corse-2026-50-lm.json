@@ -3,9 +3,9 @@
   "track_id": "paul-ricard---1a-v2-short",
   "layout_id": "lmu-default",
   "reference_lap": {
-    "path": "product\\data\\reference-laps\\paul-ricard---1a-v2-short_ferrari-af-corse-2026-50-lm_time_01.37.661.parquet",
+    "path": "product\\data\\reference-laps\\paul-ricard---1a-v2-short_ferrari-af-corse-2026-50-lm_time_01.36.804.parquet",
     "car_id": "ferrari-af-corse-2026-50-lm",
-    "lap_time_s": 97.661,
+    "lap_time_s": 96.804,
     "detection_method": "throttle_brake_v1"
   },
   "lap_length_m": 5169.0,
@@ -13,19 +13,18 @@
     {
       "id": "t1a",
       "name": "S de la Verrerie 1",
-      "s_start_m": 453.0,
-      "apex_s_m": 640.0,
-      "s_end_m": 650.0,
+      "s_start_m": 460.0,
+      "apex_s_m": 652.0,
+      "s_end_m": 660.0,
       "apex_side": "right",
-      "apex_side_source": "manual",
-      "target_throttle_pct": 64
+      "apex_side_source": "manual"
     },
     {
       "id": "t1b",
       "name": "S de la Verrerie 2",
-      "s_start_m": 693.0,
-      "apex_s_m": 732.0,
-      "s_end_m": 739.0,
+      "s_start_m": 701.0,
+      "apex_s_m": 733.0,
+      "s_end_m": 740.0,
       "apex_side": "left",
       "apex_side_source": "manual"
     },
@@ -45,24 +44,23 @@
       "apex_s_m": 1386.0,
       "s_end_m": 1396.0,
       "apex_side": "right",
-      "apex_side_source": "manual",
-      "target_throttle_pct": 62
+      "apex_side_source": "manual"
     },
     {
       "id": "t3",
       "name": "Virage du Camp",
-      "s_start_m": 1448.0,
+      "s_start_m": 1166.0,
       "apex_s_m": 1510.0,
-      "s_end_m": 1527.0,
+      "s_end_m": 1523.0,
       "apex_side": "left",
       "apex_side_source": "manual"
     },
     {
       "id": "t4",
       "name": "Virage de la Sainte-Beaume",
-      "s_start_m": 1571.0,
-      "apex_s_m": 1629.0,
-      "s_end_m": 1641.0,
+      "s_start_m": 1570.0,
+      "apex_s_m": 1636.0,
+      "s_end_m": 1638.0,
       "apex_side": "left",
       "apex_side_source": "manual"
     },
@@ -88,21 +86,20 @@
     {
       "id": "t7",
       "name": "Hairpin Shortcut",
-      "s_start_m": 3875.0,
+      "s_start_m": 3680.0,
       "apex_s_m": 4044.0,
-      "s_end_m": 4053.0,
+      "s_end_m": 4052.0,
       "apex_side": "left",
       "apex_side_source": "manual"
     },
     {
       "id": "t8",
       "name": "Virage de Bendor",
-      "s_start_m": 4126.0,
-      "apex_s_m": 4197.0,
-      "s_end_m": 4211.0,
+      "s_start_m": 4120.0,
+      "apex_s_m": 4199.0,
+      "s_end_m": 4225.0,
       "apex_side": "right",
-      "apex_side_source": "manual",
-      "target_throttle_pct": 64
+      "apex_side_source": "manual"
     },
     {
       "id": "t9",
@@ -127,9 +124,9 @@
     {
       "id": "t11",
       "name": "Virage du Pont",
-      "s_start_m": 4766.0,
-      "apex_s_m": 4830.0,
-      "s_end_m": 4847.0,
+      "s_start_m": 4529.0,
+      "apex_s_m": 4837.0,
+      "s_end_m": 4853.0,
       "apex_side": "left",
       "apex_side_source": "manual"
     }

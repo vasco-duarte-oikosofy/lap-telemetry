@@ -1,9 +1,8 @@
 detection_method=throttle_brake_v1
-t1 apex=643m start=451m end=677m min=119.8kph entry=285.9kph exit=135.2kph drop=53.3kph recovery=29.8kph prominence=29.8kph accepted
-t2 apex=733m start=693m end=739m min=136.2kph entry=148.4kph exit=137.4kph drop=13.4kph recovery=34.0kph prominence=13.4kph accepted
-t3 apex=1304m start=1153m end=1322m min=120.2kph entry=255.4kph exit=124.9kph drop=74.7kph recovery=14.8kph prominence=14.8kph accepted
-t4 apex=1513m start=1331m end=1527m min=75.5kph entry=132.6kph exit=80.6kph drop=45.5kph recovery=54.0kph prominence=45.5kph accepted
-t5 apex=1634m start=1572m end=1641m min=120.9kph entry=125.6kph exit=121.8kph drop=8.7kph recovery=32.3kph prominence=8.7kph accepted
-t6 apex=4037m start=3651m end=4060m min=64.7kph entry=318.0kph exit=79.4kph drop=95.3kph recovery=69.1kph prominence=69.1kph accepted
-t7 apex=4201m start=4112m end=4214m min=99.0kph entry=132.0kph exit=103.7kph drop=34.3kph recovery=57.1kph prominence=34.3kph accepted
-t8 apex=4834m start=4521m end=4853m min=67.4kph entry=233.4kph exit=73.0kph drop=64.8kph recovery=64.1kph prominence=64.1kph accepted
+t1 apex=652m start=460m end=660m min=114.7kph entry=286.2kph exit=118.1kph drop=52.1kph recovery=37.4kph prominence=37.4kph accepted
+t2 apex=733m start=701m end=740m min=145.4kph entry=150.5kph exit=146.7kph drop=6.6kph recovery=32.3kph prominence=6.6kph accepted
+t3 apex=1510m start=1166m end=1523m min=77.2kph entry=258.3kph exit=81.8kph drop=40.1kph recovery=51.9kph prominence=40.1kph accepted
+t4 apex=1636m start=1570m end=1638m min=114.2kph entry=127.9kph exit=114.3kph drop=14.8kph recovery=40.5kph prominence=14.8kph accepted
+t5 apex=4044m start=3680m end=4052m min=55.3kph entry=318.6kph exit=60.4kph drop=96.7kph recovery=75.0kph prominence=75.0kph accepted
+t6 apex=4199m start=4120m end=4225m min=99.3kph entry=128.8kph exit=111.5kph drop=30.9kph recovery=56.9kph prominence=30.9kph accepted
+t7 apex=4837m start=4529m end=4853m min=70.0kph entry=234.7kph exit=77.7kph drop=55.1kph recovery=64.4kph prominence=55.1kph accepted
