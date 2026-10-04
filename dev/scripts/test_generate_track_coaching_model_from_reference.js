@@ -106,6 +106,18 @@ def run_unit_tests():
     manual_car = gen.resolve_car_id(table_with_car(False), Path('lap.parquet'), 'synthetic', 'manual-car')
     check(manual_car == 'manual-car', 'missing car identity succeeds with --car-id', manual_car)
 
+    # Authoritative duration for an extracted reference lap comes from its
+    # filename (_time_MM.SS.mmm.parquet), not the lagging lap_time_s clock.
+    class LapTimeTable:
+        column_names = ['lap_time_s']
+        def column(self, name):
+            return FakeColumn([10.0, 20.0, 76.722])
+
+    parsed = gen.lap_time_s(LapTimeTable(), Path('road-atlanta_dkr-engineering-4-elms25_time_01.17.345.parquet'))
+    check(abs(parsed - 77.345) < 1e-6, 'reference lap time parsed from filename', str(parsed))
+    fallback = gen.lap_time_s(LapTimeTable(), Path('synthetic.parquet'))
+    check(abs(fallback - 76.722) < 1e-6, 'lap time falls back to max(lap_time_s) without _time_ name', str(fallback))
+
 
 def run_barcelona_generation_test():
     import pyarrow.parquet as pq
@@ -120,7 +132,7 @@ def run_barcelona_generation_test():
         'circuit-de-barcelona',
         'lmu-default',
         'dkr-engineering-4-elms25',
-        gen.lap_time_s(table),
+        gen.lap_time_s(table, reference_lap),
         float(max(distances)),
         candidates,
         'right',

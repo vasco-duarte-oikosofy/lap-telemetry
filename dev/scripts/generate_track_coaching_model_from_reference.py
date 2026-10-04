@@ -520,7 +520,27 @@ def resolve_car_id(table: Any, reference_lap: Path, track_id: str, override: str
     raise ValueError("Unable to determine reference car identity; pass --car-id.")
 
 
-def lap_time_s(table: Any) -> float:
+REFERENCE_TIME_RE = re.compile(r"_time_(\d+)\.(\d+)\.(\d+)\.parquet$")
+
+
+def parse_reference_lap_time_from_name(reference_lap: Path) -> float | None:
+    """Authoritative lap time encoded in an extracted reference-lap filename.
+
+    Extracted reference laps are named <...>_time_MM.SS.mmm.parquet. The
+    recorder's lap_time_s clock undercounts the real lap (bug 13 legacy
+    delta), so the filename is the source of truth for these files.
+    """
+    match = REFERENCE_TIME_RE.search(reference_lap.name)
+    if not match:
+        return None
+    minutes, seconds, millis = (int(group) for group in match.groups())
+    return minutes * 60 + seconds + millis / 1000
+
+
+def lap_time_s(table: Any, reference_lap: Path) -> float:
+    parsed = parse_reference_lap_time_from_name(reference_lap)
+    if parsed is not None:
+        return parsed
     values = [float(v) for v in table.column("lap_time_s").to_pylist() if v is not None and float(v) > 0]
     return max(values) if values else 0.0
 
@@ -660,7 +680,7 @@ def main() -> int:
             args.track_id,
             args.layout_id,
             car_id,
-            lap_time_s(table),
+            lap_time_s(table, args.reference_lap),
             float(max(distances)),
             candidates,
             args.default_apex_side,
