@@ -53,6 +53,30 @@
   both fixes the suite is 1235 passed / 6 failed, all pre-existing Windows
   `ERR_UNSUPPORTED_ESM_URL_SCHEME` harness failures.
 
+- **The updater used to strip `target_throttle_pct` from matched corners.**
+  `refresh_corners()` (in `update_reference_and_coaching_model.py`) rebuilt
+  each matched corner from a fixed key list, so any curated field not in that
+  list — the flat-turn `target_throttle_pct: 100` marker — was silently lost.
+  Fixed to copy the existing corner dict and overwrite only the geometry.
+  This matters because a flat turn can accidentally be "matched" by a nearby
+  braking candidate (e.g. T11 by the T10B exit). Test:
+  `dev/scripts/test_update_coaching_model.{py,js}`.
+
+- **T4 is still not taken fully flat on the new fastest lap.** The race lap
+  15 telemetry shows throttle min ≈ 0.50 and a light brake peak ≈ 0.17 through
+  the Esses (880–1300 m). So it remains exactly the old case: a mostly-flat
+  complex with a small 4b correction, kept as a real zone with
+  `target_throttle_pct: 100`. The detector still emits no candidate there, so
+  the updater must keep it via `--allow-unmatched` — which is why the
+  corner-preservation fix above matters.
+
+- **A suspicious sub-median lap time is a restart artifact, not a fast lap.**
+  Session `155735` lists lap 22 at 1:15.994 with no sector times (lap 23 is
+  missing). The export guards reject it (wall-clock span vs authoritative time
+  / full-lap coverage), so the real fastest remains race lap 15 at 1:16.304.
+  Trust the guards over the raw summary table.
+
 - **New tests must be added to `scripts.test` in package.json.** The suite is
   an explicit `&&`-chain, not auto-discovered; a new `dev/scripts/test_*.js`
-  simply never runs until it is appended there.
+  simply never runs until it is appended there. Add it to the relevant
+  `testFeatures` list too (model tests → `interactive-race-coach`).

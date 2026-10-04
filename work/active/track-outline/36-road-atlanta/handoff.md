@@ -33,6 +33,29 @@
   rebuilt (+~83 KB).
 - `docs/TRACK_OUTLINE_COVERAGE.md` updated.
 
+## Refresh — new fastest lap, race 1:16.304 (2026-10-04, later)
+
+Five Road Atlanta sessions now exist; the fastest valid lap is **race lap 15
+in `session_20261004T164430Z_..._lmu_race.parquet` at 1:16.304**, faster than
+the old practice 1:16.809. (The practice session `155735` shows a suspicious
+1:15.994 for lap 22 with no sector times; the export guards correctly reject
+it as restart-truncated/abandoned.)
+
+- Reference refreshed via the guarded updater:
+  `product/data/reference-laps/michelin-raceway-road-atlanta_dkr-engineering-4-elms25_time_01.16.304.parquet`
+  (`_time_01.16.809` superseded and deleted; `authoritative_lap_time_s=76.304`).
+- Coaching model refreshed from the new ref. The detector finds only 6 braking
+  corners on this lap; the updater was run with `--allow-unmatched` so the 7
+  unreproduced corners keep their curated geometry. **T4 (The Esses) is
+  present** (880/1120/1300, `target_throttle_pct: 100`), as are T8/T9/T11/T12.
+- Matched/refreshed geometry: T1, T2, T5, T6, T7, T10A. Kept geometry: T3,
+  T4, T8, T9, T10B, T11, T12.
+- Updater fix: `refresh_corners()` now copies curated fields (notably
+  `target_throttle_pct`) when it applies new geometry, so a flat turn can
+  never be stripped even if a neighbouring candidate matches it.
+  Test: `dev/scripts/test_update_coaching_model.{py,js}`.
+- `validate_reference_laps.py`: 26 refs, 0 failures.
+
 ## Follow-up fixes (same slice, found during live use)
 
 1. **Outline was invisible** (`b903909`, bundle in `cd1ef55`). Not an outline
@@ -79,7 +102,7 @@ New tests (registered in `package.json` `scripts.test`):
 python dev/scripts/validate_reference_laps.py
 PYTHONIOENCODING=utf-8 python -m lap_telemetry.coach.generate_utterance --lap \
   --current-lap <lap.parquet> \
-  --reference-lap product/data/reference-laps/michelin-raceway-road-atlanta_dkr-engineering-4-elms25_time_01.16.809.parquet \
+  --reference-lap product/data/reference-laps/michelin-raceway-road-atlanta_dkr-engineering-4-elms25_time_01.16.304.parquet \
   --track-config product/data/track-coaching/michelin-raceway-road-atlanta_dkr-engineering-4-elms25.json \
   --print-facts
 npm run build
