@@ -90,7 +90,23 @@ function isStaleStartBoundaryFrame(lapTime, lapDist, trackLen) {
 }
 
 // Annotate segments with distance window, duration, flags, and fastest marker.
-export function annotateSegments(segments, distances, lapTimes, scoringLastLapTime = null) {
+/**
+ * Parse the authoritative lap time encoded in an extracted reference-lap
+ * filename, e.g. "<track>_<car>_time_01.17.345.parquet" → 77.345 (seconds).
+ * Returns null for non-reference filenames.
+ */
+export function parseReferenceLapTimeFromName(fileName) {
+  if (!fileName) return null;
+  const m = String(fileName).match(/_time_(\d+)\.(\d+)\.(\d+)\.parquet$/i);
+  if (!m) return null;
+  const minutes = parseInt(m[1], 10);
+  const seconds = parseInt(m[2], 10);
+  const millis  = parseInt(m[3], 10);
+  if (!Number.isFinite(minutes) || !Number.isFinite(seconds) || !Number.isFinite(millis)) return null;
+  return minutes * 60 + seconds + millis / 1000;
+}
+
+export function annotateSegments(segments, distances, lapTimes, scoringLastLapTime = null, fileName = null) {
   if (!segments.length) return;
   let trackLen = 0;
   for (const seg of segments) {
@@ -122,6 +138,14 @@ export function annotateSegments(segments, distances, lapTimes, scoringLastLapTi
       segments[i].duration = duration;
       segments[i].durationSource = 'scoring_last_lap_time_s';
     }
+  }
+  // Extracted reference laps carry the authoritative duration in their file
+  // name (the recorder's lap_time_s clock undercounts by ~0.6 s). A reference
+  // file is a single contiguous lap, so trust the filename over both clocks.
+  const refFileNameTime = parseReferenceLapTimeFromName(fileName);
+  if (refFileNameTime != null && segments.length === 1) {
+    segments[0].duration = refFileNameTime;
+    segments[0].durationSource = 'reference_lap_filename';
   }
   // Reference duration: median over candidates that look like real flying laps
   // (full distance + clean start). Falls back to 0 when no candidates exist —

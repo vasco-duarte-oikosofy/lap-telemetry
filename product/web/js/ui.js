@@ -153,7 +153,7 @@ export async function loadFile(file, renderAll) {
     warnInvalidTrackOutlineSamples(data, file.name);
 
     const segments = buildSegments(data.lap_number);
-    annotateSegments(segments, data.lap_distance_m, data.lap_time_s, data.scoring_last_lap_time_s);
+    annotateSegments(segments, data.lap_distance_m, data.lap_time_s, data.scoring_last_lap_time_s, file.name);
 
     const hasSlip    = data.slip_angle_fl_deg.length > 0;
     const hasSectors = data.last_sector_1_s.length > 0;

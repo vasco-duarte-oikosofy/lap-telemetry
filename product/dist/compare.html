@@ -822,7 +822,17 @@ function isSlowLapComparedToReference(sessionSeg, refSeg) {
 function isStaleStartBoundaryFrame(lapTime, lapDist, trackLen) {
   return Number.isFinite(lapTime) && Number.isFinite(lapDist) && lapTime < 0.5 && lapDist > trackLen * 0.5;
 }
-function annotateSegments(segments, distances, lapTimes, scoringLastLapTime = null) {
+function parseReferenceLapTimeFromName(fileName) {
+  if (!fileName) return null;
+  const m = String(fileName).match(/_time_(\d+)\.(\d+)\.(\d+)\.parquet$/i);
+  if (!m) return null;
+  const minutes = parseInt(m[1], 10);
+  const seconds = parseInt(m[2], 10);
+  const millis = parseInt(m[3], 10);
+  if (!Number.isFinite(minutes) || !Number.isFinite(seconds) || !Number.isFinite(millis)) return null;
+  return minutes * 60 + seconds + millis / 1e3;
+}
+function annotateSegments(segments, distances, lapTimes, scoringLastLapTime = null, fileName = null) {
   if (!segments.length) return;
   let trackLen = 0;
   for (const seg of segments) {
@@ -854,6 +864,11 @@ function annotateSegments(segments, distances, lapTimes, scoringLastLapTime = nu
       segments[i].duration = duration;
       segments[i].durationSource = "scoring_last_lap_time_s";
     }
+  }
+  const refFileNameTime = parseReferenceLapTimeFromName(fileName);
+  if (refFileNameTime != null && segments.length === 1) {
+    segments[0].duration = refFileNameTime;
+    segments[0].durationSource = "reference_lap_filename";
   }
   const candidateDurs = segments.filter((s) => s.maxDist >= trackLen * PARTIAL_DIST_FRAC && Math.abs(s.minDist) <= ROLLING_DIST_M).map((s) => s.duration).filter((d) => d > 0).sort((a, b) => a - b);
   const medDur = candidateDurs.length ? candidateDurs[Math.floor(candidateDurs.length / 2)] : 0;
@@ -3372,7 +3387,7 @@ async function loadFile(file, renderAll2) {
     }
     warnInvalidTrackOutlineSamples(data, file.name);
     const segments = buildSegments(data.lap_number);
-    annotateSegments(segments, data.lap_distance_m, data.lap_time_s, data.scoring_last_lap_time_s);
+    annotateSegments(segments, data.lap_distance_m, data.lap_time_s, data.scoring_last_lap_time_s, file.name);
     const hasSlip = data.slip_angle_fl_deg.length > 0;
     const hasSectors = data.last_sector_1_s.length > 0;
     const stem = fileStem(file.name);
@@ -4072,13 +4087,17 @@ var PANEL_DEFS = [
 // product/web/js/main.js
 import { parquetRead, parquetMetadataAsync } from "https://cdn.jsdelivr.net/npm/hyparquet@1/+esm";
 import { compressors } from "https://cdn.jsdelivr.net/npm/hyparquet-compressors@1/+esm";
+
+// product/web/js/trackNameInference.js
 function inferTrackNameFromFileName(fileName) {
   if (!fileName) return null;
-  const match = fileName.match(/_\d{8}T\d{6}Z_(.+)_lmu\./i);
+  const match = fileName.match(/_\d{8}T\d{6}Z_(.+)_lmu[._]/i);
   if (!match) return null;
   const slug2 = match[1];
   return slug2.split("-").map((p) => p.charAt(0).toUpperCase() + p.slice(1)).join(" ");
 }
+
+// product/web/js/main.js
 var currentSessionBins = null;
 var currentRefBins = null;
 var currentMaxDist = 0;
