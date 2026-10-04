@@ -13,7 +13,9 @@
  */
 export function inferTrackNameFromFileName(fileName) {
   if (!fileName) return null;
-  const match = fileName.match(/_\d{8}T\d{6}Z_(.+)_lmu\./i);
+  // Match both the legacy `_lmu.parquet` suffix and the current
+  // `_lmu_<session-type>.parquet` suffix (practice/quali/race).
+  const match = fileName.match(/_\d{8}T\d{6}Z_(.+)_lmu[._]/i);
   if (!match) return null;
   const slug = match[1]; // e.g. "spa-francorchamps" or "circuit-de-barcelona"
   return slug.split('-').map(p => p.charAt(0).toUpperCase() + p.slice(1)).join(' ');

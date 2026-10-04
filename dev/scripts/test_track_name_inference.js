@@ -35,6 +35,14 @@ const moduleUrl = pathToFileURL(path.join(ROOT, 'product', 'web', 'js', 'trackNa
   ok(inferTrackNameFromFileName(null) === null, 'null filename returns null');
   ok(inferTrackNameFromFileName('random.parquet') === null, 'non-session filename returns null');
 
+  // Current recorder names: session_<UTC>_<track>_lmu_<type>.parquet
+  ok(inferTrackNameFromFileName('session_20261004T133118Z_michelin-raceway-road-atlanta_lmu_practice.parquet') === 'Michelin Raceway Road Atlanta',
+    '_lmu_practice filename resolves');
+  ok(inferTrackNameFromFileName('session_20260830T070954Z_daytona-international-speedway-road-course_lmu_quali.parquet') === 'Daytona International Speedway Road Course',
+    '_lmu_quali filename resolves');
+  ok(inferTrackNameFromFileName('session_20260606T162319Z_circuit-of-the-americas_lmu_race.parquet') === 'Circuit Of The Americas',
+    '_lmu_race filename resolves');
+
   const total = pass + fail;
   console.log(`\n  ${pass}/${total} assertions passed`);
   if (fail > 0) process.exit(1);
