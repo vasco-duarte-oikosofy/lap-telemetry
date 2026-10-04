@@ -805,15 +805,38 @@ function buildSegments(lapNumbers) {
   segs.push({ lapNum: prev, start, end: lapNumbers.length });
   return segs;
 }
-function authDuration(segments, scoringLastLapTime, index) {
+function lapStartEt(lapTimes, sessionTimes, start, end) {
+  if (!sessionTimes) return null;
+  const vals = [];
+  for (let i = start; i < end; i++) {
+    const s = sessionTimes[i];
+    const l = lapTimes ? lapTimes[i] : null;
+    if (Number.isFinite(s) && Number.isFinite(l)) vals.push(s - l);
+  }
+  if (!vals.length) return null;
+  vals.sort((a, b) => a - b);
+  return vals[Math.floor(vals.length / 2)];
+}
+function authDuration(segments, lapTimes, sessionTimes, scoringLastLapTime, index) {
   const fallback = segments[index].duration;
-  if (!scoringLastLapTime || index + 1 >= segments.length) return fallback;
+  if (sessionTimes && index + 1 < segments.length) {
+    const start = lapStartEt(lapTimes, sessionTimes, segments[index].start, segments[index].end);
+    const nextStart = lapStartEt(lapTimes, sessionTimes, segments[index + 1].start, segments[index + 1].end);
+    if (start != null && nextStart != null) {
+      const duration = nextStart - start;
+      if (duration > 0 && Math.abs(duration - fallback) <= 1) {
+        return { duration, source: "telemetry_lap_start" };
+      }
+    }
+  }
+  if (!scoringLastLapTime || index + 1 >= segments.length) return null;
   let best = -Infinity;
   for (let k = segments[index + 1].start; k < segments[index + 1].end; k++) {
     const v = scoringLastLapTime[k];
     if (Number.isFinite(v) && v > best) best = v;
   }
-  return Number.isFinite(best) && best > 0 && fallback > 0 && Math.abs(best - fallback) <= 1 ? best : fallback;
+  const plausible = Number.isFinite(best) && best > 0 && fallback > 0 && Math.abs(best - fallback) <= 1;
+  return plausible ? { duration: best, source: "scoring_last_lap_time_s" } : null;
 }
 function isSlowLapComparedToReference(sessionSeg, refSeg) {
   const s = sessionSeg?.duration || 0, r = refSeg?.duration || 0;
@@ -832,7 +855,7 @@ function parseReferenceLapTimeFromName(fileName) {
   if (!Number.isFinite(minutes) || !Number.isFinite(seconds) || !Number.isFinite(millis)) return null;
   return minutes * 60 + seconds + millis / 1e3;
 }
-function annotateSegments(segments, distances, lapTimes, scoringLastLapTime = null, fileName = null) {
+function annotateSegments(segments, distances, lapTimes, scoringLastLapTime = null, fileName = null, sessionTimes = null) {
   if (!segments.length) return;
   let trackLen = 0;
   for (const seg of segments) {
@@ -859,10 +882,10 @@ function annotateSegments(segments, distances, lapTimes, scoringLastLapTime = nu
     seg.durationSource = "lap_time_s";
   }
   for (let i = 0; i < segments.length; i++) {
-    const duration = authDuration(segments, scoringLastLapTime, i);
-    if (duration !== segments[i].duration) {
-      segments[i].duration = duration;
-      segments[i].durationSource = "scoring_last_lap_time_s";
+    const resolved = authDuration(segments, lapTimes, sessionTimes, scoringLastLapTime, i);
+    if (resolved && resolved.duration !== segments[i].duration) {
+      segments[i].duration = resolved.duration;
+      segments[i].durationSource = resolved.source;
     }
   }
   const refFileNameTime = parseReferenceLapTimeFromName(fileName);
@@ -3364,6 +3387,7 @@ async function loadFile(file, renderAll2) {
       "lap_distance_m",
       "speed_kph",
       "scoring_last_lap_time_s",
+      "session_time_s",
       "throttle_norm",
       "brake_norm",
       "engine_rpm",
@@ -3387,7 +3411,7 @@ async function loadFile(file, renderAll2) {
     }
     warnInvalidTrackOutlineSamples(data, file.name);
     const segments = buildSegments(data.lap_number);
-    annotateSegments(segments, data.lap_distance_m, data.lap_time_s, data.scoring_last_lap_time_s, file.name);
+    annotateSegments(segments, data.lap_distance_m, data.lap_time_s, data.scoring_last_lap_time_s, file.name, data.session_time_s);
     const hasSlip = data.slip_angle_fl_deg.length > 0;
     const hasSectors = data.last_sector_1_s.length > 0;
     const stem = fileStem(file.name);
@@ -3405,6 +3429,7 @@ async function loadFile(file, renderAll2) {
       "last_sector_1_s",
       "last_sector_2_s",
       "scoring_last_lap_time_s",
+      "session_time_s",
       "slip_angle_fl_deg",
       "slip_angle_fr_deg",
       "abs_active",

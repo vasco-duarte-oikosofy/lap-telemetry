@@ -31,39 +31,21 @@ def _authoritative_duration(
     seg_idx: int,
     segments: list[tuple[int, int, int]],
 ) -> float:
-    """Return authoritative lap duration for segments[seg_idx].
+    """Authoritative lap duration for segments[seg_idx].
 
-    Reads scoring_last_lap_time_s from the NEXT segment (where mLastLapTime
-    holds this lap's official time). Falls back to max(lap_time_s) if:
-      - the column is absent (pre-10b parquet)
-      - no next segment exists (last lap)
-      - the next segment's value is None or > 1 s away from max(lap_time_s)
-        (lap didn't count, so mLastLapTime didn't update)
+    Delegates to the shared helper, which prefers the telemetry lap-start ET
+    difference (TinyPedal method) and falls back to ``scoring_last_lap_time_s``
+    from the next segment, then ``max(lap_time_s)``.
     """
+    from lap_telemetry.parquet_utils import authoritative_duration as _shared
+
     _, start, end = segments[seg_idx]
-    lap_t_col = table.column("lap_time_s").to_pylist()[start:end]
-    fallback = max(lap_t_col) if lap_t_col else 0.0
-
-    if seg_idx + 1 >= len(segments):
-        return fallback
-
-    if "scoring_last_lap_time_s" not in table.schema.names:
-        return fallback
-
-    _, next_start, next_end = segments[seg_idx + 1]
-    next_vals = [
-        v for v in table.column("scoring_last_lap_time_s").to_pylist()[next_start:next_end]
-        if v is not None
-    ]
-    if not next_vals:
-        return fallback
-
-    candidate = max(next_vals)
-
-    if abs(candidate - fallback) > 1.0:
-        return fallback
-
-    return candidate
+    next_seg = segments[seg_idx + 1] if seg_idx + 1 < len(segments) else None
+    return _shared(
+        table, start, end,
+        next_seg[1] if next_seg else None,
+        next_seg[2] if next_seg else None,
+    )
 
 
 def _build_segments(lap_col: list[int]) -> list[tuple[int, int, int]]:

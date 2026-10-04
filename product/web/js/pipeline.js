@@ -65,16 +65,48 @@ export function buildSegments(lapNumbers) {
   return segs;
 }
 
-function authDuration(segments, scoringLastLapTime, index) {
+function lapStartEt(lapTimes, sessionTimes, start, end) {
+  if (!sessionTimes) return null;
+  const vals = [];
+  for (let i = start; i < end; i++) {
+    const s = sessionTimes[i];
+    const l = lapTimes ? lapTimes[i] : null;
+    if (Number.isFinite(s) && Number.isFinite(l)) vals.push(s - l);
+  }
+  if (!vals.length) return null;
+  vals.sort((a, b) => a - b);
+  return vals[Math.floor(vals.length / 2)];
+}
+
+// Resolve the authoritative duration for segment `index`.
+// Priority mirrors the Python helper (parquet_utils.authoritative_duration):
+//   1. telemetry lap-start ET difference between consecutive laps (TinyPedal
+//      method; session_time_s - lap_time_s == lmuTeleVeh.mLapStartET);
+//   2. scorer last-lap time from the next segment (legacy; lags a lap on some
+//      tracks, so only used when the telemetry clock is unavailable);
+//   3. max(lap_time_s) of the segment (undercounts the last partial sample).
+function authDuration(segments, lapTimes, sessionTimes, scoringLastLapTime, index) {
   const fallback = segments[index].duration;
-  if (!scoringLastLapTime || index + 1 >= segments.length) return fallback;
+
+  if (sessionTimes && index + 1 < segments.length) {
+    const start = lapStartEt(lapTimes, sessionTimes, segments[index].start, segments[index].end);
+    const nextStart = lapStartEt(lapTimes, sessionTimes, segments[index + 1].start, segments[index + 1].end);
+    if (start != null && nextStart != null) {
+      const duration = nextStart - start;
+      if (duration > 0 && Math.abs(duration - fallback) <= 1.0) {
+        return { duration, source: 'telemetry_lap_start' };
+      }
+    }
+  }
+
+  if (!scoringLastLapTime || index + 1 >= segments.length) return null;
   let best = -Infinity;
   for (let k = segments[index + 1].start; k < segments[index + 1].end; k++) {
     const v = scoringLastLapTime[k];
     if (Number.isFinite(v) && v > best) best = v;
   }
-  return (Number.isFinite(best) && best > 0 && fallback > 0 && Math.abs(best - fallback) <= 1.0)
-    ? best : fallback;
+  const plausible = Number.isFinite(best) && best > 0 && fallback > 0 && Math.abs(best - fallback) <= 1.0;
+  return plausible ? { duration: best, source: 'scoring_last_lap_time_s' } : null;
 }
 
 export function isSlowLapComparedToReference(sessionSeg, refSeg) {
@@ -106,7 +138,7 @@ export function parseReferenceLapTimeFromName(fileName) {
   return minutes * 60 + seconds + millis / 1000;
 }
 
-export function annotateSegments(segments, distances, lapTimes, scoringLastLapTime = null, fileName = null) {
+export function annotateSegments(segments, distances, lapTimes, scoringLastLapTime = null, fileName = null, sessionTimes = null) {
   if (!segments.length) return;
   let trackLen = 0;
   for (const seg of segments) {
@@ -133,14 +165,14 @@ export function annotateSegments(segments, distances, lapTimes, scoringLastLapTi
     seg.durationSource = 'lap_time_s';
   }
   for (let i = 0; i < segments.length; i++) {
-    const duration = authDuration(segments, scoringLastLapTime, i);
-    if (duration !== segments[i].duration) {
-      segments[i].duration = duration;
-      segments[i].durationSource = 'scoring_last_lap_time_s';
+    const resolved = authDuration(segments, lapTimes, sessionTimes, scoringLastLapTime, i);
+    if (resolved && resolved.duration !== segments[i].duration) {
+      segments[i].duration = resolved.duration;
+      segments[i].durationSource = resolved.source;
     }
   }
-  // Extracted reference laps carry the authoritative duration in their file
-  // name (the recorder's lap_time_s clock undercounts by ~0.6 s). A reference
+  // Extracted reference laps encode the exact authoritative duration in their
+  // file name (recorded by the exporter from the telemetry clock). A reference
   // file is a single contiguous lap, so trust the filename over both clocks.
   const refFileNameTime = parseReferenceLapTimeFromName(fileName);
   if (refFileNameTime != null && segments.length === 1) {

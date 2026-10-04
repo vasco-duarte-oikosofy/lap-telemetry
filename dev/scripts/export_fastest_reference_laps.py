@@ -119,9 +119,10 @@ def segment_wall_clock_span(table: pa.Table, seg_start: int, seg_end: int) -> fl
 def find_complete_laps(table: pa.Table) -> list[tuple[int, float, int, int]]:
     """Return (lap_number, lap_time_s, seg_start, seg_end) for every complete lap.
 
-    Uses authoritative_duration (prefers scoring_last_lap_time_s from the sim's
-    official scorer over max(lap_time_s)) to avoid the undercount caused by
-    mLapStartET resetting before all frames for the outgoing lap are recorded.
+    Uses authoritative_duration, which prefers the telemetry lap-start ET
+difference between consecutive laps (the TinyPedal method) over the scorer's
+mLastLapTime (which lags a lap on some tracks) and over max(lap_time_s)
+(which undercounts the last partial sample).
 
     Bug 22 guards:
     - Each candidate is a contiguous SEGMENT, not a lap number — sessions
@@ -337,6 +338,12 @@ def main():
     # repeated lap numbers across sim restarts (bug 22 / bug 19 pattern)
     seg_start, seg_end = best_seg
     lap_table = best_table.slice(seg_start, seg_end - seg_start)
+    # Record the exact authoritative duration in the file's schema metadata so
+    # single-segment consumers (coach lap_comparator, summary on a ref file)
+    # don't have to fall back to the ~0.1 s-short max(lap_time_s).
+    meta = dict(lap_table.schema.metadata or {})
+    meta[b"authoritative_lap_time_s"] = f"{best_time:.3f}".encode()
+    lap_table = lap_table.replace_schema_metadata(meta)
     pq.write_table(lap_table, out_path)
 
     print(f"  Fastest: lap {best_lap_num} in {best_session.name} -> {best_time:.3f}s")

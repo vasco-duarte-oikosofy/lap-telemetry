@@ -48,6 +48,8 @@ def session_lap_times(p: Path) -> list[float]:
     schema_names = pq.read_schema(p).names
     if "scoring_last_lap_time_s" in schema_names:
         cols.append("scoring_last_lap_time_s")
+    if "session_time_s" in schema_names:
+        cols.append("session_time_s")
     table = pq.read_table(p, columns=cols)
     lap_numbers = table.column("lap_number").to_pylist()
     lap_times = table.column("lap_time_s").to_pylist()
