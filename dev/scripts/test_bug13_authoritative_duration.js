@@ -1,5 +1,10 @@
 /**
- * Bug 13: authoritative lap duration should use scorer last-lap time when available.
+ * Bug 13 / bug 28: authoritative lap duration fallback chain.
+ *
+ * These bug-13 fixtures predate session_time_s, so they exercise the legacy
+ * scorer path (mLastLapTime from the next segment) and the max(lap_time_s)
+ * fallback. The telemetry-clock path (the real fix, bug 28) is covered by
+ * test_lap_duration_telemetry.js and test_lap_duration_surfaces.js.
  * Run: node dev/scripts/test_bug13_authoritative_duration.js
  */
 // @parallel true

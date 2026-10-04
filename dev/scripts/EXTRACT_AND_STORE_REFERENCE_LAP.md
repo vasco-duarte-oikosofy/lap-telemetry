@@ -123,11 +123,15 @@ Confirm this matches your expectation and is realistic for the circuit. If you w
 python3 -c "
 import pyarrow.parquet as pq
 t = pq.read_table('/tmp/ref_lap_extract.parquet')
-duration = max(t.column('lap_time_s').to_pylist())
+duration = float(t.schema.metadata[b'authoritative_lap_time_s'])
 m, s = divmod(duration, 60)
 print(f'{int(m)}:{s:06.3f}')
 "
 ```
+
+The extractor stamps the exact telemetry-clock duration into the file's
+schema metadata (bug 28). Do **not** use `max(lap_time_s)` — it shorts the
+last partial sample by ~0.1 s.
 
 ### 4. Replace the old reference-lap file
 

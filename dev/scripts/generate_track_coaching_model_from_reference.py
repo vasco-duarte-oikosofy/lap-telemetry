@@ -526,9 +526,11 @@ REFERENCE_TIME_RE = re.compile(r"_time_(\d+)\.(\d+)\.(\d+)\.parquet$")
 def parse_reference_lap_time_from_name(reference_lap: Path) -> float | None:
     """Authoritative lap time encoded in an extracted reference-lap filename.
 
-    Extracted reference laps are named <...>_time_MM.SS.mmm.parquet. The
-    recorder's lap_time_s clock undercounts the real lap (bug 13 legacy
-    delta), so the filename is the source of truth for these files.
+    Extracted reference laps are named <...>_time_MM.SS.mmm.parquet and carry
+    ``authoritative_lap_time_s`` in their schema metadata; both come from the
+    telemetry lap-start clock (bug 28). The filename is the source of truth
+    here; the recorder's ``lap_time_s`` clock is only a last-resort fallback
+    (it shorts the final partial sample).
     """
     match = REFERENCE_TIME_RE.search(reference_lap.name)
     if not match:

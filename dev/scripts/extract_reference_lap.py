@@ -48,6 +48,20 @@ def _authoritative_duration(
     )
 
 
+def _with_authoritative_metadata(table: "pa.Table", duration: float) -> "pa.Table":
+    """Stamp the exact authoritative duration into the extracted parquet.
+
+    Mirrors ``export_fastest_reference_laps.py`` so the manual fallback path
+    produces single-segment files that downstream consumers (app, validator,
+    coach) can read without falling back to the ~0.1 s-short ``max(lap_time_s)``.
+    """
+    from lap_telemetry.parquet_utils import AUTHORITATIVE_META_KEY
+
+    meta = dict(table.schema.metadata or {})
+    meta[AUTHORITATIVE_META_KEY] = f"{duration:.3f}".encode()
+    return table.replace_schema_metadata(meta)
+
+
 def _build_segments(lap_col: list[int]) -> list[tuple[int, int, int]]:
     """Contiguous runs of constant lap_number, in time order.
     Returns list of (lap_number, start_idx, end_idx_exclusive).
@@ -145,7 +159,7 @@ def main() -> int:
         stem = args.session.stem
         out_path = args.session.parent / f"reference_lap_{stem}_seg{n}.parquet"
 
-    pq.write_table(slice_table, out_path, compression="snappy")
+    pq.write_table(_with_authoritative_metadata(slice_table, extracted_duration), out_path, compression="snappy")
     print(f"\nExtracted segment {n} (lap_number={lap_num}, {end-start} rows) -> {out_path}")
     print(f"Lap time: {int(mins)}:{secs:06.3f}")
     return 0
