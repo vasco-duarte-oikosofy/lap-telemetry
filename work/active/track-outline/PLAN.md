@@ -51,8 +51,9 @@ Tracks are ordered by data quality: TUMFTM first (real widths), then trajectory-
 | `33-imola-elms` | Imola ELMS | Verify alias of Imola base | ? | 🔲 Not started |
 | `34-daytona` | Daytona International Speedway Road Course | No TUMFTM | Clean trajectory + coaching + ref | ✅ Done (this slice) |
 | `35-laguna-seca` | WeatherTech Raceway Laguna Seca | No TUMFTM | Clean trajectory + coaching + ref | ✅ Done (this slice) |
+| `36-road-atlanta` | Michelin Raceway Road Atlanta | No TUMFTM | Clean trajectory + coaching + ref | ✅ Done (`0494e0c`) |
 
-**Completed:** Spa (base + endurance), Bahrain GP, Barcelona, Monza, Imola, Fuji International Speedway, Bahrain Outer.
+**Completed:** Spa (base + endurance), Bahrain GP, Barcelona, Monza, Imola, Fuji International Speedway, Bahrain Outer, Daytona, Laguna Seca, Road Atlanta.
 **In progress:** None.
 **Remaining:** 26 outlines needed (some may be aliases).
 
