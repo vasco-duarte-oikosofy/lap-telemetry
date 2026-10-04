@@ -24,3 +24,21 @@
   previous attempt (bug 36 follow-up) "fixed" the app/model to agree with the
   filename (1:17.345); the filename itself was produced by the wrong helper.
   Always fix the producer before the consumers.
+
+- **The recorder contract is directly testable.** For every completed lap in a
+  recorded session, `session_time_s - lap_time_s` is constant to <0.00002 s
+  (only lap 0, the out-lap, drifts because `mLapStartET` changes mid-segment).
+  This gives a cheap, live-independent invariant that proves the telemetry
+  clock is recoverable, and it is now asserted in
+  `test_lap_duration_surfaces.py`.
+
+- **The manual fallback path forgot to persist the duration.**
+  `extract_reference_lap.py` computed the authoritative duration via the
+  telemetry clock but wrote the parquet without the `authoritative_lap_time_s`
+  metadata, so a manually extracted single-segment file was still ~0.1 s short
+  downstream. It now stamps the same metadata as the guarded exporter.
+
+- **Testing the built bundle needs `product/dist`, not `product/web`.** The
+  other Playwright tests serve the source tree; `test_compare_reference_duration.js`
+  serves `product/dist` and loads `/compare.html`, so it actually exercises the
+  shipped single-file build. Playwright tests are auto-skipped unless `--pw`.

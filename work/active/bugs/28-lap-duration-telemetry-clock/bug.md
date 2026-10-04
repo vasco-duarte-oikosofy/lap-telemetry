@@ -63,24 +63,38 @@ parquet files with no schema change.
 - `dev/scripts/validate_reference_laps.py` — provenance probe loads
   `session_time_s` so it can match the filename via the telemetry clock.
 - `dev/scripts/extract_reference_lap.py` — `_authoritative_duration` delegates
-  to the shared helper.
-- Road Atlanta reference re-exported to `_time_01.16.809`; coaching model
-  path/time updated.
+  to the shared helper, and the manual extract path now stamps the exact
+  duration into the output file's schema metadata too (mirroring the exporter).
+- Road Atlanta reference re-exported to `_time_01.16.304`; coaching model
+  path/time updated (the true fastest race lap).
 
 ## Verification
 
 - `dev/scripts/test_lap_duration_telemetry.py`
   (`.../test_lap_duration_telemetry.js`): synthetic stale-scorer case,
   Road Atlanta lap 15 = 76.809, Paul Ricard lap 4 = 96.804, metadata override.
+- `dev/scripts/test_lap_duration_surfaces.py` (`.../test_lap_duration_surfaces.js`)
+  — every product surface: the recorder output contract
+  (`session_time_s - lap_time_s` constant within each completed lap),
+  `summary.run()` (race lap 15 = 1:16.304), `find_complete_laps()` selection and
+  rejection of the restart-truncated 1:15.994 lap, `compare_laps()` coach delta
+  (+0.113 s for lap 21), the extracted reference metadata/filename, and the
+  manual-extract metadata stamp.
+- `dev/scripts/test_compare_reference_duration.js` (Playwright) — loads the
+  built `product/dist/compare.html` and asserts the session and reference
+  pickers show 1:16.304 (run with `--pw`).
 - `dev/scripts/test_reference_lap_duration.js`: JS telemetry priority +
   reference-filename override.
 - `dev/scripts/test_bug13_authoritative_duration.js` still passes (its
   synthetic tables lack `session_time_s`, so the legacy scoring fallback runs).
-- `lap-telemetry summary` now prints `1:16.809` for lap 15; `compare.html`
-  session picker and reference picker both show `1:16.809 ★`.
+- `lap-telemetry summary` now prints `1:16.304` for the race lap 15; the app
+  session and reference pickers show `1:16.304 ★`.
 - `validate_reference_laps.py`: 26 refs, 0 failures, provenance traced to the
   source session.
+- Full suite (with `--pw`): 1260 passed, 6 pre-existing Windows ESM harness
+  failures (unrelated).
 
 ## Status
 
-🛠 Fixed, pending user live confirmation.
+🛠 Fixed and verified across all product surfaces — pending user live
+confirmation before moving to `work/completed/bugs/`.
