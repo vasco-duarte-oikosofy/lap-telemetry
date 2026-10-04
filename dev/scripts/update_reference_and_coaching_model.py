@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """
 Refresh a track's coaching model from its fastest reference lap while
-preserving curated turn names/IDs/apex sides — and, when a session contains a
-faster lap, update the reference lap first.
+preserving curated turn names/IDs/apex sides and flat-corner throttle markers
+— and, when a session contains a faster lap, update the reference lap first.
 
 The reference export is delegated to export_fastest_reference_laps.py
 (bug 23): this script no longer extracts laps itself, so it inherits the
@@ -130,6 +130,34 @@ def match_corners(existing_corners: list[dict], candidates: list) -> tuple[list[
     return pairs, leftover
 
 
+def refresh_corners(
+    pairs: list[tuple[dict, object | None]],
+) -> list[dict]:
+    """Build the updated corner list from nearest-apex matches.
+
+    Matched corners take the new lap's entry/apex/exit geometry. Everything
+    else curated on the corner (``id``, ``name``, ``apex_side``,
+    ``apex_side_source``, ``target_throttle_pct``, future fields) is copied
+    verbatim. Unmatched corners are kept exactly as they are.
+
+    This is what makes "curated models never lose hand-tuned content" true for
+    flat corners: they produce no braking event, so the detector usually
+    leaves them unmatched (kept via --allow-unmatched) and a neighbouring
+    match must never strip their ``target_throttle_pct`` marker.
+    """
+    updated: list[dict] = []
+    for old_corner, match in pairs:
+        if match is None:
+            updated.append(dict(old_corner))
+            continue
+        corner = dict(old_corner)
+        corner["s_start_m"] = round(match.s_start_m, 1)
+        corner["apex_s_m"] = round(float(match.apex_m), 1)
+        corner["s_end_m"] = round(match.s_end_m, 1)
+        updated.append(corner)
+    return updated
+
+
 def parse_args() -> argparse.Namespace:
     p = argparse.ArgumentParser(
         description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter
@@ -151,7 +179,8 @@ def parse_args() -> argparse.Namespace:
     p.add_argument(
         "--allow-unmatched", action="store_true",
         help="proceed even if curated corners have no match on the new lap "
-             "(their old geometry is kept); default is to abort with no changes",
+             "(their old geometry and curated fields are kept); default is to "
+             "abort with no changes",
     )
     p.add_argument(
         "--max-geometry-delta-m", type=float, default=None,
@@ -296,20 +325,7 @@ def main() -> int:
         backing_time = min(refs, key=lambda x: x[1])[1]
 
     # --- 5. Write the refreshed model (names/IDs/apex sides preserved) -----
-    updated_corners = []
-    for old_c, m in pairs:
-        if m is None:
-            updated_corners.append(dict(old_c))
-        else:
-            updated_corners.append({
-                "id": old_c["id"],
-                "name": old_c["name"],
-                "s_start_m": round(m.s_start_m, 1),
-                "apex_s_m": round(float(m.apex_m), 1),
-                "s_end_m": round(m.s_end_m, 1),
-                "apex_side": old_c["apex_side"],
-                "apex_side_source": old_c["apex_side_source"],
-            })
+    updated_corners = refresh_corners(pairs)
 
     backing_rel = backing_lap if not backing_lap.is_absolute() else backing_lap.relative_to(ROOT)
     updated_model = {

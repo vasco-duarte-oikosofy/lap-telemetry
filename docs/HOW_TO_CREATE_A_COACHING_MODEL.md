@@ -214,7 +214,7 @@ Check that:
 
 *(Run the **Step 0 — Vehicle catalog check** above first if this is a new car for the track — the updater does not add catalog entries for you.)*
 
-When a session contains a lap faster than the current reference for a track that **already has** a coaching model, use the guarded updater. It finds the fastest lap (same segment-based guards as the export script), dry-checks the curated corners against that lap **before writing anything**, delegates the reference export to `export_fastest_reference_laps.py` (inheriting its audit), and refreshes the model's corner geometry while preserving names, IDs, and manual apex sides:
+When a session contains a lap faster than the current reference for a track that **already has** a coaching model, use the guarded updater. It finds the fastest lap (same segment-based guards as the export script), dry-checks the curated corners against that lap **before writing anything**, delegates the reference export to `export_fastest_reference_laps.py` (inheriting its audit), and refreshes the model's corner geometry while preserving names, IDs, manual apex sides, and flat-corner `target_throttle_pct` markers:
 
 ```powershell
 python dev/scripts/update_reference_and_coaching_model.py `
@@ -251,7 +251,7 @@ No files were changed.
 This happens on faster laps: lighter braking merges chicane corners or drops light-braking turns entirely (Bahrain Outer precedent — its 1:10.845 reference is intentionally kept over a real 1:10.814 lap for exactly this reason). Your options:
 
 - **Leave the track as is** (default, and correct when the model encodes detail the new lap can't reproduce).
-- `--allow-unmatched` — proceed; unmatched corners keep their old geometry (logged with a warning).
+- `--allow-unmatched` — proceed; unmatched corners keep their old geometry and all curated fields (logged with a warning). This is the normal path for flat corners, which never produce a braking event.
 
 ### Refreshing a model from an existing reference
 
