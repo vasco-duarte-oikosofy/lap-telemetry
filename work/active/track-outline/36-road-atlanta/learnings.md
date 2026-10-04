@@ -36,18 +36,21 @@
   (Playwright + outline-pixel probe), not just the manifest lookup, before
   declaring an outline done.
 
-- **The reference time was wrong in two places for the same reason.** Both the
-  web app (`annotateSegments` fallback) and the model generator used
-  `max(lap_time_s)`, which undercounts the real lap by ~0.6 s. The authoritative
-  value lives in the `_time_MM.SS.mmm.parquet` filename. Any new consumer of
-  reference-lap duration must parse the filename (or carry the value), not read
-  `lap_time_s`.
+- **The reference time was wrong, then "fixed" the wrong way, then fixed
+  properly.** The web app and generator both used `max(lap_time_s)` (~0.1 s
+  short) and `scoring_last_lap_time_s` (mLastLapTime, which lags a lap on
+  Road Atlanta: 77.345 = lap 14). The in-game truth (confirmed against
+  TinyPedal's deltabest, 76.80896) is the **telemetry lap-start ET
+  difference** between consecutive laps — `lmuTeleVeh.mLapStartET`, which our
+  recorder stores implicitly as `session_time_s - lap_time_s`. Lesson: the
+  scorer's mLastLapTime is not authoritative; prefer the telemetry clock.
+  See `work/active/bugs/28-lap-duration-telemetry-clock/`.
 
 - **Windows test environment**: `python3` is the Microsoft Store stub. A real
   `python3` is required for the Python test wrappers. Fix on this machine:
   copy `python.exe` → a temp `python3.exe` and prepend it to PATH, plus set
   `PYTHONIOENCODING=utf-8` (the wrappers crash on `✅` inside cp1252). With
-  both fixes the suite is 1226 passed / 6 failed, all pre-existing Windows
+  both fixes the suite is 1235 passed / 6 failed, all pre-existing Windows
   `ERR_UNSUPPORTED_ESM_URL_SCHEME` harness failures.
 
 - **New tests must be added to `scripts.test` in package.json.** The suite is

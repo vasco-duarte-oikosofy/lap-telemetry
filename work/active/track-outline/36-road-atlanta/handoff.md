@@ -2,13 +2,20 @@
 
 ## What is on disk now (committed in `0494e0c`)
 
-**Reference lap** (guarded export, fastest valid = lap 15 @ 1:17.345):
-- `product/data/reference-laps/michelin-raceway-road-atlanta_dkr-engineering-4-elms25_time_01.17.345.parquet`
+**Reference lap** (guarded export, fastest valid = lap 15 @ 1:16.809):
+- `product/data/reference-laps/michelin-raceway-road-atlanta_dkr-engineering-4-elms25_time_01.16.809.parquet`
 - Source session: `sessions/session_20261004T133118Z_michelin-raceway-road-atlanta_lmu_practice.parquet`
   (car `DKR Engineering #4:ELMS25` → catalog slug `ginetta-lmp3`,
   file car-id `dkr-engineering-4-elms25`).
-- `validate_reference_laps.py` passes (26 refs, 0 failures). Legacy-time delta
-  0.623 s vs `lap_time_s` is the known pre-authoritative export artifact.
+- `validate_reference_laps.py` passes (26 refs, 0 failures). Provenance check
+  matches the source session lap 15 at 76.809 s.
+- The file carries schema metadata `authoritative_lap_time_s=76.809`.
+
+> **Corrected 2026-10-04 (bug 28):** the first export named this file
+> `_time_01.17.345` because our duration helper preferred the sim scorer's
+> `mLastLapTime`, which lags a lap on Road Atlanta. The true in-game time is
+> **1:16.809** (TinyPedal's recorded deltabest is 76.80896). See "Follow-up
+> fixes" below.
 
 **Coaching model** (curated, 13 entries = official 12 turns with 10A/10B split):
 - `product/data/track-coaching/michelin-raceway-road-atlanta_dkr-engineering-4-elms25.json`
@@ -37,19 +44,24 @@ JSON is not loaded) only matched `..._lmu.parquet`. Current recorder files are
 (`c396279`) so it can be unit-tested. Verified: Road Atlanta canvas outline
 pixels 6 → 1363.
 
-2. **Reference lap showed 1:16.722 instead of 1:17.345** (`cd1ef55` app,
-`0e6978c` model/generator). Two consumers read `max(lap_time_s)`:
-   - `annotateSegments()` in `pipeline.js` for a single-segment reference file
-     (no next segment → no `scoring_last_lap_time_s`); now prefers the
-     authoritative time parsed from `_time_MM.SS.mmm.parquet` via
-     `parseReferenceLapTimeFromName()`.
-   - the generator's `lap_time_s()`; now `parse_reference_lap_time_from_name()`
-     with a `max(lap_time_s)` fallback. Existing Road Atlanta model patched to
-     77.345.
+2. **Reference lap duration was wrong (bug 28)** — first reported as
+   "1:16.722 vs 1:17.345", but the *in-game* truth is 1:16.809; the earlier
+   change to prefer 1:17.345 (`cd1ef55`, `0e6978c`) went the wrong way.
+   Root cause: our duration helpers trusted the scorer's `mLastLapTime`
+   (`scoring_last_lap_time_s`), which lags by one lap on Road Atlanta
+   (77.345 = lap 14's time). TinyPedal derives the lap from consecutive
+   **telemetry** lap-start ETs (`lmuTeleVeh.mLapStartET`). Our recorder stores
+   `session_time_s - lap_time_s == mLapStartET`, so the same value is
+   recoverable. `authoritative_duration` (Python) and `authDuration` (JS) now
+   prefer that telemetry difference; the reference was re-exported to
+   `_time_01.16.809` with `authoritative_lap_time_s` metadata; the model,
+   generator, and app all read 1:16.809. Full details in
+   `work/active/bugs/28-lap-duration-telemetry-clock/`.
 
 New tests (registered in `package.json` `scripts.test`):
-`dev/scripts/test_track_name_inference.js` and
-`dev/scripts/test_reference_lap_duration.js`.
+`dev/scripts/test_track_name_inference.js`,
+`dev/scripts/test_reference_lap_duration.js`, and
+`dev/scripts/test_lap_duration_telemetry.js`.
 
 ## Deferred / still open
 
@@ -67,7 +79,7 @@ New tests (registered in `package.json` `scripts.test`):
 python dev/scripts/validate_reference_laps.py
 PYTHONIOENCODING=utf-8 python -m lap_telemetry.coach.generate_utterance --lap \
   --current-lap <lap.parquet> \
-  --reference-lap product/data/reference-laps/michelin-raceway-road-atlanta_dkr-engineering-4-elms25_time_01.17.345.parquet \
+  --reference-lap product/data/reference-laps/michelin-raceway-road-atlanta_dkr-engineering-4-elms25_time_01.16.809.parquet \
   --track-config product/data/track-coaching/michelin-raceway-road-atlanta_dkr-engineering-4-elms25.json \
   --print-facts
 npm run build
