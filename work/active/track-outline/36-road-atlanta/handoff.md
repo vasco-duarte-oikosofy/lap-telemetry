@@ -26,11 +26,36 @@
   rebuilt (+~83 KB).
 - `docs/TRACK_OUTLINE_COVERAGE.md` updated.
 
+## Follow-up fixes (same slice, found during live use)
+
+1. **Outline was invisible** (`b903909`, bundle in `cd1ef55`). Not an outline
+data problem: `inferTrackNameFromFileName` (fallback used when the sidecar
+JSON is not loaded) only matched `..._lmu.parquet`. Current recorder files are
+`..._lmu_practice/_quali/_race.parquet`, so the track name came out `null` and
+`findOutlineByTrackName(null)` never drew anything. Fixed the regex to accept
+`_lmu[._]`; extracted the helper to `product/web/js/trackNameInference.js`
+(`c396279`) so it can be unit-tested. Verified: Road Atlanta canvas outline
+pixels 6 → 1363.
+
+2. **Reference lap showed 1:16.722 instead of 1:17.345** (`cd1ef55` app,
+`0e6978c` model/generator). Two consumers read `max(lap_time_s)`:
+   - `annotateSegments()` in `pipeline.js` for a single-segment reference file
+     (no next segment → no `scoring_last_lap_time_s`); now prefers the
+     authoritative time parsed from `_time_MM.SS.mmm.parquet` via
+     `parseReferenceLapTimeFromName()`.
+   - the generator's `lap_time_s()`; now `parse_reference_lap_time_from_name()`
+     with a `max(lap_time_s)` fallback. Existing Road Atlanta model patched to
+     77.345.
+
+New tests (registered in `package.json` `scripts.test`):
+`dev/scripts/test_track_name_inference.js` and
+`dev/scripts/test_reference_lap_duration.js`.
+
 ## Deferred / still open
 
-- **Visual QA (slice 36-b)** has not been done on this machine — the outline
-  has not been visually verified in the app at the right scale/position.
-  `visual_qa.status` in the outline JSON is still `"pending"`.
+- **Visual QA (slice 36-b)** has not been done by eye on this machine — the
+  outline renders (1363 canvas pixels via headless probe, comparable to Spa's
+  1823) but `visual_qa.status` in the outline JSON is still `"pending"`.
 - `test_static_outline_runtime_rendering.js` and the other 5 outline/apex JS
   tests cannot run on this Windows box (dynamic `import()` of an absolute
   `c:\` path → `ERR_UNSUPPORTED_ESM_URL_SCHEME`). Manual `import()` of the
