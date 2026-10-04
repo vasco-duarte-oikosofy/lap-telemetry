@@ -1,0 +1,137 @@
+{
+  "schema_version": "1",
+  "track_id": "michelin-raceway-road-atlanta",
+  "layout_id": "lmu-default",
+  "reference_lap": {
+    "path": "product\\data\\reference-laps\\michelin-raceway-road-atlanta_dkr-engineering-4-elms25_time_01.17.345.parquet",
+    "car_id": "dkr-engineering-4-elms25",
+    "lap_time_s": 76.722,
+    "detection_method": "throttle_brake_v1"
+  },
+  "lap_length_m": 4082.1,
+  "corners": [
+    {
+      "id": "t1",
+      "name": "Turn 1",
+      "s_start_m": 290.0,
+      "apex_s_m": 420.0,
+      "s_end_m": 630.0,
+      "apex_side": "right",
+      "apex_side_source": "manual"
+    },
+    {
+      "id": "t2",
+      "name": "Turn 2",
+      "s_start_m": 695.0,
+      "apex_s_m": 725.0,
+      "s_end_m": 775.0,
+      "apex_side": "left",
+      "apex_side_source": "manual"
+    },
+    {
+      "id": "t3",
+      "name": "Turn 3",
+      "s_start_m": 775.0,
+      "apex_s_m": 835.0,
+      "s_end_m": 875.0,
+      "apex_side": "right",
+      "apex_side_source": "manual"
+    },
+    {
+      "id": "t4",
+      "name": "Turn 4 (The Esses)",
+      "s_start_m": 880.0,
+      "apex_s_m": 1120.0,
+      "s_end_m": 1300.0,
+      "apex_side": "right",
+      "apex_side_source": "manual",
+      "target_throttle_pct": 100
+    },
+    {
+      "id": "t5",
+      "name": "Turn 5",
+      "s_start_m": 1310.0,
+      "apex_s_m": 1425.0,
+      "s_end_m": 1485.0,
+      "apex_side": "left",
+      "apex_side_source": "manual"
+    },
+    {
+      "id": "t6",
+      "name": "Turn 6",
+      "s_start_m": 1850.0,
+      "apex_s_m": 1980.0,
+      "s_end_m": 2058.0,
+      "apex_side": "right",
+      "apex_side_source": "manual"
+    },
+    {
+      "id": "t7",
+      "name": "Turn 7",
+      "s_start_m": 2062.0,
+      "apex_s_m": 2145.0,
+      "s_end_m": 2280.0,
+      "apex_side": "right",
+      "apex_side_source": "manual"
+    },
+    {
+      "id": "t8",
+      "name": "Turn 8",
+      "s_start_m": 2350.0,
+      "apex_s_m": 2470.0,
+      "s_end_m": 2600.0,
+      "apex_side": "left",
+      "apex_side_source": "manual",
+      "target_throttle_pct": 100
+    },
+    {
+      "id": "t9",
+      "name": "Turn 9",
+      "s_start_m": 2950.0,
+      "apex_s_m": 3100.0,
+      "s_end_m": 3280.0,
+      "apex_side": "right",
+      "apex_side_source": "manual",
+      "target_throttle_pct": 100
+    },
+    {
+      "id": "t10a",
+      "name": "Turn 10A",
+      "s_start_m": 3345.0,
+      "apex_s_m": 3510.0,
+      "s_end_m": 3548.0,
+      "apex_side": "left",
+      "apex_side_source": "manual"
+    },
+    {
+      "id": "t10b",
+      "name": "Turn 10B",
+      "s_start_m": 3548.0,
+      "apex_s_m": 3575.0,
+      "s_end_m": 3620.0,
+      "apex_side": "right",
+      "apex_side_source": "manual"
+    },
+    {
+      "id": "t11",
+      "name": "Turn 11",
+      "s_start_m": 3620.0,
+      "apex_s_m": 3710.0,
+      "s_end_m": 3780.0,
+      "apex_side": "right",
+      "apex_side_source": "manual",
+      "target_throttle_pct": 100
+    },
+    {
+      "id": "t12",
+      "name": "Turn 12",
+      "s_start_m": 3780.0,
+      "apex_s_m": 3990.0,
+      "s_end_m": 4082.1,
+      "apex_side": "right",
+      "apex_side_source": "manual",
+      "target_throttle_pct": 100
+    }
+  ],
+  "straight_zones": []
+}

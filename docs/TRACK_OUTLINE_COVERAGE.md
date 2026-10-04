@@ -43,6 +43,7 @@ kerb or far from the outside wall.
 | Daytona International Speedway Road Course | `daytona-international-speedway-road-course` | Trajectory | Single lap (lap 11, 1:45.596, 2026-08-08) | Constant 5m each side | ❌ No |
 | WeatherTech Raceway Laguna Seca | `weathertech-raceway-laguna-seca` | Trajectory | Single lap (lap 4, 1:27.905, 2026-08-08) | Constant 5m each side | ❌ No |
 | Paul Ricard - 1A-V2-Short | `paul-ricard---1a-v2-short` | Trajectory | Single lap (lap 4, 1:38.774, 2026-09-19) | Constant 5m each side | ❌ No |
+| Michelin Raceway Road Atlanta | `michelin-raceway-road-atlanta` | Trajectory | Single lap (lap 15, 1:17.345, 2026-10-04) | Constant 5m each side | ❌ No |
 
 ---
 
