@@ -44,7 +44,7 @@
   difference** between consecutive laps — `lmuTeleVeh.mLapStartET`, which our
   recorder stores implicitly as `session_time_s - lap_time_s`. Lesson: the
   scorer's mLastLapTime is not authoritative; prefer the telemetry clock.
-  See `work/active/bugs/28-lap-duration-telemetry-clock/`.
+  See `work/completed/bugs/28-lap-duration-telemetry-clock/`.
 
 - **Windows test environment**: `python3` is the Microsoft Store stub. A real
   `python3` is required for the Python test wrappers. Fix on this machine:

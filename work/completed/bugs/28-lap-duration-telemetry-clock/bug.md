@@ -96,5 +96,6 @@ parquet files with no schema change.
 
 ## Status
 
-🛠 Fixed and verified across all product surfaces — pending user live
-confirmation before moving to `work/completed/bugs/`.
+✅ Fixed, live-confirmed by the user, and completed. Core fix `761de5d`
+(telemetry lap-start clock) through `c16abce` (all-surface tests); bug record in
+`efb44f9`. Folder moved to `work/completed/bugs/`.

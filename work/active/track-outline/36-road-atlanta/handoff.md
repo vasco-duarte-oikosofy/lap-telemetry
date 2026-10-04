@@ -79,7 +79,7 @@ pixels 6 → 1363.
    prefer that telemetry difference; the reference was re-exported to
    `_time_01.16.809` with `authoritative_lap_time_s` metadata; the model,
    generator, and app all read 1:16.809. Full details in
-   `work/active/bugs/28-lap-duration-telemetry-clock/`.
+   `work/completed/bugs/28-lap-duration-telemetry-clock/`.
 
 New tests (registered in `package.json` `scripts.test`):
 `dev/scripts/test_track_name_inference.js`,
