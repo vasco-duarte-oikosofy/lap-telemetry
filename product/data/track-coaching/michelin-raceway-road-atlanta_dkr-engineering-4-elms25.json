@@ -3,9 +3,9 @@
   "track_id": "michelin-raceway-road-atlanta",
   "layout_id": "lmu-default",
   "reference_lap": {
-    "path": "product\\data\\reference-laps\\michelin-raceway-road-atlanta_dkr-engineering-4-elms25_time_01.17.345.parquet",
+    "path": "product\\data\\reference-laps\\michelin-raceway-road-atlanta_dkr-engineering-4-elms25_time_01.16.809.parquet",
     "car_id": "dkr-engineering-4-elms25",
-    "lap_time_s": 77.345,
+    "lap_time_s": 76.809,
     "detection_method": "throttle_brake_v1"
   },
   "lap_length_m": 4082.1,
