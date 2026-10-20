@@ -1,0 +1,144 @@
+{
+  "schema_version": "1",
+  "track_id": "circuit-de-barcelona",
+  "layout_id": "lmu-default",
+  "reference_lap": {
+    "path": "product/data/reference-laps/circuit-de-barcelona_ferrari-af-corse-2026-50-lm_time_01.40.065.parquet",
+    "car_id": "ferrari-af-corse-2026-50-lm",
+    "lap_time_s": 100.065,
+    "detection_method": "throttle_brake_v1"
+  },
+  "lap_length_m": 4663.9,
+  "corners": [
+    {
+      "id": "t1",
+      "name": "Turn 1 — Elf",
+      "s_start_m": 623.0,
+      "apex_s_m": 853.0,
+      "s_end_m": 900.0,
+      "apex_side": "right",
+      "apex_side_source": "manual"
+    },
+    {
+      "id": "t2",
+      "name": "Turn 2",
+      "s_start_m": 900.0,
+      "apex_s_m": 946.0,
+      "s_end_m": 978.0,
+      "apex_side": "left",
+      "apex_side_source": "manual"
+    },
+    {
+      "id": "t3",
+      "name": "Turn 3 — Renault",
+      "s_start_m": 1049.0,
+      "apex_s_m": 1142.0,
+      "s_end_m": 1268.0,
+      "apex_side": "right",
+      "apex_side_source": "manual"
+    },
+    {
+      "id": "t4",
+      "name": "Turn 4 — Repsol",
+      "s_start_m": 1578.0,
+      "apex_s_m": 1753.0,
+      "s_end_m": 1791.0,
+      "apex_side": "right",
+      "apex_side_source": "manual"
+    },
+    {
+      "id": "t5",
+      "name": "Turn 5 — Seat",
+      "s_start_m": 1962.0,
+      "apex_s_m": 2144.0,
+      "s_end_m": 2206.0,
+      "apex_side": "left",
+      "apex_side_source": "manual"
+    },
+    {
+      "id": "t6",
+      "name": "Turn 6",
+      "s_start_m": 2330.0,
+      "apex_s_m": 2370.0,
+      "s_end_m": 2420.0,
+      "apex_side": "left",
+      "apex_side_source": "manual",
+      "target_throttle_pct": 100
+    },
+    {
+      "id": "t7",
+      "name": "Turn 7 — Würth",
+      "s_start_m": 2422.0,
+      "apex_s_m": 2558.0,
+      "s_end_m": 2584.0,
+      "apex_side": "left",
+      "apex_side_source": "manual"
+    },
+    {
+      "id": "t8",
+      "name": "Turn 8",
+      "s_start_m": 2620.0,
+      "apex_s_m": 2660.0,
+      "s_end_m": 2700.0,
+      "apex_side": "right",
+      "apex_side_source": "manual",
+      "target_throttle_pct": 100
+    },
+    {
+      "id": "t9",
+      "name": "Turn 9 — Campsa",
+      "s_start_m": 2783.0,
+      "apex_s_m": 2903.0,
+      "s_end_m": 2946.0,
+      "apex_side": "right",
+      "apex_side_source": "manual"
+    },
+    {
+      "id": "t10",
+      "name": "Turn 10 — La Caixa",
+      "s_start_m": 3316.0,
+      "apex_s_m": 3526.0,
+      "s_end_m": 3537.0,
+      "apex_side": "left",
+      "apex_side_source": "manual"
+    },
+    {
+      "id": "t11",
+      "name": "Turn 11",
+      "s_start_m": 3575.0,
+      "apex_s_m": 3610.0,
+      "s_end_m": 3655.0,
+      "apex_side": "left",
+      "apex_side_source": "manual",
+      "target_throttle_pct": 100
+    },
+    {
+      "id": "t12",
+      "name": "Turn 12",
+      "s_start_m": 3667.0,
+      "apex_s_m": 3771.0,
+      "s_end_m": 3883.0,
+      "apex_side": "right",
+      "apex_side_source": "manual"
+    },
+    {
+      "id": "t13",
+      "name": "Turn 13",
+      "s_start_m": 3981.0,
+      "apex_s_m": 4057.0,
+      "s_end_m": 4068.0,
+      "apex_side": "right",
+      "apex_side_source": "manual"
+    },
+    {
+      "id": "t14",
+      "name": "Turn 14",
+      "s_start_m": 4217.0,
+      "apex_s_m": 4323.0,
+      "s_end_m": 4328.0,
+      "apex_side": "right",
+      "apex_side_source": "manual"
+    }
+  ],
+  "straight_zones": []
+}
