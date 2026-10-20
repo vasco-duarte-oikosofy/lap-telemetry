@@ -1,0 +1,118 @@
+{
+  "schema_version": "1",
+  "track_id": "bahrain-outer-circuit",
+  "layout_id": "lmu-default",
+  "reference_lap": {
+    "path": "product/data/reference-laps/bahrain-outer-circuit_richard-mille-af-corse-2026-50-elms_time_01.13.936.parquet",
+    "car_id": "richard-mille-af-corse-2026-50-elms",
+    "lap_time_s": 73.936,
+    "detection_method": "throttle_brake_v1"
+  },
+  "lap_length_m": 3507.9,
+  "corners": [
+    {
+      "id": "t1",
+      "name": "Turn 1",
+      "s_start_m": 584.0,
+      "apex_s_m": 739.0,
+      "s_end_m": 754.0,
+      "apex_side": "right",
+      "apex_side_source": "manual"
+    },
+    {
+      "id": "t2",
+      "name": "Turn 2",
+      "s_start_m": 765.0,
+      "apex_s_m": 795.0,
+      "s_end_m": 880.0,
+      "apex_side": "left",
+      "apex_side_source": "manual"
+    },
+    {
+      "id": "t3",
+      "name": "Turn 3",
+      "s_start_m": 900.0,
+      "apex_s_m": 960.0,
+      "s_end_m": 1030.0,
+      "apex_side": "right",
+      "apex_side_source": "manual",
+      "target_throttle_pct": 100
+    },
+    {
+      "id": "t4",
+      "name": "Turn 4",
+      "s_start_m": 1382.0,
+      "apex_s_m": 1506.0,
+      "s_end_m": 1539.0,
+      "apex_side": "right",
+      "apex_side_source": "manual"
+    },
+    {
+      "id": "t5",
+      "name": "Turn 5",
+      "s_start_m": 1600.0,
+      "apex_s_m": 1645.0,
+      "s_end_m": 1720.0,
+      "apex_side": "left",
+      "apex_side_source": "manual",
+      "target_throttle_pct": 100
+    },
+    {
+      "id": "t6",
+      "name": "Turn 6",
+      "s_start_m": 1800.0,
+      "apex_s_m": 1900.0,
+      "s_end_m": 1950.0,
+      "apex_side": "right",
+      "apex_side_source": "manual"
+    },
+    {
+      "id": "t7",
+      "name": "Turn 7",
+      "s_start_m": 1950.0,
+      "apex_s_m": 2038.0,
+      "s_end_m": 2050.0,
+      "apex_side": "left",
+      "apex_side_source": "manual"
+    },
+    {
+      "id": "t8",
+      "name": "Turn 8",
+      "s_start_m": 2050.0,
+      "apex_s_m": 2075.0,
+      "s_end_m": 2115.0,
+      "apex_side": "right",
+      "apex_side_source": "manual"
+    },
+    {
+      "id": "t9",
+      "name": "Turn 9",
+      "s_start_m": 2140.0,
+      "apex_s_m": 2250.0,
+      "s_end_m": 2400.0,
+      "apex_side": "right",
+      "apex_side_source": "manual",
+      "target_throttle_pct": 100
+    },
+    {
+      "id": "t10",
+      "name": "Turn 10",
+      "s_start_m": 2886.0,
+      "apex_s_m": 3028.0,
+      "s_end_m": 3056.0,
+      "apex_side": "right",
+      "apex_side_source": "manual"
+    },
+    {
+      "id": "t11",
+      "name": "Turn 11",
+      "s_start_m": 3060.0,
+      "apex_s_m": 3090.0,
+      "s_end_m": 3150.0,
+      "apex_side": "right",
+      "apex_side_source": "manual",
+      "target_throttle_pct": 100
+    }
+  ],
+  "straight_zones": []
+}
