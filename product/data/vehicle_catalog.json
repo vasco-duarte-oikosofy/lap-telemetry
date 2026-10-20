@@ -59,5 +59,11 @@
     "model": "499P",
     "car_class": "Hypercar",
     "slug": "ferrari-499p"
+  },
+  "Richard Mille AF Corse 2026 #50:ELMS": {
+    "brand": "Ferrari",
+    "model": "296 GT3",
+    "car_class": "LMGT3",
+    "slug": "ferrari-296-gt3"
   }
 }
