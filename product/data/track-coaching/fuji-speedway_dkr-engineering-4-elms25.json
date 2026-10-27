@@ -3,9 +3,9 @@
   "track_id": "fuji-speedway",
   "layout_id": "lmu-default",
   "reference_lap": {
-    "path": "product\\data\\reference-laps\\fuji-speedway_dkr-engineering-4-elms25_time_01.37.414.parquet",
+    "path": "product\\data\\reference-laps\\fuji-speedway_dkr-engineering-4-elms25_time_01.36.564.parquet",
     "car_id": "dkr-engineering-4-elms25",
-    "lap_time_s": 97.414,
+    "lap_time_s": 96.564,
     "detection_method": "throttle_brake_v1"
   },
   "lap_length_m": 4538.9,
@@ -13,63 +13,63 @@
     {
       "id": "1",
       "name": "First Corner",
-      "s_start_m": 575.0,
-      "apex_s_m": 764.0,
-      "s_end_m": 782.0,
+      "s_start_m": 562.0,
+      "apex_s_m": 766.0,
+      "s_end_m": 797.0,
       "apex_side": "right",
       "apex_side_source": "curated"
     },
     {
       "id": "3",
       "name": "Coca-Cola",
-      "s_start_m": 1200.0,
-      "apex_s_m": 1334.0,
-      "s_end_m": 1352.0,
+      "s_start_m": 1188.0,
+      "apex_s_m": 1314.0,
+      "s_end_m": 1347.0,
       "apex_side": "left",
       "apex_side_source": "curated"
     },
     {
       "id": "100r",
       "name": "100R",
-      "s_start_m": 1567.0,
-      "apex_s_m": 1728.0,
-      "s_end_m": 1732.0,
+      "s_start_m": 1552.0,
+      "apex_s_m": 1699.0,
+      "s_end_m": 1701.0,
       "apex_side": "right",
       "apex_side_source": "curated"
     },
     {
       "id": "hairpin",
       "name": "Hairpin",
-      "s_start_m": 1884.0,
+      "s_start_m": 1876.0,
       "apex_s_m": 2013.0,
-      "s_end_m": 2048.0,
+      "s_end_m": 2046.0,
       "apex_side": "left",
       "apex_side_source": "curated"
     },
     {
       "id": "dunlop_bypass",
       "name": "Dunlop Bypass",
-      "s_start_m": 2684.0,
-      "apex_s_m": 2839.0,
-      "s_end_m": 2856.0,
+      "s_start_m": 2682.0,
+      "apex_s_m": 2846.0,
+      "s_end_m": 2855.0,
       "apex_side": "right",
       "apex_side_source": "curated"
     },
     {
       "id": "11",
       "name": "Turn 11",
-      "s_start_m": 2876.0,
-      "apex_s_m": 2915.0,
-      "s_end_m": 2929.0,
+      "s_start_m": 2875.0,
+      "apex_s_m": 2914.0,
+      "s_end_m": 2930.0,
       "apex_side": "right",
       "apex_side_source": "curated"
     },
     {
       "id": "12",
       "name": "Turn 12",
-      "s_start_m": 3052.0,
-      "apex_s_m": 3156.0,
-      "s_end_m": 3198.0,
+      "s_start_m": 3059.0,
+      "apex_s_m": 3132.0,
+      "s_end_m": 3178.0,
       "apex_side": "right",
       "apex_side_source": "curated"
     },
@@ -94,18 +94,18 @@
     {
       "id": "netz_hairpin",
       "name": "Netz Hairpin",
-      "s_start_m": 3266.0,
-      "apex_s_m": 3408.0,
-      "s_end_m": 3437.0,
+      "s_start_m": 3291.0,
+      "apex_s_m": 3404.0,
+      "s_end_m": 3439.0,
       "apex_side": "left",
       "apex_side_source": "curated"
     },
     {
       "id": "panasonic",
       "name": "Panasonic",
-      "s_start_m": 3570.0,
-      "apex_s_m": 3668.0,
-      "s_end_m": 3718.0,
+      "s_start_m": 3573.0,
+      "apex_s_m": 3672.0,
+      "s_end_m": 3715.0,
       "apex_side": "right",
       "apex_side_source": "curated"
     }
