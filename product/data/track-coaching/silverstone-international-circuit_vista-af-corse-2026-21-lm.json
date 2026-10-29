@@ -3,9 +3,9 @@
   "track_id": "silverstone-international-circuit",
   "layout_id": "lmu-default",
   "reference_lap": {
-    "path": "product\\data\\reference-laps\\silverstone-international-circuit_vista-af-corse-2026-21-lm_time_01.03.690.parquet",
+    "path": "product\\data\\reference-laps\\silverstone-international-circuit_vista-af-corse-2026-21-lm_time_01.02.950.parquet",
     "car_id": "vista-af-corse-2026-21-lm",
-    "lap_time_s": 63.69,
+    "lap_time_s": 62.95,
     "detection_method": "throttle_brake_v1"
   },
   "lap_length_m": 2960.8,
@@ -13,9 +13,9 @@
     {
       "id": "1",
       "name": "Abbey",
-      "s_start_m": 172.0,
-      "apex_s_m": 278.0,
-      "s_end_m": 281.0,
+      "s_start_m": 182.0,
+      "apex_s_m": 330.0,
+      "s_end_m": 331.0,
       "apex_side": "right",
       "apex_side_source": "manual"
     },
@@ -32,9 +32,9 @@
     {
       "id": "3",
       "name": "Village",
-      "s_start_m": 636.0,
-      "apex_s_m": 786.0,
-      "s_end_m": 829.0,
+      "s_start_m": 643.0,
+      "apex_s_m": 780.0,
+      "s_end_m": 809.0,
       "apex_side": "right",
       "apex_side_source": "manual"
     },
@@ -51,27 +51,27 @@
     {
       "id": "5",
       "name": "Becketts",
-      "s_start_m": 967.0,
-      "apex_s_m": 1065.0,
-      "s_end_m": 1082.0,
+      "s_start_m": 976.0,
+      "apex_s_m": 1063.0,
+      "s_end_m": 1068.0,
       "apex_side": "right",
       "apex_side_source": "manual"
     },
     {
       "id": "6",
       "name": "Stowe",
-      "s_start_m": 1841.0,
-      "apex_s_m": 2020.0,
-      "s_end_m": 2083.0,
+      "s_start_m": 1845.0,
+      "apex_s_m": 2033.0,
+      "s_end_m": 2036.0,
       "apex_side": "right",
       "apex_side_source": "manual"
     },
     {
       "id": "7",
       "name": "Vale",
-      "s_start_m": 2375.0,
-      "apex_s_m": 2479.0,
-      "s_end_m": 2556.0,
+      "s_start_m": 2368.0,
+      "apex_s_m": 2481.0,
+      "s_end_m": 2504.0,
       "apex_side": "left",
       "apex_side_source": "manual"
     },
