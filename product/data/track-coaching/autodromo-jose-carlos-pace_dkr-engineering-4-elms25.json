@@ -3,9 +3,9 @@
   "track_id": "autodromo-jose-carlos-pace",
   "layout_id": "default",
   "reference_lap": {
-    "path": "product/data/reference-laps/autodromo-jose-carlos-pace_dkr-engineering-4-elms25_time_01.30.707.parquet",
+    "path": "product\\data\\reference-laps\\autodromo-jose-carlos-pace_dkr-engineering-4-elms25_time_01.30.354.parquet",
     "car_id": "dkr-engineering-4-elms25",
-    "lap_time_s": 90.707,
+    "lap_time_s": 90.354,
     "detection_method": "throttle_brake_v1"
   },
   "lap_length_m": 4271.98,
@@ -13,9 +13,9 @@
     {
       "id": "t1",
       "name": "Senna S 1",
-      "s_start_m": 202.0,
-      "apex_s_m": 385.0,
-      "s_end_m": 410.0,
+      "s_start_m": 179.0,
+      "apex_s_m": 384.0,
+      "s_end_m": 418.0,
       "apex_side": "left",
       "apex_side_source": "manual",
       "target_throttle_pct": 64
@@ -41,17 +41,17 @@
     },
     {
       "id": "t4",
-      "name": "Descida do Lago",
-      "s_start_m": 1260.0,
-      "apex_s_m": 1429.0,
-      "s_end_m": 1431.0,
+      "name": "Descida do Lago 1",
+      "s_start_m": 1259.0,
+      "apex_s_m": 1432.0,
+      "s_end_m": 1459.0,
       "apex_side": "left",
       "apex_side_source": "manual",
       "target_throttle_pct": 68
     },
     {
       "id": "t5",
-      "name": "turn 5",
+      "name": "Descida do Lago 2",
       "s_start_m": 1605.0,
       "apex_s_m": 1605.0,
       "s_end_m": 1605.0,
@@ -61,16 +61,16 @@
     },
     {
       "id": "t6",
-      "name": "Ferradura",
+      "name": "Ferradura 1",
       "s_start_m": 1944.0,
-      "apex_s_m": 2075.0,
-      "s_end_m": 2084.0,
+      "apex_s_m": 2089.0,
+      "s_end_m": 2123.0,
       "apex_side": "right",
       "apex_side_source": "manual"
     },
     {
       "id": "t7",
-      "name": "Laranjinha",
+      "name": "Ferradura 2",
       "s_start_m": 2125.0,
       "apex_s_m": 2152.0,
       "s_end_m": 2160.0,
@@ -80,10 +80,10 @@
     },
     {
       "id": "t8",
-      "name": "turn 8",
-      "s_start_m": 2251.0,
-      "apex_s_m": 2349.0,
-      "s_end_m": 2356.0,
+      "name": "Laranjinha",
+      "s_start_m": 2240.0,
+      "apex_s_m": 2361.0,
+      "s_end_m": 2390.0,
       "apex_side": "right",
       "apex_side_source": "manual",
       "target_throttle_pct": 57
@@ -91,9 +91,9 @@
     {
       "id": "t9",
       "name": "Pinheirinho",
-      "s_start_m": 2407.0,
-      "apex_s_m": 2469.0,
-      "s_end_m": 2478.0,
+      "s_start_m": 2410.0,
+      "apex_s_m": 2472.0,
+      "s_end_m": 2538.0,
       "apex_side": "left",
       "apex_side_source": "manual",
       "target_throttle_pct": 82
@@ -101,9 +101,9 @@
     {
       "id": "t10",
       "name": "Bico de Pato",
-      "s_start_m": 2659.0,
-      "apex_s_m": 2763.0,
-      "s_end_m": 2771.0,
+      "s_start_m": 2651.0,
+      "apex_s_m": 2772.0,
+      "s_end_m": 2797.0,
       "apex_side": "right",
       "apex_side_source": "manual",
       "target_throttle_pct": 53
@@ -119,17 +119,17 @@
     },
     {
       "id": "t12",
-      "name": "Junção",
-      "s_start_m": 3141.0,
-      "apex_s_m": 3252.0,
-      "s_end_m": 3255.0,
+      "name": "Jun\u00e7\u00e3o",
+      "s_start_m": 3134.0,
+      "apex_s_m": 3255.0,
+      "s_end_m": 3284.0,
       "apex_side": "left",
       "apex_side_source": "manual",
       "target_throttle_pct": 51
     },
     {
       "id": "t13",
-      "name": "turn 13",
+      "name": "Caf\u00e9",
       "s_start_m": 3391.0,
       "apex_s_m": 3391.0,
       "s_end_m": 3391.0,
@@ -143,6 +143,16 @@
       "s_start_m": 3680.0,
       "apex_s_m": 3680.0,
       "s_end_m": 3680.0,
+      "apex_side": "left",
+      "apex_side_source": "manual",
+      "target_throttle_pct": 100
+    },
+    {
+      "id": "t15",
+      "name": "Arquibancadas",
+      "s_start_m": 4020.0,
+      "apex_s_m": 4020.0,
+      "s_end_m": 4020.0,
       "apex_side": "left",
       "apex_side_source": "manual",
       "target_throttle_pct": 100
