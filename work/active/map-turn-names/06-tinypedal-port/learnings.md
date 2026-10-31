@@ -84,3 +84,30 @@
   pixmap has alpha 30–120, so a `luminance = colour x alpha` ramp shows it as
   nearly blank. Count pixels by alpha instead of eyeballing a ramp; that is what
   finally distinguished "no labels in the file" from "labels too faint for my dump".
+
+- **60 % larger type is not free, and the price is worth measuring before the
+  user asks.** Growing the widget's type from 7.4 to 11.8 px keeps 170/173
+  corners labelled and 126/136 names at the default 400 px map (three crowded
+  corners on Silverstone GP and Paul Ricard 1A-V2 lose their label, because
+  overlapping is a hard rule). Nothing else regressed. The escape hatch is
+  `area_size`: at 600 px the widget font cap of 15 px kicks in and everything
+  fits again (173/173, 133/136). Both numbers are now asserted in
+  `tests/test_turn_labels_render.py`, so a future change to the ratio cannot
+  quietly cost more.
+
+- **A larger font made the halo worse, not better.** At 11.8 px the 0.16 em halo
+  cost **+86 % ink** (it was +49 % at 7.4 px). The sweep at the new size
+  (0.04 em +15 %, 0.06 em +22 %, 0.08 em +29 %, 0.10 em +46 %) pointed at a single
+  0.06 em rule for every size, which also removed the two-branch special case.
+
+- **The widget's font cap accidentally protects coverage.** The render test
+  measured type without it and lost two more labels (19.1 px type at a 520 px
+  map) than the widget actually draws (15 px). Tests that mirror the widget must
+  mirror its caps too.
+
+- **Parity caught the divergence the moment it appeared.** With the widget's
+  `font_scale` at 1.6, the JS and Python plans differed by 17 px of geometry —
+  and the test still said PASS, because it compared text and side but never
+  asserted the geometry delta. It now feeds an explicit identical config to both
+  planners (the rule is shared; the presentation constants are not) and fails on
+  any delta above 1e-9.

@@ -34,6 +34,22 @@ const ANCHORS = [
 ];
 
 // Deliberately tight so the search has to degrade text and change sides.
+// The two apps SHARE the rule but not every presentation constant: the TinyPedal
+// widget draws 1.6x larger type because its map is 100-400 px (see its
+// turn_labels.TURN_LABEL_CONFIG["font_scale"]). Parity is therefore checked with
+// an explicit, identical config on both sides - otherwise this test would be
+// comparing two different designs instead of one rule implemented twice.
+const SHARED_CONFIG = {
+  fontRatio: 0.023,
+  fontMin: 5,
+  fontMax: 18,
+  gapRatio: 0.75,
+  alongCapFont: 2.4,
+  normalCapMap: 0.04,
+  nudgeSteps: [0, 1.2, -1.2, 2.4, -2.4],
+  smallMapPx: 150,
+};
+
 const CASES = [
   // `scale` fits the same anchor layout onto each map, so the tight cases really
   // exercise degradation, side swaps and drops in both implementations.
@@ -80,6 +96,7 @@ async function planInJs(caseSpec) {
     mapWidth: caseSpec.width,
     mapHeight: caseSpec.height,
     measure,
+    cfg: SHARED_CONFIG,
   });
   return plan.labels.map(l => ({
     text: l.text, x: l.x, y: l.y, w: l.w, h: l.h, side: l.side,
@@ -90,7 +107,16 @@ function planInPython(binary, caseSpec) {
   const script = `
 import json, sys
 sys.path.insert(0, ${JSON.stringify(TINYPedal)})
-from tinypedal.turn_labels import TurnAnchor, plan_turn_labels
+from tinypedal.turn_labels import TURN_LABEL_CONFIG, TurnAnchor, plan_turn_labels
+
+shared = dict(TURN_LABEL_CONFIG)
+shared.update(font_ratio=${SHARED_CONFIG.fontRatio}, font_scale=1.0,
+              font_min=${SHARED_CONFIG.fontMin}, font_max=${SHARED_CONFIG.fontMax},
+              gap_ratio=${SHARED_CONFIG.gapRatio},
+              along_cap_font=${SHARED_CONFIG.alongCapFont},
+              normal_cap_map=${SHARED_CONFIG.normalCapMap},
+              nudge_steps=${JSON.stringify(SHARED_CONFIG.nudgeSteps)},
+              small_map=${SHARED_CONFIG.smallMapPx})
 
 anchors = [TurnAnchor(number=a["number"], name=a["name"], short_name=a["short_name"],
                       x=a["x"], y=a["y"], normal_x=a["nx"], normal_y=a["ny"],
@@ -107,7 +133,8 @@ def measure(text, size):
 
 placed, _dropped = plan_turn_labels(anchors, ${caseSpec.mapSize}, measure,
                                     map_width=${caseSpec.width},
-                                    map_height=${caseSpec.height})
+                                    map_height=${caseSpec.height},
+                                    config=shared)
 print(json.dumps([{"text": l.text, "x": l.x, "y": l.y,
                    "w": l.width, "h": l.height, "side": l.side} for l in placed]))
 `;
@@ -148,8 +175,9 @@ print(json.dumps([{"text": l.text, "x": l.x, "y": l.y,
       worst = Math.max(worst, Math.abs(a.x - b.x), Math.abs(a.y - b.y),
         Math.abs(a.w - b.w), Math.abs(a.h - b.h));
     }
-    check(`${caseSpec.name}: identical text, side and geometry`, mismatch === null,
-      mismatch || `max delta ${worst.toFixed(9)} px`);
+    check(`${caseSpec.name}: identical text and side`, mismatch === null, mismatch || '');
+    check(`${caseSpec.name}: identical geometry`, worst < 1e-9,
+      `max delta ${worst.toFixed(9)} px`);
     check(`${caseSpec.name}: labels are actually produced`, js.length > 0, `${js.length} labels`);
   }
 

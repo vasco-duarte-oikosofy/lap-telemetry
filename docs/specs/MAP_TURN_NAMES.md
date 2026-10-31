@@ -316,16 +316,30 @@ together with the anchor, so a rotated map keeps its labels attached.
 
 ### Type size and halo
 
-`fontSize = min(clamp(mapSize * 0.023, 5, 18), widget font_size)` — the map
-decides, the user's widget font is only an upper bound. At the default
-`area_size` 400 / `area_margin` 40 that is 7.4 px.
+`fontSize = min(clamp(mapSize * 0.023 * 1.6, 5, 18), widget font_size)` — the map
+decides, the user's widget font is only an upper bound. The `1.6` is the one
+presentation constant that differs from the compare app: the widget's map is
+100–400 px against the app's 500–950 px, and the same ratio gave 7 px type, which
+is too small to read on an overlay. At the default `area_size` 400 /
+`area_margin` 40 with the default `font_size` 15 that is **11.8 px**.
 
-The halo pen is centred on the glyph outline and Qt hint-rounds stems to ~1 px
-below 10 px type, so a proportional halo is wrong down there: measured on the
-real Monza labels at 7.4 px, 0.16 em fattens the glyphs by **+49 % ink** (letters
-blur into blobs), 0.08 em by +30 %, 0.05 em by +20 %. The widget therefore uses
-`0.05 em` below 10 px and `0.16 em` above it, and a test fails above 25 %
-inflation.
+The cost of the larger type is measurable and accepted: at 400 px, **170/173**
+corners still get a label and **126/136** named corners keep their name (three
+crowded corners on Silverstone GP and Paul Ricard 1A-V2 drop their label, because
+overlapping is a hard rule). At `area_size` 600 the widget font cap of 15 px
+applies instead and **173/173** corners and 133/136 names fit again.
+
+The halo pen is centred on the glyph outline, so it competes with the stems; Qt
+hint-rounds stems to about 1 px, which is why the compare app's 0.16 em halo is
+fine at its 13 px but blurs these labels. Measured on the real Monza labels:
+
+| halo | ink growth at 7.4 px | at 11.8 px |
+|---|---|---|
+| 0.16 em | +49 % | +86 % |
+| 0.08 em | +30 % | +29 % |
+| 0.06 em | +22 % | **+22 %** |
+
+0.06 em at every size, and a test fails above 25 % inflation.
 
 ### Options
 
