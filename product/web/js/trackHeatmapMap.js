@@ -15,6 +15,16 @@ import {
 } from './trackHeatmapDrawing.js';
 
 import { findOutlineByTrackName, drawStaticTrackOutline } from './trackOutlineManifest.js';
+import { drawTurnLabels, clearTurnLabels } from './turnLabelsRender.js';
+
+// Label colour follows the theme, with the dark page background as halo.
+function labelColor() {
+  const styles = getComputedStyle(document.documentElement);
+  return {
+    color: styles.getPropertyValue('--text').trim() || '#c9d1d9',
+    haloColor: styles.getPropertyValue('--bg').trim() || 'rgba(13, 17, 23, 0.9)',
+  };
+}
 
 let _lastTransform = null;
 export function getLastTransform() { return _lastTransform; }
@@ -187,6 +197,23 @@ export function renderWalkingSkeleton(canvas, lapA, lapB, options = {}) {
   // Find the first valid point
   if (lapA.x.length > 0 && lapA.z.length > 0) {
     drawStartFinishTick(ctx, lapA.x[0], lapA.z[0], transform);
+  }
+
+  // Turn labels (map-turn-names): painted last so they stay legible on top of
+  // the ribbons. They are a property of the layout, not of the laps.
+  if (options.showTurnLabels) {
+    const labelOutline = findOutlineByTrackName(trackName);
+    if (labelOutline?.turns?.length) {
+      drawTurnLabels(ctx, labelOutline, transform, {
+        width: rect.width,
+        height: rect.height,
+        ...labelColor(),
+      });
+    } else {
+      clearTurnLabels();
+    }
+  } else {
+    clearTurnLabels();
   }
 
   // Phase 04: draw hover tick across both ribbons

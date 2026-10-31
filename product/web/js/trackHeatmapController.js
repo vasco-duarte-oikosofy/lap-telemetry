@@ -64,6 +64,7 @@ export function createTrackHeatmapController(getMapState, resetChartZoom = null)
       userPanX: s.tx,
       userPanY: s.ty,
       showStaticOutline: true,
+      showTurnLabels: !!features.mapTurnLabels,
       trackName: currentTrackName,
       autoZoomBounds,
     };

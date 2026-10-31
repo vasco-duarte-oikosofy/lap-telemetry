@@ -17,6 +17,10 @@ export function installDebugHooks(deps) {
   } = deps;
 
   window.__features = features;
+  window.__turnLabels = async () => {
+    const mod = await import('./turnLabelsRender.js');
+    return { labels: mod.getLastTurnLabels(), dropped: mod.getLastDroppedTurns() };
+  };
   window.__devFeatures = devFeatures;
   window.__getSessionKeys = () => [...store.keys()];
   window.__getSessionData = key => store.get(key)?.data || null;

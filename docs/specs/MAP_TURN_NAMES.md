@@ -177,6 +177,26 @@ Labels render into a dedicated `<g id="track-turn-labels">` group above the
 outline and below the zoom arc, with `pointer-events: none`, plus a dot at each
 apex and a hairline from the dot to its text.
 
+### Where labels are drawn (implementation note)
+
+The compare app draws its circuit map on **`<canvas id="track-heatmap-canvas">`**
+— the SVG twin is hidden ("static outline always prefers canvas") — so the
+labels are painted on the canvas too, inside `renderWalkingSkeleton()`, right
+after the polylines and the start/finish tick. Consequences that are easy to get
+wrong:
+
+- **Measure text with canvas metrics, not `getBBox()`.** The SVG is
+  `display: none` in the default path, and `getBBox()` then reports 0×0 for every
+  label, which silently empties the map.
+- **The viewport is not square** (e.g. 650×514). `mapSize` sizes the text and the
+  caps (it is `min(width, height)`), but the bounds check must use the real width
+  and height, otherwise every label on the right of the map is rejected.
+- **The track name can be `null` on some render paths.** A missing name must
+  leave the existing labels alone (skip), never clear them — the cursor-driven
+  re-render calls the map without a name.
+- Labels are painted with a halo (`strokeText` then `fillText`) so they stay
+  readable where they cross the ribbon, which the placement rule allows.
+
 ### Measured with this algorithm
 
 Zero string overlaps, every label inside the viewBox, every label beside its

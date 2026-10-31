@@ -1,0 +1,16 @@
+{
+  "schema_version": "2",
+  "recorder_version": "0.1.0a1",
+  "started_utc": "2026-10-31T05:12:45Z",
+  "ended_utc": "2026-10-31T05:24:18Z",
+  "sim": "lmu",
+  "track": "Silverstone International Circuit",
+  "vehicle_name": "Vista AF Corse 2026 #21:LM",
+  "setup_file_guess": null,
+  "session_type_label": "quali",
+  "sample_rate_hz": 50.0,
+  "row_count": 6286,
+  "lap_count": 2,
+  "in_progress": false,
+  "note": "Test fixture: the two fastest complete laps sliced from session_20261031T051245Z_silverstone-international-circuit_lmu_quali.parquet, so UI tests have real pos_x_m/pos_z_m geometry for a track with baked turn labels."
+}

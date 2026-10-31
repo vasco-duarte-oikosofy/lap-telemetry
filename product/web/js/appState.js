@@ -79,6 +79,7 @@ export const features = {
   apexAnnotations: false,          // Track outline Phase 03 - apex annotation loading
   apexMetrics: false,              // Track outline Phase 04 - in-memory apex metrics
   apexMetricsUi: false,            // Track outline Phase 05 - text-only apex metrics UI
+  mapTurnLabels: true,             // map-turn-names - T<n> <name> labels on the circuit map
 
 };
 

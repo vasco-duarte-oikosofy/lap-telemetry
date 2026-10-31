@@ -635,13 +635,203 @@ var init_appState = __esm({
       // Track outline Phase 03 - apex annotation loading
       apexMetrics: false,
       // Track outline Phase 04 - in-memory apex metrics
-      apexMetricsUi: false
+      apexMetricsUi: false,
       // Track outline Phase 05 - text-only apex metrics UI
+      mapTurnLabels: true
+      // map-turn-names - T<n> <name> labels on the circuit map
     };
     devFeatures = {
       devMapSAlignmentDebug: false
       // Phase 01b - debug tick overlay
     };
+  }
+});
+
+// product/web/js/turnLabels.js
+function fontSizeFor(mapSize, cfg = TURN_LABEL_CONFIG) {
+  return Math.max(cfg.fontMin, Math.min(cfg.fontMax, mapSize * cfg.fontRatio));
+}
+function turnLabelTexts(turn, mapSize, cfg = TURN_LABEL_CONFIG) {
+  const name = turn.short_name || turn.name;
+  const out = [];
+  if (name) {
+    out.push(`T${turn.number} ${name}`);
+    if (mapSize < cfg.smallMapPx) out.push(`${turn.number} ${name}`);
+  }
+  out.push(`T${turn.number}`);
+  return [...new Set(out)];
+}
+function planTurnLabels({
+  turns,
+  toMapX,
+  toMapZ,
+  mapSize,
+  measure,
+  mapWidth = mapSize,
+  mapHeight = mapSize,
+  cfg = TURN_LABEL_CONFIG
+}) {
+  const fontSize = fontSizeFor(mapSize, cfg);
+  const gapPx = fontSize * cfg.gapRatio;
+  const alongCap = cfg.alongCapFont * fontSize;
+  const normalCap = Math.min(cfg.alongCapFont * fontSize, cfg.normalCapMap * mapSize);
+  const placed = [];
+  const dropped = [];
+  turns.forEach((turn, index) => {
+    const ax = toMapX(turn.x);
+    const ay = toMapZ(turn.z ?? turn.y);
+    const preferred = index % 2 === 0 ? 1 : -1;
+    const sides = [preferred, -preferred];
+    const nScreen = { x: turn.outward[0], y: -turn.outward[1] };
+    const tScreen = { x: turn.tangent[0], y: -turn.tangent[1] };
+    const candidates = [];
+    turnLabelTexts(turn, mapSize, cfg).forEach((text, textIdx) => {
+      const { w, h } = measure(text, fontSize);
+      sides.forEach((side, sideIdx) => {
+        const nx = nScreen.x * side;
+        const ny = nScreen.y * side;
+        cfg.nudgeSteps.forEach((step, nudgeIdx) => {
+          const along = nudgeIdx % 2 === 1;
+          const cap = along ? alongCap : normalCap;
+          const d = step / cfg.alongCapFont * cap;
+          const anchorX = ax + nx * gapPx + (along ? tScreen.x * d : nx * d);
+          const anchorY = ay + ny * gapPx + (along ? tScreen.y * d : ny * d);
+          candidates.push({
+            turn: index,
+            number: turn.number,
+            text,
+            textIdx,
+            sideIdx,
+            nudgeIdx,
+            side,
+            apexX: ax,
+            apexY: ay,
+            // Grow the box away from the track, on the side the label sits.
+            x: nx > 0.35 ? anchorX : nx < -0.35 ? anchorX - w : anchorX - w / 2,
+            y: ny > 0.35 ? anchorY : ny < -0.35 ? anchorY - h : anchorY - h / 2,
+            w,
+            h
+          });
+        });
+      });
+    });
+    const fit = candidates.find((c) => c.x >= 0 && c.y >= 0 && c.x + c.w <= mapWidth && c.y + c.h <= mapHeight && !placed.some((p) => overlaps(c, p)));
+    if (fit) {
+      placed.push(fit);
+      return;
+    }
+    dropped.push({ number: turn.number, text: candidates.length ? candidates[0].text : `T${turn.number}` });
+  });
+  return { labels: placed, dropped, fontSize };
+}
+function overlaps(a, b) {
+  const x = Math.min(a.x + a.w, b.x + b.w) - Math.max(a.x, b.x);
+  const y = Math.min(a.y + a.h, b.y + b.h) - Math.max(a.y, b.y);
+  return x > 0 && y > 0;
+}
+var TURN_LABEL_CONFIG;
+var init_turnLabels = __esm({
+  "product/web/js/turnLabels.js"() {
+    TURN_LABEL_CONFIG = {
+      fontRatio: 0.023,
+      // fontSize = clamp(mapSize * fontRatio, fontMin, fontMax)
+      fontMin: 5,
+      // 5.75 px at the 250 px map
+      fontMax: 8,
+      gapRatio: 0.75,
+      // label gap from the track: fontSize * gapRatio
+      alongCapFont: 2.4,
+      // max slide ALONG the track, in font sizes
+      normalCapMap: 0.04,
+      // max move AWAY from the track, as a fraction of map size
+      nudgeSteps: [0, 1.2, -1.2, 2.4, -2.4],
+      // in units of the cap
+      smallMapPx: 150
+      // below this, also try "<n> <name>" (drops the "T")
+    };
+  }
+});
+
+// product/web/js/turnLabelsRender.js
+var turnLabelsRender_exports = {};
+__export(turnLabelsRender_exports, {
+  canvasMeasure: () => canvasMeasure,
+  clearTurnLabels: () => clearTurnLabels,
+  drawTurnLabels: () => drawTurnLabels,
+  fontSizeFor: () => fontSizeFor,
+  getLastDroppedTurns: () => getLastDroppedTurns,
+  getLastTurnLabels: () => getLastTurnLabels
+});
+function canvasMeasure(ctx) {
+  const cache = /* @__PURE__ */ new Map();
+  return (text, fontSize) => {
+    const key = `${fontSize}|${text}`;
+    const hit = cache.get(key);
+    if (hit) return hit;
+    ctx.font = `${FONT_WEIGHT} ${fontSize}px ${FONT_STACK}`;
+    const base = ctx.measureText(text).width;
+    const result = {
+      w: Math.max(0, base + LETTER_SPACING_PX * Math.max(0, text.length - 1)),
+      h: fontSize * LINE_HEIGHT_EM
+    };
+    cache.set(key, result);
+    return result;
+  };
+}
+function getLastTurnLabels() {
+  return lastLabels.map((l) => ({ ...l }));
+}
+function getLastDroppedTurns() {
+  return lastDropped.map((d) => ({ ...d }));
+}
+function clearTurnLabels() {
+  lastLabels = [];
+  lastDropped = [];
+}
+function drawTurnLabels(ctx, outline, transform, view) {
+  const turns = outline?.turns;
+  if (!Array.isArray(turns) || turns.length === 0 || !transform) {
+    clearTurnLabels();
+    return { labels: 0, dropped: 0 };
+  }
+  const mapSize = Math.min(view.width, view.height);
+  const plan = planTurnLabels({
+    turns,
+    toMapX: transform.toScreenX,
+    toMapZ: transform.toScreenY,
+    mapSize,
+    mapWidth: view.width,
+    mapHeight: view.height,
+    measure: canvasMeasure(ctx)
+  });
+  ctx.save();
+  ctx.font = `${FONT_WEIGHT} ${plan.fontSize}px ${FONT_STACK}`;
+  ctx.textAlign = "left";
+  ctx.textBaseline = "top";
+  ctx.lineJoin = "round";
+  ctx.lineWidth = HALO_PX;
+  ctx.strokeStyle = view.haloColor || "rgba(13, 17, 23, 0.9)";
+  ctx.fillStyle = view.color || "#c9d1d9";
+  for (const label of plan.labels) {
+    ctx.strokeText(label.text, label.x, label.y);
+    ctx.fillText(label.text, label.x, label.y);
+  }
+  ctx.restore();
+  lastLabels = plan.labels;
+  lastDropped = plan.dropped;
+  return { labels: plan.labels.length, dropped: plan.dropped.length };
+}
+var FONT_WEIGHT, FONT_STACK, LETTER_SPACING_PX, LINE_HEIGHT_EM, HALO_PX, lastLabels, lastDropped;
+var init_turnLabelsRender = __esm({
+  "product/web/js/turnLabelsRender.js"() {
+    init_turnLabels();
+    FONT_WEIGHT = 600;
+    FONT_STACK = 'Inter, "Segoe UI", Arial, sans-serif';
+    LETTER_SPACING_PX = -0.1;
+    LINE_HEIGHT_EM = 1.15;
+    HALO_PX = 1.6;
+    lastLabels = [];
+    lastDropped = [];
   }
 });
 
@@ -1952,6 +2142,14 @@ function drawDebugTicks(ctx, lap, transform, color, labelPrefix) {
 }
 
 // product/web/js/trackHeatmapMap.js
+init_turnLabelsRender();
+function labelColor() {
+  const styles = getComputedStyle(document.documentElement);
+  return {
+    color: styles.getPropertyValue("--text").trim() || "#c9d1d9",
+    haloColor: styles.getPropertyValue("--bg").trim() || "rgba(13, 17, 23, 0.9)"
+  };
+}
 var _lastTransform = null;
 function getLastTransform() {
   return _lastTransform;
@@ -2066,6 +2264,20 @@ function renderWalkingSkeleton(canvas, lapA, lapB, options = {}) {
   }
   if (lapA.x.length > 0 && lapA.z.length > 0) {
     drawStartFinishTick(ctx, lapA.x[0], lapA.z[0], transform);
+  }
+  if (options.showTurnLabels) {
+    const labelOutline = findOutlineByTrackName(trackName);
+    if (labelOutline?.turns?.length) {
+      drawTurnLabels(ctx, labelOutline, transform, {
+        width: rect.width,
+        height: rect.height,
+        ...labelColor()
+      });
+    } else {
+      clearTurnLabels();
+    }
+  } else {
+    clearTurnLabels();
   }
   if (options.showHover && options.hoverState) {
     drawHoverTick(ctx, options.hoverState, transform, ribbonWidthPx, ribbonGapPx);
@@ -2512,6 +2724,7 @@ function createTrackHeatmapController(getMapState2, resetChartZoom2 = null) {
       userPanX: s.tx,
       userPanY: s.ty,
       showStaticOutline: true,
+      showTurnLabels: !!features.mapTurnLabels,
       trackName: currentTrackName2,
       autoZoomBounds
     };
@@ -3652,6 +3865,10 @@ function installDebugHooks(deps) {
     renderTrackHeatmapMap: renderTrackHeatmapMap2
   } = deps;
   window.__features = features2;
+  window.__turnLabels = async () => {
+    const mod = await Promise.resolve().then(() => (init_turnLabelsRender(), turnLabelsRender_exports));
+    return { labels: mod.getLastTurnLabels(), dropped: mod.getLastDroppedTurns() };
+  };
   window.__devFeatures = devFeatures2;
   window.__getSessionKeys = () => [...store2.keys()];
   window.__getSessionData = (key) => store2.get(key)?.data || null;
