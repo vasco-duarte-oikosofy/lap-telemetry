@@ -62,3 +62,46 @@ label boxes with `getBoundingClientRect()` in the same page, then report
 numbers caught two things the images alone would have made ambiguous
 (clipping, and the fact that "clearance ≈ 0" means the text box starts at the
 ribbon edge, not that it overlaps the track).
+
+---
+
+# v2 — after the first review
+
+The review rejected v1 on three points: type too large, labels detached from
+their corner (T3 was 26 px away on the 120 px map), and any string overlap.
+"Closest to what I want" was the **raw** placement, not the resolved one — i.e.
+the corner-anchored geometry was right, the type and the collision handling were
+not. Rules that came out of it:
+
+- **`FONT_RATIO 0.023`** (5.75 px at 250 px, ~30 % down from 0.033). This alone
+  removed most collisions: labels got ~30 % narrower before any other change.
+- **Adjacency budget instead of a push budget.** v1 pushed along the normal for
+  up to 26 px, which is what threw labels off their corners. v2 caps total
+  displacement at `2.4 x fontSize` (≈14 px) and tries **along-track** nudges
+  first, so a crowded label slides *beside* its corner rather than away from it.
+- **Drop the ribbon-clearance constraint.** Requiring 2 px of clearance from the
+  track was the reason labels fled the map centre. Crossed strings are fine; a
+  label 20 px from its apex is not.
+- **`short_name` is a schema field, not a rendering heuristic.** Auto-stripping
+  official names fails (`Curva Grande` -> `Grande`), and the coach must keep
+  speaking the official name, so the map gets its own curated field.
+
+Placement result with all four changes (250 px): 8/8 and 10/10 labels, zero
+overlaps, every box within 2.9-4.0 px of its apex on average, and only 2-3 of 10
+labels needing the smallest nudge.
+
+## Pitfall: `pathlib.write_text` truncates before it encodes
+
+A python one-liner that did `p.write_text(s)` hit a `cp1252` `UnicodeEncodeError`
+on a `≈` character **after** the file had been truncated — the spec was left at
+0 bytes and had to be restored with `git checkout`. On this machine: pass
+`encoding='utf-8'` (or set `PYTHONIOENCODING=utf-8`) for any file containing
+non-ASCII.
+
+## Pitfall: `display:none` has no bounding box
+
+The candidate-position search measures every candidate with
+`getBoundingClientRect()`. Hidden candidates with `display:none` measure `0x0`,
+so every candidate looked "inside the viewBox" and then every label was dropped
+by the overlap test — the first v2 run showed `shown=0/8`. Use
+`visibility:hidden`, which keeps layout and measurement intact.

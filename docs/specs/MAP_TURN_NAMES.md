@@ -165,9 +165,10 @@ Therefore:
   no hard-coded 250, no CSS-dependent measurements;
 - font size and gap must **scale with the map**, with a floor for the small
   TinyPedal map (where a 250 px layout would leave labels unreadable);
-- every constant (`0.033`, the clamp range, the gap ratio) and every declutter
-  decision is recorded in the slice `learnings.md` with the map size it was
-  validated at, so the port does not have to rediscover them.
+- every constant (`0.023` font ratio, the 5-8 px clamp range, the 0.75 gap
+  ratio, the adjacency budget) and every placement decision is recorded in the
+  slice `learnings.md` with the map size it was validated at, so the port does
+  not have to rediscover them.
 
 ## Non-goals
 

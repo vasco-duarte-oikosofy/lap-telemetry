@@ -1,45 +1,46 @@
 # Handoff — Slice 01 (turn label placement spike)
 
-**Status: awaiting user review of the images.** No product code was touched;
-`product/` is byte-identical to the previous commit.
+**Status: v2 on disk, awaiting review.** No product code touched.
 
-## What is on disk (all under `artifacts/`)
+## v2 rules (from the review of v1)
 
-| File | What it is |
+- Type **30 % smaller**: `fontSize = clamp(mapSize * 0.023, 5, 8)` → 5.75 px at
+  250 px (was 8.25 px).
+- **Labels stay on their corner**: max displacement `2.4 × fontSize` (≈14 px),
+  along-track nudges preferred over pushing away from the track; the
+  ribbon-clearance constraint is gone, so labels may cross the track.
+- **Strings never overlap**: 10 candidate positions per label (5 nudges × full
+  text / number only), first non-overlapping and fully-visible candidate wins;
+  drop only if all fail. Nothing was dropped in either probe track.
+- **`short_name`** added to the schema (`docs/specs/MAP_TURN_NAMES.md`) —
+  display-only, curated, `name` untouched for the coach.
+
+## Review set (`artifacts/`)
+
+| File | What to look at |
 |---|---|
-| `bake_anchors.py` | Bakes `apex_s_m` → world `x,y` + outward normal + label anchor. Unwrap-aware (see learnings). Prototype of slice 02's bake step. |
-| `render_labels.mjs` | Playwright renderer + measurement (`overlaps / clipped / clearance / dropped`), writes PNGs and `overlap-report.json`. Prototype of slice 03's layout math. |
-| `anchors-<slug>.json` | Baked anchors for `silverstone-international-circuit` (8 turns) and `monza-curva-grande-circuit` (10 turns) — the proposed `turns` block shape. |
-| `labels-<slug>-<tag>.png` | 7 configs × 2 tracks at `deviceScaleFactor 3`. The review set. |
-| `ALGORITHM.md` | The algorithm, every constant, the measurement tables and the slice 02/03 recommendation. |
-| `overlap-report.json` | Machine-readable version of the tables (per-label widths and clearances). |
+| `labels-monza-curva-grande-circuit-250.png` | 10/10 labels, short names, 0 overlaps, all within ~4 px of the apex |
+| `labels-silverstone-international-circuit-250.png` | 8/8 labels, 0 overlaps |
+| `labels-monza-curva-grande-circuit-120.png` | TinyPedal-sized map, still 10/10 |
+| `labels-silverstone-international-circuit-120.png` | 8/8 |
+| `labels-*-120-nofloor.png` | same with the 5 px font floor off (2.76 px) — this is what a 120 px map really has room for |
 
-## Review order (suggested)
+Orange dots mark the apexes; hairlines join a dot to its label so adjacency is
+visible. `placement-report.json` has per-label text, nudge index and
+apex→box distance; `ALGORITHM.md` has the tables and every constant.
 
-1. `labels-silverstone-international-circuit-00-250-raw-official.png` — the raw
-   placement: 1 overlap and 2 clipped labels.
-2. `...-08-250-push-short.png` — after push/clamp/drop with short names: 7 of 8
-   shown, nothing clipped, nothing overlapping.
-3. `...-10-250-numbers.png` — numbers-only at the same size: all 8 shown.
-4. `labels-monza-curva-grande-circuit-00-250-raw-official.png` vs
-   `...-00b-250-raw-short.png` — the long-name problem (113 px → 60 px widest).
-5. `...-11-120-numbers.png` vs `...-09-120-push-short.png` — the TinyPedal-sized
-   map: names collapse (5 of 10), numbers hold (7 of 10).
+## Decisions still open
 
-## Decisions the review needs to settle
+1. **Chained sub-turns** (Roggia 1/2, Ascari 1/2/3): v2 shows all of them by
+   nudging, so the `chain_id` / one-label-per-chain idea from v1 is no longer
+   needed — confirm that reading.
+2. **120 px behaviour**: names do fit now (10/10 at font 5), but the min gap
+   between labels drops to 0.2 px. Prefer `T<n>`-only below ~150 px as a safety
+   margin?
+3. Font at 250 px (5.75) — smaller still, or keep?
 
-1. **Chained sub-turns**: accept dropping 1–2 labels per chicane complex, or add
-   a bake-time `chain_id` and render one label per chain (`Roggia`, `Ascari`)?
-   Recommendation: `chain_id`.
-2. **`short_name`**: add the curated field to the `turns` schema (recommended),
-   or render official names and accept 113 px labels?
-3. **Degradation thresholds**: `≥200 px` names, `150–200 px` short names at
-   `fontRatio 0.026`, `<150 px` numbers only — confirm.
+## Not done
 
-## Still open (not started)
-
-- Slices 02–05 in `PLAN.md` (schema + preservation guard, renderer + flag,
-  backfill, declutter).
-- The spike does not cover: label rotation, per-lap label positions (anchors are
-  static), heatmap-mode legibility, or the National/GP Silverstone outlines (no
-  outline yet for those).
+- Slices 02–05 (schema + preservation guard, renderer + flag, backfill).
+- Anchors are static per layout; no per-lap positions, no rotation, no heatmap
+  specifics.

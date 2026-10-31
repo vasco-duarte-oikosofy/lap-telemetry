@@ -33,9 +33,9 @@ def _project_root(start: Path) -> Path:
 ROOT = _project_root(Path(__file__).resolve())
 MAP_SIZE = 250.0          # canonical compare-app map (pipeline.js buildTrackTransform)
 MAP_PAD = 20.0            # pipeline.js PAD
-FONT_RATIO = 0.033        # fontSize = clamp(map_size * FONT_RATIO, 6, 11)
-FONT_MIN, FONT_MAX = 6.0, 11.0
-GAP_RATIO = 0.9           # gap_px = fontSize * GAP_RATIO
+FONT_RATIO = 0.023        # fontSize = clamp(map_size * FONT_RATIO, 5, 8)
+FONT_MIN, FONT_MAX = 5.0, 8.0
+GAP_RATIO = 0.75          # gap_px = fontSize * GAP_RATIO (adjacency)
 
 # Spike-only: short display names for official names too long to fit on a
 # 250 px map. The real fix is a curated `short_name` field (slice 02 proposal);
@@ -172,6 +172,7 @@ def bake(slug: str, ref_parquet: Path, model_path: Path, outline_path: Path) -> 
             "x": round(x, 3),
             "y": round(y, 3),
             "outward": [round(nx, 4), round(ny, 4)],
+            "tangent": [round(tx, 4), round(ty, 4)],
             "label_x": round(x + nx * gap_world, 3),
             "label_y": round(y + ny * gap_world, 3),
         })
