@@ -275,3 +275,68 @@ Therefore:
 - Deriving names from telemetry (names are curated data, always).
 - Curating names for tracks that do not have them yet — that stays a data task
   in the coaching-model pipeline.
+
+## The TinyPedal port (`../tinypedal`)
+
+The same labels are drawn by TinyPedal's Qt track map widget, which is a
+different painter, a different coordinate system and a much smaller map
+(100–400 px). The layout rule is shared; only the plumbing differs.
+
+### Data: distance, not coordinates
+
+Our corners are in LMU world coordinates. TinyPedal draws its **own** recorded
+map polyline (`minfo.mapping.coordinates`), so the two code bases share no
+coordinate system — the only common quantity is the distance along the lap.
+`dev/scripts/export_turn_labels_for_tinypedal.py` therefore writes, per track:
+
+```json
+{ "schema_version": 1, "track_name": "Silverstone International Circuit",
+  "lap_length_m": 2934.769,
+  "turns": [{ "number": 1, "name": "Abbey", "short_name": null,
+              "apex_s_m": 312.0, "s_frac": 0.10631 }] }
+```
+
+to `tinypedal/tinypedal/data/turn_labels/<Track Name>.turns.json` (the file name
+is the TinyPedal track map name; matching ignores accents, case and punctuation).
+The folder must ship inside the package because TinyPedal's `.gitignore` excludes
+`/trackmap/` and `*.json`; the data is re-included with a negation line.
+
+### Anchoring by accumulated geometry
+
+At runtime the widget interpolates `s_frac` into the recorded polyline by
+**accumulated length**, not by the SVG `dist` values. Those values are not
+reliable: several shipped maps store a `dist` polyline that runs backwards
+(Silverstone GP: 5865 m down to 5863 m), which collapsed every anchor onto the
+first node and produced 2/18 labels. Walking the geometry has no such failure
+mode and needs nothing but the polyline.
+
+Normals are derived the same way as in the bake (perpendicular to the tangent,
+flipped away from the map centroid), then rotated by `display_orientation`
+together with the anchor, so a rotated map keeps its labels attached.
+
+### Type size
+
+`fontSize = min(clamp(mapSize * 0.023, 5, 18), widget font_size)` — the map
+decides, the user's widget font is only an upper bound. At the default
+`area_size` 400 / `area_margin` 40 that is 7.4 px.
+
+### Options
+
+| Option | Default | Meaning |
+|---|---|---|
+| `show_turn_name` | `True` | draw the labels |
+| `turn_name_color` | `#CCCCCC` | text colour |
+| `turn_name_outline_color` | `#88000000` | halo (alpha `00` disables it) |
+
+### Tests (all headless, `QT_QPA_PLATFORM=offscreen`)
+
+| Script | What it proves |
+|---|---|
+| `tests/test_turn_labels.py` | the layout rule on synthetic tracks: tiers, alternating sides, both caps, no overlap, degradation, anchoring, loading |
+| `tests/test_turn_labels_render.py` | every shipped track: **173/173 corners labelled**, 0 overlaps, nothing off the canvas, 133/136 named corners keep their name, rotation-safe |
+| `tests/test_track_map_widget_labels.py` | the real widget class draws the labels: option on by default, one label per corner, fewer pixels when off, graceful without data |
+
+Cross-language parity is enforced from **this** repo: `dev/scripts/test_turn_labels_parity.js`
+feeds identical anchors and identical text metrics to the JS and Python planners
+and requires identical text, side and geometry (currently 0.0 px difference
+across four map sizes, including a 100 px map).
