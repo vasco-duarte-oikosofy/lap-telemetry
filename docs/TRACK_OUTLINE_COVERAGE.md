@@ -45,6 +45,7 @@ kerb or far from the outside wall.
 | Paul Ricard - 1A-V2-Short | `paul-ricard---1a-v2-short` | Trajectory | Single lap (lap 4, 1:38.774, 2026-09-19) | Constant 5m each side | ❌ No |
 | Michelin Raceway Road Atlanta | `michelin-raceway-road-atlanta` | Trajectory | Single lap (practice lap 15, 1:16.809, 2026-10-04; outline not regenerated after the race-lap reference refresh) | Constant 5m each side | ❌ No |
 | Monza Curva Grande Circuit | `monza-curva-grande-circuit` | Trajectory | Single lap (practice lap 12, 1:35.182, 2026-10-31) | Constant 5m each side | ❌ No |
+| Silverstone International Circuit | `silverstone-international-circuit` | Trajectory | Single lap (race lap 13, 1:02.909, 2026-10-31) | Constant 5m each side | ❌ No |
 
 ---
 
@@ -98,6 +99,7 @@ kerb or far from the outside wall.
 | Lusail International Circuit | ✅ Trajectory outline done; OSM extraction needed for real widths |
 | Sebring International Raceway | ✅ Trajectory outline done; OSM or satellite imagery for real widths |
 | Monza Curva Grande Circuit | ✅ Trajectory outline done; TUMFTM `Monza.csv` is the chicane layout, not this one. The trajectory tracks the TUMFTM Monza centreline within 5m everywhere except the missing Rettifilo chicane (~40m) |
+| Silverstone International Circuit | ✅ Trajectory outline done; TUMFTM `Silverstone.csv` is the GP layout. The short loop lies on GP tarmac (median 5.1m from the GP centreline) apart from one ~170m International-only link road (max 91m) |
 
 ---
 

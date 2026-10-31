@@ -28,6 +28,7 @@ import { DAYTONA_INTERNATIONAL_SPEEDWAY_ROAD_COURSE_STATIC_OUTLINE } from './sta
 import { WEATHERTECH_RACEWAY_LAGUNA_SECA_STATIC_OUTLINE } from './staticWeathertechRacewayLagunaSecaOutlineData.js';
 import { PAUL_RICARD___1A_V2_SHORT_STATIC_OUTLINE } from './staticPaulRicard1aV2ShortOutlineData.js';
 import { MICHELIN_RACEWAY_ROAD_ATLANTA_STATIC_OUTLINE } from './staticMichelinRacewayRoadAtlantaOutlineData.js';
+import { MONZA_CURVA_GRANDE_CIRCUIT_STATIC_OUTLINE } from './staticMonzaCurvaGrandeCircuitOutlineData.js';
 
 // slug normalization: lowercase, collapse whitespace to single dash,
 // transliterate accents via NFKD (ó→o, é→e), strip non-alnum/dash.
@@ -88,6 +89,8 @@ const OUTLINES = new Map([
   ['paul-ricard---1a-v2-short', PAUL_RICARD___1A_V2_SHORT_STATIC_OUTLINE],
   // Michelin Raceway Road Atlanta
   ['michelin-raceway-road-atlanta', MICHELIN_RACEWAY_ROAD_ATLANTA_STATIC_OUTLINE],
+  // Monza Curva Grande Circuit
+  ['monza-curva-grande-circuit', MONZA_CURVA_GRANDE_CIRCUIT_STATIC_OUTLINE],
 ]);
 
 /**
