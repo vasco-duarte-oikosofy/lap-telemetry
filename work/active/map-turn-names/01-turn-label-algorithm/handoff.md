@@ -1,6 +1,7 @@
 # Handoff — Slice 01 (turn label placement spike)
 
-**Status: v2 on disk, awaiting review.** No product code touched.
+**Status: ✅ closed — v2 reviewed and approved (commits `3a59e33`, `19ceb90`).**
+No product code was touched; `product/` is byte-identical.
 
 ## v2 rules (from the review of v1)
 
@@ -29,15 +30,15 @@ Orange dots mark the apexes; hairlines join a dot to its label so adjacency is
 visible. `placement-report.json` has per-label text, nudge index and
 apex→box distance; `ALGORITHM.md` has the tables and every constant.
 
-## Decisions still open
+## Decisions — settled in the v2 review
 
-1. **Chained sub-turns** (Roggia 1/2, Ascari 1/2/3): v2 shows all of them by
-   nudging, so the `chain_id` / one-label-per-chain idea from v1 is no longer
-   needed — confirm that reading.
-2. **120 px behaviour**: names do fit now (10/10 at font 5), but the min gap
-   between labels drops to 0.2 px. Prefer `T<n>`-only below ~150 px as a safety
-   margin?
-3. Font at 250 px (5.75) — smaller still, or keep?
+1. **No `chain_id`.** All chained sub-turns (Roggia 1/2, Ascari 1/2/3) are shown
+   by the nudges, so the one-label-per-chain idea from v1 is dropped. The data
+   model stays one entry per corner.
+2. **120 px needs no special rule.** Names fit at font 5; the 0.2 px tightest
+   gap was accepted, so no `T<n>`-only breakpoint by map size. Text still
+   degrades to `T<n>` per label when the candidate search cannot place the name.
+3. **Font sizes stay** at `FONT_RATIO 0.023` (5.75 px at 250 px, 5 px at 120).
 
 ## Not done
 

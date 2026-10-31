@@ -17,16 +17,19 @@ placement math must stay map-size agnostic so it can be ported to the
 
 | Slice | Status | Vertical outcome |
 |---|---|---|
-| `01-turn-label-algorithm` | 🔲 Not started | Offline spike: bake label anchors for two tracks, render a reviewable PNG at 250 px **and** at a small map size, write down the placement/declutter rules. No product code. |
-| `02-outline-turns-schema` | 🔲 Not started | `turns` block defined + baked into the Silverstone International outline JSON; validator rejects malformed turns; **every outline writer preserves an existing `turns` block** (guard test). No UI. |
-| `03-render-turn-labels` | 🔲 Not started | SVG `<g id="track-turn-labels">` group rendered by the map, `T<n> <name>` / `T<n>`, feature flag ON by default, DOM + Playwright acceptance. |
+| `01-turn-label-algorithm` | ✅ Done (`19ceb90`; approved after v2 review) | Offline spike: bake label anchors for two tracks, render reviewable PNGs at 250 px and 120 px, settle the placement rules. No product code. |
+| `02-outline-turns-schema` | 🔲 Not started | `turns` block (`id, number, name, short_name, apex_s_m, x, y, outward, tangent`) + bake tool + baked into the Silverstone International outline JSON; validator rejects malformed turns; **every outline writer preserves an existing `turns` block** (guard test). No UI. |
+| `03-render-turn-labels` | 🔲 Not started | SVG `<g id="track-turn-labels">` group rendered by the map, `T<n> <short_name>` / `T<n>`, adjacency budget + no-overlap candidate search, feature flag ON by default, DOM + Playwright acceptance. |
 | `04-backfill-tracks` | 🔲 Not started | Bake `turns` for every outline-covered track that has curated corner names (Monza Curva Grande, Road Atlanta, Daytona, Paul Ricard 3A, Algarve, …); unnamed corners get `T<n>` only. Visual QA per map size. |
-| `05-declutter` | 🔲 Not started | Only if slice 01/03 shows real overlap at 250 px: greedy rect suppression + font/gap tuning, validated at small map sizes. |
 
-**Completed:** none yet.
+**Completed:** slice 01 (placement algorithm spike).
 **In progress:** none.
 **Deferred / later missions:** label interaction (click-to-zoom, cursor
 linking), and the TinyPedal port in the sibling repo.
+
+**Retired:** a separate declutter slice — the no-overlap rule and the
+adjacency budget are part of the slice-03 layout algorithm itself (settled in
+the slice-01 review).
 
 ---
 
@@ -39,8 +42,8 @@ linking), and the TinyPedal port in the sibling repo.
 - Slice 02 before 03 so the renderer never invents data; the preservation guard
   lands in the same slice that starts putting curated content into the outline
   JSON.
-- Slice 04 is deliberately last-but-one: it is data work with visual QA, and it
-  is the point where the "no name → `T<n>`" rule gets exercised for real.
+- Slice 04 is deliberately last: it is data work with visual QA, and it is the
+  point where the "no name → `T<n>`" rule gets exercised for real.
 
 ## Known constraints carried from earlier missions
 
