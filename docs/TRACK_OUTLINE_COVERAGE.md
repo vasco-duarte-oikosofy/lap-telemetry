@@ -44,6 +44,7 @@ kerb or far from the outside wall.
 | WeatherTech Raceway Laguna Seca | `weathertech-raceway-laguna-seca` | Trajectory | Single lap (lap 4, 1:27.905, 2026-08-08) | Constant 5m each side | ❌ No |
 | Paul Ricard - 1A-V2-Short | `paul-ricard---1a-v2-short` | Trajectory | Single lap (lap 4, 1:38.774, 2026-09-19) | Constant 5m each side | ❌ No |
 | Michelin Raceway Road Atlanta | `michelin-raceway-road-atlanta` | Trajectory | Single lap (practice lap 15, 1:16.809, 2026-10-04; outline not regenerated after the race-lap reference refresh) | Constant 5m each side | ❌ No |
+| Monza Curva Grande Circuit | `monza-curva-grande-circuit` | Trajectory | Single lap (practice lap 12, 1:35.182, 2026-10-31) | Constant 5m each side | ❌ No |
 
 ---
 
@@ -96,6 +97,7 @@ kerb or far from the outside wall.
 | Circuit de la Sarthe (Le Mans) | ✅ Trajectory outline done; OSM extraction needed for real widths |
 | Lusail International Circuit | ✅ Trajectory outline done; OSM extraction needed for real widths |
 | Sebring International Raceway | ✅ Trajectory outline done; OSM or satellite imagery for real widths |
+| Monza Curva Grande Circuit | ✅ Trajectory outline done; TUMFTM `Monza.csv` is the chicane layout, not this one. The trajectory tracks the TUMFTM Monza centreline within 5m everywhere except the missing Rettifilo chicane (~40m) |
 
 ---
 
