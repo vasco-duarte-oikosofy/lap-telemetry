@@ -1,6 +1,7 @@
 # Spec — Turn names on the circuit map
 
-**Status:** proposed (mission [`work/active/map-turn-names`](../work/active/map-turn-names/PLAN.md))
+**Status:** implemented in both apps (mission
+[`work/completed/map-turn-names`](../work/completed/map-turn-names/PLAN.md))
 
 ## Goal
 

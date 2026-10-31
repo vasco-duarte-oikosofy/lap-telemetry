@@ -1,4 +1,4 @@
-# Mission: Turn names on the circuit map
+# Mission: Turn names on the circuit map — ✅ Completed
 
 **Spec:** [`docs/specs/MAP_TURN_NAMES.md`](../../docs/specs/MAP_TURN_NAMES.md)
 
@@ -26,9 +26,12 @@ placement math must stay map-size agnostic so it can be ported to the
 
 **Completed:** slice 01 (placement algorithm spike), slice 02 (`turns` schema + bake tool + preservation guard), slice 03 (canvas labels, flag ON by default), slice 04 (backfill: 14 of 22 outlines), slice 05 (type scales with the map panel).
 
-**Remaining:** none — labels render in the compare app and in TinyPedal.
+**Remaining:** none — labels render in the compare app (`dist/compare.html`,
+approved) and in TinyPedal (approved: type 60 % larger than the compare app).
 
-**In progress:** none.
+**Closed:** all six slices delivered. Follow-ups belong to their own missions:
+label interaction (click-to-zoom, cursor linking) in the compare app, and keeping
+the TinyPedal data current as new tracks get coaching models.
 **Deferred / later missions:** label interaction (click-to-zoom, cursor
 linking), and the TinyPedal port in the sibling repo.
 
