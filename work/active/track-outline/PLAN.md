@@ -28,7 +28,7 @@ Tracks are ordered by data quality: TUMFTM first (real widths), then trajectory-
 | `10-bahrain-endurance` | Bahrain International Endurance Circuit | No TUMFTM | Clean trajectory | 🔲 Not started |
 | `11-bahrain-outer` | Bahrain International Outer Circuit | No TUMFTM | Clean trajectory | ✅ Done (`cbead00`) |
 | `12-bahrain-paddock` | Bahrain International Paddock Circuit | No TUMFTM | Clean trajectory | 🔲 Not started |
-| `13-monza-curva-grande` | Monza Curva Grande Layout | No TUMFTM | Clean trajectory | 🔲 Not started |
+| `13-monza-curva-grande` | Monza Curva Grande Layout | No TUMFTM | Clean trajectory | ✅ Done (`b9d057a`; ref+model in `bf3b0ac`) |
 | `14-cota-national` | COTA National | No TUMFTM | Clean trajectory | 🔲 Not started |
 | `15-le-mans` | Circuit de la Sarthe | No TUMFTM | Clean trajectory | 🔲 Not started |
 | `16-le-mans-no-chicanes` | Circuit de la Sarthe Mulsanne No Chicanes | No TUMFTM | Clean trajectory | 🔲 Not started |
@@ -53,9 +53,9 @@ Tracks are ordered by data quality: TUMFTM first (real widths), then trajectory-
 | `35-laguna-seca` | WeatherTech Raceway Laguna Seca | No TUMFTM | Clean trajectory + coaching + ref | ✅ Done (this slice) |
 | `36-road-atlanta` | Michelin Raceway Road Atlanta | No TUMFTM | Clean trajectory + coaching + ref | ✅ Done (`0494e0c`; ref+model refreshed to race 1:16.304 in `56932a6`) |
 
-**Completed:** Spa (base + endurance), Bahrain GP, Barcelona, Monza, Imola, Fuji International Speedway, Bahrain Outer, Daytona, Laguna Seca, Road Atlanta.
+**Completed:** Spa (base + endurance), Bahrain GP, Barcelona, Monza, Imola, Fuji International Speedway, Bahrain Outer, Daytona, Laguna Seca, Road Atlanta, Monza Curva Grande.
 **In progress:** None.
-**Remaining:** 26 outlines needed (some may be aliases).
+**Remaining:** 25 outlines needed (some may be aliases).
 
 ### Barcelona note
 
@@ -158,7 +158,7 @@ Each layout needs its own outline unless it's a confirmed alias (same physical t
 #### Monza ✅ Done
 - **Layouts needing outlines:**
   - Monza (base, with chicanes) — TUMFTM `Monza.csv` aligned and visual QA complete ✅
-  - Monza Curva Grande Layout — ❌ no TUMFTM separate CSV (different layout)
+  - Monza Curva Grande Layout — ✅ trajectory outline done (`b9d057a`; no TUMFTM separate CSV — different layout, verified to track the TUMFTM centreline within 5m except at the missing Rettifilo chicane)
 - **TUMFTM CSV:** `Monza.csv` → 1159 points with varying widths (5.7–5.9m)
 - **ICP alignment:** scale=0.9994 rot=−0.07° tx=−308 ty=−458 mean error 4.37 sim-units (no flips needed)
 - **Alignment artifacts:** `product/data/track-outlines/alignment-artifacts/autodromo-nazionale-monza/`
