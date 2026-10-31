@@ -1,0 +1,129 @@
+{
+  "_spike": "slice-01 map-turn-names \u2014 not production data",
+  "track_id": "silverstone-international-circuit",
+  "bbox": {
+    "minX": -467.6029089531863,
+    "maxX": 460.69746398216506,
+    "minY": -841.9527099335063,
+    "maxY": 152.4536775092272
+  },
+  "map_size_ref": 250.0,
+  "world_per_px_250": 4.7353,
+  "gap_world": 35.159,
+  "gap_px_250": 7.42,
+  "font_px_250": 8.25,
+  "turns": [
+    {
+      "id": "1",
+      "number": 1,
+      "name": "Abbey",
+      "apex_s_m": 312.0,
+      "x": -134.811,
+      "y": 12.292,
+      "outward": [
+        -0.3246,
+        0.9458
+      ],
+      "label_x": -146.225,
+      "label_y": 45.547
+    },
+    {
+      "id": "2",
+      "number": 2,
+      "name": "Farm Curve",
+      "apex_s_m": 542.7,
+      "x": 93.482,
+      "y": 30.659,
+      "outward": [
+        -0.4175,
+        0.9087
+      ],
+      "label_x": 78.801,
+      "label_y": 62.607
+    },
+    {
+      "id": "3",
+      "number": 3,
+      "name": "Village",
+      "apex_s_m": 782.0,
+      "x": 281.884,
+      "y": 148.874,
+      "outward": [
+        0.4356,
+        0.9002
+      ],
+      "label_x": 297.198,
+      "label_y": 180.523
+    },
+    {
+      "id": "4",
+      "number": 4,
+      "name": "The Link",
+      "apex_s_m": 872.2,
+      "x": 318.73,
+      "y": 72.559,
+      "outward": [
+        0.9023,
+        0.4311
+      ],
+      "label_x": 350.454,
+      "label_y": 87.717
+    },
+    {
+      "id": "5",
+      "number": 5,
+      "name": "Becketts",
+      "apex_s_m": 1050.0,
+      "x": 452.801,
+      "y": -34.284,
+      "outward": [
+        0.8792,
+        0.4765
+      ],
+      "label_x": 483.712,
+      "label_y": -17.531
+    },
+    {
+      "id": "6",
+      "number": 6,
+      "name": "Stowe",
+      "apex_s_m": 2009.0,
+      "x": -6.607,
+      "y": -841.49,
+      "outward": [
+        0.1015,
+        -0.9948
+      ],
+      "label_x": -3.038,
+      "label_y": -876.468
+    },
+    {
+      "id": "7",
+      "number": 7,
+      "name": "Vale",
+      "apex_s_m": 2480.0,
+      "x": -321.122,
+      "y": -520.758,
+      "outward": [
+        -0.0082,
+        -1.0
+      ],
+      "label_x": -321.409,
+      "label_y": -555.916
+    },
+    {
+      "id": "8",
+      "number": 8,
+      "name": "Club",
+      "apex_s_m": 2711.0,
+      "x": -467.476,
+      "y": -424.223,
+      "outward": [
+        -0.9991,
+        0.0421
+      ],
+      "label_x": -502.604,
+      "label_y": -422.742
+    }
+  ]
+}

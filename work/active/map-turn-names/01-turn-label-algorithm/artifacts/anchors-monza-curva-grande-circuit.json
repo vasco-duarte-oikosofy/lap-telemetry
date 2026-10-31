@@ -1,0 +1,167 @@
+{
+  "_spike": "slice-01 map-turn-names \u2014 not production data",
+  "track_id": "monza-curva-grande-circuit",
+  "bbox": {
+    "minX": -317.6872960295297,
+    "maxX": 941.8548776084963,
+    "minY": -938.744532679388,
+    "maxY": 1228.1308187805093
+  },
+  "map_size_ref": 250.0,
+  "world_per_px_250": 10.3185,
+  "gap_world": 76.615,
+  "gap_px_250": 7.42,
+  "font_px_250": 8.25,
+  "turns": [
+    {
+      "id": "t1",
+      "number": 1,
+      "name": "Curva Grande",
+      "short": "Curva Grande",
+      "apex_s_m": 1400.0,
+      "x": -144.659,
+      "y": 921.796,
+      "outward": [
+        -0.81,
+        0.5865
+      ],
+      "label_x": -206.715,
+      "label_y": 966.728
+    },
+    {
+      "id": "t2",
+      "number": 2,
+      "name": "Variante della Roggia 1",
+      "short": "Roggia 1",
+      "apex_s_m": 2109.0,
+      "x": 512.125,
+      "y": 1102.413,
+      "outward": [
+        -0.621,
+        0.7838
+      ],
+      "label_x": 464.548,
+      "label_y": 1162.465
+    },
+    {
+      "id": "t3",
+      "number": 3,
+      "name": "Variante della Roggia 2",
+      "short": "Roggia 2",
+      "apex_s_m": 2153.0,
+      "x": 537.079,
+      "y": 1134.384,
+      "outward": [
+        -0.6629,
+        0.7487
+      ],
+      "label_x": 486.291,
+      "label_y": 1191.746
+    },
+    {
+      "id": "t4",
+      "number": 4,
+      "name": "Lesmo 1",
+      "short": "Lesmo 1",
+      "apex_s_m": 2521.0,
+      "x": 885.066,
+      "y": 1212.934,
+      "outward": [
+        0.587,
+        0.8096
+      ],
+      "label_x": 930.041,
+      "label_y": 1274.959
+    },
+    {
+      "id": "t5",
+      "number": 5,
+      "name": "Lesmo 2",
+      "short": "Lesmo 2",
+      "apex_s_m": 2833.0,
+      "x": 936.224,
+      "y": 916.114,
+      "outward": [
+        0.9265,
+        -0.3763
+      ],
+      "label_x": 1007.208,
+      "label_y": 887.286
+    },
+    {
+      "id": "t6",
+      "number": 6,
+      "name": "Curva del Serraglio",
+      "short": "Serraglio",
+      "apex_s_m": 3240.0,
+      "x": 594.459,
+      "y": 703.239,
+      "outward": [
+        0.5625,
+        -0.8268
+      ],
+      "label_x": 637.553,
+      "label_y": 639.893
+    },
+    {
+      "id": "t7",
+      "number": 7,
+      "name": "Variante Ascari 1",
+      "short": "Ascari 1",
+      "apex_s_m": 3910.0,
+      "x": 92.56,
+      "y": 262.449,
+      "outward": [
+        0.9283,
+        -0.372
+      ],
+      "label_x": 163.677,
+      "label_y": 233.952
+    },
+    {
+      "id": "t8",
+      "number": 8,
+      "name": "Variante Ascari 2",
+      "short": "Ascari 2",
+      "apex_s_m": 4006.0,
+      "x": 81.6,
+      "y": 169.599,
+      "outward": [
+        0.9433,
+        -0.332
+      ],
+      "label_x": 153.87,
+      "label_y": 144.164
+    },
+    {
+      "id": "t9",
+      "number": 9,
+      "name": "Variante Ascari 3",
+      "short": "Ascari 3",
+      "apex_s_m": 4104.0,
+      "x": 27.824,
+      "y": 91.159,
+      "outward": [
+        0.8784,
+        -0.4779
+      ],
+      "label_x": 95.124,
+      "label_y": 54.546
+    },
+    {
+      "id": "t10",
+      "number": 10,
+      "name": "Curva Alboreto (Parabolica)",
+      "short": "Parabolica",
+      "apex_s_m": 5128.0,
+      "x": -108.461,
+      "y": -918.299,
+      "outward": [
+        0.6645,
+        -0.7473
+      ],
+      "label_x": -57.553,
+      "label_y": -975.554
+    }
+  ]
+}
