@@ -45,7 +45,7 @@ Tracks are ordered by data quality: TUMFTM first (real widths), then trajectory-
 | `27-paul-ricard-3a` | Paul Ricard 3a | No TUMFTM | Clean trajectory | 🔲 Not started |
 | `28-silverstone-elms` | Silverstone (ELMS Pack 1) | TUMFTM `Silverstone.csv` | Real | 🔲 Not started |
 | `29-silverstone-national` | Silverstone National | No TUMFTM | Clean trajectory | 🔲 Not started |
-| `30-silverstone-international` | Silverstone International | No TUMFTM | Clean trajectory | 🔲 Not started |
+| `30-silverstone-international` | Silverstone International | No TUMFTM | Clean trajectory | ✅ Done (`264cf14`) |
 | `31-silverstone-gp-wec` | Silverstone GP (WEC) | No TUMFTM (verify vs base) | ? | 🔲 Not started |
 | `32-fuji-classic` | Fuji Classic Layout (No Chicane) | No TUMFTM | Clean trajectory | 🔲 Not started |
 | `33-imola-elms` | Imola ELMS | Verify alias of Imola base | ? | 🔲 Not started |
@@ -53,9 +53,9 @@ Tracks are ordered by data quality: TUMFTM first (real widths), then trajectory-
 | `35-laguna-seca` | WeatherTech Raceway Laguna Seca | No TUMFTM | Clean trajectory + coaching + ref | ✅ Done (this slice) |
 | `36-road-atlanta` | Michelin Raceway Road Atlanta | No TUMFTM | Clean trajectory + coaching + ref | ✅ Done (`0494e0c`; ref+model refreshed to race 1:16.304 in `56932a6`) |
 
-**Completed:** Spa (base + endurance), Bahrain GP, Barcelona, Monza, Imola, Fuji International Speedway, Bahrain Outer, Daytona, Laguna Seca, Road Atlanta, Monza Curva Grande.
+**Completed:** Spa (base + endurance), Bahrain GP, Barcelona, Monza, Imola, Fuji International Speedway, Bahrain Outer, Daytona, Laguna Seca, Road Atlanta, Monza Curva Grande, Silverstone International.
 **In progress:** None.
-**Remaining:** 25 outlines needed (some may be aliases).
+**Remaining:** 24 outlines needed (some may be aliases).
 
 ### Barcelona note
 
