@@ -7,7 +7,7 @@
 | Path | What it is |
 |---|---|
 | `tinypedal/turn_labels.py` | **new** — Qt-free planner + data loader: `font_size`, `turn_texts`, `anchor_from_fraction`, `outward_normal`, `anchor_turns`, `plan_turn_labels`, `load_turn_labels`, `default_data_path`. `TURN_LABEL_CONFIG["font_scale"] = 1.6` gives the widget 60 % larger type than the compare app. |
-| `tinypedal/widget/track_map.py` | loads the label data with the map, draws labels into the map pixmap after the sector lines (`draw_turn_names`), tracks `map_orient_deg`, ends the painter, halo at `TURN_HALO_EM = 0.06` of the type size. |
+| `tinypedal/widget/track_map.py` | loads the label data with the map, draws labels into the map pixmap after the sector lines (`draw_turn_names`), tracks `map_orient_deg`, ends the painter. Text is filled **and** stroked in `turn_name_color` (`TURN_SOLIDIFY_EM = 0.085`), halo is an outside-only ring (`TURN_HALO_EM = 0.06`) painted after the text. |
 | `tinypedal/template/setting_widget.py` | 3 new options: `show_turn_name` (True), `turn_name_color` (#CCCCCC), `turn_name_outline_color` (#88000000). |
 | `tinypedal/data/turn_labels/*.turns.json` | **new** — 14 tracks, 173 corners, generated. |
 | `.gitignore` | re-includes the data folder and the three tests (negations must stay after `/trackmap/`, `*.json`, `test*.py`). |
@@ -56,3 +56,10 @@ node dev/scripts/test_turn_labels_parity.js                  # after touching ei
   (default 15 px), so a bigger widget gains room without gaining type size.
 - The label data is per track name; a track that is in our outlines but has no
   TinyPedal map is skipped by the exporter (none today).
+
+## Follow-up fix (bug 31, after sign-off)
+
+The labels were approved by size but then reported as outlines. Fixed in place:
+solid fill (self-stroke), outside-only halo ring, and `turn_name_color` default
+`#FFFFFF`. **Existing presets keep `#CCCCCC` — set it to `#FFFFFF` or delete the
+key.** See `work/active/bugs/31-turn-label-text-outline-only/bug.md`.

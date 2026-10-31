@@ -330,8 +330,18 @@ crowded corners on Silverstone GP and Paul Ricard 1A-V2 drop their label, becaus
 overlapping is a hard rule). At `area_size` 600 the widget font cap of 15 px
 applies instead and **173/173** corners and 133/136 names fit again.
 
-The halo pen is centred on the glyph outline, so it competes with the stems; Qt
-hint-rounds stems to about 1 px, which is why the compare app's 0.16 em halo is
+**The text is filled *and* stroked in the text colour.** At ~12 px only 33 % of
+the pixels inside a glyph reach opaque white with a plain fill — the stems are
+antialiased thin — and the labels read as outlines. A self-stroke of
+`TURN_SOLIDIFY_EM` (0.085 em = 1 px at 11.8 px) takes that to 100 % (measured:
+1928/1928 interior pixels opaque white). The layout reserves that stroke in
+`measure()`, so the no-overlap rule still holds.
+
+The halo is an **outside-only ring**: `QPainterPathStroker` around the glyph minus
+the *thickened* glyph, painted after the text. Subtracting the raw path is not
+enough — a stroke band extends inward too, and at these sizes the inward band
+alone covers a whole 1 px stem, which is what made the labels look hollow. The
+pen being centred on the outline is also why the compare app's 0.16 em halo is
 fine at its 13 px but blurs these labels. Measured on the real Monza labels:
 
 | halo | ink growth at 7.4 px | at 11.8 px |

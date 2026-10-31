@@ -111,3 +111,27 @@
   asserted the geometry delta. It now feeds an explicit identical config to both
   planners (the rule is shared; the presentation constants are not) and fails on
   any delta above 1e-9.
+
+- **"Just the outline" was three things at once.** (1) The halo pen stroked the
+  text path itself, and a centred 0.71 px pen on ~1 px stems covers most of the
+  letter. (2) Even a plain fill is not solid at 11.8 px: only 33 % of the pixels
+  inside the glyphs reached opaque white. (3) The colour was grey (#CCCCCC) and
+  Qt only adds *missing* keys to an existing preset, so changing the default does
+  not change an existing install — see bug 31.
+
+- **`QPainterPathStroker.createStroke()` is not a silhouette.** It returns a band
+  *around* the outline, so subtracting only the glyph path leaves the inward half
+  of the band painted over the text. The ring must subtract
+  `path.united(stroker.createStroke(path))`. Drawing the ring *after* the text then
+  makes "the halo never touches a letter" a guarantee a test can assert, instead
+  of something I have to eyeball.
+
+- **Review images must come out of the real widget.** The first version of
+  `test_turn_labels_render.py` re-implemented the painter, and it shipped two
+  rounds of unusable images (tofu, then no labels) while the widget itself was
+  fine. It now builds the real widget and saves `pixmap_map`, so a review image
+  cannot differ from what the app draws.
+
+- **Per-pixel helpers are a trap in tests.** `pixmap.toImage()` inside a
+  per-pixel lambda turned a 400x400 scan into 160 000 image conversions and the
+  test hung; convert once, then loop.
