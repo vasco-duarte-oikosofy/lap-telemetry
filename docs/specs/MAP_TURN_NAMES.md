@@ -139,7 +139,7 @@ layoutTurnLabels(turns, worldToMap, mapSize) -> [{ text, x, y, anchor }]
 1. Project each apex and its `outward` / `tangent` vectors to map pixels with
    the existing `trackTransform` (`toMapX` / `toMapZ`; `toMapZ` inverts world Y,
    so a screen normal is `(outward.x, -outward.y)`).
-2. `fontSize = clamp(mapSize * 0.023, 5, 8)` px — **5.75 px at 250 px**, the size
+2. `fontSize = clamp(mapSize * 0.023, 5, 18)` px — **5.75 px at 250 px**, the size
    validated on the map; `gap_px = fontSize * 0.75`.
 3. Text anchor by quadrant: pick `start`/`middle`/`end` and `dominant-baseline`
    so the text grows away from the track, using the sign of the outward normal
@@ -196,6 +196,24 @@ wrong:
   re-render calls the map without a name.
 - Labels are painted with a halo (`strokeText` then `fillText`) so they stay
   readable where they cross the ribbon, which the placement rule allows.
+
+### Type size (slice 05)
+
+The 250 px spike reviewed 5.75 px type, and the first product build froze the
+ceiling at that spike's 8 px. On the compare app's map panel (500–950 px wide)
+that left **8 px text on a 910 px map** — legible only up close, and the reason
+a user said "the font is too small in compare.html". The ceiling is now 18 px,
+so the ratio keeps scaling until ~783 px `mapSize`; smaller maps (the whole
+TinyPedal range, 100–400 px) are unaffected because the ceiling never binds
+there.
+
+The halo width follows the type (`max(1.4, fontSize * 0.16)` px) instead of a
+fixed 1.6 px, which read as a hairline once the type grew.
+
+Verified by `dev/scripts/test_turn_labels_scale.js`, which plans **all 14
+packaged outlines at three real viewport sizes** (500×454, 650×574, 910×622):
+173/173 turns labelled, 0 overlaps, 0 off-map, every named turn keeps its name,
+and a 250 px map still produces 5.75 px.
 
 ### Measured with this algorithm
 

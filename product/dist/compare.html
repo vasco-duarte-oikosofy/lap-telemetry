@@ -737,7 +737,11 @@ var init_turnLabels = __esm({
       // fontSize = clamp(mapSize * fontRatio, fontMin, fontMax)
       fontMin: 5,
       // 5.75 px at the 250 px map
-      fontMax: 8,
+      // The ceiling only stops absurd type on a giant panel; it must NOT bind in the
+      // compare app. A ceiling of 8 px (the 250 px spike's size) froze the type at
+      // 8 px on a 910 px map — that is what "the font is too small in compare.html"
+      // was. At 18 px the ratio stops scaling above ~783 px mapSize.
+      fontMax: 18,
       gapRatio: 0.75,
       // label gap from the track: fontSize * gapRatio
       alongCapFont: 2.4,
@@ -809,7 +813,7 @@ function drawTurnLabels(ctx, outline, transform, view) {
   ctx.textAlign = "left";
   ctx.textBaseline = "top";
   ctx.lineJoin = "round";
-  ctx.lineWidth = HALO_PX;
+  ctx.lineWidth = Math.max(HALO_MIN_PX, plan.fontSize * HALO_RATIO);
   ctx.strokeStyle = view.haloColor || "rgba(13, 17, 23, 0.9)";
   ctx.fillStyle = view.color || "#c9d1d9";
   for (const label of plan.labels) {
@@ -821,7 +825,7 @@ function drawTurnLabels(ctx, outline, transform, view) {
   lastDropped = plan.dropped;
   return { labels: plan.labels.length, dropped: plan.dropped.length };
 }
-var FONT_WEIGHT, FONT_STACK, LETTER_SPACING_PX, LINE_HEIGHT_EM, HALO_PX, lastLabels, lastDropped;
+var FONT_WEIGHT, FONT_STACK, LETTER_SPACING_PX, LINE_HEIGHT_EM, HALO_RATIO, HALO_MIN_PX, lastLabels, lastDropped;
 var init_turnLabelsRender = __esm({
   "product/web/js/turnLabelsRender.js"() {
     init_turnLabels();
@@ -829,7 +833,8 @@ var init_turnLabelsRender = __esm({
     FONT_STACK = 'Inter, "Segoe UI", Arial, sans-serif';
     LETTER_SPACING_PX = -0.1;
     LINE_HEIGHT_EM = 1.15;
-    HALO_PX = 1.6;
+    HALO_RATIO = 0.16;
+    HALO_MIN_PX = 1.4;
     lastLabels = [];
     lastDropped = [];
   }

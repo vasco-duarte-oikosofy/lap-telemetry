@@ -10,7 +10,10 @@ const FONT_WEIGHT = 600;
 const FONT_STACK = 'Inter, "Segoe UI", Arial, sans-serif';
 const LETTER_SPACING_PX = -0.1;
 const LINE_HEIGHT_EM = 1.15;
-const HALO_PX = 1.6;
+// Halo thickness follows the type size: it was a fixed 1.6 px when labels were
+// always ~6 px, and reads as a hairline once the product draws 13 px text.
+const HALO_RATIO = 0.16;
+const HALO_MIN_PX = 1.4;
 
 /** Canvas-backed `measure(text, fontSize)` used by the planner. */
 export function canvasMeasure(ctx) {
@@ -79,7 +82,7 @@ export function drawTurnLabels(ctx, outline, transform, view) {
   ctx.textAlign = 'left';
   ctx.textBaseline = 'top';
   ctx.lineJoin = 'round';
-  ctx.lineWidth = HALO_PX;
+  ctx.lineWidth = Math.max(HALO_MIN_PX, plan.fontSize * HALO_RATIO);
   ctx.strokeStyle = view.haloColor || 'rgba(13, 17, 23, 0.9)';
   ctx.fillStyle = view.color || '#c9d1d9';
 

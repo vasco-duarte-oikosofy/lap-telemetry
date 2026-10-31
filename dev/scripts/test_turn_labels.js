@@ -65,10 +65,21 @@ function runAll({ planTurnLabels, fontSizeFor, turnLabelTexts, TURN_LABEL_CONFIG
   const planAt = (turns, mapSize) =>
     planTurnLabels({ turns, toMapX: x => x, toMapZ: z => mapSize - z, mapSize, measure });
 
-  check('font size is 5.75 px at 250 px, 5 px floor at 120 px, capped at 8 px', () => {
+  check('small maps keep the reviewed 5.75 px / 5 px sizes', () => {
     assert(Math.abs(fontSizeFor(250) - 5.75) < 1e-9, `250 px -> ${fontSizeFor(250)}`);
     assert(Math.abs(fontSizeFor(120) - 5) < 1e-9, `120 px -> ${fontSizeFor(120)}`);
-    assert(Math.abs(fontSizeFor(1000) - TURN_LABEL_CONFIG.fontMax) < 1e-9, 'ceiling not applied');
+  });
+
+  // The compare app's map panel is 500-950 px wide, so the type must grow with
+  // it. A hard 8 px ceiling (the 250 px spike's value) left 8 px text on a
+  // 910 px map, which is what "the font is too small in compare.html" was.
+  check('type grows with the map instead of stopping at the 250 px size', () => {
+    assert(Math.abs(fontSizeFor(574) - 13.2) < 0.05, `574 px -> ${fontSizeFor(574)}`);
+    assert(Math.abs(fontSizeFor(622) - 14.31) < 0.05, `622 px -> ${fontSizeFor(622)}`);
+    assert(Math.abs(fontSizeFor(574) / 574 - TURN_LABEL_CONFIG.fontRatio) < 1e-9, 'ratio not applied');
+    assert(fontSizeFor(574) > 8, 'product map still clamped to 8 px');
+    assert(fontSizeFor(650) > fontSizeFor(500), 'not monotonic');
+    assert(Math.abs(fontSizeFor(1500) - TURN_LABEL_CONFIG.fontMax) < 1e-9, 'ceiling not applied');
   });
 
   check('every turn gets a label when there is room', () => {

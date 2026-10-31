@@ -7,7 +7,11 @@
 export const TURN_LABEL_CONFIG = {
   fontRatio: 0.023,   // fontSize = clamp(mapSize * fontRatio, fontMin, fontMax)
   fontMin: 5,         // 5.75 px at the 250 px map
-  fontMax: 8,
+  // The ceiling only stops absurd type on a giant panel; it must NOT bind in the
+  // compare app. A ceiling of 8 px (the 250 px spike's size) froze the type at
+  // 8 px on a 910 px map — that is what "the font is too small in compare.html"
+  // was. At 18 px the ratio stops scaling above ~783 px mapSize.
+  fontMax: 18,
   gapRatio: 0.75,     // label gap from the track: fontSize * gapRatio
   alongCapFont: 2.4,  // max slide ALONG the track, in font sizes
   normalCapMap: 0.04, // max move AWAY from the track, as a fraction of map size
