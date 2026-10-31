@@ -1,0 +1,6 @@
+detection_method=throttle_brake_v1
+t1 apex=2115m start=1930m end=2164m min=91.6kph entry=289.3kph exit=95.1kph drop=86.1kph recovery=38.7kph prominence=38.7kph accepted
+t2 apex=2521m start=2402m end=2531m min=144.5kph entry=198.5kph exit=145.6kph drop=27.2kph recovery=24.0kph prominence=24.0kph accepted
+t3 apex=2833m start=2740m end=2855m min=135.8kph entry=202.8kph exit=139.8kph drop=63.3kph recovery=26.8kph prominence=26.8kph accepted
+t4 apex=3908m start=3766m end=3932m min=127.4kph entry=265.4kph exit=132.8kph drop=74.0kph recovery=29.1kph prominence=29.1kph accepted
+t5 apex=5129m start=4962m end=5134m min=137.6kph entry=270.2kph exit=137.6kph drop=52.6kph recovery=25.1kph prominence=25.1kph accepted

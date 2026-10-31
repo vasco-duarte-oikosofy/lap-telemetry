@@ -1,0 +1,107 @@
+{
+  "schema_version": "1",
+  "track_id": "monza-curva-grande-circuit",
+  "layout_id": "lmu-default",
+  "reference_lap": {
+    "path": "product\\data\\reference-laps\\monza-curva-grande-circuit_dkr-engineering-4-elms25_time_01.35.182.parquet",
+    "car_id": "dkr-engineering-4-elms25",
+    "lap_time_s": 95.182,
+    "detection_method": "throttle_brake_v1"
+  },
+  "lap_length_m": 5742.3,
+  "corners": [
+    {
+      "id": "t1",
+      "name": "Curva Grande",
+      "s_start_m": 1170.0,
+      "apex_s_m": 1400.0,
+      "s_end_m": 1795.0,
+      "apex_side": "right",
+      "apex_side_source": "manual",
+      "target_throttle_pct": 100
+    },
+    {
+      "id": "t2",
+      "name": "Variante della Roggia 1",
+      "s_start_m": 1930.0,
+      "apex_s_m": 2109.0,
+      "s_end_m": 2130.0,
+      "apex_side": "left",
+      "apex_side_source": "manual"
+    },
+    {
+      "id": "t3",
+      "name": "Variante della Roggia 2",
+      "s_start_m": 2131.0,
+      "apex_s_m": 2153.0,
+      "s_end_m": 2209.0,
+      "apex_side": "right",
+      "apex_side_source": "manual"
+    },
+    {
+      "id": "t4",
+      "name": "Lesmo 1",
+      "s_start_m": 2402.0,
+      "apex_s_m": 2521.0,
+      "s_end_m": 2531.0,
+      "apex_side": "right",
+      "apex_side_source": "manual"
+    },
+    {
+      "id": "t5",
+      "name": "Lesmo 2",
+      "s_start_m": 2740.0,
+      "apex_s_m": 2833.0,
+      "s_end_m": 2855.0,
+      "apex_side": "right",
+      "apex_side_source": "manual"
+    },
+    {
+      "id": "t6",
+      "name": "Curva del Serraglio",
+      "s_start_m": 3150.0,
+      "apex_s_m": 3240.0,
+      "s_end_m": 3400.0,
+      "apex_side": "left",
+      "apex_side_source": "manual",
+      "target_throttle_pct": 100
+    },
+    {
+      "id": "t7",
+      "name": "Variante Ascari 1",
+      "s_start_m": 3766.0,
+      "apex_s_m": 3910.0,
+      "s_end_m": 3953.0,
+      "apex_side": "left",
+      "apex_side_source": "manual"
+    },
+    {
+      "id": "t8",
+      "name": "Variante Ascari 2",
+      "s_start_m": 3954.0,
+      "apex_s_m": 4006.0,
+      "s_end_m": 4062.0,
+      "apex_side": "right",
+      "apex_side_source": "manual"
+    },
+    {
+      "id": "t9",
+      "name": "Variante Ascari 3",
+      "s_start_m": 4064.0,
+      "apex_s_m": 4104.0,
+      "s_end_m": 4238.0,
+      "apex_side": "left",
+      "apex_side_source": "manual"
+    },
+    {
+      "id": "t10",
+      "name": "Curva Alboreto (Parabolica)",
+      "s_start_m": 4962.0,
+      "apex_s_m": 5128.0,
+      "s_end_m": 5138.0,
+      "apex_side": "right",
+      "apex_side_source": "manual"
+    }
+  ],
+  "straight_zones": []
+}
