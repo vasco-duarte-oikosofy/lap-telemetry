@@ -52,6 +52,7 @@ Tracks are ordered by data quality: TUMFTM first (real widths), then trajectory-
 | `34-daytona` | Daytona International Speedway Road Course | No TUMFTM | Clean trajectory + coaching + ref | ✅ Done (this slice) |
 | `35-laguna-seca` | WeatherTech Raceway Laguna Seca | No TUMFTM | Clean trajectory + coaching + ref | ✅ Done (this slice) |
 | `36-road-atlanta` | Michelin Raceway Road Atlanta | No TUMFTM | Clean trajectory + coaching + ref | ✅ Done (`0494e0c`; ref+model refreshed to race 1:16.304 in `56932a6`) |
+| `37-monza-curva-grande-f296` | Monza Curva Grande / Ferrari 296 GT3 (new car, existing track) | No TUMFTM | Ref 1:39.398 + model seeded from the curated Ginetta model (names + flat markers preserved) | ✅ Done (this slice) |
 
 **Completed:** Spa (base + endurance), Bahrain GP, Barcelona, Monza, Imola, Fuji International Speedway, Bahrain Outer, Daytona, Laguna Seca, Road Atlanta, Monza Curva Grande, Silverstone International.
 **In progress:** None.
