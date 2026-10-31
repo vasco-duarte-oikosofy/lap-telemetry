@@ -43,6 +43,21 @@ node dev/scripts/test_outline_turns.js
 bash scripts/test-summary.sh --feature map-turn-names
 ```
 
+## Review round 2 changes (approved on Le Mans 250 px)
+
+- **Alternating sides** (odd turns outside, even inside) is now the placement
+  rule; the opposite side is the first fallback before a label loses its name.
+- **Candidate order**: text -> side -> nudge.
+- **Nudge caps split**: along-track `2.4 x fontSize`, normal
+  `min(2.4 x fontSize, 4 % of mapSize)` so labels cannot drift on small maps.
+- **Text tiers**: below 150 px also try `<n> <name>` (drop the `T`).
+- **`short_name` curated further**: Interlagos (8), Imola (4), La Sarthe (3) —
+  e.g. `Descida do Lago 1` -> `Lago 1`, `Acque Minerali 1` -> `Acque 1`,
+  `Dunlop Chicane 1` -> `Dunlop 1`.
+
+Result: **250 px — 14/14 tracks fully labelled with names, zero overlaps.**
+120 px — 12/14 complete (Interlagos 15/15, Le Mans 16/19).
+
 ## Deferred
 
 - Slice 03 renders these (still nothing reads `turns` in `product/web`).

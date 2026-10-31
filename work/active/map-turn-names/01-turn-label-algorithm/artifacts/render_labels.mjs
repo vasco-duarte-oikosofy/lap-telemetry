@@ -59,6 +59,18 @@ function textVariants(turn) {
   return [...new Set(out)];
 }
 
+// Candidate sides per turn, in preference order.
+function sidesForTurn(index, cfg) {
+  if (cfg.alternate) {
+    const preferred = index % 2 === 0 ? 1 : -1;
+    // Alternate for readability, but still fall back to the other side before
+    // degrading a label to its number.
+    return [preferred, -preferred];
+  }
+  if (cfg.inwardFallback) return [1, -1];
+  return [1];
+}
+
 function buildSvg(outline, anchors, cfg) {
   const { size, ratio, floor } = cfg;
   const tf = buildTransform(anchors.bbox, size);
@@ -73,34 +85,38 @@ function buildSvg(outline, anchors, cfg) {
   // measurable without re-laying out the whole map per attempt.
   const candidates = [];
   anchors.turns.forEach((turn, i) => {
-    const nx = turn.outward[0];
-    const ny = -turn.outward[1];             // screen space (toMapZ inverts Y)
-    const tx = turn.tangent[0];
-    const ty = -turn.tangent[1];
     const ax = tf.toMapX(turn.x);
     const ay = tf.toMapZ(turn.y);
-    const anchor = nx > 0.35 ? 'start' : nx < -0.35 ? 'end' : 'middle';
-    const baseline = ny > 0.35 ? 'hanging' : ny < -0.35 ? 'auto' : 'middle';
-    textVariants(turn).forEach((text, tIdx) => {
-      BUDGET.forEach((step, sIdx) => {
-        // Alternate along-track and outward nudges; index 0 is the raw spot.
-        const along = sIdx % 2 === 1;
-        const dx = along ? tx * step * fontSize : nx * step * fontSize;
-        const dy = along ? ty * step * fontSize : ny * step * fontSize;
-        const x = ax + nx * gapPx + dx;
-        const y = ay + ny * gapPx + dy;
-        candidates.push({
-          turn: i, number: turn.number, text, tIdx, sIdx,
-          x, y, anchor, baseline,
-          ax, ay,
-          displacement: Math.hypot(x - (ax + nx * gapPx), y - (ay + ny * gapPx)),
+    // Order matters: keep the name before changing side, and change side before
+    // nudging further from the corner.
+    textVariants(turn, size, cfg.smallMode).forEach((text, tIdx) => {
+      sidesForTurn(i, cfg).forEach((side, sideIdx) => {
+        const nx = turn.outward[0] * side;   // screen space (toMapZ inverts Y)
+        const ny = -turn.outward[1] * side;
+        const anchor = nx > 0.35 ? 'start' : nx < -0.35 ? 'end' : 'middle';
+        const baseline = ny > 0.35 ? 'hanging' : ny < -0.35 ? 'auto' : 'middle';
+        BUDGET.forEach((stepUnit, sIdx) => {
+          const along = sIdx % 2 === 1;
+          // Two different caps: sliding ALONG the track keeps a label beside its
+          // corner, so it may go up to 2.4x the type size; moving AWAY from the
+          // track reads as detached, so it is capped at 4 % of the map.
+          const cap = along ? 2.4 * fontSize : Math.min(2.4 * fontSize, 0.04 * size);
+          const step = stepUnit * cap / 2.4;
+          const dx = along ? turn.tangent[0] * step : nx * step;
+          const dy = along ? -turn.tangent[1] * step : ny * step;
+          candidates.push({
+            turn: i, number: turn.number, text, tIdx, sIdx, side, sideIdx,
+            x: ax + nx * gapPx + dx, y: ay + ny * gapPx + dy,
+            anchor, baseline,
+          });
         });
       });
     });
   });
 
   const candidateSvg = candidates.map((c, i) => [
-    `<text class="turn-label" data-c="${i}" data-turn="${c.turn}" data-t="${c.tIdx}" data-s="${c.sIdx}"`,
+    `<text class="turn-label" data-c="${i}" data-turn="${c.turn}" data-t="${c.tIdx}" data-s="${c.sIdx}"` +
+    ` data-side="${c.side}" data-side-idx="${c.sideIdx}"`,
     ` x="${c.x.toFixed(2)}" y="${c.y.toFixed(2)}" font-size="${fontSize.toFixed(2)}"`,
     ` text-anchor="${c.anchor}" dominant-baseline="${c.baseline}" style="visibility:hidden">`,
     `${c.text.replace(/&/g, '&amp;').replace(/</g, '&lt;')}</text>`,
@@ -153,6 +169,7 @@ function resolve({ mapSize, margin, gapPx, fontSize }) {
   // Sort candidates per turn: full text first, then smallest displacement.
   for (const list of byTurn.values()) {
     list.sort((a, b) => Number(a.dataset.t) - Number(b.dataset.t) ||
+                        Number(a.dataset.sideIdx) - Number(b.dataset.sideIdx) ||
                         Number(a.dataset.s) - Number(b.dataset.s));
   }
 
@@ -185,6 +202,7 @@ function resolve({ mapSize, margin, gapPx, fontSize }) {
     result.push({
       turn,
       text: chosen.textContent,
+      side: Number(chosen.dataset.side),
       degradedToNumber: Number(chosen.dataset.t) > 0,
       nudgeIndex: Number(chosen.dataset.s),
       x: Number(rect.x.toFixed(1)), y: Number(rect.y.toFixed(1)),
@@ -217,8 +235,12 @@ function resolve({ mapSize, margin, gapPx, fontSize }) {
 }
 
 const CONFIGS = [
-  { size: 250, ratio: FONT_RATIO, floor: true, tag: '250' },
-  { size: 120, ratio: FONT_RATIO, floor: true, tag: '120' },
+  { size: 250, ratio: FONT_RATIO, floor: true, tag: '250-outside' },
+  { size: 250, ratio: FONT_RATIO, floor: true, alternate: true, tag: '250-alternate' },
+  { size: 150, ratio: FONT_RATIO, floor: true, alternate: true, tag: '150-alternate' },
+  { size: 250, ratio: FONT_RATIO, floor: true, inwardFallback: true, tag: '250-inward-fallback' },
+  { size: 120, ratio: FONT_RATIO, floor: true, alternate: true, tag: '120-names' },
+  { size: 120, ratio: FONT_RATIO, floor: true, alternate: true, smallMode: 'numbers', tag: '120-numbers' },
   { size: 120, ratio: FONT_RATIO, floor: false, tag: '120-nofloor' },
 ];
 
@@ -262,6 +284,7 @@ for (const slug of slugs) {
     const entry = {
       sizePx: cfg.size, fontPx: Number(fontSize.toFixed(2)), floor: cfg.floor,
       shown: shown.length, dropped: res.result.filter(r => r.dropped).map(r => `T${r.turn + 1}`),
+      inwardLabels: shown.filter(r => r.side === -1).length,
       overlaps: res.overlaps,
       degradedToNumber: shown.filter(r => r.degradedToNumber).map(r => r.text),
       maxApexToLabelCentrePx: Number(Math.max(...dists).toFixed(1)),

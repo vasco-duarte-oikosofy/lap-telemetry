@@ -39,3 +39,61 @@
   file to prove `--overwrite` replaces it. A file that is not valid JSON cannot
   contain curated turns, so warn and continue — and add a regression test for
   exactly that case.
+
+---
+
+# Review round 2 — alternating sides, small-map text
+
+## Alternating inside/outside is what makes dense tracks work
+
+Le Mans packs 8 of its 19 turns into sector 3. Placing every label on the
+*outside* of the loop could not fit them: 18/19 with one label dropped and one
+degraded to a number. Alternating the side per turn (odd = outside, even =
+inside) gave **19/19 with names** and *better* adjacency (label box 3.6 px from
+the apex on average, was 5.1). Across all 14 backfilled tracks, alternating is
+better or equal on 13 and only slightly worse on Silverstone GP — and the
+fallback below removes even that.
+
+## Candidate order: text, then side, then nudge
+
+The first version sorted candidates side-first, so a label would drop its name
+(`T13`) before it would switch to the other side of the track. Reordering to
+text -> side -> nudge fixed Silverstone GP: keeping the name matters more than
+which side of the ribbon it sits on.
+
+## A nudge needs two caps, not one
+
+One cap of `2.4 x fontSize` gave 12 px of drift on a 120 px map — 10 % of the
+map, which reads as "the label left its corner" (exactly the earlier complaint).
+Splitting it fixed that:
+
+- **along the track**: up to `2.4 x fontSize` — sliding past a neighbour still
+  reads as attached;
+- **along the normal**: up to `min(2.4 x fontSize, 4 % of mapSize)`.
+
+Effect on Interlagos at 120 px: worst drift 10.8 px -> 2.8 px.
+
+## Tightening the gap on small maps backfires
+
+Shrinking `gap_px` from 0.75 to 0.5 x fontSize below 150 px *reduced* coverage
+(12/15 instead of 13/15) and increased drift, because a label closer to the
+track needs a bigger nudge to escape its neighbours. Reverted; the gap stays
+0.75 x fontSize at every size.
+
+## Text shortening is mostly curation, a little grammar
+
+Curating `short_name` did the heavy lifting on Interlagos (`Descida do Lago 1`
+-> `Lago 1`, `Curva do Sol` -> `Sol`, `Subida das Boxes` -> `Boxes`,
+`Arquibancadas` -> `Arquib.`): at 250 px it went from one label dropped and two
+numbered to **15/15 with names**. The only *algorithmic* shortening worth having
+is dropping the `T` prefix below 150 px (`4 Lago 1`), which buys ~2 characters.
+Everything else needs a human: auto-stripping produced "Grande" from "Curva
+Grande".
+
+## Final measured state
+
+| size | result |
+|---|---|
+| 250 px | 14/14 tracks: every turn labelled with its name, zero overlaps |
+| 150 px | 13/14 tracks complete |
+| 120 px | 12/14 complete; Interlagos 15/15 (12 named + 3 numbers); Le Mans 16/19 (dense Ford chicane cluster drops) |

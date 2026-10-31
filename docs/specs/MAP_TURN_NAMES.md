@@ -144,30 +144,49 @@ layoutTurnLabels(turns, worldToMap, mapSize) -> [{ text, x, y, anchor }]
 3. Text anchor by quadrant: pick `start`/`middle`/`end` and `dominant-baseline`
    so the text grows away from the track, using the sign of the outward normal
    in screen space.
-4. **Adjacency budget.** Candidates per label: the raw spot
-   (`apex + outward * gap_px`), then nudges of `+/-1.2 x fontSize` and
-   `+/-2.4 x fontSize`, alternating **along the track** (preferred) and along
-   the normal. A label never ends further than `2.4 x fontSize` (~14 px at
-   250 px) from its raw spot — labels must stay on their corner.
-5. **Hard rule: strings never overlap.** In turn order, take the first candidate
-   (fullest text first, then smallest nudge) that overlaps no already-placed
-   label and stays fully inside the viewBox. If every candidate with the full
-   label fails, retry as `T<number>` only, then drop it and report.
-6. **Crossing the track ribbon is allowed.** There is no clearance requirement
+4. **Alternating sides.** Turn 1 goes on the **outside** of the loop, turn 2 on
+   the **inside**, turn 3 outside, ... This roughly doubles the room in a dense
+   complex (Le Mans has 8 of its 19 turns in sector 3) and, measured on Circuit
+   de la Sarthe, it is what makes every label fit: outside-only gave 18/19 with
+   one drop, alternating gives **19/19 with names**.
+5. **Adjacency budget.** Candidates per label, in this order: the raw spot on
+   the preferred side (`apex + side * outward * gap_px`), then nudges of
+   `+/-1.2 x fontSize` and `+/-2.4 x fontSize`. Two different caps apply:
+   - **along the track** — up to `2.4 x fontSize` (~14 px at 250 px): a label
+     sliding beside its corner still reads as attached;
+   - **along the normal** — up to `min(2.4 x fontSize, 4 % of mapSize)` (~10 px
+     at 250 px, 4.8 px at 120 px): moving away from the track is what makes a
+     label look detached.
+   A label never ends further than that from its raw spot.
+6. **Hard rule: strings never overlap.** In turn order, take the first candidate
+   that overlaps no already placed label and stays fully inside the viewBox.
+   Candidate order is **text first, then side, then nudge**: keeping the name is
+   worth more than keeping the preferred side, and changing side is worth more
+   than sliding further from the corner.
+7. **Text tiers by map size.** `T<n> <short_name || name>` everywhere; below
+   150 px also try `<n> <name>` (dropping the `T` buys ~2 characters on a narrow
+   label), and only then `T<n>`. If every candidate fails, drop the label and
+   report it.
+8. **Crossing the track ribbon is allowed.** There is no clearance requirement
    against the track or its boundaries — labels are read against the shape.
    An earlier revision demanded 2 px of ribbon clearance and pushed labels up to
    26 px away; rejected in review because it detached labels from their corners.
-7. Labels are horizontal: no rotation, no text on a path.
+9. Labels are horizontal: no rotation, no text on a path.
 
 Labels render into a dedicated `<g id="track-turn-labels">` group above the
 outline and below the zoom arc, with `pointer-events: none`, plus a dot at each
 apex and a hairline from the dot to its text.
 
-Measured on the two probe tracks at 250 px: every label box within
-**2.9-4.0 px** of its apex (max 10.4 px), zero overlaps, min gap between two
-labels 4.1 px, and every turn labelled — 8/8 Silverstone International,
-10/10 Monza Curva Grande, all with names (none degraded to a bare number).
-At 120 px all labels still fit; the tightest pair is 0.2 px apart.
+### Measured with this algorithm
+
+Zero string overlaps, every label inside the viewBox, every label beside its
+corner (all 14 backfilled tracks, slice 04):
+
+| map size | every turn labelled | notes |
+|---|---|---|
+| **250 px** (the app) | **14 / 14 tracks** | 8-19 labels each, all with names; label box 2.8-5.1 px from its apex on average, 7 px max |
+| 150 px | 13 / 14 | one label degrades to `T<n>` |
+| 120 px (TinyPedal's `area_size` floor is 100) | 12 / 14 complete; Le Mans 16/19, Silverstone GP 16/18 | dense sectors number or drop a few labels — 19 labels of ~7 px height do not fit a 120 px square |
 
 ## Feature flag
 

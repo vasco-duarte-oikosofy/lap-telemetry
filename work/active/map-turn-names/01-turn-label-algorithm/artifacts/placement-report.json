@@ -2,102 +2,13 @@
   "weathertech-raceway-laguna-seca": {
     "turns": 12,
     "configs": {
-      "120": {
-        "sizePx": 120,
-        "fontPx": 5,
-        "floor": true,
-        "shown": 12,
-        "dropped": [],
-        "overlaps": [],
-        "degradedToNumber": [
-          "T9"
-        ],
-        "maxApexToLabelCentrePx": 23.5,
-        "meanApexToRectPx": 2.5,
-        "maxApexToRectPx": 4.6,
-        "minLabelPairGapPx": 0.8,
-        "meanApexToLabelCentrePx": 7.8,
-        "labels": [
-          {
-            "text": "T1",
-            "nudge": 0,
-            "distCentre": 6.6,
-            "distRect": 3.6
-          },
-          {
-            "text": "T2 Andretti Hairpin",
-            "nudge": 0,
-            "distCentre": 23.5,
-            "distRect": 2.3
-          },
-          {
-            "text": "T3",
-            "nudge": 0,
-            "distCentre": 6.6,
-            "distRect": 2.5
-          },
-          {
-            "text": "T4",
-            "nudge": 0,
-            "distCentre": 7,
-            "distRect": 2.3
-          },
-          {
-            "text": "T5",
-            "nudge": 0,
-            "distCentre": 7.3,
-            "distRect": 2.9
-          },
-          {
-            "text": "T6",
-            "nudge": 0,
-            "distCentre": 6.8,
-            "distRect": 2.3
-          },
-          {
-            "text": "T7",
-            "nudge": 0,
-            "distCentre": 6.2,
-            "distRect": 2.8
-          },
-          {
-            "text": "T8 Corkscrew",
-            "nudge": 1,
-            "distCentre": 12.4,
-            "distRect": 4.6
-          },
-          {
-            "text": "T9",
-            "nudge": 2,
-            "distCentre": 1.1,
-            "distRect": 0
-          },
-          {
-            "text": "T10 Rainey",
-            "nudge": 0,
-            "distCentre": 5.1,
-            "distRect": 1.5
-          },
-          {
-            "text": "T11",
-            "nudge": 0,
-            "distCentre": 5.6,
-            "distRect": 2.5
-          },
-          {
-            "text": "T12",
-            "nudge": 0,
-            "distCentre": 5.7,
-            "distRect": 2.6
-          }
-        ]
-      },
-      "250": {
+      "250-outside": {
         "sizePx": 250,
         "fontPx": 5.75,
         "floor": true,
         "shown": 12,
         "dropped": [],
+        "inwardLabels": 0,
         "overlaps": [],
         "degradedToNumber": [],
         "maxApexToLabelCentrePx": 27.5,
@@ -180,12 +91,458 @@
           }
         ]
       },
+      "250-alternate": {
+        "sizePx": 250,
+        "fontPx": 5.75,
+        "floor": true,
+        "shown": 12,
+        "dropped": [],
+        "inwardLabels": 6,
+        "overlaps": [],
+        "degradedToNumber": [],
+        "maxApexToLabelCentrePx": 27.5,
+        "meanApexToRectPx": 3,
+        "maxApexToRectPx": 3.5,
+        "minLabelPairGapPx": 7,
+        "meanApexToLabelCentrePx": 11.5,
+        "labels": [
+          {
+            "text": "T1",
+            "nudge": 0,
+            "distCentre": 7.3,
+            "distRect": 3.5
+          },
+          {
+            "text": "T2 Andretti Hairpin",
+            "nudge": 0,
+            "distCentre": 27.5,
+            "distRect": 2.4
+          },
+          {
+            "text": "T3",
+            "nudge": 0,
+            "distCentre": 7.8,
+            "distRect": 2.9
+          },
+          {
+            "text": "T4",
+            "nudge": 0,
+            "distCentre": 8.2,
+            "distRect": 3
+          },
+          {
+            "text": "T5",
+            "nudge": 0,
+            "distCentre": 8.2,
+            "distRect": 2.8
+          },
+          {
+            "text": "T6",
+            "nudge": 0,
+            "distCentre": 8.3,
+            "distRect": 3
+          },
+          {
+            "text": "T7",
+            "nudge": 0,
+            "distCentre": 7.4,
+            "distRect": 3.3
+          },
+          {
+            "text": "T8 Corkscrew",
+            "nudge": 0,
+            "distCentre": 19.5,
+            "distRect": 2.9
+          },
+          {
+            "text": "T9 Corkscrew 8a",
+            "nudge": 0,
+            "distCentre": 23.8,
+            "distRect": 2.9
+          },
+          {
+            "text": "T10 Rainey",
+            "nudge": 0,
+            "distCentre": 7,
+            "distRect": 2.9
+          },
+          {
+            "text": "T11",
+            "nudge": 0,
+            "distCentre": 6.7,
+            "distRect": 3
+          },
+          {
+            "text": "T12",
+            "nudge": 0,
+            "distCentre": 6.6,
+            "distRect": 3
+          }
+        ]
+      },
+      "150-alternate": {
+        "sizePx": 150,
+        "fontPx": 5,
+        "floor": true,
+        "shown": 12,
+        "dropped": [],
+        "inwardLabels": 6,
+        "overlaps": [],
+        "degradedToNumber": [],
+        "maxApexToLabelCentrePx": 18.8,
+        "meanApexToRectPx": 3.6,
+        "maxApexToRectPx": 8.9,
+        "minLabelPairGapPx": 1.2,
+        "meanApexToLabelCentrePx": 9.3,
+        "labels": [
+          {
+            "text": "T1",
+            "nudge": 0,
+            "distCentre": 6.5,
+            "distRect": 3.5
+          },
+          {
+            "text": "T2 Andretti Hairpin",
+            "nudge": 3,
+            "distCentre": 18.8,
+            "distRect": 8.6
+          },
+          {
+            "text": "T3",
+            "nudge": 0,
+            "distCentre": 6.7,
+            "distRect": 2.5
+          },
+          {
+            "text": "T4",
+            "nudge": 0,
+            "distCentre": 7.2,
+            "distRect": 2.5
+          },
+          {
+            "text": "T5",
+            "nudge": 0,
+            "distCentre": 7.3,
+            "distRect": 2.9
+          },
+          {
+            "text": "T6",
+            "nudge": 0,
+            "distCentre": 7.4,
+            "distRect": 2.9
+          },
+          {
+            "text": "T7",
+            "nudge": 0,
+            "distCentre": 6.2,
+            "distRect": 2.8
+          },
+          {
+            "text": "T8 Corkscrew",
+            "nudge": 0,
+            "distCentre": 17.2,
+            "distRect": 2.7
+          },
+          {
+            "text": "T9 Corkscrew 8a",
+            "nudge": 3,
+            "distCentre": 15.4,
+            "distRect": 8.9
+          },
+          {
+            "text": "T10 Rainey",
+            "nudge": 1,
+            "distCentre": 8.2,
+            "distRect": 0.7
+          },
+          {
+            "text": "T11",
+            "nudge": 0,
+            "distCentre": 5.6,
+            "distRect": 2.5
+          },
+          {
+            "text": "T12",
+            "nudge": 0,
+            "distCentre": 5.6,
+            "distRect": 2.6
+          }
+        ]
+      },
+      "250-inward-fallback": {
+        "sizePx": 250,
+        "fontPx": 5.75,
+        "floor": true,
+        "shown": 12,
+        "dropped": [],
+        "inwardLabels": 0,
+        "overlaps": [],
+        "degradedToNumber": [],
+        "maxApexToLabelCentrePx": 27.5,
+        "meanApexToRectPx": 3.6,
+        "maxApexToRectPx": 10.3,
+        "minLabelPairGapPx": 1.9,
+        "meanApexToLabelCentrePx": 11,
+        "labels": [
+          {
+            "text": "T1",
+            "nudge": 0,
+            "distCentre": 7.3,
+            "distRect": 3.5
+          },
+          {
+            "text": "T2 Andretti Hairpin",
+            "nudge": 0,
+            "distCentre": 27.5,
+            "distRect": 2.8
+          },
+          {
+            "text": "T3",
+            "nudge": 0,
+            "distCentre": 7.8,
+            "distRect": 2.9
+          },
+          {
+            "text": "T4",
+            "nudge": 0,
+            "distCentre": 8.2,
+            "distRect": 3.1
+          },
+          {
+            "text": "T5",
+            "nudge": 0,
+            "distCentre": 8.2,
+            "distRect": 2.8
+          },
+          {
+            "text": "T6",
+            "nudge": 0,
+            "distCentre": 8.2,
+            "distRect": 2.8
+          },
+          {
+            "text": "T7",
+            "nudge": 0,
+            "distCentre": 7.4,
+            "distRect": 3.3
+          },
+          {
+            "text": "T8 Corkscrew",
+            "nudge": 0,
+            "distCentre": 19.3,
+            "distRect": 3.1
+          },
+          {
+            "text": "T9 Corkscrew 8a",
+            "nudge": 3,
+            "distCentre": 18,
+            "distRect": 10.3
+          },
+          {
+            "text": "T10 Rainey",
+            "nudge": 0,
+            "distCentre": 6.3,
+            "distRect": 2.1
+          },
+          {
+            "text": "T11",
+            "nudge": 0,
+            "distCentre": 6.7,
+            "distRect": 3
+          },
+          {
+            "text": "T12",
+            "nudge": 0,
+            "distCentre": 6.7,
+            "distRect": 3.1
+          }
+        ]
+      },
+      "120-names": {
+        "sizePx": 120,
+        "fontPx": 5,
+        "floor": true,
+        "shown": 12,
+        "dropped": [],
+        "inwardLabels": 5,
+        "overlaps": [],
+        "degradedToNumber": [],
+        "maxApexToLabelCentrePx": 30,
+        "meanApexToRectPx": 4.2,
+        "maxApexToRectPx": 11.5,
+        "minLabelPairGapPx": 0.2,
+        "meanApexToLabelCentrePx": 11.9,
+        "labels": [
+          {
+            "text": "T1",
+            "nudge": 0,
+            "distCentre": 6.6,
+            "distRect": 3.6
+          },
+          {
+            "text": "T2 Andretti Hairpin",
+            "nudge": 0,
+            "distCentre": 23.5,
+            "distRect": 2.3
+          },
+          {
+            "text": "T3",
+            "nudge": 0,
+            "distCentre": 6.6,
+            "distRect": 2.5
+          },
+          {
+            "text": "T4",
+            "nudge": 0,
+            "distCentre": 7.2,
+            "distRect": 2.5
+          },
+          {
+            "text": "T5",
+            "nudge": 0,
+            "distCentre": 7.3,
+            "distRect": 2.9
+          },
+          {
+            "text": "T6",
+            "nudge": 0,
+            "distCentre": 7.4,
+            "distRect": 2.9
+          },
+          {
+            "text": "T7",
+            "nudge": 0,
+            "distCentre": 6.2,
+            "distRect": 2.8
+          },
+          {
+            "text": "T8 Corkscrew",
+            "nudge": 1,
+            "distCentre": 12.4,
+            "distRect": 4.6
+          },
+          {
+            "text": "T9 Corkscrew 8a",
+            "nudge": 3,
+            "distCentre": 30,
+            "distRect": 11.5
+          },
+          {
+            "text": "T10 Rainey",
+            "nudge": 3,
+            "distCentre": 13,
+            "distRect": 0.5
+          },
+          {
+            "text": "T11",
+            "nudge": 3,
+            "distCentre": 14.3,
+            "distRect": 9.5
+          },
+          {
+            "text": "T12",
+            "nudge": 1,
+            "distCentre": 8.8,
+            "distRect": 4.2
+          }
+        ]
+      },
+      "120-numbers": {
+        "sizePx": 120,
+        "fontPx": 5,
+        "floor": true,
+        "shown": 12,
+        "dropped": [],
+        "inwardLabels": 5,
+        "overlaps": [],
+        "degradedToNumber": [],
+        "maxApexToLabelCentrePx": 30,
+        "meanApexToRectPx": 4.2,
+        "maxApexToRectPx": 11.5,
+        "minLabelPairGapPx": 0.2,
+        "meanApexToLabelCentrePx": 11.9,
+        "labels": [
+          {
+            "text": "T1",
+            "nudge": 0,
+            "distCentre": 6.6,
+            "distRect": 3.6
+          },
+          {
+            "text": "T2 Andretti Hairpin",
+            "nudge": 0,
+            "distCentre": 23.5,
+            "distRect": 2.3
+          },
+          {
+            "text": "T3",
+            "nudge": 0,
+            "distCentre": 6.6,
+            "distRect": 2.5
+          },
+          {
+            "text": "T4",
+            "nudge": 0,
+            "distCentre": 7.2,
+            "distRect": 2.5
+          },
+          {
+            "text": "T5",
+            "nudge": 0,
+            "distCentre": 7.3,
+            "distRect": 2.9
+          },
+          {
+            "text": "T6",
+            "nudge": 0,
+            "distCentre": 7.4,
+            "distRect": 2.9
+          },
+          {
+            "text": "T7",
+            "nudge": 0,
+            "distCentre": 6.2,
+            "distRect": 2.8
+          },
+          {
+            "text": "T8 Corkscrew",
+            "nudge": 1,
+            "distCentre": 12.4,
+            "distRect": 4.6
+          },
+          {
+            "text": "T9 Corkscrew 8a",
+            "nudge": 3,
+            "distCentre": 30,
+            "distRect": 11.5
+          },
+          {
+            "text": "T10 Rainey",
+            "nudge": 3,
+            "distCentre": 13,
+            "distRect": 0.5
+          },
+          {
+            "text": "T11",
+            "nudge": 3,
+            "distCentre": 14.3,
+            "distRect": 9.5
+          },
+          {
+            "text": "T12",
+            "nudge": 1,
+            "distCentre": 8.8,
+            "distRect": 4.2
+          }
+        ]
+      },
       "120-nofloor": {
         "sizePx": 120,
         "fontPx": 2.76,
         "floor": false,
         "shown": 12,
         "dropped": [],
+        "inwardLabels": 0,
         "overlaps": [],
         "degradedToNumber": [],
         "maxApexToLabelCentrePx": 12.5,

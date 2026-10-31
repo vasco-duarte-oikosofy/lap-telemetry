@@ -18,7 +18,8 @@
       "s_end_m": 418.0,
       "apex_side": "left",
       "apex_side_source": "manual",
-      "target_throttle_pct": 64
+      "target_throttle_pct": 64,
+      "short_name": "Senna 1"
     },
     {
       "id": "t2",
@@ -27,7 +28,8 @@
       "apex_s_m": 453.0,
       "s_end_m": 458.0,
       "apex_side": "right",
-      "apex_side_source": "manual"
+      "apex_side_source": "manual",
+      "short_name": "Senna 2"
     },
     {
       "id": "t3",
@@ -37,7 +39,8 @@
       "s_end_m": 698.0,
       "apex_side": "left",
       "apex_side_source": "manual",
-      "target_throttle_pct": 100
+      "target_throttle_pct": 100,
+      "short_name": "Sol"
     },
     {
       "id": "t4",
@@ -47,7 +50,8 @@
       "s_end_m": 1459.0,
       "apex_side": "left",
       "apex_side_source": "manual",
-      "target_throttle_pct": 68
+      "target_throttle_pct": 68,
+      "short_name": "Lago 1"
     },
     {
       "id": "t5",
@@ -57,7 +61,8 @@
       "s_end_m": 1605.0,
       "apex_side": "left",
       "apex_side_source": "manual",
-      "target_throttle_pct": 100
+      "target_throttle_pct": 100,
+      "short_name": "Lago 2"
     },
     {
       "id": "t6",
@@ -106,7 +111,8 @@
       "s_end_m": 2797.0,
       "apex_side": "right",
       "apex_side_source": "manual",
-      "target_throttle_pct": 53
+      "target_throttle_pct": 53,
+      "short_name": "Bico"
     },
     {
       "id": "t11",
@@ -119,7 +125,7 @@
     },
     {
       "id": "t12",
-      "name": "Jun\u00e7\u00e3o",
+      "name": "Junção",
       "s_start_m": 3134.0,
       "apex_s_m": 3255.0,
       "s_end_m": 3284.0,
@@ -129,7 +135,7 @@
     },
     {
       "id": "t13",
-      "name": "Caf\u00e9",
+      "name": "Café",
       "s_start_m": 3391.0,
       "apex_s_m": 3391.0,
       "s_end_m": 3391.0,
@@ -145,7 +151,8 @@
       "s_end_m": 3680.0,
       "apex_side": "left",
       "apex_side_source": "manual",
-      "target_throttle_pct": 100
+      "target_throttle_pct": 100,
+      "short_name": "Boxes"
     },
     {
       "id": "t15",
@@ -155,7 +162,8 @@
       "s_end_m": 4020.0,
       "apex_side": "left",
       "apex_side_source": "manual",
-      "target_throttle_pct": 100
+      "target_throttle_pct": 100,
+      "short_name": "Arquib."
     }
   ],
   "straight_zones": []
