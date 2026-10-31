@@ -314,11 +314,18 @@ Normals are derived the same way as in the bake (perpendicular to the tangent,
 flipped away from the map centroid), then rotated by `display_orientation`
 together with the anchor, so a rotated map keeps its labels attached.
 
-### Type size
+### Type size and halo
 
 `fontSize = min(clamp(mapSize * 0.023, 5, 18), widget font_size)` — the map
 decides, the user's widget font is only an upper bound. At the default
 `area_size` 400 / `area_margin` 40 that is 7.4 px.
+
+The halo pen is centred on the glyph outline and Qt hint-rounds stems to ~1 px
+below 10 px type, so a proportional halo is wrong down there: measured on the
+real Monza labels at 7.4 px, 0.16 em fattens the glyphs by **+49 % ink** (letters
+blur into blobs), 0.08 em by +30 %, 0.05 em by +20 %. The widget therefore uses
+`0.05 em` below 10 px and `0.16 em` above it, and a test fails above 25 %
+inflation.
 
 ### Options
 
@@ -333,7 +340,7 @@ decides, the user's widget font is only an upper bound. At the default
 | Script | What it proves |
 |---|---|
 | `tests/test_turn_labels.py` | the layout rule on synthetic tracks: tiers, alternating sides, both caps, no overlap, degradation, anchoring, loading |
-| `tests/test_turn_labels_render.py` | every shipped track: **173/173 corners labelled**, 0 overlaps, nothing off the canvas, 133/136 named corners keep their name, rotation-safe |
+| `tests/test_turn_labels_render.py` | every shipped track: **173/173 corners labelled**, 0 overlaps, nothing off the canvas, **136/136 named corners keep their name**, rotation-safe |
 | `tests/test_track_map_widget_labels.py` | the real widget class draws the labels: option on by default, one label per corner, fewer pixels when off, graceful without data |
 
 Cross-language parity is enforced from **this** repo: `dev/scripts/test_turn_labels_parity.js`

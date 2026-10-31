@@ -29,8 +29,11 @@
 ## Verified
 
 - TinyPedal: `test_turn_labels.py` PASS, `test_turn_labels_render.py` PASS
-  (**173/173 corners**, 0 overlaps, 0 off-canvas, 133/136 named corners keep a
-  name), `test_track_map_widget_labels.py` PASS (2246 vs 1577 painted samples).
+  (**173/173 corners**, 0 overlaps, 0 off-canvas, **136/136 named corners keep a
+  name**), `test_track_map_widget_labels.py` PASS (1841 vs 1577 painted samples,
+  halo inflation +20 %).
+- The render tests refuse to run when Qt has no font database — check
+  `QFontDatabase().families()` if an image looks like tofu boxes.
 - This repo `--feature map-turn-names`: **314 assertions, 9 scripts, ALL PASS**.
 - Parity: JS and Python planners agree to **0.000000000 px** on four map sizes.
 
@@ -47,6 +50,8 @@ node dev/scripts/test_turn_labels_parity.js                  # after touching ei
 - Anchoring assumes the recorded map starts at the start/finish line (it does —
   TinyPedal records one lap from the line). A map recorded from a rolling start
   elsewhere would offset every label by the same fraction of the lap.
-- 3 of 136 named corners drop to `T<n>` at 400 px (Le Mans, Paul Ricard 1A-V2).
+- None: with real fonts all 136 named corners keep their name at 400 px. The
+  earlier "133/136" was measured with the offscreen platform's tofu glyphs, which
+  are wider than real ones.
 - The label data is per track name; a track that is in our outlines but has no
   TinyPedal map is skipped by the exporter (none today).

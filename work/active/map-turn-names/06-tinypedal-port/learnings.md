@@ -48,3 +48,39 @@
   gap is expressed in font sizes, the same constants produce the same relative
   result at 400 px as at 950 px — the port needed no re-tuning, and 173/173
   corners are labelled on the first attempt once the anchors were right.
+
+- **The first review images were tofu boxes and I shipped them anyway.** On
+  Windows the `offscreen` Qt platform has an **empty font database** (0 families),
+  so every glyph renders as a hollow square — and `QFontMetricsF` still returns
+  plausible advances, so nothing looks broken in code. The measurements were even
+  *wrong* because of it (tofu boxes are wider than Consolas: 133/136 names instead
+  of the real 136/136). Qt's **default** platform (`windows`) renders into a
+  QImage with no window at all and has 241 families; `offscreen` is only needed on
+  a headless box, where fontconfig supplies fonts. Both render tests now assert
+  `QFontDatabase().families()` and `QFontMetricsF.inFont("A")` before drawing.
+
+- **The saved images then had no labels at all — and my test didn't notice.**
+  `draw_turn_names()` reads the coordinates, and those were kept in
+  `self.turn_coords`, which only `update_map()` refreshed. A save path that called
+  `create_map_path()`/`draw_map_image()` directly inherited stale/empty coordinates,
+  `anchor_turns()` raised, and a `except ValueError: return` swallowed it: a clean
+  canvas, no error, PASS. Fixed by making `create_map_path()` store `self.map_coords`
+  — the coordinates the current map frame was built from — so the labels can never
+  be stale relative to `map_range`/`scale`/`offset`. The test now counts painted
+  pixels *inside the label boxes of the saved file*.
+
+- **`widget.pixmap_map` is one object reused for every render.** Saving a reference
+  to it and saving later gave me a "0 degrees" file that was actually the 90 degree
+  render. Every save needs `.copy()`.
+
+- **A proportional halo is wrong for small type.** The pen is centred on the glyph
+  outline, and Qt hint-rounds stems to ~1 px below 10 px, so the compare app's
+  0.16 em halo — fine at its 13 px — fattens 7 px labels by **+49 % ink** and the
+  letters blur into blobs. Measured on the real Monza labels: 0.16 em +49 %,
+  0.08 em +30 %, 0.05 em +20 %. Below 10 px the halo is now 0.05 em, above it keeps
+  0.16 em, and a test fails if the inflation exceeds 25 %.
+
+- **My own ASCII dumps lied to me twice.** 7 px antialiased text on a transparent
+  pixmap has alpha 30–120, so a `luminance = colour x alpha` ramp shows it as
+  nearly blank. Count pixels by alpha instead of eyeballing a ramp; that is what
+  finally distinguished "no labels in the file" from "labels too faint for my dump".
