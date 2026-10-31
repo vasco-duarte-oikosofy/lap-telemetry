@@ -45,7 +45,8 @@
       "s_end_m": 1300.0,
       "apex_side": "right",
       "apex_side_source": "manual",
-      "target_throttle_pct": 100
+      "target_throttle_pct": 100,
+      "short_name": "Esses"
     },
     {
       "id": "t5",

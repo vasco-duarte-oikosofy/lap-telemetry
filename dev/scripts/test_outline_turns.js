@@ -69,6 +69,13 @@ check('withPreservedTurns keeps freshly baked turns (does not clobber)', () => {
   assert.strictEqual(merged.turns[0].name, 'New');
 });
 
+check('withPreservedTurns tolerates a non-JSON existing file (sentinel/partial write)', () => {
+  const sentinel = path.join(tmpDir, 'sentinel.json');
+  fs.writeFileSync(sentinel, 'SENTINEL');
+  const outline = { schema_version: 1 };
+  assert.deepStrictEqual(withPreservedTurns(outline, sentinel), { schema_version: 1 });
+});
+
 check('withPreservedTurns is a no-op when nothing exists on disk', () => {
   const missing = path.join(tmpDir, 'nope.json');
   const outline = { schema_version: 1 };
@@ -170,9 +177,23 @@ for (const p of withTurns) {
 
 // ── 4. names agree with the coaching model used to bake them ─────────────────
 
-// Grows as tracks are backfilled (slice 04).
+// One entry per backfilled track (slice 04). The model named here is the one
+// the bake selects (most curated names, then most corners, then filename).
 const KNOWN = {
   'silverstone-international-circuit': 'silverstone-international-circuit_vista-af-corse-2026-21-lm.json',
+  'monza-curva-grande-circuit': 'monza-curva-grande-circuit_dkr-engineering-4-elms25.json',
+  'autodromo-enzo-e-dino-ferrari': 'autodromo-enzo-e-dino-ferrari_dkr-engineering-4-elms25.json',
+  'autodromo-jose-carlos-pace': 'autodromo-jose-carlos-pace_dkr-engineering-4-elms25.json',
+  'circuit-de-barcelona': 'circuit-de-barcelona_ferrari-af-corse-2026-50-lm.json',
+  'circuit-de-la-sarthe': 'circuit-de-la-sarthe_dkr-engineering-4-elms25.json',
+  'daytona-international-speedway-road-course': 'daytona-international-speedway-road-course_dkr-engineering-4-elms25.json',
+  'fuji-speedway-classic': 'fuji-speedway-classic_vista-af-corsa-2026-54-wec.json',
+  'michelin-raceway-road-atlanta': 'michelin-raceway-road-atlanta_dkr-engineering-4-elms25.json',
+  'paul-ricard---1a-v2-short': 'paul-ricard---1a-v2-short_ferrari-af-corse-2026-50-lm.json',
+  'paul-ricard---3a': 'paul-ricard---3a_dkr-engineering-4-elms25.json',
+  'sebring-international-raceway': 'sebring-international-raceway_logitech-g-challenge-9-lgc.json',
+  'silverstone-grand-prix-circuit---elms': 'silverstone-grand-prix-circuit---elms_dkr-engineering-4-elms25.json',
+  'weathertech-raceway-laguna-seca': 'weathertech-raceway-laguna-seca_dkr-engineering-4-elms25.json',
 };
 for (const [slug, modelFile] of Object.entries(KNOWN)) {
   check(`turns match the coaching model: ${slug}`, () => {
@@ -187,6 +208,8 @@ for (const [slug, modelFile] of Object.entries(KNOWN)) {
       assert.strictEqual(t.name, expected, `T${t.number} name mismatch`);
       assert.strictEqual(t.apex_s_m, Math.round(Number(corner.apex_s_m) * 10) / 10,
         `T${t.number} apex_s_m mismatch`);
+      assert.strictEqual(t.short_name, corner.short_name || null,
+        `T${t.number} short_name mismatch`);
     });
   });
 }

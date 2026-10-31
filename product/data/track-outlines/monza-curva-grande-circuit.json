@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "source": "Single lap trajectory (\u00b15m width)",
+  "source": "Single lap trajectory (±5m width)",
   "track_name": "Monza Curva Grande Circuit",
   "sim_track_name": "Monza Curva Grande Circuit",
   "layout_name": "default",
@@ -20,15 +20,15 @@
   "alignment": {
     "method": "trajectory_trace",
     "width_per_side": 5.0,
-    "notes": "Centerline = fastest reference lap (1:35.182, lap 12 of session_20261031T065746Z); boundaries \u00b15m constant."
+    "notes": "Centerline = fastest reference lap (1:35.182, lap 12 of session_20261031T065746Z); boundaries ±5m constant."
   },
   "visual_qa": {
     "status": "pending",
     "notes": "Needs visual verification."
   },
   "caveats": [
-    "Width is constant \u00b15m \u2014 not measured from real track data.",
-    "Centerline follows racing line \u2014 not track geometric center.",
+    "Width is constant ±5m — not measured from real track data.",
+    "Centerline follows racing line — not track geometric center.",
     "No TUMFTM/bacinger data available for this layout. Upgrade requires OSM extraction.",
     "This outline is visual context only."
   ],
@@ -6036,6 +6036,178 @@
     {
       "x": -311.9974332237362,
       "y": -461.02341941908276
+    }
+  ],
+  "turns": [
+    {
+      "id": "t1",
+      "number": 1,
+      "name": "Curva Grande",
+      "short_name": null,
+      "apex_s_m": 1400.0,
+      "x": -144.659,
+      "y": 921.796,
+      "outward": [
+        -0.81,
+        0.5865
+      ],
+      "tangent": [
+        0.5865,
+        0.81
+      ]
+    },
+    {
+      "id": "t2",
+      "number": 2,
+      "name": "Variante della Roggia 1",
+      "short_name": "Roggia 1",
+      "apex_s_m": 2109.0,
+      "x": 512.125,
+      "y": 1102.413,
+      "outward": [
+        -0.621,
+        0.7838
+      ],
+      "tangent": [
+        0.7838,
+        0.621
+      ]
+    },
+    {
+      "id": "t3",
+      "number": 3,
+      "name": "Variante della Roggia 2",
+      "short_name": "Roggia 2",
+      "apex_s_m": 2153.0,
+      "x": 537.079,
+      "y": 1134.384,
+      "outward": [
+        -0.6629,
+        0.7487
+      ],
+      "tangent": [
+        0.7487,
+        0.6629
+      ]
+    },
+    {
+      "id": "t4",
+      "number": 4,
+      "name": "Lesmo 1",
+      "short_name": null,
+      "apex_s_m": 2521.0,
+      "x": 885.066,
+      "y": 1212.934,
+      "outward": [
+        0.587,
+        0.8096
+      ],
+      "tangent": [
+        0.8096,
+        -0.587
+      ]
+    },
+    {
+      "id": "t5",
+      "number": 5,
+      "name": "Lesmo 2",
+      "short_name": null,
+      "apex_s_m": 2833.0,
+      "x": 936.224,
+      "y": 916.114,
+      "outward": [
+        0.9265,
+        -0.3763
+      ],
+      "tangent": [
+        -0.3763,
+        -0.9265
+      ]
+    },
+    {
+      "id": "t6",
+      "number": 6,
+      "name": "Curva del Serraglio",
+      "short_name": "Serraglio",
+      "apex_s_m": 3240.0,
+      "x": 594.459,
+      "y": 703.239,
+      "outward": [
+        0.5625,
+        -0.8268
+      ],
+      "tangent": [
+        -0.8268,
+        -0.5625
+      ]
+    },
+    {
+      "id": "t7",
+      "number": 7,
+      "name": "Variante Ascari 1",
+      "short_name": "Ascari 1",
+      "apex_s_m": 3910.0,
+      "x": 92.56,
+      "y": 262.449,
+      "outward": [
+        0.9283,
+        -0.372
+      ],
+      "tangent": [
+        -0.372,
+        -0.9283
+      ]
+    },
+    {
+      "id": "t8",
+      "number": 8,
+      "name": "Variante Ascari 2",
+      "short_name": "Ascari 2",
+      "apex_s_m": 4006.0,
+      "x": 81.6,
+      "y": 169.599,
+      "outward": [
+        0.9433,
+        -0.332
+      ],
+      "tangent": [
+        -0.332,
+        -0.9433
+      ]
+    },
+    {
+      "id": "t9",
+      "number": 9,
+      "name": "Variante Ascari 3",
+      "short_name": "Ascari 3",
+      "apex_s_m": 4104.0,
+      "x": 27.824,
+      "y": 91.159,
+      "outward": [
+        0.8784,
+        -0.4779
+      ],
+      "tangent": [
+        -0.4779,
+        -0.8784
+      ]
+    },
+    {
+      "id": "t10",
+      "number": 10,
+      "name": "Curva Alboreto (Parabolica)",
+      "short_name": "Parabolica",
+      "apex_s_m": 5128.0,
+      "x": -105.96,
+      "y": -916.126,
+      "outward": [
+        0.6705,
+        -0.7419
+      ],
+      "tangent": [
+        -0.7419,
+        -0.6705
+      ]
     }
   ]
 }

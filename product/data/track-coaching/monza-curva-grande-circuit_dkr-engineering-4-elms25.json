@@ -27,7 +27,8 @@
       "apex_s_m": 2109.0,
       "s_end_m": 2130.0,
       "apex_side": "left",
-      "apex_side_source": "manual"
+      "apex_side_source": "manual",
+      "short_name": "Roggia 1"
     },
     {
       "id": "t3",
@@ -36,7 +37,8 @@
       "apex_s_m": 2153.0,
       "s_end_m": 2209.0,
       "apex_side": "right",
-      "apex_side_source": "manual"
+      "apex_side_source": "manual",
+      "short_name": "Roggia 2"
     },
     {
       "id": "t4",
@@ -64,7 +66,8 @@
       "s_end_m": 3400.0,
       "apex_side": "left",
       "apex_side_source": "manual",
-      "target_throttle_pct": 100
+      "target_throttle_pct": 100,
+      "short_name": "Serraglio"
     },
     {
       "id": "t7",
@@ -73,7 +76,8 @@
       "apex_s_m": 3910.0,
       "s_end_m": 3953.0,
       "apex_side": "left",
-      "apex_side_source": "manual"
+      "apex_side_source": "manual",
+      "short_name": "Ascari 1"
     },
     {
       "id": "t8",
@@ -82,7 +86,8 @@
       "apex_s_m": 4006.0,
       "s_end_m": 4062.0,
       "apex_side": "right",
-      "apex_side_source": "manual"
+      "apex_side_source": "manual",
+      "short_name": "Ascari 2"
     },
     {
       "id": "t9",
@@ -91,7 +96,8 @@
       "apex_s_m": 4104.0,
       "s_end_m": 4238.0,
       "apex_side": "left",
-      "apex_side_source": "manual"
+      "apex_side_source": "manual",
+      "short_name": "Ascari 3"
     },
     {
       "id": "t10",
@@ -100,7 +106,8 @@
       "apex_s_m": 5128.0,
       "s_end_m": 5138.0,
       "apex_side": "right",
-      "apex_side_source": "manual"
+      "apex_side_source": "manual",
+      "short_name": "Parabolica"
     }
   ],
   "straight_zones": []

@@ -17,7 +17,8 @@
       "apex_s_m": 652.0,
       "s_end_m": 660.0,
       "apex_side": "right",
-      "apex_side_source": "manual"
+      "apex_side_source": "manual",
+      "short_name": "Verrerie 1"
     },
     {
       "id": "t1b",
@@ -26,7 +27,8 @@
       "apex_s_m": 733.0,
       "s_end_m": 740.0,
       "apex_side": "left",
-      "apex_side_source": "manual"
+      "apex_side_source": "manual",
+      "short_name": "Verrerie 2"
     },
     {
       "id": "t2a",
@@ -35,7 +37,8 @@
       "apex_s_m": 1292.0,
       "s_end_m": 1322.0,
       "apex_side": "left",
-      "apex_side_source": "manual"
+      "apex_side_source": "manual",
+      "short_name": "l'Hotel 1"
     },
     {
       "id": "t2b",
@@ -44,7 +47,8 @@
       "apex_s_m": 1386.0,
       "s_end_m": 1396.0,
       "apex_side": "right",
-      "apex_side_source": "manual"
+      "apex_side_source": "manual",
+      "short_name": "l'Hotel 2"
     },
     {
       "id": "t3",
@@ -53,7 +57,8 @@
       "apex_s_m": 1510.0,
       "s_end_m": 1523.0,
       "apex_side": "left",
-      "apex_side_source": "manual"
+      "apex_side_source": "manual",
+      "short_name": "Camp"
     },
     {
       "id": "t4",
@@ -62,7 +67,8 @@
       "apex_s_m": 1636.0,
       "s_end_m": 1638.0,
       "apex_side": "left",
-      "apex_side_source": "manual"
+      "apex_side_source": "manual",
+      "short_name": "Ste-Beaume"
     },
     {
       "id": "t5",
@@ -99,7 +105,8 @@
       "apex_s_m": 4199.0,
       "s_end_m": 4225.0,
       "apex_side": "right",
-      "apex_side_source": "manual"
+      "apex_side_source": "manual",
+      "short_name": "Bendor"
     },
     {
       "id": "t9",
@@ -119,7 +126,8 @@
       "s_end_m": 4674.0,
       "apex_side": "right",
       "apex_side_source": "manual",
-      "target_throttle_pct": 63
+      "target_throttle_pct": 63,
+      "short_name": "la Tour"
     },
     {
       "id": "t11",
@@ -128,7 +136,8 @@
       "apex_s_m": 4837.0,
       "s_end_m": 4853.0,
       "apex_side": "left",
-      "apex_side_source": "manual"
+      "apex_side_source": "manual",
+      "short_name": "Pont"
     }
   ],
   "straight_zones": []

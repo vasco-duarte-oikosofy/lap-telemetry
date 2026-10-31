@@ -38,7 +38,8 @@
       "s_end_m": 973.0,
       "apex_side": "right",
       "apex_side_source": "manual",
-      "target_throttle_pct": 50
+      "target_throttle_pct": 50,
+      "short_name": "Horseshoe"
     },
     {
       "id": "t4kink",
@@ -58,7 +59,8 @@
       "s_end_m": 1756.0,
       "apex_side": "right",
       "apex_side_source": "manual",
-      "target_throttle_pct": 58
+      "target_throttle_pct": 58,
+      "short_name": "West Horseshoe"
     },
     {
       "id": "t6",
@@ -98,7 +100,8 @@
       "s_end_m": 3824.0,
       "apex_side": "left",
       "apex_side_source": "manual",
-      "target_throttle_pct": 20
+      "target_throttle_pct": 20,
+      "short_name": "Bus Stop 1"
     },
     {
       "id": "t10",
@@ -108,7 +111,8 @@
       "s_end_m": 3927.0,
       "apex_side": "right",
       "apex_side_source": "manual",
-      "target_throttle_pct": 70
+      "target_throttle_pct": 70,
+      "short_name": "Bus Stop 2"
     },
     {
       "id": "t11",

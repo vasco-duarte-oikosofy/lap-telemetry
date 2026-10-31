@@ -6038,5 +6038,228 @@
       "x": 92.67319460731436,
       "y": -65.57877700926653
     }
+  ],
+  "turns": [
+    {
+      "id": "t1a",
+      "number": 1,
+      "name": "S de la Verrerie 1",
+      "short_name": "Verrerie 1",
+      "apex_s_m": 652.0,
+      "x": -443.661,
+      "y": 290.443,
+      "outward": [
+        0.3031,
+        -0.953
+      ],
+      "tangent": [
+        -0.953,
+        -0.3031
+      ]
+    },
+    {
+      "id": "t1b",
+      "number": 2,
+      "name": "S de la Verrerie 2",
+      "short_name": "Verrerie 2",
+      "apex_s_m": 733.0,
+      "x": -513.733,
+      "y": 254.312,
+      "outward": [
+        0.2217,
+        -0.9751
+      ],
+      "tangent": [
+        -0.9751,
+        -0.2217
+      ]
+    },
+    {
+      "id": "t2a",
+      "number": 3,
+      "name": "Virage de l'Hotel 1",
+      "short_name": "l'Hotel 1",
+      "apex_s_m": 1292.0,
+      "x": -996.45,
+      "y": 513.551,
+      "outward": [
+        -0.775,
+        -0.632
+      ],
+      "tangent": [
+        -0.632,
+        0.775
+      ]
+    },
+    {
+      "id": "t2b",
+      "number": 4,
+      "name": "Virage de l'Hotel 2",
+      "short_name": "l'Hotel 2",
+      "apex_s_m": 1386.0,
+      "x": -1022.438,
+      "y": 599.487,
+      "outward": [
+        -0.7851,
+        -0.6194
+      ],
+      "tangent": [
+        -0.6194,
+        0.7851
+      ]
+    },
+    {
+      "id": "t3",
+      "number": 5,
+      "name": "Virage du Camp",
+      "short_name": "Camp",
+      "apex_s_m": 1510.0,
+      "x": -1131.821,
+      "y": 625.34,
+      "outward": [
+        -0.8137,
+        -0.5812
+      ],
+      "tangent": [
+        -0.5812,
+        0.8137
+      ]
+    },
+    {
+      "id": "t4",
+      "number": 6,
+      "name": "Virage de la Sainte-Beaume",
+      "short_name": "Ste-Beaume",
+      "apex_s_m": 1636.0,
+      "x": -1085.378,
+      "y": 726.35,
+      "outward": [
+        -0.2158,
+        0.9764
+      ],
+      "tangent": [
+        0.9764,
+        0.2158
+      ]
+    },
+    {
+      "id": "t5",
+      "number": 7,
+      "name": "Flat to Mistral",
+      "short_name": null,
+      "apex_s_m": 1792.0,
+      "x": -970.711,
+      "y": 642.439,
+      "outward": [
+        0.8863,
+        0.4631
+      ],
+      "tangent": [
+        0.4631,
+        -0.8863
+      ]
+    },
+    {
+      "id": "t6",
+      "number": 8,
+      "name": "Signes",
+      "short_name": null,
+      "apex_s_m": 3787.0,
+      "x": 885.221,
+      "y": -43.196,
+      "outward": [
+        0.565,
+        0.8251
+      ],
+      "tangent": [
+        0.8251,
+        -0.565
+      ]
+    },
+    {
+      "id": "t7",
+      "number": 9,
+      "name": "Hairpin Shortcut",
+      "short_name": null,
+      "apex_s_m": 4044.0,
+      "x": 945.156,
+      "y": -257.783,
+      "outward": [
+        0.0246,
+        -0.9997
+      ],
+      "tangent": [
+        -0.9997,
+        -0.0246
+      ]
+    },
+    {
+      "id": "t8",
+      "number": 10,
+      "name": "Virage de Bendor",
+      "short_name": "Bendor",
+      "apex_s_m": 4199.0,
+      "x": 855.65,
+      "y": -148.031,
+      "outward": [
+        -0.1966,
+        -0.9805
+      ],
+      "tangent": [
+        -0.9805,
+        0.1966
+      ]
+    },
+    {
+      "id": "t9",
+      "number": 11,
+      "name": "Garalaban",
+      "short_name": null,
+      "apex_s_m": 4474.0,
+      "x": 595.928,
+      "y": -182.195,
+      "outward": [
+        -0.3498,
+        -0.9368
+      ],
+      "tangent": [
+        -0.9368,
+        0.3498
+      ]
+    },
+    {
+      "id": "t10",
+      "number": 12,
+      "name": "Virage de la Tour",
+      "short_name": "la Tour",
+      "apex_s_m": 4668.0,
+      "x": 427.734,
+      "y": -96.808,
+      "outward": [
+        0.1793,
+        -0.9838
+      ],
+      "tangent": [
+        -0.9838,
+        -0.1793
+      ]
+    },
+    {
+      "id": "t11",
+      "number": 13,
+      "name": "Virage du Pont",
+      "short_name": "Pont",
+      "apex_s_m": 4837.0,
+      "x": 361.272,
+      "y": -229.435,
+      "outward": [
+        0.5462,
+        -0.8377
+      ],
+      "tangent": [
+        -0.8377,
+        -0.5462
+      ]
+    }
   ]
 }

@@ -22,9 +22,11 @@ function readExistingTurns(outlinePath) {
     const parsed = JSON.parse(fs.readFileSync(outlinePath, 'utf8'));
     if (Array.isArray(parsed.turns) && parsed.turns.length > 0) return parsed.turns;
   } catch (err) {
+    // A missing file is normal. A file that is not valid JSON cannot carry
+    // curated turns (e.g. a sentinel written by a test, or a half-written
+    // file), so there is nothing to preserve: warn, do not fail the write.
     if (err.code !== 'ENOENT') {
-      // A corrupt existing file must not silently lose curated turns.
-      throw new Error(`cannot read existing outline ${outlinePath}: ${err.message}`);
+      console.warn(`[outline-turns] ${outlinePath} is not readable JSON (${err.message}); nothing to preserve`);
     }
   }
   return null;

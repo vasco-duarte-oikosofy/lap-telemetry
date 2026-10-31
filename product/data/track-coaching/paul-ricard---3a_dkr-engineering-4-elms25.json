@@ -62,7 +62,8 @@
       "apex_s_m": 2783.0,
       "s_end_m": 2799.0,
       "apex_side": "right",
-      "apex_side_source": "manual"
+      "apex_side_source": "manual",
+      "short_name": "Bendor"
     },
     {
       "id": "t7",
@@ -80,7 +81,8 @@
       "apex_s_m": 3288.0,
       "s_end_m": 3369.0,
       "apex_side": "right",
-      "apex_side_source": "manual"
+      "apex_side_source": "manual",
+      "short_name": "la Tour"
     },
     {
       "id": "t9",
@@ -89,7 +91,8 @@
       "apex_s_m": 3434.0,
       "s_end_m": 3441.0,
       "apex_side": "right",
-      "apex_side_source": "manual"
+      "apex_side_source": "manual",
+      "short_name": "Pont"
     }
   ],
   "straight_zones": []

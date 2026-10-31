@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "source": "Single lap trajectory (\u00b15m width)",
+  "source": "Single lap trajectory (±5m width)",
   "track_name": "WeatherTech Raceway Laguna Seca",
   "sim_track_name": "WeatherTech Raceway Laguna Seca",
   "layout_name": "default",
@@ -20,15 +20,15 @@
   "alignment": {
     "method": "trajectory_trace",
     "width_per_side": 5.0,
-    "notes": "Centerline = fastest reference lap; boundaries \u00b15m constant."
+    "notes": "Centerline = fastest reference lap; boundaries ±5m constant."
   },
   "visual_qa": {
     "status": "pending",
     "notes": "Needs visual verification."
   },
   "caveats": [
-    "Width is constant \u00b15m \u2014 not measured from real track data.",
-    "Centerline follows racing line \u2014 not track geometric center.",
+    "Width is constant ±5m — not measured from real track data.",
+    "Centerline follows racing line — not track geometric center.",
     "No TUMFTM/bacinger data available. Upgrade requires OSM extraction.",
     "This outline is visual context only."
   ],
@@ -6036,6 +6036,212 @@
     {
       "x": -296.7498648015969,
       "y": 230.89350653729522
+    }
+  ],
+  "turns": [
+    {
+      "id": "t1",
+      "number": 1,
+      "name": null,
+      "short_name": null,
+      "apex_s_m": 263.0,
+      "x": -400.604,
+      "y": -10.183,
+      "outward": [
+        -0.9891,
+        0.1469
+      ],
+      "tangent": [
+        -0.1469,
+        -0.9891
+      ]
+    },
+    {
+      "id": "andretti",
+      "number": 2,
+      "name": "Andretti Hairpin",
+      "short_name": null,
+      "apex_s_m": 511.0,
+      "x": -335.366,
+      "y": -199.988,
+      "outward": [
+        0.6437,
+        -0.7653
+      ],
+      "tangent": [
+        0.7653,
+        0.6437
+      ]
+    },
+    {
+      "id": "t3",
+      "number": 3,
+      "name": null,
+      "short_name": null,
+      "apex_s_m": 800.0,
+      "x": -298.841,
+      "y": 59.227,
+      "outward": [
+        0.3622,
+        -0.9321
+      ],
+      "tangent": [
+        0.9321,
+        0.3622
+      ]
+    },
+    {
+      "id": "t4",
+      "number": 4,
+      "name": null,
+      "short_name": null,
+      "apex_s_m": 1087.0,
+      "x": -44.836,
+      "y": -28.72,
+      "outward": [
+        -0.9122,
+        -0.4096
+      ],
+      "tangent": [
+        0.4096,
+        -0.9122
+      ]
+    },
+    {
+      "id": "t5",
+      "number": 5,
+      "name": null,
+      "short_name": null,
+      "apex_s_m": 1540.0,
+      "x": -76.875,
+      "y": -469.156,
+      "outward": [
+        -0.7817,
+        -0.6236
+      ],
+      "tangent": [
+        0.6236,
+        -0.7817
+      ]
+    },
+    {
+      "id": "t6",
+      "number": 6,
+      "name": null,
+      "short_name": null,
+      "apex_s_m": 1951.0,
+      "x": 312.519,
+      "y": -424.774,
+      "outward": [
+        0.7234,
+        -0.6905
+      ],
+      "tangent": [
+        0.6905,
+        0.7234
+      ]
+    },
+    {
+      "id": "t7",
+      "number": 7,
+      "name": null,
+      "short_name": null,
+      "apex_s_m": 2296.0,
+      "x": 363.099,
+      "y": -94.439,
+      "outward": [
+        0.9993,
+        0.0365
+      ],
+      "tangent": [
+        -0.0365,
+        0.9993
+      ]
+    },
+    {
+      "id": "t8",
+      "number": 8,
+      "name": "Corkscrew (Turn 8)",
+      "short_name": "Corkscrew",
+      "apex_s_m": 2477.0,
+      "x": 362.605,
+      "y": 70.618,
+      "outward": [
+        0.3531,
+        0.9356
+      ],
+      "tangent": [
+        -0.9356,
+        0.3531
+      ]
+    },
+    {
+      "id": "t8a",
+      "number": 9,
+      "name": "Corkscrew 8a",
+      "short_name": null,
+      "apex_s_m": 2493.0,
+      "x": 348.173,
+      "y": 78.121,
+      "outward": [
+        0.5659,
+        0.8245
+      ],
+      "tangent": [
+        -0.8245,
+        0.5659
+      ]
+    },
+    {
+      "id": "rainey",
+      "number": 10,
+      "name": "Rainey Curve (Turn 9)",
+      "short_name": "Rainey",
+      "apex_s_m": 2737.0,
+      "x": 275.578,
+      "y": 287.177,
+      "outward": [
+        0.3144,
+        0.9493
+      ],
+      "tangent": [
+        -0.9493,
+        0.3144
+      ]
+    },
+    {
+      "id": "t10",
+      "number": 11,
+      "name": null,
+      "short_name": null,
+      "apex_s_m": 2985.0,
+      "x": 38.874,
+      "y": 242.913,
+      "outward": [
+        0.3448,
+        0.9387
+      ],
+      "tangent": [
+        -0.9387,
+        0.3448
+      ]
+    },
+    {
+      "id": "t11",
+      "number": 12,
+      "name": null,
+      "short_name": null,
+      "apex_s_m": 3288.0,
+      "x": -125.704,
+      "y": 474.416,
+      "outward": [
+        -0.253,
+        0.9675
+      ],
+      "tangent": [
+        -0.9675,
+        -0.253
+      ]
     }
   ]
 }

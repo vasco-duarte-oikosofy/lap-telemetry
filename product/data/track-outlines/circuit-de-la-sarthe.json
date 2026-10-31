@@ -6037,5 +6037,330 @@
       "x": -191.77275625438375,
       "y": 1062.0770492046731
     }
+  ],
+  "turns": [
+    {
+      "id": "dunlop_curve",
+      "number": 1,
+      "name": "Dunlop Curve",
+      "short_name": null,
+      "apex_s_m": 594.0,
+      "x": -87.661,
+      "y": 1647.366,
+      "outward": [
+        -0.8367,
+        0.5476
+      ],
+      "tangent": [
+        0.5476,
+        0.8367
+      ]
+    },
+    {
+      "id": "dunlop_chicane_1",
+      "number": 2,
+      "name": "Dunlop Chicane 1",
+      "short_name": null,
+      "apex_s_m": 857.0,
+      "x": 103.465,
+      "y": 1810.178,
+      "outward": [
+        -0.9944,
+        0.1056
+      ],
+      "tangent": [
+        0.1056,
+        0.9944
+      ]
+    },
+    {
+      "id": "dunlop_chicane_2",
+      "number": 3,
+      "name": "Dunlop Chicane 2",
+      "short_name": null,
+      "apex_s_m": 907.0,
+      "x": 109.769,
+      "y": 1857.015,
+      "outward": [
+        -0.9098,
+        0.4151
+      ],
+      "tangent": [
+        0.4151,
+        0.9098
+      ]
+    },
+    {
+      "id": "esses_forest",
+      "number": 4,
+      "name": "Esses de la Foret",
+      "short_name": null,
+      "apex_s_m": 1469.0,
+      "x": 580.18,
+      "y": 2109.041,
+      "outward": [
+        -0.6606,
+        0.7508
+      ],
+      "tangent": [
+        0.7508,
+        0.6606
+      ]
+    },
+    {
+      "id": "tertre_rouge",
+      "number": 5,
+      "name": "Tertre Rouge",
+      "short_name": null,
+      "apex_s_m": 1905.0,
+      "x": 895.317,
+      "y": 2356.033,
+      "outward": [
+        0.0534,
+        0.9986
+      ],
+      "tangent": [
+        0.9986,
+        -0.0534
+      ]
+    },
+    {
+      "id": "daytona",
+      "number": 6,
+      "name": "Daytona",
+      "short_name": null,
+      "apex_s_m": 4130.0,
+      "x": 1695.497,
+      "y": 374.236,
+      "outward": [
+        0.9884,
+        0.1517
+      ],
+      "tangent": [
+        0.1517,
+        -0.9884
+      ]
+    },
+    {
+      "id": "michelin",
+      "number": 7,
+      "name": "Michelin",
+      "short_name": null,
+      "apex_s_m": 6104.0,
+      "x": 2319.897,
+      "y": -1469.784,
+      "outward": [
+        0.9628,
+        0.2702
+      ],
+      "tangent": [
+        0.2702,
+        -0.9628
+      ]
+    },
+    {
+      "id": "mulsanne",
+      "number": 8,
+      "name": "Mulsanne Corner",
+      "short_name": "Mulsanne",
+      "apex_s_m": 7729.0,
+      "x": 2347.751,
+      "y": -3071.63,
+      "outward": [
+        0.5762,
+        -0.8173
+      ],
+      "tangent": [
+        -0.8173,
+        -0.5762
+      ]
+    },
+    {
+      "id": "indianapolis",
+      "number": 9,
+      "name": "Indianapolis Entry",
+      "short_name": "Indianapolis",
+      "apex_s_m": 9824.0,
+      "x": 621.377,
+      "y": -2041.467,
+      "outward": [
+        -0.706,
+        -0.7082
+      ],
+      "tangent": [
+        -0.7082,
+        0.706
+      ]
+    },
+    {
+      "id": "arnage",
+      "number": 10,
+      "name": "Arnage",
+      "short_name": null,
+      "apex_s_m": 10155.0,
+      "x": 311.385,
+      "y": -2113.146,
+      "outward": [
+        -0.3957,
+        -0.9184
+      ],
+      "tangent": [
+        -0.9184,
+        0.3957
+      ]
+    },
+    {
+      "id": "porsche",
+      "number": 11,
+      "name": "Porsche",
+      "short_name": null,
+      "apex_s_m": 11561.0,
+      "x": -129.145,
+      "y": -807.426,
+      "outward": [
+        -0.9487,
+        0.3162
+      ],
+      "tangent": [
+        0.3162,
+        0.9487
+      ]
+    },
+    {
+      "id": "virage_du_pont_1",
+      "number": 12,
+      "name": "Virage du Pont Entry",
+      "short_name": "Pont Entry",
+      "apex_s_m": 11714.0,
+      "x": -34.676,
+      "y": -689.002,
+      "outward": [
+        -0.7629,
+        0.6466
+      ],
+      "tangent": [
+        0.6466,
+        0.7629
+      ]
+    },
+    {
+      "id": "virage_du_pont_2",
+      "number": 13,
+      "name": "Virage du Pont Exit",
+      "short_name": "Pont Exit",
+      "apex_s_m": 12003.0,
+      "x": -20.981,
+      "y": -419.975,
+      "outward": [
+        -0.8375,
+        -0.5464
+      ],
+      "tangent": [
+        -0.5464,
+        0.8375
+      ]
+    },
+    {
+      "id": "karting",
+      "number": 14,
+      "name": "Karting",
+      "short_name": null,
+      "apex_s_m": 12233.0,
+      "x": -117.151,
+      "y": -226.649,
+      "outward": [
+        -0.9846,
+        0.1748
+      ],
+      "tangent": [
+        0.1748,
+        0.9846
+      ]
+    },
+    {
+      "id": "corvette",
+      "number": 15,
+      "name": "Corvette",
+      "short_name": null,
+      "apex_s_m": 12427.0,
+      "x": -6.77,
+      "y": -73.924,
+      "outward": [
+        -0.9154,
+        0.4025
+      ],
+      "tangent": [
+        0.4025,
+        0.9154
+      ]
+    },
+    {
+      "id": "ford_chicane_1",
+      "number": 16,
+      "name": "Ford Chicane 1",
+      "short_name": null,
+      "apex_s_m": 13224.0,
+      "x": -92.84,
+      "y": 708.794,
+      "outward": [
+        -0.9192,
+        -0.3937
+      ],
+      "tangent": [
+        -0.3937,
+        0.9192
+      ]
+    },
+    {
+      "id": "ford_chicane_2",
+      "number": 17,
+      "name": "Ford Chicane 2",
+      "short_name": null,
+      "apex_s_m": 13298.0,
+      "x": -134.041,
+      "y": 762.778,
+      "outward": [
+        -0.7829,
+        -0.6221
+      ],
+      "tangent": [
+        -0.6221,
+        0.7829
+      ]
+    },
+    {
+      "id": "raccordement_1",
+      "number": 18,
+      "name": "Raccordement 1",
+      "short_name": null,
+      "apex_s_m": 13372.0,
+      "x": -153.213,
+      "y": 831.347,
+      "outward": [
+        -0.9911,
+        -0.133
+      ],
+      "tangent": [
+        -0.133,
+        0.9911
+      ]
+    },
+    {
+      "id": "raccordement_2",
+      "number": 19,
+      "name": "Raccordement 2",
+      "short_name": null,
+      "apex_s_m": 13429.0,
+      "x": -179.504,
+      "y": 875.17,
+      "outward": [
+        -0.6822,
+        -0.7312
+      ],
+      "tangent": [
+        -0.7312,
+        0.6822
+      ]
+    }
   ]
 }

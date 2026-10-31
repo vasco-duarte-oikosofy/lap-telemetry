@@ -26,7 +26,8 @@
       "apex_s_m": 1419.0,
       "s_end_m": 1441.0,
       "apex_side": "right",
-      "apex_side_source": "default_cli_option"
+      "apex_side_source": "default_cli_option",
+      "short_name": "Villeneuve 1"
     },
     {
       "id": "t3",
@@ -35,7 +36,8 @@
       "apex_s_m": 1417.0,
       "s_end_m": 1420.0,
       "apex_side": "right",
-      "apex_side_source": "default_cli_option"
+      "apex_side_source": "default_cli_option",
+      "short_name": "Villeneuve 2"
     },
     {
       "id": "t4",

@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "source": "Single fastest lap (lap 18, 1:19.010) \u2014 Simulator trajectory trace (\u00b15m width)",
+  "source": "Single fastest lap (lap 18, 1:19.010) — Simulator trajectory trace (±5m width)",
   "track_name": "Paul Ricard - 3A",
   "sim_track_name": "Paul Ricard - 3A",
   "layout_name": "3a",
@@ -20,15 +20,15 @@
   "alignment": {
     "method": "trajectory_trace",
     "width_per_side": 5.0,
-    "notes": "Centerline traced from fastest recorded lap (1:19.010), boundaries at \u00b15m."
+    "notes": "Centerline traced from fastest recorded lap (1:19.010), boundaries at ±5m."
   },
   "visual_qa": {
     "status": "pending",
-    "notes": "Generated from trajectory \u2014 needs visual verification."
+    "notes": "Generated from trajectory — needs visual verification."
   },
   "caveats": [
-    "Width is constant \u00b15m estimate \u2014 not measured from real track data.",
-    "Centerline follows trajectory \u2014 may not match ideal racing line or track center.",
+    "Width is constant ±5m estimate — not measured from real track data.",
+    "Centerline follows trajectory — may not match ideal racing line or track center.",
     "This outline is visual context only and is not authoritative simulator track-limits data."
   ],
   "centerline": [
@@ -6035,6 +6035,161 @@
     {
       "x": 91.93749109664364,
       "y": -69.98395980994493
+    }
+  ],
+  "turns": [
+    {
+      "id": "t1",
+      "number": 1,
+      "name": "La Bretelle",
+      "short_name": null,
+      "apex_s_m": 512.0,
+      "x": -312.837,
+      "y": 241.918,
+      "outward": [
+        -0.9928,
+        0.1199
+      ],
+      "tangent": [
+        0.1199,
+        0.9928
+      ]
+    },
+    {
+      "id": "t2",
+      "number": 2,
+      "name": null,
+      "short_name": null,
+      "apex_s_m": 655.0,
+      "x": -204.689,
+      "y": 321.445,
+      "outward": [
+        -0.1041,
+        0.9946
+      ],
+      "tangent": [
+        0.9946,
+        0.1041
+      ]
+    },
+    {
+      "id": "t3",
+      "number": 3,
+      "name": "Signes",
+      "short_name": null,
+      "apex_s_m": 1865.0,
+      "x": 927.396,
+      "y": -85.183,
+      "outward": [
+        0.8065,
+        0.5912
+      ],
+      "tangent": [
+        0.5912,
+        -0.8065
+      ]
+    },
+    {
+      "id": "t4",
+      "number": 4,
+      "name": "Beausset 1",
+      "short_name": null,
+      "apex_s_m": 2295.0,
+      "x": 912.608,
+      "y": -482.788,
+      "outward": [
+        0.4893,
+        -0.8721
+      ],
+      "tangent": [
+        -0.8721,
+        -0.4893
+      ]
+    },
+    {
+      "id": "t5",
+      "number": 5,
+      "name": "Beausset 2",
+      "short_name": null,
+      "apex_s_m": 2412.0,
+      "x": 803.215,
+      "y": -465.471,
+      "outward": [
+        -0.7881,
+        -0.6155
+      ],
+      "tangent": [
+        -0.6155,
+        0.7881
+      ]
+    },
+    {
+      "id": "t6",
+      "number": 6,
+      "name": "L'Epingle de Bendor",
+      "short_name": "Bendor",
+      "apex_s_m": 2783.0,
+      "x": 860.505,
+      "y": -148.148,
+      "outward": [
+        -0.3348,
+        -0.9423
+      ],
+      "tangent": [
+        -0.9423,
+        0.3348
+      ]
+    },
+    {
+      "id": "t7",
+      "number": 7,
+      "name": "S du Village",
+      "short_name": null,
+      "apex_s_m": 2983.0,
+      "x": 672.304,
+      "y": -195.368,
+      "outward": [
+        -0.0166,
+        -0.9999
+      ],
+      "tangent": [
+        -0.9999,
+        0.0166
+      ]
+    },
+    {
+      "id": "t8",
+      "number": 8,
+      "name": "Virage de la Tour",
+      "short_name": "la Tour",
+      "apex_s_m": 3288.0,
+      "x": 399.813,
+      "y": -108.988,
+      "outward": [
+        0.5313,
+        -0.8472
+      ],
+      "tangent": [
+        -0.8472,
+        -0.5313
+      ]
+    },
+    {
+      "id": "t9",
+      "number": 9,
+      "name": "Virage du Pont",
+      "short_name": "Pont",
+      "apex_s_m": 3434.0,
+      "x": 355.519,
+      "y": -231.372,
+      "outward": [
+        0.2519,
+        -0.9678
+      ],
+      "tangent": [
+        -0.9678,
+        -0.2519
+      ]
     }
   ]
 }

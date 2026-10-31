@@ -233,7 +233,21 @@ const report = {};
 for (const slug of slugs) {
   const outline = JSON.parse(await readFile(
     path.join(ROOT, 'product/data/track-outlines', `${slug}.json`), 'utf8'));
-  const anchors = JSON.parse(await readFile(path.join(HERE, `anchors-${slug}.json`), 'utf8'));
+  // Prefer the baked `turns` block in the outline (slice 02); fall back to the
+  // spike's anchors-<slug>.json, which is how slice 01 rendered two tracks.
+  let anchors;
+  if (Array.isArray(outline.turns) && outline.turns.length) {
+    const pts = outline.centerline;
+    anchors = {
+      bbox: {
+        minX: Math.min(...pts.map(p => p.x)), maxX: Math.max(...pts.map(p => p.x)),
+        minY: Math.min(...pts.map(p => p.y)), maxY: Math.max(...pts.map(p => p.y)),
+      },
+      turns: outline.turns.map(t => ({ ...t, short: t.short_name })),
+    };
+  } else {
+    anchors = JSON.parse(await readFile(path.join(HERE, `anchors-${slug}.json`), 'utf8'));
+  }
   report[slug] = { turns: anchors.turns.length, configs: {} };
   console.log(`\n${slug} (${anchors.turns.length} turns)`);
   const page = await ctx.newPage();

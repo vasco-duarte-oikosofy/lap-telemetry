@@ -32,7 +32,7 @@
     "notes": "Generated from provided laps - verify in manual_outline_align.html"
   },
   "caveats": [
-    "Width is constant \u00b15m estimate.",
+    "Width is constant ±5m estimate.",
     "Median racing line - may not match any single driver's exact line.",
     "Visual context only, not authoritative track-limits data."
   ],
@@ -6040,6 +6040,246 @@
     {
       "x": 183.8889320712155,
       "y": 242.20893863121617
+    }
+  ],
+  "turns": [
+    {
+      "id": "t1",
+      "number": 1,
+      "name": "Turn 1 — Elf",
+      "short_name": null,
+      "apex_s_m": 853.0,
+      "x": -294.577,
+      "y": -445.204,
+      "outward": [
+        0.0817,
+        -0.9967
+      ],
+      "tangent": [
+        -0.9967,
+        -0.0817
+      ]
+    },
+    {
+      "id": "t2",
+      "number": 2,
+      "name": null,
+      "short_name": null,
+      "apex_s_m": 946.0,
+      "x": -380.691,
+      "y": -423.609,
+      "outward": [
+        0.0615,
+        -0.9981
+      ],
+      "tangent": [
+        -0.9981,
+        -0.0615
+      ]
+    },
+    {
+      "id": "t3",
+      "number": 3,
+      "name": "Turn 3 — Renault",
+      "short_name": "Renault",
+      "apex_s_m": 1142.0,
+      "x": -557.41,
+      "y": -490.111,
+      "outward": [
+        -0.2127,
+        -0.9771
+      ],
+      "tangent": [
+        -0.9771,
+        0.2127
+      ]
+    },
+    {
+      "id": "t4",
+      "number": 4,
+      "name": "Turn 4 — Repsol",
+      "short_name": "Repsol",
+      "apex_s_m": 1753.0,
+      "x": -418.414,
+      "y": -27.729,
+      "outward": [
+        0.4029,
+        0.9152
+      ],
+      "tangent": [
+        0.9152,
+        -0.4029
+      ]
+    },
+    {
+      "id": "t5",
+      "number": 5,
+      "name": "Turn 5 — Seat",
+      "short_name": null,
+      "apex_s_m": 2144.0,
+      "x": -476.577,
+      "y": -366.446,
+      "outward": [
+        0.5669,
+        0.8238
+      ],
+      "tangent": [
+        0.8238,
+        -0.5669
+      ]
+    },
+    {
+      "id": "t6",
+      "number": 6,
+      "name": null,
+      "short_name": null,
+      "apex_s_m": 2370.0,
+      "x": -272.352,
+      "y": -285.201,
+      "outward": [
+        -0.6181,
+        0.7861
+      ],
+      "tangent": [
+        0.7861,
+        0.6181
+      ]
+    },
+    {
+      "id": "t7",
+      "number": 7,
+      "name": "Turn 7 — Würth",
+      "short_name": "Würth",
+      "apex_s_m": 2558.0,
+      "x": -183.864,
+      "y": -129.83,
+      "outward": [
+        -0.9507,
+        -0.3102
+      ],
+      "tangent": [
+        -0.3102,
+        0.9507
+      ]
+    },
+    {
+      "id": "t8",
+      "number": 8,
+      "name": null,
+      "short_name": null,
+      "apex_s_m": 2660.0,
+      "x": -247.502,
+      "y": -55.994,
+      "outward": [
+        -0.8111,
+        -0.5848
+      ],
+      "tangent": [
+        -0.5848,
+        0.8111
+      ]
+    },
+    {
+      "id": "t9",
+      "number": 9,
+      "name": "Turn 9 — Campsa",
+      "short_name": "Campsa",
+      "apex_s_m": 2903.0,
+      "x": -316.826,
+      "y": 168.944,
+      "outward": [
+        -0.9391,
+        0.3435
+      ],
+      "tangent": [
+        0.3435,
+        0.9391
+      ]
+    },
+    {
+      "id": "t10",
+      "number": 10,
+      "name": "Turn 10 — La Caixa",
+      "short_name": "La Caixa",
+      "apex_s_m": 3526.0,
+      "x": 167.967,
+      "y": 494.434,
+      "outward": [
+        -0.7892,
+        -0.6141
+      ],
+      "tangent": [
+        -0.6141,
+        0.7892
+      ]
+    },
+    {
+      "id": "t11",
+      "number": 11,
+      "name": null,
+      "short_name": null,
+      "apex_s_m": 3610.0,
+      "x": 90.579,
+      "y": 514.062,
+      "outward": [
+        0.1803,
+        -0.9836
+      ],
+      "tangent": [
+        -0.9836,
+        -0.1803
+      ]
+    },
+    {
+      "id": "t12",
+      "number": 12,
+      "name": null,
+      "short_name": null,
+      "apex_s_m": 3771.0,
+      "x": -54.136,
+      "y": 473.106,
+      "outward": [
+        -0.5236,
+        -0.8519
+      ],
+      "tangent": [
+        -0.8519,
+        0.5236
+      ]
+    },
+    {
+      "id": "t13",
+      "number": 13,
+      "name": null,
+      "short_name": null,
+      "apex_s_m": 4057.0,
+      "x": 83.55,
+      "y": 666.073,
+      "outward": [
+        -0.1546,
+        0.988
+      ],
+      "tangent": [
+        0.988,
+        0.1546
+      ]
+    },
+    {
+      "id": "t14",
+      "number": 14,
+      "name": null,
+      "short_name": null,
+      "apex_s_m": 4323.0,
+      "x": 304.726,
+      "y": 542.129,
+      "outward": [
+        0.9028,
+        0.4301
+      ],
+      "tangent": [
+        0.4301,
+        -0.9028
+      ]
     }
   ]
 }

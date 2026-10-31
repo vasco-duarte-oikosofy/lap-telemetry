@@ -49,16 +49,17 @@ TANGENT_WINDOW_M = 2.0  # half-window for the along-track direction
 
 
 def unwrap_lap(s: list[float], x: list[float], y: list[float]):
-    """Roll a lap so `s` increases monotonically.
+    """Return the lap ordered by increasing distance.
 
-    `lap_distance_m` in an exported reference parquet starts just before the
-    start/finish line and wraps to 0 inside the file, so a binary search on the
-    raw column silently returns a bogus bracket.
+    `lap_distance_m` in an exported reference parquet is not necessarily
+    monotonic: it may start just before the start/finish line and wrap to 0
+    inside the file (a plain binary search then returns a bogus bracket and
+    every corner lands on the same point). And a lap can also contain small
+    *jitter descents*, so rolling at the first descent is wrong — sorting by
+    distance is the only robust ordering.
     """
-    for i in range(1, len(s)):
-        if s[i] < s[i - 1]:
-            return s[i:] + s[:i], x[i:] + x[:i], y[i:] + y[:i]
-    return s, x, y
+    order = sorted(range(len(s)), key=lambda i: (s[i], i))
+    return ([s[i] for i in order], [x[i] for i in order], [y[i] for i in order])
 
 
 def interpolate(s: list[float], vals: list[float], target: float) -> float:

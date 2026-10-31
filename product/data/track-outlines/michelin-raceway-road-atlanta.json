@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "source": "Single lap trajectory (\u00b15m width)",
+  "source": "Single lap trajectory (±5m width)",
   "track_name": "Michelin Raceway Road Atlanta",
   "sim_track_name": "Michelin Raceway Road Atlanta",
   "layout_name": "default",
@@ -20,15 +20,15 @@
   "alignment": {
     "method": "trajectory_trace",
     "width_per_side": 5.0,
-    "notes": "Centerline = fastest reference lap; boundaries \u00b15m constant."
+    "notes": "Centerline = fastest reference lap; boundaries ±5m constant."
   },
   "visual_qa": {
     "status": "pending",
     "notes": "Needs visual verification."
   },
   "caveats": [
-    "Width is constant \u00b15m \u2014 not measured from real track data.",
-    "Centerline follows racing line \u2014 not track geometric center.",
+    "Width is constant ±5m — not measured from real track data.",
+    "Centerline follows racing line — not track geometric center.",
     "No TUMFTM/bacinger data available. Upgrade requires OSM extraction.",
     "This outline is visual context only."
   ],
@@ -6036,6 +6036,229 @@
     {
       "x": 7.634681440729787,
       "y": 13.669268194550725
+    }
+  ],
+  "turns": [
+    {
+      "id": "t1",
+      "number": 1,
+      "name": null,
+      "short_name": null,
+      "apex_s_m": 435.0,
+      "x": 349.155,
+      "y": -253.529,
+      "outward": [
+        0.928,
+        0.3726
+      ],
+      "tangent": [
+        0.3726,
+        -0.928
+      ]
+    },
+    {
+      "id": "t2",
+      "number": 2,
+      "name": null,
+      "short_name": null,
+      "apex_s_m": 823.0,
+      "x": 181.203,
+      "y": -581.885,
+      "outward": [
+        0.7695,
+        -0.6386
+      ],
+      "tangent": [
+        -0.6386,
+        -0.7695
+      ]
+    },
+    {
+      "id": "t3",
+      "number": 3,
+      "name": null,
+      "short_name": null,
+      "apex_s_m": 835.0,
+      "x": 174.191,
+      "y": -589.367,
+      "outward": [
+        0.6892,
+        -0.7245
+      ],
+      "tangent": [
+        -0.7245,
+        -0.6892
+      ]
+    },
+    {
+      "id": "t4",
+      "number": 4,
+      "name": "Turn 4 (The Esses)",
+      "short_name": "Esses",
+      "apex_s_m": 1120.0,
+      "x": 14.371,
+      "y": -801.959,
+      "outward": [
+        0.8242,
+        -0.5663
+      ],
+      "tangent": [
+        -0.5663,
+        -0.8242
+      ]
+    },
+    {
+      "id": "t5",
+      "number": 5,
+      "name": null,
+      "short_name": null,
+      "apex_s_m": 1422.0,
+      "x": -217.158,
+      "y": -978.703,
+      "outward": [
+        0.8174,
+        -0.576
+      ],
+      "tangent": [
+        -0.576,
+        -0.8174
+      ]
+    },
+    {
+      "id": "t6",
+      "number": 6,
+      "name": null,
+      "short_name": null,
+      "apex_s_m": 1972.0,
+      "x": -255.065,
+      "y": -1521.422,
+      "outward": [
+        0.8569,
+        -0.5155
+      ],
+      "tangent": [
+        -0.5155,
+        -0.8569
+      ]
+    },
+    {
+      "id": "t7",
+      "number": 7,
+      "name": null,
+      "short_name": null,
+      "apex_s_m": 2139.0,
+      "x": -403.749,
+      "y": -1558.984,
+      "outward": [
+        -0.5438,
+        -0.8392
+      ],
+      "tangent": [
+        -0.8392,
+        0.5438
+      ]
+    },
+    {
+      "id": "t8",
+      "number": 8,
+      "name": null,
+      "short_name": null,
+      "apex_s_m": 2470.0,
+      "x": -388.486,
+      "y": -1243.796,
+      "outward": [
+        -1.0,
+        -0.002
+      ],
+      "tangent": [
+        -0.002,
+        1.0
+      ]
+    },
+    {
+      "id": "t9",
+      "number": 9,
+      "name": null,
+      "short_name": null,
+      "apex_s_m": 3100.0,
+      "x": -433.81,
+      "y": -615.673,
+      "outward": [
+        -0.9975,
+        0.0711
+      ],
+      "tangent": [
+        0.0711,
+        0.9975
+      ]
+    },
+    {
+      "id": "t10a",
+      "number": 10,
+      "name": "Turn 10A",
+      "short_name": null,
+      "apex_s_m": 3517.0,
+      "x": -337.651,
+      "y": -216.091,
+      "outward": [
+        -0.9215,
+        -0.3885
+      ],
+      "tangent": [
+        -0.3885,
+        0.9215
+      ]
+    },
+    {
+      "id": "t10b",
+      "number": 11,
+      "name": "Turn 10B",
+      "short_name": null,
+      "apex_s_m": 3575.0,
+      "x": -367.219,
+      "y": -171.059,
+      "outward": [
+        -0.949,
+        -0.3154
+      ],
+      "tangent": [
+        -0.3154,
+        0.949
+      ]
+    },
+    {
+      "id": "t11",
+      "number": 12,
+      "name": null,
+      "short_name": null,
+      "apex_s_m": 3710.0,
+      "x": -323.302,
+      "y": -53.052,
+      "outward": [
+        -0.7803,
+        0.6255
+      ],
+      "tangent": [
+        0.6255,
+        0.7803
+      ]
+    },
+    {
+      "id": "t12",
+      "number": 13,
+      "name": null,
+      "short_name": null,
+      "apex_s_m": 3990.0,
+      "x": -77.773,
+      "y": 46.922,
+      "outward": [
+        0.2427,
+        0.9701
+      ],
+      "tangent": [
+        0.9701,
+        -0.2427
+      ]
     }
   ]
 }

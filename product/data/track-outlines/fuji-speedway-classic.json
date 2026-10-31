@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "source": "Single lap trajectory (\u00b15m width)",
+  "source": "Single lap trajectory (±5m width)",
   "track_name": "Fuji Speedway Classic",
   "sim_track_name": "Fuji Speedway Classic",
   "layout_name": "classic",
@@ -20,15 +20,15 @@
   "alignment": {
     "method": "trajectory_trace",
     "width_per_side": 5.0,
-    "notes": "Centerline = fastest reference lap; boundaries \u00b15m constant."
+    "notes": "Centerline = fastest reference lap; boundaries ±5m constant."
   },
   "visual_qa": {
     "status": "pending",
     "notes": "Needs visual verification."
   },
   "caveats": [
-    "Width is constant \u00b15m \u2014 not measured from real track data.",
-    "Centerline follows racing line \u2014 not track geometric center.",
+    "Width is constant ±5m — not measured from real track data.",
+    "Centerline follows racing line — not track geometric center.",
     "No TUMFTM/bacinger data available. Upgrade requires OSM extraction.",
     "This outline is visual context only."
   ],
@@ -6036,6 +6036,161 @@
     {
       "x": -11.165464087577774,
       "y": 10.325426879489463
+    }
+  ],
+  "turns": [
+    {
+      "id": "first_corner",
+      "number": 1,
+      "name": "First Corner",
+      "short_name": null,
+      "apex_s_m": 765.0,
+      "x": 604.457,
+      "y": 450.711,
+      "outward": [
+        0.5684,
+        0.8228
+      ],
+      "tangent": [
+        0.8228,
+        -0.5684
+      ]
+    },
+    {
+      "id": "coca_cola",
+      "number": 2,
+      "name": "Coca-Cola",
+      "short_name": null,
+      "apex_s_m": 1316.0,
+      "x": 357.069,
+      "y": -4.478,
+      "outward": [
+        0.9918,
+        -0.1277
+      ],
+      "tangent": [
+        -0.1277,
+        -0.9918
+      ]
+    },
+    {
+      "id": "100r",
+      "number": 3,
+      "name": "100R",
+      "short_name": null,
+      "apex_s_m": 1736.0,
+      "x": 286.698,
+      "y": -341.94,
+      "outward": [
+        0.0044,
+        -1.0
+      ],
+      "tangent": [
+        -1.0,
+        -0.0044
+      ]
+    },
+    {
+      "id": "hairpin",
+      "number": 4,
+      "name": "Hairpin",
+      "short_name": null,
+      "apex_s_m": 1999.0,
+      "x": 98.184,
+      "y": -178.766,
+      "outward": [
+        -0.1753,
+        -0.9845
+      ],
+      "tangent": [
+        -0.9845,
+        0.1753
+      ]
+    },
+    {
+      "id": "dunlop_bypass",
+      "number": 5,
+      "name": "Dunlop Bypass",
+      "short_name": null,
+      "apex_s_m": 2814.0,
+      "x": -284.828,
+      "y": -803.283,
+      "outward": [
+        0.2043,
+        -0.9789
+      ],
+      "tangent": [
+        -0.9789,
+        -0.2043
+      ]
+    },
+    {
+      "id": "13th_corner",
+      "number": 6,
+      "name": "13th Corner",
+      "short_name": null,
+      "apex_s_m": 3123.0,
+      "x": -499.962,
+      "y": -630.072,
+      "outward": [
+        -0.9193,
+        0.3935
+      ],
+      "tangent": [
+        0.3935,
+        0.9193
+      ]
+    },
+    {
+      "id": "netz",
+      "number": 7,
+      "name": "Netz",
+      "short_name": null,
+      "apex_s_m": 3343.0,
+      "x": -399.882,
+      "y": -464.922,
+      "outward": [
+        -0.8671,
+        -0.4981
+      ],
+      "tangent": [
+        -0.4981,
+        0.8671
+      ]
+    },
+    {
+      "id": "netz_hairpin",
+      "number": 8,
+      "name": "Netz Hairpin",
+      "short_name": null,
+      "apex_s_m": 3379.0,
+      "x": -430.848,
+      "y": -443.427,
+      "outward": [
+        -0.1711,
+        -0.9853
+      ],
+      "tangent": [
+        -0.9853,
+        0.1711
+      ]
+    },
+    {
+      "id": "panasonic",
+      "number": 9,
+      "name": "Panasonic",
+      "short_name": null,
+      "apex_s_m": 3624.0,
+      "x": -632.054,
+      "y": -543.713,
+      "outward": [
+        -0.5711,
+        -0.8209
+      ],
+      "tangent": [
+        -0.8209,
+        0.5711
+      ]
     }
   ]
 }

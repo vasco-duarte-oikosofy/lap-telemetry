@@ -1,68 +1,94 @@
 {
-  "silverstone-international-circuit": {
-    "turns": 8,
+  "weathertech-raceway-laguna-seca": {
+    "turns": 12,
     "configs": {
       "120": {
         "sizePx": 120,
         "fontPx": 5,
         "floor": true,
-        "shown": 8,
+        "shown": 12,
         "dropped": [],
         "overlaps": [],
-        "degradedToNumber": [],
-        "maxApexToLabelCentrePx": 16,
-        "meanApexToRectPx": 2.6,
-        "maxApexToRectPx": 7.4,
-        "minLabelPairGapPx": 0.3,
-        "meanApexToLabelCentrePx": 9.4,
+        "degradedToNumber": [
+          "T9"
+        ],
+        "maxApexToLabelCentrePx": 23.5,
+        "meanApexToRectPx": 2.5,
+        "maxApexToRectPx": 4.6,
+        "minLabelPairGapPx": 0.8,
+        "meanApexToLabelCentrePx": 7.8,
         "labels": [
           {
-            "text": "T1 Abbey",
+            "text": "T1",
             "nudge": 0,
-            "distCentre": 5.3,
-            "distRect": 1.6
+            "distCentre": 6.6,
+            "distRect": 3.6
           },
           {
-            "text": "T2 Farm Curve",
-            "nudge": 3,
-            "distCentre": 12.3,
-            "distRect": 7.4
+            "text": "T2 Andretti Hairpin",
+            "nudge": 0,
+            "distCentre": 23.5,
+            "distRect": 2.3
           },
           {
-            "text": "T3 Village",
+            "text": "T3",
             "nudge": 0,
-            "distCentre": 13,
-            "distRect": 1.5
-          },
-          {
-            "text": "T4 The Link",
-            "nudge": 0,
-            "distCentre": 16,
+            "distCentre": 6.6,
             "distRect": 2.5
           },
           {
-            "text": "T5 Becketts",
-            "nudge": 4,
-            "distCentre": 5.4,
+            "text": "T4",
+            "nudge": 0,
+            "distCentre": 7,
+            "distRect": 2.3
+          },
+          {
+            "text": "T5",
+            "nudge": 0,
+            "distCentre": 7.3,
+            "distRect": 2.9
+          },
+          {
+            "text": "T6",
+            "nudge": 0,
+            "distCentre": 6.8,
+            "distRect": 2.3
+          },
+          {
+            "text": "T7",
+            "nudge": 0,
+            "distCentre": 6.2,
+            "distRect": 2.8
+          },
+          {
+            "text": "T8 Corkscrew",
+            "nudge": 1,
+            "distCentre": 12.4,
+            "distRect": 4.6
+          },
+          {
+            "text": "T9",
+            "nudge": 2,
+            "distCentre": 1.1,
             "distRect": 0
           },
           {
-            "text": "T6 Stowe",
+            "text": "T10 Rainey",
             "nudge": 0,
-            "distCentre": 5.7,
-            "distRect": 2.7
+            "distCentre": 5.1,
+            "distRect": 1.5
           },
           {
-            "text": "T7 Vale",
+            "text": "T11",
             "nudge": 0,
-            "distCentre": 5.7,
-            "distRect": 2.7
+            "distCentre": 5.6,
+            "distRect": 2.5
           },
           {
-            "text": "T8 Club",
+            "text": "T12",
             "nudge": 0,
-            "distCentre": 12,
-            "distRect": 2.7
+            "distCentre": 5.7,
+            "distRect": 2.6
           }
         ]
       },
@@ -70,63 +96,87 @@
         "sizePx": 250,
         "fontPx": 5.75,
         "floor": true,
-        "shown": 8,
+        "shown": 12,
         "dropped": [],
         "overlaps": [],
         "degradedToNumber": [],
-        "maxApexToLabelCentrePx": 18.9,
-        "meanApexToRectPx": 2.9,
-        "maxApexToRectPx": 5.8,
-        "minLabelPairGapPx": 4.1,
-        "meanApexToLabelCentrePx": 12,
+        "maxApexToLabelCentrePx": 27.5,
+        "meanApexToRectPx": 3.6,
+        "maxApexToRectPx": 10.3,
+        "minLabelPairGapPx": 1.9,
+        "meanApexToLabelCentrePx": 11,
         "labels": [
           {
-            "text": "T1 Abbey",
+            "text": "T1",
+            "nudge": 0,
+            "distCentre": 7.3,
+            "distRect": 3.5
+          },
+          {
+            "text": "T2 Andretti Hairpin",
+            "nudge": 0,
+            "distCentre": 27.5,
+            "distRect": 2.8
+          },
+          {
+            "text": "T3",
+            "nudge": 0,
+            "distCentre": 7.8,
+            "distRect": 2.9
+          },
+          {
+            "text": "T4",
+            "nudge": 0,
+            "distCentre": 8.2,
+            "distRect": 3.1
+          },
+          {
+            "text": "T5",
+            "nudge": 0,
+            "distCentre": 8.2,
+            "distRect": 2.8
+          },
+          {
+            "text": "T6",
+            "nudge": 0,
+            "distCentre": 8.2,
+            "distRect": 2.8
+          },
+          {
+            "text": "T7",
+            "nudge": 0,
+            "distCentre": 7.4,
+            "distRect": 3.3
+          },
+          {
+            "text": "T8 Corkscrew",
+            "nudge": 0,
+            "distCentre": 19.3,
+            "distRect": 3.1
+          },
+          {
+            "text": "T9 Corkscrew 8a",
+            "nudge": 3,
+            "distCentre": 18,
+            "distRect": 10.3
+          },
+          {
+            "text": "T10 Rainey",
             "nudge": 0,
             "distCentre": 6.3,
             "distRect": 2.1
           },
           {
-            "text": "T2 Farm Curve",
-            "nudge": 1,
-            "distCentre": 16.6,
-            "distRect": 5.8
-          },
-          {
-            "text": "T3 Village",
+            "text": "T11",
             "nudge": 0,
-            "distCentre": 15.3,
-            "distRect": 2.1
-          },
-          {
-            "text": "T4 The Link",
-            "nudge": 0,
-            "distCentre": 18.9,
+            "distCentre": 6.7,
             "distRect": 3
           },
           {
-            "text": "T5 Becketts",
-            "nudge": 2,
-            "distCentre": 11.9,
-            "distRect": 0
-          },
-          {
-            "text": "T6 Stowe",
+            "text": "T12",
             "nudge": 0,
-            "distCentre": 6.6,
+            "distCentre": 6.7,
             "distRect": 3.1
-          },
-          {
-            "text": "T7 Vale",
-            "nudge": 0,
-            "distCentre": 6.6,
-            "distRect": 3.1
-          },
-          {
-            "text": "T8 Club",
-            "nudge": 0,
-            "distCentre": 14.1,
-            "distRect": 3.6
           }
         ]
       },
@@ -134,295 +184,86 @@
         "sizePx": 120,
         "fontPx": 2.76,
         "floor": false,
-        "shown": 8,
+        "shown": 12,
         "dropped": [],
         "overlaps": [],
         "degradedToNumber": [],
-        "maxApexToLabelCentrePx": 8.6,
-        "meanApexToRectPx": 1.5,
-        "maxApexToRectPx": 3.7,
-        "minLabelPairGapPx": 0.5,
-        "meanApexToLabelCentrePx": 5.9,
-        "labels": [
-          {
-            "text": "T1 Abbey",
-            "nudge": 0,
-            "distCentre": 3.1,
-            "distRect": 1
-          },
-          {
-            "text": "T2 Farm Curve",
-            "nudge": 3,
-            "distCentre": 6.6,
-            "distRect": 3.7
-          },
-          {
-            "text": "T3 Village",
-            "nudge": 0,
-            "distCentre": 7,
-            "distRect": 0.9
-          },
-          {
-            "text": "T4 The Link",
-            "nudge": 0,
-            "distCentre": 8.6,
-            "distRect": 0.9
-          },
-          {
-            "text": "T5 Becketts",
-            "nudge": 0,
-            "distCentre": 8.6,
-            "distRect": 0.8
-          },
-          {
-            "text": "T6 Stowe",
-            "nudge": 0,
-            "distCentre": 3.4,
-            "distRect": 1.4
-          },
-          {
-            "text": "T7 Vale",
-            "nudge": 0,
-            "distCentre": 3.4,
-            "distRect": 1.4
-          },
-          {
-            "text": "T8 Club",
-            "nudge": 0,
-            "distCentre": 6.8,
-            "distRect": 1.6
-          }
-        ]
-      }
-    }
-  },
-  "monza-curva-grande-circuit": {
-    "turns": 10,
-    "configs": {
-      "120": {
-        "sizePx": 120,
-        "fontPx": 5,
-        "floor": true,
-        "shown": 10,
-        "dropped": [],
-        "overlaps": [],
-        "degradedToNumber": [],
-        "maxApexToLabelCentrePx": 21.6,
-        "meanApexToRectPx": 4.1,
-        "maxApexToRectPx": 11.3,
+        "maxApexToLabelCentrePx": 12.5,
+        "meanApexToRectPx": 1.4,
+        "maxApexToRectPx": 4.5,
         "minLabelPairGapPx": 0.2,
-        "meanApexToLabelCentrePx": 16.3,
+        "meanApexToLabelCentrePx": 5.1,
         "labels": [
           {
-            "text": "T1 Curva Grande",
+            "text": "T1",
             "nudge": 0,
-            "distCentre": 21.6,
-            "distRect": 2.9
-          },
-          {
-            "text": "T2 Roggia 1",
-            "nudge": 0,
-            "distCentre": 15.9,
-            "distRect": 2.4
-          },
-          {
-            "text": "T3 Roggia 2",
-            "nudge": 3,
-            "distCentre": 14.1,
-            "distRect": 8.8
-          },
-          {
-            "text": "T4 Lesmo 1",
-            "nudge": 0,
-            "distCentre": 14.7,
-            "distRect": 2.4
-          },
-          {
-            "text": "T5 Lesmo 2",
-            "nudge": 0,
-            "distCentre": 15.9,
-            "distRect": 2.5
-          },
-          {
-            "text": "T6 Serraglio",
-            "nudge": 0,
-            "distCentre": 16.2,
-            "distRect": 2.4
-          },
-          {
-            "text": "T7 Ascari 1",
-            "nudge": 0,
-            "distCentre": 14.8,
-            "distRect": 2.5
-          },
-          {
-            "text": "T8 Ascari 2",
-            "nudge": 1,
-            "distCentre": 14.3,
-            "distRect": 3.1
-          },
-          {
-            "text": "T9 Ascari 3",
-            "nudge": 3,
-            "distCentre": 16.9,
-            "distRect": 11.3
-          },
-          {
-            "text": "T10 Parabolica",
-            "nudge": 0,
-            "distCentre": 18.4,
-            "distRect": 2.4
-          }
-        ]
-      },
-      "250": {
-        "sizePx": 250,
-        "fontPx": 5.75,
-        "floor": true,
-        "shown": 10,
-        "dropped": [],
-        "overlaps": [],
-        "degradedToNumber": [],
-        "maxApexToLabelCentrePx": 24.6,
-        "meanApexToRectPx": 4,
-        "maxApexToRectPx": 10.4,
-        "minLabelPairGapPx": 4.1,
-        "meanApexToLabelCentrePx": 18.7,
-        "labels": [
-          {
-            "text": "T1 Curva Grande",
-            "nudge": 0,
-            "distCentre": 24.6,
-            "distRect": 2.8
-          },
-          {
-            "text": "T2 Roggia 1",
-            "nudge": 0,
-            "distCentre": 18.1,
-            "distRect": 2.4
-          },
-          {
-            "text": "T3 Roggia 2",
-            "nudge": 3,
-            "distCentre": 16.2,
-            "distRect": 10.4
-          },
-          {
-            "text": "T4 Lesmo 1",
-            "nudge": 0,
-            "distCentre": 17.5,
-            "distRect": 3
-          },
-          {
-            "text": "T5 Lesmo 2",
-            "nudge": 0,
-            "distCentre": 18.7,
-            "distRect": 3
-          },
-          {
-            "text": "T6 Serraglio",
-            "nudge": 0,
-            "distCentre": 18.4,
-            "distRect": 2.7
-          },
-          {
-            "text": "T7 Ascari 1",
-            "nudge": 0,
-            "distCentre": 17.5,
-            "distRect": 3
-          },
-          {
-            "text": "T8 Ascari 2",
-            "nudge": 1,
-            "distCentre": 16.8,
-            "distRect": 3.5
-          },
-          {
-            "text": "T9 Ascari 3",
-            "nudge": 1,
-            "distCentre": 17.4,
-            "distRect": 6.9
-          },
-          {
-            "text": "T10 Parabolica",
-            "nudge": 0,
-            "distCentre": 21.6,
-            "distRect": 2.8
-          }
-        ]
-      },
-      "120-nofloor": {
-        "sizePx": 120,
-        "fontPx": 2.76,
-        "floor": false,
-        "shown": 10,
-        "dropped": [],
-        "overlaps": [],
-        "degradedToNumber": [],
-        "maxApexToLabelCentrePx": 11.6,
-        "meanApexToRectPx": 1.6,
-        "maxApexToRectPx": 5,
-        "minLabelPairGapPx": 0.7,
-        "meanApexToLabelCentrePx": 8.7,
-        "labels": [
-          {
-            "text": "T1 Curva Grande",
-            "nudge": 0,
-            "distCentre": 11.6,
-            "distRect": 1
-          },
-          {
-            "text": "T2 Roggia 1",
-            "nudge": 0,
-            "distCentre": 8.4,
-            "distRect": 0.7
-          },
-          {
-            "text": "T3 Roggia 2",
-            "nudge": 3,
-            "distCentre": 7.8,
-            "distRect": 5
-          },
-          {
-            "text": "T4 Lesmo 1",
-            "nudge": 0,
-            "distCentre": 8.1,
-            "distRect": 0.7
-          },
-          {
-            "text": "T5 Lesmo 2",
-            "nudge": 0,
-            "distCentre": 8.7,
-            "distRect": 1
-          },
-          {
-            "text": "T6 Serraglio",
-            "nudge": 0,
-            "distCentre": 8.4,
+            "distCentre": 3.4,
             "distRect": 1.1
           },
           {
-            "text": "T7 Ascari 1",
+            "text": "T2 Andretti Hairpin",
             "nudge": 0,
-            "distCentre": 8.2,
+            "distCentre": 12.5,
             "distRect": 0.9
           },
           {
-            "text": "T8 Ascari 2",
-            "nudge": 1,
-            "distCentre": 7.7,
+            "text": "T3",
+            "nudge": 0,
+            "distCentre": 3.8,
+            "distRect": 1.3
+          },
+          {
+            "text": "T4",
+            "nudge": 0,
+            "distCentre": 4.4,
             "distRect": 1.5
           },
           {
-            "text": "T9 Ascari 3",
-            "nudge": 1,
-            "distCentre": 8.2,
-            "distRect": 3.3
+            "text": "T5",
+            "nudge": 0,
+            "distCentre": 4.3,
+            "distRect": 1.3
           },
           {
-            "text": "T10 Parabolica",
+            "text": "T6",
             "nudge": 0,
-            "distCentre": 9.8,
+            "distCentre": 3.9,
+            "distRect": 0.9
+          },
+          {
+            "text": "T7",
+            "nudge": 0,
+            "distCentre": 3.3,
+            "distRect": 1.1
+          },
+          {
+            "text": "T8 Corkscrew",
+            "nudge": 0,
+            "distCentre": 8.9,
+            "distRect": 0.9
+          },
+          {
+            "text": "T9 Corkscrew 8a",
+            "nudge": 3,
+            "distCentre": 8.2,
+            "distRect": 4.5
+          },
+          {
+            "text": "T10 Rainey",
+            "nudge": 0,
+            "distCentre": 2.9,
+            "distRect": 0.9
+          },
+          {
+            "text": "T11",
+            "nudge": 0,
+            "distCentre": 3,
+            "distRect": 0.9
+          },
+          {
+            "text": "T12",
+            "nudge": 0,
+            "distCentre": 3.1,
             "distRect": 1
           }
         ]

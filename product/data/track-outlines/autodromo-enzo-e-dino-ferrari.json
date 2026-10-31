@@ -32,7 +32,7 @@
     "notes": "Generated from provided laps - verify in manual_outline_align.html"
   },
   "caveats": [
-    "Width is constant \u00b15m estimate.",
+    "Width is constant ±5m estimate.",
     "Median racing line - may not match any single driver's exact line.",
     "Visual context only, not authoritative track-limits data."
   ],
@@ -6040,6 +6040,195 @@
     {
       "x": 5.095788143011772,
       "y": 7.255857686151965
+    }
+  ],
+  "turns": [
+    {
+      "id": "t1",
+      "number": 1,
+      "name": "Tamburello",
+      "short_name": null,
+      "apex_s_m": 704.0,
+      "x": -685.075,
+      "y": -23.67,
+      "outward": [
+        -0.8478,
+        0.5303
+      ],
+      "tangent": [
+        -0.5303,
+        -0.8478
+      ]
+    },
+    {
+      "id": "t2",
+      "number": 2,
+      "name": "Variante Villeneuve 1",
+      "short_name": "Villeneuve 1",
+      "apex_s_m": 1419.0,
+      "x": -955.95,
+      "y": -639.182,
+      "outward": [
+        -0.9416,
+        0.3368
+      ],
+      "tangent": [
+        -0.3368,
+        -0.9416
+      ]
+    },
+    {
+      "id": "t3",
+      "number": 3,
+      "name": "Variante Villeneuve 2",
+      "short_name": "Villeneuve 2",
+      "apex_s_m": 1417.0,
+      "x": -955.806,
+      "y": -638.761,
+      "outward": [
+        -0.9501,
+        0.3119
+      ],
+      "tangent": [
+        -0.3119,
+        -0.9501
+      ]
+    },
+    {
+      "id": "t4",
+      "number": 4,
+      "name": "Tosa",
+      "short_name": null,
+      "apex_s_m": 1696.0,
+      "x": -1139.01,
+      "y": -836.96,
+      "outward": [
+        -0.978,
+        -0.2084
+      ],
+      "tangent": [
+        0.2084,
+        -0.978
+      ]
+    },
+    {
+      "id": "t5",
+      "number": 5,
+      "name": "Piratella",
+      "short_name": null,
+      "apex_s_m": 2323.0,
+      "x": -540.114,
+      "y": -831.732,
+      "outward": [
+        0.4654,
+        -0.8851
+      ],
+      "tangent": [
+        0.8851,
+        0.4654
+      ]
+    },
+    {
+      "id": "t6",
+      "number": 6,
+      "name": "Acque Minerali 1",
+      "short_name": null,
+      "apex_s_m": 2841.0,
+      "x": -458.643,
+      "y": -362.544,
+      "outward": [
+        0.3434,
+        -0.9392
+      ],
+      "tangent": [
+        0.9392,
+        0.3434
+      ]
+    },
+    {
+      "id": "t7",
+      "number": 7,
+      "name": "Acque Minerali 2",
+      "short_name": null,
+      "apex_s_m": 2858.0,
+      "x": -443.567,
+      "y": -359.736,
+      "outward": [
+        0.0407,
+        -0.9992
+      ],
+      "tangent": [
+        0.9992,
+        0.0407
+      ]
+    },
+    {
+      "id": "t8",
+      "number": 8,
+      "name": "Variante Alta 1",
+      "short_name": null,
+      "apex_s_m": 3385.0,
+      "x": 67.649,
+      "y": -382.245,
+      "outward": [
+        -0.2132,
+        -0.977
+      ],
+      "tangent": [
+        0.977,
+        -0.2132
+      ]
+    },
+    {
+      "id": "t9",
+      "number": 9,
+      "name": "Variante Alta 2",
+      "short_name": null,
+      "apex_s_m": 3396.0,
+      "x": 76.134,
+      "y": -383.153,
+      "outward": [
+        -0.0013,
+        -1.0
+      ],
+      "tangent": [
+        1.0,
+        -0.0013
+      ]
+    },
+    {
+      "id": "t10",
+      "number": 10,
+      "name": "Rivazza 1",
+      "short_name": null,
+      "apex_s_m": 4145.0,
+      "x": 672.455,
+      "y": 39.559,
+      "outward": [
+        0.9993,
+        -0.0382
+      ],
+      "tangent": [
+        0.0382,
+        0.9993
+      ]
+    },
+    {
+      "id": "t11",
+      "number": 11,
+      "name": "Rivazza 2",
+      "short_name": null,
+      "apex_s_m": 4256.0,
+      "x": 618.152,
+      "y": 131.312,
+      "outward": [
+        0.3661,
+        0.9306
+      ],
+      "tangent": [
+        -0.9306,
+        0.3661
+      ]
     }
   ]
 }

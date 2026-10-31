@@ -80,7 +80,8 @@
       "apex_s_m": 7729.0,
       "s_end_m": 7750.0,
       "apex_side": "right",
-      "apex_side_source": "manual"
+      "apex_side_source": "manual",
+      "short_name": "Mulsanne"
     },
     {
       "id": "indianapolis",
@@ -89,7 +90,8 @@
       "apex_s_m": 9824.0,
       "s_end_m": 9867.0,
       "apex_side": "right",
-      "apex_side_source": "manual"
+      "apex_side_source": "manual",
+      "short_name": "Indianapolis"
     },
     {
       "id": "arnage",
@@ -116,7 +118,8 @@
       "apex_s_m": 11714.0,
       "s_end_m": 11858.0,
       "apex_side": "left",
-      "apex_side_source": "manual"
+      "apex_side_source": "manual",
+      "short_name": "Pont Entry"
     },
     {
       "id": "virage_du_pont_2",
@@ -125,7 +128,8 @@
       "apex_s_m": 12003.0,
       "s_end_m": 12022.0,
       "apex_side": "left",
-      "apex_side_source": "manual"
+      "apex_side_source": "manual",
+      "short_name": "Pont Exit"
     },
     {
       "id": "karting",

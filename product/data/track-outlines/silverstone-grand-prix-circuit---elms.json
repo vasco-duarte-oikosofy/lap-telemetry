@@ -14175,5 +14175,313 @@
       "x": -405.31534989571315,
       "y": -319.4780671333677
     }
+  ],
+  "turns": [
+    {
+      "id": "copse",
+      "number": 1,
+      "name": "Copse",
+      "short_name": null,
+      "apex_s_m": 380.0,
+      "x": 374.823,
+      "y": 853.654,
+      "outward": [
+        0.5369,
+        0.8437
+      ],
+      "tangent": [
+        0.8437,
+        -0.5369
+      ]
+    },
+    {
+      "id": "maggots",
+      "number": 2,
+      "name": "Maggots",
+      "short_name": null,
+      "apex_s_m": 1050.0,
+      "x": 527.046,
+      "y": 223.182,
+      "outward": [
+        0.9919,
+        -0.1268
+      ],
+      "tangent": [
+        -0.1268,
+        -0.9919
+      ]
+    },
+    {
+      "id": "becketts_entry",
+      "number": 3,
+      "name": "Becketts Entry",
+      "short_name": null,
+      "apex_s_m": 1194.0,
+      "x": 508.924,
+      "y": 86.69,
+      "outward": [
+        0.9565,
+        0.2916
+      ],
+      "tangent": [
+        0.2916,
+        -0.9565
+      ]
+    },
+    {
+      "id": "becketts_exit",
+      "number": 4,
+      "name": "Becketts Exit",
+      "short_name": null,
+      "apex_s_m": 1309.0,
+      "x": 547.081,
+      "y": -16.009,
+      "outward": [
+        0.9953,
+        -0.0973
+      ],
+      "tangent": [
+        -0.0973,
+        -0.9953
+      ]
+    },
+    {
+      "id": "chapel",
+      "number": 5,
+      "name": "Chapel",
+      "short_name": null,
+      "apex_s_m": 1468.0,
+      "x": 448.761,
+      "y": -127.27,
+      "outward": [
+        0.6463,
+        -0.7631
+      ],
+      "tangent": [
+        -0.7631,
+        -0.6463
+      ]
+    },
+    {
+      "id": "stowe",
+      "number": 6,
+      "name": "Stowe",
+      "short_name": null,
+      "apex_s_m": 2342.0,
+      "x": -14.027,
+      "y": -840.714,
+      "outward": [
+        -0.0107,
+        -0.9999
+      ],
+      "tangent": [
+        -0.9999,
+        0.0107
+      ]
+    },
+    {
+      "id": "vale_1",
+      "number": 7,
+      "name": "Vale 1",
+      "short_name": null,
+      "apex_s_m": 2811.0,
+      "x": -324.604,
+      "y": -521.29,
+      "outward": [
+        0.1163,
+        -0.9932
+      ],
+      "tangent": [
+        -0.9932,
+        -0.1163
+      ]
+    },
+    {
+      "id": "vale_2",
+      "number": 8,
+      "name": "Vale 2",
+      "short_name": null,
+      "apex_s_m": 2875.0,
+      "x": -381.15,
+      "y": -544.097,
+      "outward": [
+        0.0009,
+        -1.0
+      ],
+      "tangent": [
+        -1.0,
+        -0.0009
+      ]
+    },
+    {
+      "id": "club",
+      "number": 9,
+      "name": "Club",
+      "short_name": null,
+      "apex_s_m": 3055.0,
+      "x": -465.069,
+      "y": -409.163,
+      "outward": [
+        -0.9842,
+        0.1772
+      ],
+      "tangent": [
+        0.1772,
+        0.9842
+      ]
+    },
+    {
+      "id": "abbey",
+      "number": 10,
+      "name": "Abbey",
+      "short_name": null,
+      "apex_s_m": 3512.0,
+      "x": -207.624,
+      "y": -35.906,
+      "outward": [
+        -0.7615,
+        0.6481
+      ],
+      "tangent": [
+        0.6481,
+        0.7615
+      ]
+    },
+    {
+      "id": "farm",
+      "number": 11,
+      "name": "Farm",
+      "short_name": null,
+      "apex_s_m": 3805.0,
+      "x": 62.771,
+      "y": 19.567,
+      "outward": [
+        -0.2601,
+        0.9656
+      ],
+      "tangent": [
+        0.9656,
+        0.2601
+      ]
+    },
+    {
+      "id": "village",
+      "number": 12,
+      "name": "Village",
+      "short_name": null,
+      "apex_s_m": 4081.0,
+      "x": 287.82,
+      "y": 148.558,
+      "outward": [
+        0.5419,
+        0.8404
+      ],
+      "tangent": [
+        0.8404,
+        -0.5419
+      ]
+    },
+    {
+      "id": "the_loop",
+      "number": 13,
+      "name": "The Loop",
+      "short_name": null,
+      "apex_s_m": 4207.0,
+      "x": 339.883,
+      "y": 39.983,
+      "outward": [
+        0.1734,
+        0.9848
+      ],
+      "tangent": [
+        0.9848,
+        -0.1734
+      ]
+    },
+    {
+      "id": "aintree",
+      "number": 14,
+      "name": "Aintree",
+      "short_name": null,
+      "apex_s_m": 4411.0,
+      "x": 396.764,
+      "y": 208.057,
+      "outward": [
+        -0.9385,
+        -0.3453
+      ],
+      "tangent": [
+        -0.3453,
+        0.9385
+      ]
+    },
+    {
+      "id": "brooklands",
+      "number": 15,
+      "name": "Brooklands",
+      "short_name": null,
+      "apex_s_m": 5172.0,
+      "x": -176.597,
+      "y": 645.439,
+      "outward": [
+        0.7219,
+        -0.692
+      ],
+      "tangent": [
+        -0.692,
+        -0.7219
+      ]
+    },
+    {
+      "id": "luffield_1",
+      "number": 16,
+      "name": "Luffield 1",
+      "short_name": null,
+      "apex_s_m": 5304.0,
+      "x": -219.444,
+      "y": 530.785,
+      "outward": [
+        0.6797,
+        -0.7335
+      ],
+      "tangent": [
+        -0.7335,
+        -0.6797
+      ]
+    },
+    {
+      "id": "luffield_2",
+      "number": 17,
+      "name": "Luffield 2",
+      "short_name": null,
+      "apex_s_m": 5337.0,
+      "x": -246.761,
+      "y": 518.923,
+      "outward": [
+        0.062,
+        -0.9981
+      ],
+      "tangent": [
+        -0.9981,
+        -0.062
+      ]
+    },
+    {
+      "id": "woodcote",
+      "number": 18,
+      "name": "Woodcote",
+      "short_name": null,
+      "apex_s_m": 5705.0,
+      "x": -153.63,
+      "y": 795.74,
+      "outward": [
+        -0.5224,
+        0.8527
+      ],
+      "tangent": [
+        0.8527,
+        0.5224
+      ]
+    }
   ]
 }

@@ -82,7 +82,8 @@
       "apex_s_m": 2477.0,
       "s_end_m": 2515.0,
       "apex_side": "left",
-      "apex_side_source": "manual"
+      "apex_side_source": "manual",
+      "short_name": "Corkscrew"
     },
     {
       "id": "t8a",
@@ -101,7 +102,8 @@
       "apex_s_m": 2737.0,
       "s_end_m": 2748.0,
       "apex_side": "left",
-      "apex_side_source": "manual"
+      "apex_side_source": "manual",
+      "short_name": "Rainey"
     },
     {
       "id": "t10",
