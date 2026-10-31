@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 """
 Generate a track outline using MEDIAN of provided laps.
-
 Why MEDIAN instead of MEAN?
 - Different drivers take different racing lines through corners
 - Mean smears corners inward when averaging different apex points
@@ -33,6 +32,25 @@ import sys
 from pathlib import Path
 import pandas as pd
 import numpy as np
+
+
+def preserve_turns(outline: dict, output_path: str) -> None:
+    """Carry an existing `turns` block over when the new outline has none.
+
+    The `turns` block is hand-curated data; every outline writer must keep it
+    (same rule as curated coaching-model names, bug 24).
+    """
+    if outline.get("turns"):
+        return
+    try:
+        with open(output_path, encoding="utf-8") as f:
+            prior = json.load(f)
+    except (FileNotFoundError, json.JSONDecodeError):
+        return
+    if isinstance(prior.get("turns"), list) and prior["turns"]:
+        outline["turns"] = prior["turns"]
+        print(f"[outline-turns] preserved {len(prior['turns'])} curated turns -> {output_path}")
+
 
 
 def dist(a, b):
@@ -331,6 +349,8 @@ def main():
         "right_boundary": right
     }
     
+    # Curated turn labels survive regeneration (docs/specs/MAP_TURN_NAMES.md).
+    preserve_turns(outline, str(output_path))
     with open(output_path, 'w') as f:
         json.dump(outline, f, indent=2)
         f.write('\n')

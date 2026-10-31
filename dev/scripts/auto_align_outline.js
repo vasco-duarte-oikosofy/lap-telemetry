@@ -19,6 +19,7 @@
  */
 
 const fs = require('fs/promises');
+const { withPreservedTurns } = require('./lib/outlineTurns');
 const path = require('path');
 
 // ─── Geometry helpers ────────────────────────────────────────────────────
@@ -372,7 +373,7 @@ async function main(argv) {
 
   const outPath = opts.outPath || `product/data/track-outlines/${simTrackName.toLowerCase().replace(/\s+/g, '-')}.json`;
   await fs.mkdir(path.dirname(outPath), { recursive: true });
-  await fs.writeFile(outPath, JSON.stringify(outline, null, 2) + '\n');
+  await fs.writeFile(outPath, JSON.stringify(withPreservedTurns(outline, outPath), null, 2) + '\n');
   console.log(`\nWrote ${outPath}`);
   console.log(`Alignment parameters:`, JSON.stringify({
     scale: opts.scale?.toFixed?.(4) ?? outline.alignment.scale,

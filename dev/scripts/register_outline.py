@@ -15,6 +15,7 @@ Idempotent: running twice makes no changes on the second run.
 """
 
 import json
+import math
 import os
 import re
 import shutil
@@ -159,6 +160,93 @@ def validate_outline(data: dict, path: str) -> list[str]:
             f"expected list, got {type(data['caveats']).__name__}"
         )
 
+    # optional curated turn labels (docs/specs/MAP_TURN_NAMES.md)
+    errors.extend(validate_turns(data))
+
+    return errors
+
+
+PLACEHOLDER_TURN_NAME = re.compile(r"^turn\s*\d+$", re.IGNORECASE)
+
+
+def validate_turns(data: dict) -> list[str]:
+    """Validate the optional curated `turns` block.
+
+    These labels are hand-curated data baked by dev/scripts/bake_outline_turns.py
+    and must survive outline regeneration, so a malformed block is a hard error
+    here rather than something the renderer has to defend against.
+    """
+    errors: list[str] = []
+    if "turns" not in data:
+        return errors
+    turns = data["turns"]
+    if not isinstance(turns, list) or not turns:
+        errors.append("'turns' must be a non-empty list when present")
+        return errors
+
+    centerline = data.get("centerline") or []
+    xs = [p["x"] for p in centerline if isinstance(p, dict) and "x" in p]
+    ys = [p["y"] for p in centerline if isinstance(p, dict) and "y" in p]
+    if xs and ys:
+        slack_x = (max(xs) - min(xs)) * 0.05
+        slack_y = (max(ys) - min(ys)) * 0.05
+    else:
+        slack_x = slack_y = 0.0
+
+    seen: set[int] = set()
+    for i, turn in enumerate(turns):
+        prefix = f"turns[{i}]"
+        if not isinstance(turn, dict):
+            errors.append(f"{prefix} must be an object")
+            continue
+        for key in ("id", "apex_s_m", "x", "y", "outward", "tangent"):
+            if key not in turn:
+                errors.append(f"{prefix}.{key} is required")
+        if not isinstance(turn.get("id"), str) or not turn.get("id"):
+            errors.append(f"{prefix}.id must be a non-empty string")
+        number = turn.get("number")
+        if not isinstance(number, int) or number < 1:
+            errors.append(f"{prefix}.number must be an integer >= 1")
+        elif number in seen:
+            errors.append(f"{prefix}.number {number} is duplicated")
+        else:
+            seen.add(number)
+        for key in ("name", "short_name"):
+            value = turn.get(key)
+            if value is not None and not isinstance(value, str):
+                errors.append(f"{prefix}.{key} must be a string or null")
+            if key == "name" and isinstance(value, str) and PLACEHOLDER_TURN_NAME.match(value):
+                errors.append(f"{prefix}.name '{value}' is a generator placeholder, not a turn name")
+        for key in ("apex_s_m", "x", "y"):
+            value = turn.get(key)
+            if not isinstance(value, (int, float)) or not math.isfinite(value):
+                errors.append(f"{prefix}.{key} must be a finite number")
+        apex = turn.get("apex_s_m")
+        if isinstance(apex, (int, float)) and apex <= 0:
+            errors.append(f"{prefix}.apex_s_m must be > 0")
+        x, y = turn.get("x"), turn.get("y")
+        if isinstance(x, (int, float)) and xs and not (min(xs) - slack_x <= x <= max(xs) + slack_x):
+            errors.append(f"{prefix}.x ({x}) is outside the outline bbox")
+        if isinstance(y, (int, float)) and ys and not (min(ys) - slack_y <= y <= max(ys) + slack_y):
+            errors.append(f"{prefix}.y ({y}) is outside the outline bbox")
+        outward, tangent = turn.get("outward"), turn.get("tangent")
+        for key, vec in (("outward", outward), ("tangent", tangent)):
+            if not (isinstance(vec, list) and len(vec) == 2 and
+                    all(isinstance(v, (int, float)) and math.isfinite(v) for v in vec)):
+                errors.append(f"{prefix}.{key} must be [x, y] finite numbers")
+                continue
+            length = math.hypot(vec[0], vec[1])
+            if abs(length - 1.0) > 0.02:
+                errors.append(f"{prefix}.{key} is not a unit vector (length {length:.3f})")
+        if (isinstance(outward, list) and isinstance(tangent, list) and
+                len(outward) == 2 and len(tangent) == 2):
+            dot = outward[0] * tangent[0] + outward[1] * tangent[1]
+            if abs(dot) > 0.05:
+                errors.append(f"{prefix}.outward and .tangent are not perpendicular (dot {dot:.3f})")
+
+    numbers = sorted(seen)
+    if numbers and numbers != list(range(1, len(numbers) + 1)):
+        errors.append(f"'turns' numbers must be 1..n, got {numbers}")
     return errors
 
 

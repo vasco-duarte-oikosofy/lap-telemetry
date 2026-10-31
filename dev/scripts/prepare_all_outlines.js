@@ -18,6 +18,7 @@
 const fs = require('fs/promises');
 const path = require('path');
 const { exportTrajectories, parseCsvTrack } = require('./prepare_manual_outline_inputs');
+const { withPreservedTurns } = require('./lib/outlineTurns');
 const { runICP, generateOutline, transformPoint } = require('./auto_align_outline');
 
 const TUMFTM_DIR = '/private/tmp/tumftm';
@@ -145,7 +146,7 @@ async function alignTrack(slug, config) {
   );
 
   const outPath = path.join(OUTLINES_DIR, `${slug}.json`);
-  await fs.writeFile(outPath, JSON.stringify(outline, null, 2) + '\n');
+  await fs.writeFile(outPath, JSON.stringify(withPreservedTurns(outline, outPath), null, 2) + '\n');
   console.log(`\nWrote ${outPath}`);
   console.log(`  centerline: ${outline.centerline.length} pts`);
   console.log(`  left_boundary: ${outline.left_boundary.length} pts`);

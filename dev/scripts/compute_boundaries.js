@@ -18,6 +18,7 @@
 
 const fs = require('fs/promises');
 const path = require('path');
+const { withPreservedTurns } = require('./lib/outlineTurns');
 const { inferMissingWidths } = require('./boundary_width_inference');
 
 /**
@@ -289,7 +290,7 @@ async function computeBoundariesFromFiles({ pathPath, profilePath, outPath, useS
 
   await fs.mkdir(path.dirname(outPath), { recursive: true });
   try {
-    await fs.writeFile(outPath, `${JSON.stringify(output, null, 2)}\n`, { flag: overwrite ? 'w' : 'wx' });
+    await fs.writeFile(outPath, `${JSON.stringify(withPreservedTurns(output, outPath), null, 2)}\n`, { flag: overwrite ? 'w' : 'wx' });
   } catch (err) {
     if (err && err.code === 'EEXIST') {
       throw new Error(`output exists: ${outPath} (pass --overwrite to replace)`);
