@@ -54,4 +54,9 @@ through the real widget, so review images cannot drift from the app again.
 
 ## Status
 
-🔧 Fixed on disk; awaiting the user's live test before moving to `work/completed/`.
+✅ Fixed in `63296a10` (TinyPedal) + `6603a22` (docs here). Confirmed live by the
+user — "tinypedal map is fine now" — and moved to `work/completed/bugs/`.
+
+Verification on the shipped data: all 173 corners of the 14 packaged tracks are
+labelled, 0 overlaps, and every glyph interior pixel is opaque white (1928/1928
+on Monza, worst alpha 239, worst red 247).
