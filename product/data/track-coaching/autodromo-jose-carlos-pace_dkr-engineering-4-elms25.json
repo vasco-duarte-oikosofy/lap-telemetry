@@ -67,6 +67,7 @@
     {
       "id": "t6",
       "name": "Ferradura 1",
+      "short_name": "Ferradura 1",
       "s_start_m": 1944.0,
       "apex_s_m": 2089.0,
       "s_end_m": 2123.0,
@@ -76,6 +77,7 @@
     {
       "id": "t7",
       "name": "Ferradura 2",
+      "short_name": "Ferradura 2",
       "s_start_m": 2125.0,
       "apex_s_m": 2152.0,
       "s_end_m": 2160.0,

@@ -13,6 +13,7 @@
     {
       "id": "1",
       "name": "Turn 1",
+      "short_name": "1",
       "s_start_m": 302.0,
       "apex_s_m": 499.0,
       "s_end_m": 500.0,
@@ -22,6 +23,7 @@
     {
       "id": "3",
       "name": "Turn 3",
+      "short_name": "3",
       "s_start_m": 817.0,
       "apex_s_m": 939.0,
       "s_end_m": 957.0,
@@ -31,6 +33,7 @@
     {
       "id": "5",
       "name": "Turn 5",
+      "short_name": "5",
       "s_start_m": 1038.0,
       "apex_s_m": 1109.0,
       "s_end_m": 1110.0,
@@ -49,6 +52,7 @@
     {
       "id": "10",
       "name": "Turn 10",
+      "short_name": "Ten",
       "s_start_m": 2624.0,
       "apex_s_m": 2762.0,
       "s_end_m": 2777.0,
@@ -67,6 +71,7 @@
     {
       "id": "15",
       "name": "Turn 15",
+      "short_name": "Fifteen",
       "s_start_m": 3884.0,
       "apex_s_m": 4034.0,
       "s_end_m": 4041.0,
@@ -76,6 +81,7 @@
     {
       "id": "16",
       "name": "Le Mans",
+      "short_name": "Le Mans",
       "s_start_m": 4161.0,
       "apex_s_m": 4234.0,
       "s_end_m": 4270.0,
@@ -85,6 +91,7 @@
     {
       "id": "17a",
       "name": "Sunset Bend",
+      "short_name": "Sunset",
       "s_start_m": 5148.0,
       "apex_s_m": 5301.0,
       "s_end_m": 5318.0,
@@ -94,6 +101,7 @@
     {
       "id": "17b",
       "name": "Sunset Bend",
+      "short_name": "Sunset",
       "s_start_m": 5319.0,
       "apex_s_m": 5378.0,
       "s_end_m": 5443.0,

@@ -61,8 +61,8 @@ def test_loader_reads_short_name() -> None:
        f"t2 short_name = {by_id['t2'].short_name!r}, expected 'Roggia 1'")
     ok(by_id["t10"].short_name == "Parabolica",
        f"t10 short_name = {by_id['t10'].short_name!r}, expected 'Parabolica'")
-    ok(by_id["t4"].short_name is None,
-       f"t4 has no short name (short_name = {by_id['t4'].short_name!r})")
+    ok(by_id["t4"].short_name == "Lesmo 1",
+       f"t4 preserves the numbered turn (short_name = {by_id['t4'].short_name!r})")
 
     ok(by_id["t2"].name == "Variante della Roggia 1",
        f"t2 keeps its official name for identity ({by_id['t2'].name!r})")
@@ -73,7 +73,7 @@ def test_display_name_prefers_short() -> None:
     by_id = {c.id: c for c in model.corners}
 
     expected = {
-        "t1": "Curva Grande",
+        "t1": "Grande",
         "t2": "Roggia 1",
         "t3": "Roggia 2",
         "t4": "Lesmo 1",
@@ -87,9 +87,11 @@ def test_display_name_prefers_short() -> None:
 
 
 def test_display_name_falls_back_for_models_without_short_names() -> None:
-    model = load_track_coaching_model(BARCELONA_MODEL)
-    corner = model.corners[0]
-    ok(corner.short_name is None, "Barcelona model has no short_name (unchanged schema)")
+    # Use an uncurated synthetic corner: the real corpus is now curated.
+    from lap_telemetry.coach.track_model import validate_corner
+    corner = validate_corner(dict(id="legacy", name="Turn 1", s_start_m=10,
+                                  apex_s_m=20, s_end_m=30, apex_side="right"), 0)
+    ok(corner.short_name is None, "legacy input without short_name still loads")
     ok(corner.display_name == corner.name,
        f"display_name falls back to name ({corner.display_name!r})")
 

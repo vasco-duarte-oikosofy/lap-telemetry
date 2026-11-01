@@ -13,6 +13,7 @@
         {
             "id": "t1",
             "name": "La Source",
+            "short_name": "La Source",
             "s_start_m": 242.0,
             "apex_s_m": 271.0,
             "s_end_m": 390.0,
@@ -23,6 +24,7 @@
         {
             "id": "t2",
             "name": "Eau Rouge",
+            "short_name": "Eau Rouge",
             "s_start_m": 1096.0,
             "apex_s_m": 1096.0,
             "s_end_m": 1096.0,
@@ -43,6 +45,7 @@
         {
             "id": "t4",
             "name": "Les Combes",
+            "short_name": "Les Combes",
             "s_start_m": 2257.0,
             "apex_s_m": 2310.0,
             "s_end_m": 2351.0,
@@ -83,6 +86,7 @@
         {
             "id": "t8",
             "name": "Speaker's Corner",
+            "short_name": "Speaker's",
             "s_start_m": 3081.0,
             "apex_s_m": 3168.0,
             "s_end_m": 3180.0,
@@ -93,6 +97,7 @@
         {
             "id": "t9",
             "name": "Double left of Pouhon",
+            "short_name": "Pouhon",
             "s_start_m": 3616.0,
             "apex_s_m": 3735.0,
             "s_end_m": 3854.0,
@@ -103,6 +108,7 @@
         {
             "id": "t10",
             "name": "Pif-Paf 1",
+            "short_name": "Pif-Paf 1",
             "s_start_m": 4335.0,
             "apex_s_m": 4383.0,
             "s_end_m": 4463.0,
@@ -113,6 +119,7 @@
         {
             "id": "t11",
             "name": "Pif-Paf 2",
+            "short_name": "Pif-Paf 2",
             "s_start_m": 4463.0,
             "apex_s_m": 4544.0,
             "s_end_m": 4663.0,
@@ -143,6 +150,7 @@
         {
             "id": "t14",
             "name": "Courbe Paul-Fr\u00e8re",
+            "short_name": "Paul-Fr\u00e8re",
             "s_start_m": 5503.0,
             "apex_s_m": 5503.0,
             "s_end_m": 5503.0,
@@ -163,6 +171,7 @@
         {
             "id": "t16",
             "name": "Bus Stop 1",
+            "short_name": "Bus Stop 1",
             "s_start_m": 6451.0,
             "apex_s_m": 6613.0,
             "s_end_m": 6620.0,
@@ -173,6 +182,7 @@
         {
             "id": "t17",
             "name": "Bus Stop 2",
+            "short_name": "Bus Stop 2",
             "s_start_m": 6642.0,
             "apex_s_m": 6666.0,
             "s_end_m": 6672.0,

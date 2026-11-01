@@ -13,6 +13,7 @@
     {
       "id": "dunlop_curve",
       "name": "Dunlop Curve",
+      "short_name": "Dunlop",
       "s_start_m": 540.0,
       "apex_s_m": 594.0,
       "s_end_m": 640.0,
@@ -52,6 +53,7 @@
     {
       "id": "tertre_rouge",
       "name": "Tertre Rouge",
+      "short_name": "Tertre Rouge",
       "s_start_m": 1827.0,
       "apex_s_m": 1905.0,
       "s_end_m": 1906.0,
@@ -155,6 +157,7 @@
     {
       "id": "ford_chicane_1",
       "name": "Ford Chicane 1",
+      "short_name": "Ford 1",
       "s_start_m": 13111.0,
       "apex_s_m": 13224.0,
       "s_end_m": 13237.0,
@@ -164,6 +167,7 @@
     {
       "id": "ford_chicane_2",
       "name": "Ford Chicane 2",
+      "short_name": "Ford 2",
       "s_start_m": 13248.0,
       "apex_s_m": 13298.0,
       "s_end_m": 13327.0,
@@ -173,6 +177,7 @@
     {
       "id": "raccordement_1",
       "name": "Raccordement 1",
+      "short_name": "Raccordement 1",
       "s_start_m": 13355.0,
       "apex_s_m": 13372.0,
       "s_end_m": 13372.0,
@@ -182,6 +187,7 @@
     {
       "id": "raccordement_2",
       "name": "Raccordement 2",
+      "short_name": "Raccordement 2",
       "s_start_m": 13372.0,
       "apex_s_m": 13429.0,
       "s_end_m": 13451.0,

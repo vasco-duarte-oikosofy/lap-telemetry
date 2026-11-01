@@ -22,6 +22,7 @@
     {
       "id": "t2",
       "name": "Variante Villeneuve 1",
+      "short_name": "Villeneuve 1",
       "s_start_m": 1210.0,
       "apex_s_m": 1417.0,
       "s_end_m": 1420.0,
@@ -31,6 +32,7 @@
     {
       "id": "t3",
       "name": "Variante Villeneuve 2",
+      "short_name": "Villeneuve 2",
       "s_start_m": 1420.0,
       "apex_s_m": 1423.0,
       "s_end_m": 1427.0,
@@ -58,6 +60,7 @@
     {
       "id": "t6",
       "name": "Acque Minerali 1",
+      "short_name": "Acque 1",
       "s_start_m": 2637.0,
       "apex_s_m": 2842.0,
       "s_end_m": 2848.0,
@@ -67,6 +70,7 @@
     {
       "id": "t7",
       "name": "Acque Minerali 2",
+      "short_name": "Acque 2",
       "s_start_m": 2848.0,
       "apex_s_m": 2855.0,
       "s_end_m": 2860.0,
@@ -76,6 +80,7 @@
     {
       "id": "t8",
       "name": "Variante Alta 1",
+      "short_name": "Alta 1",
       "s_start_m": 3213.0,
       "apex_s_m": 3383.0,
       "s_end_m": 3389.0,
@@ -85,6 +90,7 @@
     {
       "id": "t9",
       "name": "Variante Alta 2",
+      "short_name": "Alta 2",
       "s_start_m": 3389.0,
       "apex_s_m": 3395.0,
       "s_end_m": 3399.0,
@@ -94,6 +100,7 @@
     {
       "id": "t10",
       "name": "Rivazza 1",
+      "short_name": "Rivazza 1",
       "s_start_m": 3951.0,
       "apex_s_m": 4136.0,
       "s_end_m": 4147.0,
@@ -103,6 +110,7 @@
     {
       "id": "t11",
       "name": "Rivazza 2",
+      "short_name": "Rivazza 2",
       "s_start_m": 4191.0,
       "apex_s_m": 4261.0,
       "s_end_m": 4291.0,

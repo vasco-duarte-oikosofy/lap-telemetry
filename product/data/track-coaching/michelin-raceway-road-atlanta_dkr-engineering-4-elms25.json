@@ -13,6 +13,7 @@
     {
       "id": "t1",
       "name": "Turn 1",
+      "short_name": "1",
       "s_start_m": 291.0,
       "apex_s_m": 435.0,
       "s_end_m": 438.0,
@@ -22,6 +23,7 @@
     {
       "id": "t2",
       "name": "Turn 2",
+      "short_name": "2",
       "s_start_m": 676.0,
       "apex_s_m": 823.0,
       "s_end_m": 857.0,
@@ -31,6 +33,7 @@
     {
       "id": "t3",
       "name": "Turn 3",
+      "short_name": "3",
       "s_start_m": 775.0,
       "apex_s_m": 835.0,
       "s_end_m": 875.0,
@@ -51,6 +54,7 @@
     {
       "id": "t5",
       "name": "Turn 5",
+      "short_name": "5",
       "s_start_m": 1296.0,
       "apex_s_m": 1422.0,
       "s_end_m": 1441.0,
@@ -60,6 +64,7 @@
     {
       "id": "t6",
       "name": "Turn 6",
+      "short_name": "6",
       "s_start_m": 1846.0,
       "apex_s_m": 1972.0,
       "s_end_m": 2030.0,
@@ -69,6 +74,7 @@
     {
       "id": "t7",
       "name": "Turn 7",
+      "short_name": "7",
       "s_start_m": 2057.0,
       "apex_s_m": 2139.0,
       "s_end_m": 2171.0,
@@ -78,6 +84,7 @@
     {
       "id": "t8",
       "name": "Turn 8",
+      "short_name": "8",
       "s_start_m": 2350.0,
       "apex_s_m": 2470.0,
       "s_end_m": 2600.0,
@@ -88,6 +95,7 @@
     {
       "id": "t9",
       "name": "Turn 9",
+      "short_name": "9",
       "s_start_m": 2950.0,
       "apex_s_m": 3100.0,
       "s_end_m": 3280.0,
@@ -98,6 +106,7 @@
     {
       "id": "t10a",
       "name": "Turn 10A",
+      "short_name": "Ten A",
       "s_start_m": 3353.0,
       "apex_s_m": 3517.0,
       "s_end_m": 3534.0,
@@ -107,6 +116,7 @@
     {
       "id": "t10b",
       "name": "Turn 10B",
+      "short_name": "Ten B",
       "s_start_m": 3548.0,
       "apex_s_m": 3575.0,
       "s_end_m": 3620.0,
@@ -116,6 +126,7 @@
     {
       "id": "t11",
       "name": "Turn 11",
+      "short_name": "Eleven",
       "s_start_m": 3620.0,
       "apex_s_m": 3710.0,
       "s_end_m": 3780.0,
@@ -126,6 +137,7 @@
     {
       "id": "t12",
       "name": "Turn 12",
+      "short_name": "Twelve",
       "s_start_m": 3780.0,
       "apex_s_m": 3990.0,
       "s_end_m": 4082.1,

@@ -100,6 +100,7 @@
     {
       "id": "t10",
       "name": "Rivazza 1",
+      "short_name": "Rivazza 1",
       "s_start_m": 3981.0,
       "apex_s_m": 4145.0,
       "s_end_m": 4156.0,
@@ -109,6 +110,7 @@
     {
       "id": "t11",
       "name": "Rivazza 2",
+      "short_name": "Rivazza 2",
       "s_start_m": 4203.0,
       "apex_s_m": 4256.0,
       "s_end_m": 4279.0,

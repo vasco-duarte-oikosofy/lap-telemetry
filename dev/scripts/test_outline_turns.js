@@ -175,7 +175,27 @@ for (const p of withTurns) {
   });
 }
 
-// ── 4. names agree with the coaching model used to bake them ─────────────────
+// ── 4. official names/geometry agree; baked map labels remain unchanged ─────
+
+// Slice 13: speech aliases now spell 10+ and shorten names across all cars.
+// Do not force a map rebake ("Ten A" is speech text, not a map turn number).
+// Pin the existing display labels independently instead of equating the two.
+const BAKED_SHORT_NAMES = {
+  'autodromo-enzo-e-dino-ferrari': [null, 'Villeneuve 1', 'Villeneuve 2', null, null, 'Acque 1', 'Acque 2', 'Alta 1', 'Alta 2', null, null],
+  'autodromo-jose-carlos-pace': ['Senna 1', 'Senna 2', 'Sol', 'Lago 1', 'Lago 2', null, null, null, null, 'Bico', null, null, null, 'Boxes', 'Arquib.'],
+  'circuit-de-barcelona': [null, null, 'Renault', 'Repsol', null, null, 'Würth', null, 'Campsa', 'La Caixa', null, null, null, null],
+  'circuit-de-la-sarthe': [null, 'Dunlop 1', 'Dunlop 2', 'Foret', null, null, null, 'Mulsanne', 'Indianapolis', null, null, 'Pont Entry', 'Pont Exit', null, null, null, null, null, null],
+  'daytona-international-speedway-road-course': [null, null, 'Horseshoe', null, 'West Horseshoe', null, null, null, 'Bus Stop 1', 'Bus Stop 2', null, null],
+  'fuji-speedway-classic': Array(9).fill(null),
+  'michelin-raceway-road-atlanta': [null, null, null, 'Esses', null, null, null, null, null, null, null, null, null],
+  'monza-curva-grande-circuit': [null, 'Roggia 1', 'Roggia 2', null, null, 'Serraglio', 'Ascari 1', 'Ascari 2', 'Ascari 3', 'Parabolica'],
+  'paul-ricard---1a-v2-short': ['Verrerie 1', 'Verrerie 2', "l'Hotel 1", "l'Hotel 2", 'Camp', 'Ste-Beaume', null, null, null, 'Bendor', null, 'la Tour', 'Pont'],
+  'paul-ricard---3a': [null, null, null, null, null, 'Bendor', null, 'la Tour', 'Pont'],
+  'sebring-international-raceway': Array(10).fill(null),
+  'silverstone-grand-prix-circuit---elms': Array(18).fill(null),
+  'silverstone-international-circuit': Array(8).fill(null),
+  'weathertech-raceway-laguna-seca': [null, null, null, null, null, null, null, 'Corkscrew', null, 'Rainey', null, null],
+};
 
 // One entry per backfilled track (slice 04). The model named here is the one
 // the bake selects (most curated names, then most corners, then filename).
@@ -208,8 +228,8 @@ for (const [slug, modelFile] of Object.entries(KNOWN)) {
       assert.strictEqual(t.name, expected, `T${t.number} name mismatch`);
       assert.strictEqual(t.apex_s_m, Math.round(Number(corner.apex_s_m) * 10) / 10,
         `T${t.number} apex_s_m mismatch`);
-      assert.strictEqual(t.short_name, corner.short_name || null,
-        `T${t.number} short_name mismatch`);
+      assert.strictEqual(t.short_name, BAKED_SHORT_NAMES[slug][i],
+        `T${t.number} baked display label changed (speech aliases are independent)`);
     });
   });
 }

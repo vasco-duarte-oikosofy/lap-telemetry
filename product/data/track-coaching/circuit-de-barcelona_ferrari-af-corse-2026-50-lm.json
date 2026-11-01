@@ -13,6 +13,7 @@
     {
       "id": "t1",
       "name": "Turn 1 — Elf",
+      "short_name": "Elf",
       "s_start_m": 623.0,
       "apex_s_m": 853.0,
       "s_end_m": 900.0,
@@ -22,6 +23,7 @@
     {
       "id": "t2",
       "name": "Turn 2",
+      "short_name": "2",
       "s_start_m": 900.0,
       "apex_s_m": 946.0,
       "s_end_m": 978.0,
@@ -51,6 +53,7 @@
     {
       "id": "t5",
       "name": "Turn 5 — Seat",
+      "short_name": "Seat",
       "s_start_m": 1962.0,
       "apex_s_m": 2144.0,
       "s_end_m": 2206.0,
@@ -60,6 +63,7 @@
     {
       "id": "t6",
       "name": "Turn 6",
+      "short_name": "6",
       "s_start_m": 2330.0,
       "apex_s_m": 2370.0,
       "s_end_m": 2420.0,
@@ -80,6 +84,7 @@
     {
       "id": "t8",
       "name": "Turn 8",
+      "short_name": "8",
       "s_start_m": 2620.0,
       "apex_s_m": 2660.0,
       "s_end_m": 2700.0,
@@ -110,6 +115,7 @@
     {
       "id": "t11",
       "name": "Turn 11",
+      "short_name": "Eleven",
       "s_start_m": 3575.0,
       "apex_s_m": 3610.0,
       "s_end_m": 3655.0,
@@ -120,6 +126,7 @@
     {
       "id": "t12",
       "name": "Turn 12",
+      "short_name": "Twelve",
       "s_start_m": 3667.0,
       "apex_s_m": 3771.0,
       "s_end_m": 3883.0,
@@ -129,6 +136,7 @@
     {
       "id": "t13",
       "name": "Turn 13",
+      "short_name": "Thirteen",
       "s_start_m": 3981.0,
       "apex_s_m": 4057.0,
       "s_end_m": 4068.0,
@@ -138,6 +146,7 @@
     {
       "id": "t14",
       "name": "Turn 14",
+      "short_name": "Fourteen",
       "s_start_m": 4217.0,
       "apex_s_m": 4323.0,
       "s_end_m": 4328.0,

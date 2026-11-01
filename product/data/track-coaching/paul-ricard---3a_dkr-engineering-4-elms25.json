@@ -13,6 +13,7 @@
     {
       "id": "t1",
       "name": "La Bretelle",
+      "short_name": "Bretelle",
       "s_start_m": 361.0,
       "apex_s_m": 512.0,
       "s_end_m": 522.0,
@@ -22,6 +23,7 @@
     {
       "id": "t2",
       "name": "turn 2",
+      "short_name": "2",
       "s_start_m": 615.0,
       "apex_s_m": 655.0,
       "s_end_m": 656.0,
@@ -40,6 +42,7 @@
     {
       "id": "t4",
       "name": "Beausset 1",
+      "short_name": "Beausset 1",
       "s_start_m": 2120.0,
       "apex_s_m": 2295.0,
       "s_end_m": 2295.0,
@@ -49,6 +52,7 @@
     {
       "id": "t5",
       "name": "Beausset 2",
+      "short_name": "Beausset 2",
       "s_start_m": 2296.0,
       "apex_s_m": 2412.0,
       "s_end_m": 2415.0,
@@ -68,6 +72,7 @@
     {
       "id": "t7",
       "name": "S du Village",
+      "short_name": "Village",
       "s_start_m": 2900.0,
       "apex_s_m": 2983.0,
       "s_end_m": 3120.0,

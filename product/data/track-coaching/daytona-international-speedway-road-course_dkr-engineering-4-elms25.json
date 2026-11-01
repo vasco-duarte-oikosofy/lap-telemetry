@@ -13,6 +13,7 @@
     {
       "id": "t1",
       "name": "Turn 1",
+      "short_name": "1",
       "s_start_m": 199.0,
       "apex_s_m": 462.0,
       "s_end_m": 481.0,
@@ -23,6 +24,7 @@
     {
       "id": "t2kink",
       "name": "Turn 2 (Kink)",
+      "short_name": "Kink 2",
       "s_start_m": 618.0,
       "apex_s_m": 659.0,
       "s_end_m": 700.0,
@@ -44,6 +46,7 @@
     {
       "id": "t4kink",
       "name": "Turn 4 (Kink)",
+      "short_name": "Kink 4",
       "s_start_m": 1342.0,
       "apex_s_m": 1466.0,
       "s_end_m": 1492.0,
@@ -65,6 +68,7 @@
     {
       "id": "t6",
       "name": "Turn 6",
+      "short_name": "6",
       "s_start_m": 2029.0,
       "apex_s_m": 2140.0,
       "s_end_m": 2145.0,
@@ -75,6 +79,7 @@
     {
       "id": "t7",
       "name": "Turn 7",
+      "short_name": "7",
       "s_start_m": 2309.0,
       "apex_s_m": 2466.0,
       "s_end_m": 2624.0,
@@ -85,6 +90,7 @@
     {
       "id": "t8",
       "name": "Turn 8",
+      "short_name": "8",
       "s_start_m": 2749.0,
       "apex_s_m": 2922.0,
       "s_end_m": 3095.0,
@@ -117,6 +123,7 @@
     {
       "id": "t11",
       "name": "Turn 11",
+      "short_name": "Eleven",
       "s_start_m": 4336.0,
       "apex_s_m": 4446.0,
       "s_end_m": 4556.0,
@@ -127,6 +134,7 @@
     {
       "id": "t12",
       "name": "Turn 12",
+      "short_name": "Twelve",
       "s_start_m": 4775.0,
       "apex_s_m": 4903.0,
       "s_end_m": 5031.0,

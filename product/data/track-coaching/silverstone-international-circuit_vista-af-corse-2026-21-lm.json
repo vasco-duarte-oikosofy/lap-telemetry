@@ -22,6 +22,7 @@
     {
       "id": "2",
       "name": "Farm Curve",
+      "short_name": "Farm",
       "s_start_m": 425.8,
       "apex_s_m": 542.7,
       "s_end_m": 606.1,
@@ -41,6 +42,7 @@
     {
       "id": "4",
       "name": "The Link",
+      "short_name": "Link",
       "s_start_m": 835.8,
       "apex_s_m": 872.2,
       "s_end_m": 951.2,

@@ -13,6 +13,7 @@
     {
       "id": "t1",
       "name": "Curva Grande",
+      "short_name": "Grande",
       "s_start_m": 1170.0,
       "apex_s_m": 1400.0,
       "s_end_m": 1795.0,
@@ -43,6 +44,7 @@
     {
       "id": "t4",
       "name": "Lesmo 1",
+      "short_name": "Lesmo 1",
       "s_start_m": 2396.0,
       "apex_s_m": 2505.0,
       "s_end_m": 2515.0,
@@ -52,6 +54,7 @@
     {
       "id": "t5",
       "name": "Lesmo 2",
+      "short_name": "Lesmo 2",
       "s_start_m": 2738.0,
       "apex_s_m": 2820.0,
       "s_end_m": 2858.0,

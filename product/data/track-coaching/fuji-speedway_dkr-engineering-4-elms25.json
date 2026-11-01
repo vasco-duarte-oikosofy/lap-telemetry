@@ -13,6 +13,7 @@
     {
       "id": "1",
       "name": "First Corner",
+      "short_name": "First",
       "s_start_m": 562.0,
       "apex_s_m": 766.0,
       "s_end_m": 797.0,
@@ -31,6 +32,7 @@
     {
       "id": "100r",
       "name": "100R",
+      "short_name": "One Hundred R",
       "s_start_m": 1552.0,
       "apex_s_m": 1699.0,
       "s_end_m": 1701.0,
@@ -49,6 +51,7 @@
     {
       "id": "dunlop_bypass",
       "name": "Dunlop Bypass",
+      "short_name": "Dunlop",
       "s_start_m": 2682.0,
       "apex_s_m": 2846.0,
       "s_end_m": 2855.0,
@@ -58,6 +61,7 @@
     {
       "id": "11",
       "name": "Turn 11",
+      "short_name": "Eleven",
       "s_start_m": 2875.0,
       "apex_s_m": 2914.0,
       "s_end_m": 2930.0,
@@ -67,6 +71,7 @@
     {
       "id": "12",
       "name": "Turn 12",
+      "short_name": "Twelve",
       "s_start_m": 3059.0,
       "apex_s_m": 3132.0,
       "s_end_m": 3178.0,
@@ -76,6 +81,7 @@
     {
       "id": "13th_corner",
       "name": "13th Corner",
+      "short_name": "Thirteenth",
       "s_start_m": 3100.0,
       "apex_s_m": 3151.0,
       "s_end_m": 3161.0,
@@ -94,6 +100,7 @@
     {
       "id": "netz_hairpin",
       "name": "Netz Hairpin",
+      "short_name": "Netz Hairpin",
       "s_start_m": 3291.0,
       "apex_s_m": 3404.0,
       "s_end_m": 3439.0,

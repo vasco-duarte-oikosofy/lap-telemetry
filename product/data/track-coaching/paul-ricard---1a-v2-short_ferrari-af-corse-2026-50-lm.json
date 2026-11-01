@@ -73,6 +73,7 @@
     {
       "id": "t5",
       "name": "Flat to Mistral",
+      "short_name": "Mistral",
       "s_start_m": 1750.0,
       "apex_s_m": 1792.0,
       "s_end_m": 1850.0,
@@ -92,6 +93,7 @@
     {
       "id": "t7",
       "name": "Hairpin Shortcut",
+      "short_name": "Shortcut",
       "s_start_m": 3680.0,
       "apex_s_m": 4044.0,
       "s_end_m": 4052.0,

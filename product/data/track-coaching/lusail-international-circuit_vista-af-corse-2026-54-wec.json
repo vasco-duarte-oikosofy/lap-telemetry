@@ -13,6 +13,7 @@
     {
       "id": "t1",
       "name": "turn 1",
+      "short_name": "1",
       "s_start_m": 609.0,
       "apex_s_m": 779.0,
       "s_end_m": 781.0,
@@ -22,6 +23,7 @@
     {
       "id": "t2",
       "name": "turn 2",
+      "short_name": "2",
       "s_start_m": 979.0,
       "apex_s_m": 1100.0,
       "s_end_m": 1116.0,
@@ -31,6 +33,7 @@
     {
       "id": "t3",
       "name": "turn 3",
+      "short_name": "3",
       "s_start_m": 1255.0,
       "apex_s_m": 1335.0,
       "s_end_m": 1400.0,
@@ -40,6 +43,7 @@
     {
       "id": "t4",
       "name": "turn 4",
+      "short_name": "4",
       "s_start_m": 1599.0,
       "apex_s_m": 1741.0,
       "s_end_m": 1744.0,
@@ -49,6 +53,7 @@
     {
       "id": "t5",
       "name": "turn 5",
+      "short_name": "5",
       "s_start_m": 1809.0,
       "apex_s_m": 1927.0,
       "s_end_m": 1931.0,
@@ -58,6 +63,7 @@
     {
       "id": "t6",
       "name": "turn 6",
+      "short_name": "6",
       "s_start_m": 2086.0,
       "apex_s_m": 2200.0,
       "s_end_m": 2239.0,
@@ -67,6 +73,7 @@
     {
       "id": "t7",
       "name": "turn 7",
+      "short_name": "7",
       "s_start_m": 2480.0,
       "apex_s_m": 2603.0,
       "s_end_m": 2606.0,
@@ -76,6 +83,7 @@
     {
       "id": "t8",
       "name": "turn 8",
+      "short_name": "8",
       "s_start_m": 2735.0,
       "apex_s_m": 2790.0,
       "s_end_m": 2850.0,
@@ -85,6 +93,7 @@
     {
       "id": "t9",
       "name": "turn 9",
+      "short_name": "9",
       "s_start_m": 2865.0,
       "apex_s_m": 2973.0,
       "s_end_m": 2976.0,
@@ -94,6 +103,7 @@
     {
       "id": "t10",
       "name": "turn 10",
+      "short_name": "Ten",
       "s_start_m": 3060.0,
       "apex_s_m": 3156.0,
       "s_end_m": 3198.0,
@@ -103,6 +113,7 @@
     {
       "id": "t11",
       "name": "turn 11",
+      "short_name": "Eleven",
       "s_start_m": 3300.0,
       "apex_s_m": 3400.0,
       "s_end_m": 3600.0,
@@ -112,6 +123,7 @@
     {
       "id": "t12",
       "name": "turn 12",
+      "short_name": "Twelve",
       "s_start_m": 3668.0,
       "apex_s_m": 3835.0,
       "s_end_m": 3838.0,
@@ -121,6 +133,7 @@
     {
       "id": "t13",
       "name": "turn 13",
+      "short_name": "Thirteen",
       "s_start_m": 3892.0,
       "apex_s_m": 3970.0,
       "s_end_m": 3971.0,
@@ -130,6 +143,7 @@
     {
       "id": "t14",
       "name": "turn 14",
+      "short_name": "Fourteen",
       "s_start_m": 4087.0,
       "apex_s_m": 4193.0,
       "s_end_m": 4195.0,
@@ -139,6 +153,7 @@
     {
       "id": "t15",
       "name": "turn 15",
+      "short_name": "Fifteen",
       "s_start_m": 4410.0,
       "apex_s_m": 4520.0,
       "s_end_m": 4533.0,
@@ -148,6 +163,7 @@
     {
       "id": "t16",
       "name": "turn 16",
+      "short_name": "Sixteen",
       "s_start_m": 4855.0,
       "apex_s_m": 4965.0,
       "s_end_m": 4967.0,

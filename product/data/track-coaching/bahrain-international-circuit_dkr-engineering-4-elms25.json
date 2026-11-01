@@ -13,6 +13,7 @@
     {
       "id": "t1",
       "name": "turn 1",
+      "short_name": "1",
       "s_start_m": 559.0,
       "apex_s_m": 746.0,
       "s_end_m": 759.0,
@@ -22,6 +23,7 @@
     {
       "id": "t2",
       "name": "turn 2",
+      "short_name": "2",
       "s_start_m": 811.0,
       "apex_s_m": 844.0,
       "s_end_m": 848.0,
@@ -31,6 +33,7 @@
     {
       "id": "t4",
       "name": "turn 4",
+      "short_name": "4",
       "s_start_m": 1377.0,
       "apex_s_m": 1511.0,
       "s_end_m": 1515.0,
@@ -40,6 +43,7 @@
     {
       "id": "t5",
       "name": "turn 5",
+      "short_name": "5",
       "s_start_m": 1730.0,
       "apex_s_m": 1758.0,
       "s_end_m": 1786.0,
@@ -49,6 +53,7 @@
     {
       "id": "t6",
       "name": "turn 6",
+      "short_name": "6",
       "s_start_m": 1806.0,
       "apex_s_m": 1911.0,
       "s_end_m": 1946.0,
@@ -58,6 +63,7 @@
     {
       "id": "t7",
       "name": "turn 7",
+      "short_name": "7",
       "s_start_m": 1974.0,
       "apex_s_m": 2003.0,
       "s_end_m": 2009.0,
@@ -67,6 +73,7 @@
     {
       "id": "t8",
       "name": "turn 8",
+      "short_name": "8",
       "s_start_m": 2125.0,
       "apex_s_m": 2274.0,
       "s_end_m": 2290.0,
@@ -76,6 +83,7 @@
     {
       "id": "t10",
       "name": "turn 10",
+      "short_name": "Ten",
       "s_start_m": 2561.0,
       "apex_s_m": 2730.0,
       "s_end_m": 2746.0,
@@ -85,6 +93,7 @@
     {
       "id": "t11",
       "name": "turn 11",
+      "short_name": "Eleven",
       "s_start_m": 3296.0,
       "apex_s_m": 3484.0,
       "s_end_m": 3497.0,
@@ -94,6 +103,7 @@
     {
       "id": "t12",
       "name": "turn 12",
+      "short_name": "Twelve",
       "s_start_m": 3743.0,
       "apex_s_m": 3820.0,
       "s_end_m": 3841.0,
@@ -103,6 +113,7 @@
     {
       "id": "t13",
       "name": "turn 13",
+      "short_name": "Thirteen",
       "s_start_m": 3967.0,
       "apex_s_m": 4108.0,
       "s_end_m": 4139.0,
@@ -112,6 +123,7 @@
     {
       "id": "t14",
       "name": "turn 14",
+      "short_name": "Fourteen",
       "s_start_m": 4758.0,
       "apex_s_m": 4910.0,
       "s_end_m": 4937.0,
@@ -121,6 +133,7 @@
     {
       "id": "t15",
       "name": "turn 15",
+      "short_name": "Fifteen",
       "s_start_m": 4937.0,
       "apex_s_m": 5020.0,
       "s_end_m": 5020.0,

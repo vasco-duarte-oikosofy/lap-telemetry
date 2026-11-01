@@ -13,6 +13,7 @@
     {
       "id": "t1",
       "name": "Turn 1",
+      "short_name": "1",
       "s_start_m": 240.0,
       "apex_s_m": 263.0,
       "s_end_m": 300.0,
@@ -23,6 +24,7 @@
     {
       "id": "andretti",
       "name": "Andretti Hairpin",
+      "short_name": "Andretti",
       "s_start_m": 323.0,
       "apex_s_m": 519.0,
       "s_end_m": 524.0,
@@ -33,6 +35,7 @@
     {
       "id": "t3",
       "name": "Turn 3",
+      "short_name": "3",
       "s_start_m": 697.0,
       "apex_s_m": 785.0,
       "s_end_m": 794.0,
@@ -43,6 +46,7 @@
     {
       "id": "t4",
       "name": "Turn 4",
+      "short_name": "4",
       "s_start_m": 965.0,
       "apex_s_m": 1027.0,
       "s_end_m": 1034.0,
@@ -53,6 +57,7 @@
     {
       "id": "t5",
       "name": "Turn 5",
+      "short_name": "5",
       "s_start_m": 1406.0,
       "apex_s_m": 1506.0,
       "s_end_m": 1518.0,
@@ -63,6 +68,7 @@
     {
       "id": "t6",
       "name": "Turn 6",
+      "short_name": "6",
       "s_start_m": 1841.0,
       "apex_s_m": 1922.0,
       "s_end_m": 1927.0,
@@ -73,6 +79,7 @@
     {
       "id": "t7",
       "name": "Turn 7",
+      "short_name": "7",
       "s_start_m": 2280.0,
       "apex_s_m": 2296.0,
       "s_end_m": 2310.0,
@@ -83,6 +90,7 @@
     {
       "id": "t8",
       "name": "Corkscrew (Turn 8)",
+      "short_name": "Corkscrew",
       "s_start_m": 2317.0,
       "apex_s_m": 2453.0,
       "s_end_m": 2460.0,
@@ -93,6 +101,7 @@
     {
       "id": "t8a",
       "name": "Corkscrew 8a",
+      "short_name": "Corkscrew 8 A",
       "s_start_m": 2476.0,
       "apex_s_m": 2493.0,
       "s_end_m": 2498.0,
@@ -103,6 +112,7 @@
     {
       "id": "rainey",
       "name": "Rainey Curve (Turn 9)",
+      "short_name": "Rainey",
       "s_start_m": 2621.0,
       "apex_s_m": 2737.0,
       "s_end_m": 2742.0,
@@ -113,6 +123,7 @@
     {
       "id": "t10",
       "name": "Turn 10",
+      "short_name": "Ten",
       "s_start_m": 2887.0,
       "apex_s_m": 2986.0,
       "s_end_m": 2996.0,
@@ -123,6 +134,7 @@
     {
       "id": "t11",
       "name": "Turn 11",
+      "short_name": "Eleven",
       "s_start_m": 3177.0,
       "apex_s_m": 3279.0,
       "s_end_m": 3282.0,
