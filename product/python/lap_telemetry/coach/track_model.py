@@ -17,6 +17,18 @@ class Corner:
     s_end_m: float
     apex_side: str  # "left" | "right"
     target_throttle_pct: float | None = None  # 0–100, optional throttle target at apex
+    short_name: str | None = None  # curated spoken name, e.g. "Roggia 1"
+
+    @property
+    def display_name(self) -> str:
+        """Name to speak: the curated short name when there is one, else ``name``.
+
+        The official names are too long for a spoken coaching note
+        ("Variante della Roggia 1" vs "Roggia 1"). ``name`` stays authoritative
+        and is never overwritten — ``short_name`` is only what the driver hears.
+        An empty string is treated as "no short name".
+        """
+        return self.short_name or self.name
 
     def contains(self, distance_m: float) -> bool:
         """Check if a distance is within this corner zone.
@@ -106,6 +118,15 @@ def validate_corner(data: dict[str, Any], index: int) -> Corner:
                 f"Corner {data['id']}: target_throttle_pct must be 0–100, got {throttle}"
             )
 
+    # Curated spoken name (optional). Absent in most models — the coach then
+    # speaks ``name``. Only a non-empty string counts; anything else is treated
+    # as "not curated" so a malformed model cannot inject speech garbage.
+    short_name = data.get("short_name")
+    if short_name is not None and not isinstance(short_name, str):
+        raise TrackModelValidationError(
+            f"Corner {data['id']}: short_name must be a string, got {type(short_name).__name__}"
+        )
+
     return Corner(
         id=data["id"],
         name=data["name"],
@@ -114,6 +135,7 @@ def validate_corner(data: dict[str, Any], index: int) -> Corner:
         s_end_m=float(data["s_end_m"]),
         apex_side=data["apex_side"],
         target_throttle_pct=throttle,
+        short_name=short_name.strip() or None if short_name else None,
     )
 
 

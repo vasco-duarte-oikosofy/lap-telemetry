@@ -295,7 +295,7 @@ def compare_laps(
                 loss_s = speed_delta / 100.0
 
             corner_losses.append(CornerLoss(
-                corner_id=corner.id, corner_name=corner.name,
+                corner_id=corner.id, corner_name=corner.display_name,
                 apex_distance_m=corner.apex_s_m, phase="minimum_speed",
                 loss_s=loss_s, driver_value=driver_min,
                 reference_value=ref_min, unit="km/h",
@@ -340,7 +340,7 @@ def compare_laps(
                     loss_s = entry_delta / 100.0
 
                 corner_losses.append(CornerLoss(
-                    corner_id=corner.id, corner_name=corner.name,
+                    corner_id=corner.id, corner_name=corner.display_name,
                     apex_distance_m=corner.apex_s_m, phase="entry",
                     loss_s=loss_s, driver_value=driver_entry_speed,
                     reference_value=ref_entry_speed, unit="km/h",
@@ -395,7 +395,7 @@ def compare_laps(
                         loss_s = exit_delta / 100.0
 
                     corner_losses.append(CornerLoss(
-                        corner_id=corner.id, corner_name=corner.name,
+                        corner_id=corner.id, corner_name=corner.display_name,
                         apex_distance_m=corner.apex_s_m, phase=phase_name,
                         loss_s=loss_s, driver_value=driver_exit_speed,
                         reference_value=ref_exit_speed, unit="km/h",

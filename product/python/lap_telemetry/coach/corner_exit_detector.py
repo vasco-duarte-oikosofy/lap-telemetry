@@ -145,7 +145,7 @@ class CornerExitDetector:
         corner = self._corner_by_id(corner_id)
         event = CornerExited(
             corner_id=corner_id,
-            corner_name=corner.name if corner is not None else corner_id,
+            corner_name=corner.display_name if corner is not None else corner_id,
             exit_distance_m=exit_distance_m,
             lap_number=frame.lap_number,
             track_name=frame.track_name,
