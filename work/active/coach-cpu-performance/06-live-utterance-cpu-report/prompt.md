@@ -1,7 +1,8 @@
 # Slice 06 — Print CPU-seconds after each live utterance
 
-**Status:** In progress. User explicitly requested this addition; slices 02–05
-remain planning only and are not selected for implementation.
+**Status:** ✅ Complete in `72e8f41`. Real queued cold/warm synthesis reports
+verified; both waveforms match slice 01. User race-data collection is pending.
+Slices 02–05 remain planning only and were not implemented.
 
 ## Goal
 

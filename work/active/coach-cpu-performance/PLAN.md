@@ -12,10 +12,11 @@ Feature tests: `bash scripts/test-summary.sh --feature coach-cpu-performance`.
 | `03-tts-runtime-acceleration` | 📋 Planned, not started | Profile and reduce unique-utterance synthesis misses toward <=5.69 CPU-s; CPU runtime first, optional hardware offload only with frame-time/quality proof |
 | `04-reuse-comparison-work` | 📋 Planned, lower priority | Profile actual live shards, then safely reuse invariant reference/preparation work; only ~2.3% of current remaining CPU on this workload |
 | `05-isolated-speech-worker` | 📋 Planned, conditional | If live race stalls persist, isolate speech at lower worker-only priority; prove scheduling/FPS gains separately from CPU-work savings |
+| `06-live-utterance-cpu-report` | ✅ `72e8f41` | Always-visible process CPU-s after each speech attempt, separate Kokoro synthesis timing, real cold/warm waveform parity and race-log collection instructions |
 
-Slice 01 is complete. Further slices are **planning only**; each has a prompt,
-empty artifacts folder and explicitly unstarted handoff/learnings. No second
-implementation slice is started. User selection is required before proceeding.
+Slices 01 and 06 are complete. Slices 02–05 remain **planning only**, with no
+implementation started. User selection is required before any of those options
+proceeds; live race data from the new CPU reports is pending.
 
 [Measured evidence](01-halve-lap-end-cpu/artifacts/benchmark.md): warm cost is now
 23.62% of original, not yet 10%. The next total budget is ~6.01 CPU-s/event;
