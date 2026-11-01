@@ -6,8 +6,11 @@ thread). Maintains current ``lap_distance_m`` and ``lap_number``. Uses the
 corner zone to outside all corners (or inside a StraightZone).
 
 Emits a ``CornerExited`` event when ``lap_distance_m`` crosses from inside a
-corner to outside all corners. Anti-chatter: enforces a minimum cooldown
-(default 8 seconds of ``session_time_s``) between events.
+corner to outside all corners, **or** hands over to a corner that touches it
+(Monza Roggia 1/2 at 2130/2131, Ascari 1/2/3) — otherwise ``get_corner_at()``
+never returns ``None`` between the two and the first corner is never reported.
+Anti-chatter: enforces a minimum cooldown (default 8 seconds of
+``session_time_s``) between events.
 
 Does NOT emit for corner exits on the first lap (no reference data yet)
 or before the first LapCompleted for a track.
@@ -99,41 +102,55 @@ class CornerExitDetector:
 
         if corner is not None:
             # Inside a corner zone
+            previous_id = self._current_corner_id
             self._current_corner_id = corner.id
+
+            # Chained corners touch, so get_corner_at() hands straight over to
+            # the next corner. Report the previous corner at its own zone end.
+            if previous_id is not None and previous_id != corner.id:
+                previous = self._corner_by_id(previous_id)
+                if previous is not None and distance >= previous.s_end_m:
+                    self._emit(previous_id, previous.s_end_m, frame)
         else:
             # Outside all corners — check if we just exited a corner
             if self._current_corner_id is not None:
                 exited_id = self._current_corner_id
                 self._current_corner_id = None
-
-                # Cooldown check
-                elapsed = frame.session_time_s - self._last_exit_session_time
-                if elapsed < self.cooldown_s:
-                    log.debug(
-                        "Corner exit cooldown: %.1fs < %.1fs, skipping %s",
-                        elapsed, self.cooldown_s, exited_id,
-                    )
-                else:
-                    # Find the corner name
-                    corner_name = exited_id
-                    for c in self.track_model.corners:
-                        if c.id == exited_id:
-                            corner_name = c.name
-                            break
-
-                    self._last_exit_session_time = frame.session_time_s
-
-                    event = CornerExited(
-                        corner_id=exited_id,
-                        corner_name=corner_name,
-                        exit_distance_m=distance,
-                        lap_number=frame.lap_number,
-                        track_name=frame.track_name,
-                        vehicle_name=frame.vehicle_name,
-                    )
-
-                    if self.on_corner_exited is not None:
-                        self.on_corner_exited(event)
+                self._emit(exited_id, distance, frame)
 
         self._prev_lap_number = frame.lap_number
         self._prev_track_name = frame.track_name
+
+    def _corner_by_id(self, corner_id: str):
+        """Look up a model corner by id, or None."""
+        if self.track_model is None:
+            return None
+        for c in self.track_model.corners:
+            if c.id == corner_id:
+                return c
+        return None
+
+    def _emit(self, corner_id: str, exit_distance_m: float, frame: Frame) -> None:
+        """Apply the cooldown and fire the callback."""
+        elapsed = frame.session_time_s - self._last_exit_session_time
+        if elapsed < self.cooldown_s:
+            log.debug(
+                "Corner exit cooldown: %.1fs < %.1fs, skipping %s",
+                elapsed, self.cooldown_s, corner_id,
+            )
+            return
+
+        self._last_exit_session_time = frame.session_time_s
+
+        corner = self._corner_by_id(corner_id)
+        event = CornerExited(
+            corner_id=corner_id,
+            corner_name=corner.name if corner is not None else corner_id,
+            exit_distance_m=exit_distance_m,
+            lap_number=frame.lap_number,
+            track_name=frame.track_name,
+            vehicle_name=frame.vehicle_name,
+        )
+
+        if self.on_corner_exited is not None:
+            self.on_corner_exited(event)

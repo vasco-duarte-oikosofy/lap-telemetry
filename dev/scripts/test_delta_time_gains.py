@@ -323,7 +323,24 @@ def test_entry_gain_swap_barcelona() -> None:
     facts = compare_laps(reference_lap, current_lap, model, top_n=20)
 
     entry_results = [c for c in facts.top_losses + facts.top_gains if c.phase == "entry"]
-    entry_gains = [c for c in entry_results if c.loss_s < 0]
+
+    # Bug 32: a corner that touches its predecessor (Barcelona t7 "Turn 8" ends at
+    # 2850 m, t8 "Turn 9 - Campsa" starts at 2851 m) has its entry window clamped
+    # at the neighbour's boundary, so the measured "entry" is the boundary itself
+    # and the window is a few tens of metres. Delta-t vs the speed heuristic is
+    # meaningless there — keep the invariant only for corners with a free window.
+    floors = {
+        c.id: (model.corners[i - 1].s_end_m if i else 0.0)
+        for i, c in enumerate(model.corners)
+    }
+    free_entries = []
+    for c in entry_results:
+        floor = floors.get(c.corner_id, 0.0)
+        clamped = c.phase_distance_m is not None and c.phase_distance_m <= floor + 0.5
+        if not clamped:
+            free_entries.append(c)
+
+    entry_gains = [c for c in free_entries if c.loss_s < 0]
 
     if not entry_gains:
         print("  SKIP: no entry gains in swapped Barcelona")

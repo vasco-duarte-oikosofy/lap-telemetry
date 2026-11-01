@@ -12,6 +12,7 @@ def find_entry_point(
     corner: Corner,
     thresholds: PhaseDetectionThresholds = PhaseDetectionThresholds(),
     look_back_m: float = 200.0,
+    min_distance_m: float = 0.0,
 ) -> tuple[int, str]:
     """Find the entry phase distance for a corner.
 
@@ -21,14 +22,20 @@ def find_entry_point(
     straight, because throttle lift and braking often start well before
     the formal corner zone.
 
+    ``min_distance_m`` floors the window at the previous corner's exit.
+    Without it, a corner that touches its predecessor (Monza Roggia 1/2,
+    Ascari 1/2/3) reaches back into the predecessor's braking zone and
+    reports the driver's entry for *this* corner hundreds of metres early
+    (bug 32).
+
     Returns (distance_m, detection_method) where detection_method is
     'throttle_lift', 'speed_peak', or 'zone_start'.
     """
-    search_start = max(0, int(corner.s_start_m - look_back_m))
+    search_start = max(0, int(corner.s_start_m - look_back_m), int(min_distance_m))
     apex_idx = min(int(corner.apex_s_m), len(speed) - 1)
 
     if apex_idx <= search_start:
-        return max(0, int(corner.s_start_m)), "zone_start"
+        return max(search_start, int(corner.s_start_m)), "zone_start"
 
     # --- Throttle lift (preferred) ---
     if throttle is not None:

@@ -20,6 +20,7 @@ def find_exit_points(
     throttle: list[float] | None,
     corner: Corner,
     thresholds: PhaseDetectionThresholds = PhaseDetectionThresholds(),
+    max_distance_m: float | None = None,
 ) -> list[tuple[str, int]]:
     """Find exit phase distances for a corner.
 
@@ -27,6 +28,10 @@ def find_exit_points(
     ``s_end_m + exit_search_past_end_m`` (default 50 m past the corner
     boundary) using brake and throttle channels to detect brake release
     (exit_brake) and full-throttle (exit_throttle) points.
+
+    ``max_distance_m`` caps the window at the next corner's entry. Without
+    it, a corner that touches its successor (Monza Roggia 1/2, Ascari 1/2/3)
+    reports its exit 50 m inside the successor's braking zone (bug 32).
 
     Returns list of (phase_name, distance_m).
     When both are detected and within merge tolerance, emits a single
@@ -39,6 +44,8 @@ def find_exit_points(
     # real brake release / throttle transitions on the exit straight.
     past_end = int(thresholds.exit_search_past_end_m)
     search_end = min(int(corner.s_end_m) + past_end, data_len - 1) if data_len else int(corner.s_end_m)
+    if max_distance_m is not None:
+        search_end = min(search_end, int(max_distance_m))
 
     exit_brake_s: int | None = None
     exit_throttle_s: int | None = None
@@ -78,4 +85,4 @@ def find_exit_points(
         return [("exit", exit_throttle_s)]
 
     # Neither channel detected → fall back to zone boundary
-    return [("exit", int(corner.s_end_m))]
+    return [("exit", min(int(corner.s_end_m), search_end))]

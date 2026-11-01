@@ -46,6 +46,28 @@ def compute_minimum_speed_per_corner(
     return driver_min, ref_min, ref_min - driver_min, driver_apex_m, ref_apex_m
 
 
+def phase_window_bounds(corners: list[Corner], index: int) -> tuple[float, float | None]:
+    """Return the phase-search bounds imposed by a corner's neighbours.
+
+    Returns ``(entry_floor_m, exit_ceiling_m)``. A corner's entry may not be
+    detected before the previous corner ends, and its exit may not be detected
+    past the next corner's start. Monza's chained turns (Roggia 1/2 at
+    2130/2131, Ascari 1/2/3) touch, so without these bounds each corner's
+    windows reach into its neighbour (bug 32).
+
+    ``exit_ceiling_m`` is ``None`` for the last corner, which has no successor.
+    """
+    corner = corners[index]
+    entry_floor = corners[index - 1].s_end_m if index > 0 else 0.0
+    exit_ceiling = None
+    if index + 1 < len(corners):
+        next_start = corners[index + 1].s_start_m
+        # Ignore a successor that starts before this corner (lap wrap-around).
+        if next_start > corner.s_start_m:
+            exit_ceiling = next_start
+    return entry_floor, exit_ceiling
+
+
 def find_straight_end_after_corner(
     corner_index: int,
     corners: list[Corner],
@@ -66,6 +88,7 @@ def find_straight_end_after_corner(
     entry_idx, _method = find_entry_point(
         driver_speed, driver_throttle, driver_brake,
         next_corner, thresholds,
+        min_distance_m=corners[corner_index].s_end_m,
     )
     return entry_idx
 
@@ -252,6 +275,7 @@ def compare_laps(
 
     corner_losses: list[CornerLoss] = []
     for corner_idx, corner in enumerate(track_model.corners):
+        entry_floor, exit_ceiling = phase_window_bounds(track_model.corners, corner_idx)
         straight_end = find_straight_end_after_corner(
             corner_idx, track_model.corners,
             driver_speed, driver_throttle_grid, driver_brake_grid,
@@ -286,7 +310,7 @@ def compare_laps(
         # --- Entry phase ---
         entry_idx, _method = find_entry_point(
             driver_speed, driver_throttle_grid, driver_brake_grid,
-            corner, thresholds,
+            corner, thresholds, min_distance_m=entry_floor,
         )
         # Detect reference entry point for distance delta
         ref_entry_idx = None
@@ -295,7 +319,7 @@ def compare_laps(
         if ref_throttle_grid is not None or ref_brake_grid is not None:
             ref_entry_idx_raw, _ = find_entry_point(
                 ref_speed_grid, ref_throttle_grid, ref_brake_grid,
-                corner, thresholds,
+                corner, thresholds, min_distance_m=entry_floor,
             )
             if 0 <= ref_entry_idx_raw < len(ref_speed_grid):
                 ref_entry_idx = ref_entry_idx_raw
@@ -331,12 +355,14 @@ def compare_laps(
         # --- Exit phase(s) ---
         exit_points = find_exit_points(
             driver_brake_grid, driver_throttle_grid, corner, thresholds,
+            max_distance_m=exit_ceiling,
         )
         # Detect reference exit points for distance delta
         ref_exit_by_phase: dict[str, int] = {}
         if ref_brake_grid is not None or ref_throttle_grid is not None:
             ref_exit_points = find_exit_points(
                 ref_brake_grid, ref_throttle_grid, corner, thresholds,
+                max_distance_m=exit_ceiling,
             )
             ref_exit_by_phase = {phase: dist for phase, dist in ref_exit_points}
 
