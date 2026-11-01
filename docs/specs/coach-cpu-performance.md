@@ -41,6 +41,21 @@ Reuse the lazily loaded session. Require Kokoro.from_session rather than falling
 back silently to its unrestricted constructor. Do not alter OMP/BLAS variables,
 recorder priority, cloud provider, model weights or speech content.
 
+## Live race telemetry
+
+Every live SpeechQueue attempt prints one flushed stderr speech-cpu record after
+speech/playback returns (including failures), independently of debug log level.
+Report sequential utterance identity, escaped actual text, status, whole-attempt
+process CPU/wall seconds, and optional pre-playback Kokoro synthesis CPU/wall.
+Do not count stale pending drops as spoken work. Record cold load and failed
+partial synthesis afresh; never reuse timing from a previous utterance.
+
+Use process_time so native ONNX threads count. Label scope=process: concurrent
+recorder/analysis threads are included, while child processes, simulator/external
+LLM work and analysis before speech starts are excluded. This cheap live signal
+is not precise per-job attribution or the offline child-inclusive total. Closed
+log pipes must not kill speech delivery. No polling/profiler dependency is needed.
+
 ## Further work
 
 Plan follow-ups only after the first slice's measurements identify the remaining

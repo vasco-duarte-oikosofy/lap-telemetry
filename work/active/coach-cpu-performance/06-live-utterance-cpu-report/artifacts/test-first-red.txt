@@ -1,0 +1,14 @@
+Feature: coach-cpu-performance (12 scripts)
+
+FAILED — 377 passed, 1 of 12 scripts failed in 12.3
+
+=== FAIL: dev/scripts/test_live_utterance_cpu.js (6 failures) ===
+[FAIL] test_exact_clocks_and_visibility: <module 'lap_telemetry.coach.speech_queue' from 'C:\\Users\\duart\\lap-telemetry\\product\\python\\lap_telemetry\\coach\\speech_queue.py'> does not have the attribute 'time'
+[FAIL] test_failed_speech_continues: 'SpeechQueue' object has no attribute '_speak'
+[FAIL] test_actual_queue_and_stale_drop: initial and chained pending speech both report; stale drop produces no fake record
+[FAIL] test_kokoro_stage_boundaries_and_failure: <module 'lap_telemetry.coach.tts_adapter' from 'C:\\Users\\duart\\lap-telemetry\\product\\python\\lap_telemetry\\coach\\tts_adapter.py'> does not have the attribute 'time'
+[FAIL] test_reporting_failure_cannot_break_speech: 'SpeechQueue' object has no attribute '_speak'
+[FAIL] live utterance CPU reporting tests exited 1
+
+To re-run a failing test:
+  bash scripts/test-summary.sh dev/scripts/test_live_utterance_cpu.js

@@ -191,6 +191,43 @@ For reproducible before/after measurements, see
 `dev/scripts/benchmark_coach_cpu.py --help`. Timing benchmarks run serially,
 outside the parallel test suite. Simulator FPS still requires live validation.
 
+### Live CPU-seconds after every utterance
+
+After restarting the live coach, each completed speech attempt prints a line
+on stderr, even without `--debug`:
+
+```text
+lap-telemetry: [coach] speech-cpu utterance=1 status=ok cpu_s=14.200 wall_s=23.100 synthesis_cpu_s=14.000 synthesis_wall_s=14.050 scope=process text="..."
+```
+
+Numbers above illustrate the format, not a race measurement:
+
+- `cpu_s`: process CPU-seconds during the whole speech attempt, including playback.
+- `wall_s`: elapsed seconds for that attempt, including waiting for audible audio.
+- `synthesis_cpu_s` / `synthesis_wall_s`: Kokoro loading + synthesis only, before
+  playback. First use includes lazy model load. Other engines report `na`.
+- `utterance`: sequential ID per queue/run; `text`: actual delivered text, escaped
+  onto one line. Dropped pending utterances do not generate fake CPU records.
+- `status=error`: a failed attempt, not successful speech; subsequent speech can
+  continue. Failed synthesis reports its fresh partial timing when available.
+
+**Scope matters:** CPU counters include ALL threads in the coach process (native
+ONNX workers AND concurrent recorder/analysis activity), not just the speech
+thread. They exclude the simulator, child processes/external LLM servers and
+analysis before speech starts. They are not precisely attributed whole-lap CPU
+costs, and do not replace the controlled benchmark's child-inclusive accounting.
+CPU-seconds are work, not CPU percentage; playback waiting mainly adds wall time.
+
+To save real-race evidence, append this to your usual PowerShell coach command:
+
+```powershell
+2>&1 | Tee-Object -FilePath coach-race.log
+```
+
+Keep the full log (lap/analysis timing plus these records). To extract just these
+lines: `Select-String -Path coach-race.log -Pattern '\[coach\] speech-cpu'`.
+In Bash, append `2>&1 | tee coach-race.log` instead. No new launch flag is needed.
+
 ## Troubleshooting
 
 ### "Kokoro model not found"

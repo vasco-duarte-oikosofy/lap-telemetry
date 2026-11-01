@@ -12,6 +12,7 @@ import os
 import struct
 import subprocess
 import tempfile
+import time
 import wave
 from abc import ABC, abstractmethod
 from pathlib import Path
@@ -25,6 +26,10 @@ log = logging.getLogger(__name__)
 
 class TTSAdapter(ABC):
     """Abstract base class for TTS adapters."""
+
+    # Optional last-attempt (process CPU seconds, wall seconds), before playback.
+    # Other engines leave it unavailable; speak() keeps its existing None return.
+    last_synthesis_timing: tuple[float, float] | None = None
 
     @abstractmethod
     def speak(self, text: str) -> None:
@@ -100,10 +105,19 @@ class KokoroAdapter(TTSAdapter):
 
     def speak(self, text: str) -> None:
         """Synthesize text with Kokoro and play the resulting audio."""
-        self._ensure_loaded()
-        samples, sample_rate = self._kokoro.create(
-            text, voice=self._voice, speed=self._speed
-        )
+        self.last_synthesis_timing = None
+        cpu_start, wall_start = time.process_time(), time.perf_counter()
+        try:
+            self._ensure_loaded()
+            samples, sample_rate = self._kokoro.create(
+                text, voice=self._voice, speed=self._speed
+            )
+        finally:
+            # Includes cold loading and all native threads, but also any other
+            # concurrently active threads in this process. Not thread_time().
+            self.last_synthesis_timing = (
+                time.process_time() - cpu_start, time.perf_counter() - wall_start
+            )
         log.info("Kokoro synthesized %d chars (%d samples)", len(text), len(samples))
         self._play_audio(samples, sample_rate)
 
