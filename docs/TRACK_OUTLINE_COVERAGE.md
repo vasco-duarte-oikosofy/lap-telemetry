@@ -46,6 +46,7 @@ kerb or far from the outside wall.
 | Michelin Raceway Road Atlanta | `michelin-raceway-road-atlanta` | Trajectory | Single lap (practice lap 15, 1:16.809, 2026-10-04; outline not regenerated after the race-lap reference refresh) | Constant 5m each side | ❌ No |
 | Monza Curva Grande Circuit | `monza-curva-grande-circuit` | Trajectory | Single lap (practice lap 12, 1:35.182, 2026-10-31) | Constant 5m each side | ❌ No |
 | Silverstone International Circuit | `silverstone-international-circuit` | Trajectory | Single lap (race lap 13, 1:02.909, 2026-10-31) | Constant 5m each side | ❌ No |
+| Grand Prix of Long Beach | `grand-prix-of-long-beach` | Trajectory | Ferrari 499P practice lap 10, 1:15.889, 2026-11-01; all 11 official turns, flat T3/T7 preserved | Synthetic constant 5m each side (not street walls) | ❌ No |
 
 ---
 
@@ -98,6 +99,7 @@ kerb or far from the outside wall.
 | Circuit de la Sarthe (Le Mans) | ✅ Trajectory outline done; OSM extraction needed for real widths |
 | Lusail International Circuit | ✅ Trajectory outline done; OSM extraction needed for real widths |
 | Sebring International Raceway | ✅ Trajectory outline done; OSM or satellite imagery for real widths |
+| Grand Prix of Long Beach | ✅ Trajectory outline done; real street-wall widths remain unmeasured |
 | Monza Curva Grande Circuit | ✅ Trajectory outline done; TUMFTM `Monza.csv` is the chicane layout, not this one. The trajectory tracks the TUMFTM Monza centreline within 5m everywhere except the missing Rettifilo chicane (~40m) |
 | Silverstone International Circuit | ✅ Trajectory outline done; TUMFTM `Silverstone.csv` is the GP layout. The short loop lies on GP tarmac (median 5.1m from the GP centreline) apart from one ~170m International-only link road (max 91m) |
 

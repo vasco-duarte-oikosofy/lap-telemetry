@@ -30,6 +30,7 @@ import { PAUL_RICARD___1A_V2_SHORT_STATIC_OUTLINE } from './staticPaulRicard1aV2
 import { MICHELIN_RACEWAY_ROAD_ATLANTA_STATIC_OUTLINE } from './staticMichelinRacewayRoadAtlantaOutlineData.js';
 import { MONZA_CURVA_GRANDE_CIRCUIT_STATIC_OUTLINE } from './staticMonzaCurvaGrandeCircuitOutlineData.js';
 import { SILVERSTONE_INTERNATIONAL_CIRCUIT_STATIC_OUTLINE } from './staticSilverstoneInternationalCircuitOutlineData.js';
+import { GRAND_PRIX_OF_LONG_BEACH_STATIC_OUTLINE } from './staticGrandPrixOfLongBeachOutlineData.js';
 
 // slug normalization: lowercase, collapse whitespace to single dash,
 // transliterate accents via NFKD (ó→o, é→e), strip non-alnum/dash.
@@ -94,6 +95,8 @@ const OUTLINES = new Map([
   ['monza-curva-grande-circuit', MONZA_CURVA_GRANDE_CIRCUIT_STATIC_OUTLINE],
   // Silverstone International Circuit
   ['silverstone-international-circuit', SILVERSTONE_INTERNATIONAL_CIRCUIT_STATIC_OUTLINE],
+  // Grand Prix of Long Beach
+  ['grand-prix-of-long-beach', GRAND_PRIX_OF_LONG_BEACH_STATIC_OUTLINE],
 ]);
 
 /**
