@@ -1,0 +1,104 @@
+{
+  "type": "lap_coaching_summary",
+  "track_id": "grand-prix-of-long-beach",
+  "lap_number": 11,
+  "lap_time_delta_s": 0.153,
+  "top_losses": [
+    {
+      "corner_id": "t11",
+      "corner_name": "Eleven",
+      "apex_distance_m": 2821.0,
+      "phase": "minimum_speed",
+      "loss_s": 0.473,
+      "driver_value": 32.2,
+      "reference_value": 36.8,
+      "unit": "km/h",
+      "confidence": "high",
+      "driver_apex_distance_m": 2829.0,
+      "reference_apex_distance_m": 2821.0,
+      "apex_offset_m": -8.0,
+      "gain_end_distance_m": 3184.0
+    },
+    {
+      "corner_id": "t11",
+      "corner_name": "Eleven",
+      "apex_distance_m": 2821.0,
+      "phase": "exit",
+      "loss_s": 0.453,
+      "driver_value": 32.7,
+      "reference_value": 44.2,
+      "unit": "km/h",
+      "confidence": "medium",
+      "phase_distance_m": 2830.0,
+      "gain_end_distance_m": 3184.0,
+      "exit_distance_delta_m": 5.0,
+      "reference_phase_distance_m": 2835.0
+    },
+    {
+      "corner_id": "t1",
+      "corner_name": "1",
+      "apex_distance_m": 730.0,
+      "phase": "minimum_speed",
+      "loss_s": 0.131,
+      "driver_value": 88.5,
+      "reference_value": 98.5,
+      "unit": "km/h",
+      "confidence": "high",
+      "driver_apex_distance_m": 739.0,
+      "reference_apex_distance_m": 730.0,
+      "apex_offset_m": -9.0,
+      "gain_end_distance_m": 825.0
+    }
+  ],
+  "top_gains": [
+    {
+      "corner_id": "t4",
+      "corner_name": "4",
+      "apex_distance_m": 1063.0,
+      "phase": "minimum_speed",
+      "loss_s": -0.16,
+      "driver_value": 97.2,
+      "reference_value": 86.6,
+      "unit": "km/h",
+      "confidence": "high",
+      "driver_apex_distance_m": 1056.0,
+      "reference_apex_distance_m": 1063.0,
+      "apex_offset_m": 7.0,
+      "gain_end_distance_m": 1135.0
+    },
+    {
+      "corner_id": "t6",
+      "corner_name": "6",
+      "apex_distance_m": 1606.0,
+      "phase": "exit_throttle",
+      "loss_s": -0.121,
+      "driver_value": 86.2,
+      "reference_value": 87.8,
+      "unit": "km/h",
+      "confidence": "medium",
+      "phase_distance_m": 1629.0,
+      "gain_end_distance_m": 1725.0,
+      "exit_distance_delta_m": 16.0,
+      "reference_phase_distance_m": 1645.0
+    },
+    {
+      "corner_id": "t8",
+      "corner_name": "8",
+      "apex_distance_m": 1920.0,
+      "phase": "entry",
+      "loss_s": -0.116,
+      "driver_value": 191.6,
+      "reference_value": 189.7,
+      "unit": "km/h",
+      "confidence": "medium",
+      "phase_distance_m": 1803.0,
+      "gain_end_distance_m": 1920.0,
+      "entry_distance_delta_m": -3.0,
+      "reference_phase_distance_m": 1800.0
+    }
+  ],
+  "constraints": {
+    "max_words": 35,
+    "style": "calm_concise_engineer"
+  }
+}

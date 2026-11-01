@@ -53,9 +53,12 @@ Tracks are ordered by data quality: TUMFTM first (real widths), then trajectory-
 | `35-laguna-seca` | WeatherTech Raceway Laguna Seca | No TUMFTM | Clean trajectory + coaching + ref | ✅ Done (this slice) |
 | `36-road-atlanta` | Michelin Raceway Road Atlanta | No TUMFTM | Clean trajectory + coaching + ref | ✅ Done (`0494e0c`; ref+model refreshed to race 1:16.304 in `56932a6`) |
 | `37-monza-curva-grande-f296` | Monza Curva Grande / Ferrari 296 GT3 (new car, existing track) | No TUMFTM | Ref 1:39.398 + model seeded from the curated Ginetta model (names + flat markers preserved) | ✅ Done (this slice) |
+| `38-long-beach-f499p` | Grand Prix of Long Beach / Ferrari 499P | No TUMFTM | Reference 1:15.889 + 11 official turns + trajectory outline; full flat T3/T7 geometry retained | ✅ `90c6e6e` (automated file:// render verified; live by-eye approval pending) |
 
-**Completed:** Spa (base + endurance), Bahrain GP, Barcelona, Monza, Imola, Fuji International Speedway, Bahrain Outer, Daytona, Laguna Seca, Road Atlanta, Monza Curva Grande, Silverstone International.
-**In progress:** None.
+**Feature tests (slice 38):** `bash scripts/test-summary.sh --feature long-beach-f499p`
+
+**Completed:** Spa (base + endurance), Bahrain GP, Barcelona, Monza, Imola, Fuji International Speedway, Bahrain Outer, Daytona, Laguna Seca, Road Atlanta, Monza Curva Grande, Silverstone International, Long Beach.
+**In progress:** None. Long Beach live/by-eye QA remains pending; automated rendering passes.
 **Remaining:** 24 outlines needed (some may be aliases).
 
 ### Barcelona note

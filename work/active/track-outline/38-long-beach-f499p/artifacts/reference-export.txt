@@ -1,0 +1,5 @@
+Track: grand-prix-of-long-beach  Vehicle: ferrari-af-corse-2026-50-lm  (1 sessions)
+  Fastest: lap 10 in session_20261101T114510Z_grand-prix-of-long-beach_lmu_practice.parquet -> 75.889s
+  Exported 3782 rows -> product\data\reference-laps\grand-prix-of-long-beach_ferrari-af-corse-2026-50-lm_time_01.15.889.parquet
+
+AUDIT: 1 reference lap changed (added: ['grand-prix-of-long-beach_ferrari-af-corse-2026-50-lm_time_01.15.889.parquet'], superseded: []). OK.

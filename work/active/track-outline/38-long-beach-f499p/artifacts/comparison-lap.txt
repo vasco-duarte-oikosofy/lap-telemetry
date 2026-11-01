@@ -1,0 +1,23 @@
+Session: sessions\session_20261101T114510Z_grand-prix-of-long-beach_lmu_practice.parquet
+Total segments: 17
+  Segment 1: lap_number=0, frames=3541, duration=98:44.967  [valid]
+  Segment 2: lap_number=1, frames=7455, duration=2:29.351  [valid]
+  Segment 3: lap_number=2, frames=3882, duration=1:17.798  [valid]
+  Segment 4: lap_number=3, frames=2244, duration=0:44.978  [valid]
+  Segment 5: lap_number=4, frames=3778, duration=1:15.735  [valid]
+  Segment 6: lap_number=5, frames=5930, duration=1:58.849  [valid]
+  Segment 7: lap_number=6, frames=3801, duration=1:16.227  [valid]
+  Segment 8: lap_number=7, frames=809, duration=0:16.335  [valid]
+  Segment 9: lap_number=8, frames=5840, duration=1:57.010  [valid]
+  Segment 10: lap_number=9, frames=3808, duration=1:16.469  [valid]
+  Segment 11: lap_number=10, frames=3782, duration=1:15.889  [valid]
+  Segment 12: lap_number=11, frames=3787, duration=1:16.042  [valid]
+  Segment 13: lap_number=12, frames=4593, duration=1:32.139  [valid]
+  Segment 14: lap_number=13, frames=4539, duration=1:31.089  [valid]
+  Segment 15: lap_number=14, frames=4072, duration=1:21.800  [valid]
+  Segment 16: lap_number=15, frames=4391, duration=1:28.212  [valid]
+  Segment 17: lap_number=16, frames=6741, duration=1:48.109  [valid]
+Using segment 12 for lap_number=11 (3787 rows, 1:16.042)
+
+Extracted segment 12 (lap_number=11, 3787 rows) -> var\tmp\long-beach-check.parquet
+Lap time: 1:16.042
