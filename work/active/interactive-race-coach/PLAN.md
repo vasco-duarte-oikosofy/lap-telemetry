@@ -28,7 +28,9 @@
 | `12-coach-short-corner-names` | ✅ 4968f39 | Coach speaks the curated `short_name` when one exists (`Curva Alboreto (Parabolica)` → `Parabolica`, `Variante della Roggia 1` → `Roggia 1`), else falls back to `name`. `Corner.short_name` + `Corner.display_name` in `track_model.py`, wired into the facts and the corner-exit event. Initially exercised on Monza; corpus-wide curation delivered in slice 13 |
 | `13-curate-spoken-corner-names` | ✅ 328f1c2 (refactor bd32dbb) | Added 340 aliases across all 33 models / 453 corners, retaining numbered subdivisions and spelling 10+ for TTS. Guarded writer audits all non-alias fields unchanged. No geometry or map-label changes. |
 
-**Slice 13 tests:** `bash scripts/test-summary.sh --feature coach-short-corner-names`
+| `14-spoken-name-exceptions` | ✅ 093c04a | Keep Curva Grande and Descida do Lago (including 1/2) in full as explicit exceptions to shortening. |
+
+**Slices 13–14 tests:** `bash scripts/test-summary.sh --feature coach-short-corner-names`
 
 ---
 
