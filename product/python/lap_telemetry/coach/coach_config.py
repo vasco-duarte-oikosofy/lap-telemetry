@@ -68,6 +68,11 @@ class TTSConfig:
     kokoro_voice: str = "bm_daniel"               # default voice
     kokoro_speed: float = 1.05                          # speaking speed
     output_file: str = "coach_output.wav"
+    kokoro_cpu_threads: int = 1  # Leave CPU headroom for the simulator.
+
+    def __post_init__(self) -> None:
+        if type(self.kokoro_cpu_threads) is not int or self.kokoro_cpu_threads < 1:
+            raise ValueError("kokoro_cpu_threads must be a positive integer (default: 1)")
 
 
 def load_tts_config(config_path: Path | None = None) -> TTSConfig:
@@ -91,6 +96,11 @@ def load_tts_config(config_path: Path | None = None) -> TTSConfig:
         kokoro_voice=tts.get("kokoro_voice", TTSConfig.kokoro_voice),
         kokoro_speed=float(tts.get("kokoro_speed", TTSConfig.kokoro_speed)),
         output_file=tts.get("output_file", TTSConfig.output_file),
+        kokoro_cpu_threads=(
+            int(os.environ["COACH_KOKORO_CPU_THREADS"])
+            if os.environ.get("COACH_KOKORO_CPU_THREADS")
+            else tts.get("kokoro_cpu_threads", TTSConfig.kokoro_cpu_threads)
+        ),
     )
 
     # Env var overrides take precedence

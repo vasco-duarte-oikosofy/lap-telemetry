@@ -2,6 +2,8 @@
 
 The race coach uses **Kokoro** as the primary TTS engine (natural
 intonation). It runs on CPU alongside LMU without stealing GPU resources.
+Kokoro uses one inference thread by default, sequential execution, and no idle
+worker spinning to avoid occupying the simulator's cores.
 
 ## Quick start
 
@@ -149,6 +151,7 @@ kokoro_model = "product/data/tts-voices/kokoro-v1.0.int8.onnx"
 kokoro_voices = "product/data/tts-voices/kokoro-voices-v1.0.bin"
 kokoro_voice = "bm_daniel"          # British male, race engineer feel
 kokoro_speed = 1.05                 # slightly faster than default
+kokoro_cpu_threads = 1              # positive integer; 0/auto is rejected
 
 # File adapter
 # output_file = "coach_output.wav"
@@ -163,7 +166,30 @@ kokoro_speed = 1.05                 # slightly faster than default
 | `COACH_KOKORO_VOICES` | `kokoro_voices` |
 | `COACH_KOKORO_VOICE` | `kokoro_voice` |
 | `COACH_KOKORO_SPEED` | `kokoro_speed` |
+| `COACH_KOKORO_CPU_THREADS` | `kokoro_cpu_threads` |
 | `COACH_TTS_OUTPUT_FILE` | `output_file` |
+
+### CPU budget while racing
+
+Restart the coach to pick up the default one-thread CPU session. No new launch
+flag is required and the cloud/local/template utterance selection is unchanged.
+The model, voice and speaking speed are unchanged; every utterance is still
+synthesized. No process-global OMP/BLAS variables or recorder priorities change.
+
+An explicit `COACH_KOKORO_CPU_THREADS=2` (or TOML value 2) can trade additional
+CPU for latency on other hardware. Zero, negative and noninteger values are
+rejected rather than silently restoring ORT's all-core pool. Spinning remains
+disabled at every budget. This adapter deliberately uses CPUExecutionProvider;
+GPU/offload needs separate measurement alongside the simulator.
+
+Kokoro must support `Kokoro.from_session` so the bounded session can be supplied.
+If the coach reports an old API, run `pip install --upgrade kokoro-onnx`. It
+never silently falls back to the unbounded constructor.
+
+For reproducible before/after measurements, see
+[coach CPU performance](specs/coach-cpu-performance.md) and
+`dev/scripts/benchmark_coach_cpu.py --help`. Timing benchmarks run serially,
+outside the parallel test suite. Simulator FPS still requires live validation.
 
 ## Troubleshooting
 

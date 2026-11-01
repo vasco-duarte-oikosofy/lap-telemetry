@@ -1,0 +1,128 @@
+{
+  "passed": true,
+  "checks": [
+    {
+      "passed": true,
+      "label": "unchanged workload/environment: session_sha256"
+    },
+    {
+      "passed": true,
+      "label": "unchanged workload/environment: model_sha256"
+    },
+    {
+      "passed": true,
+      "label": "unchanged workload/environment: voices_sha256"
+    },
+    {
+      "passed": true,
+      "label": "unchanged workload/environment: versions"
+    },
+    {
+      "passed": true,
+      "label": "unchanged workload/environment: logical_cpus"
+    },
+    {
+      "passed": true,
+      "label": "unchanged workload/environment: platform"
+    },
+    {
+      "passed": true,
+      "label": "unchanged workload/environment: python"
+    },
+    {
+      "passed": true,
+      "label": "unchanged workload/environment: lap"
+    },
+    {
+      "passed": true,
+      "label": "same model, voices, speaking voice and speed"
+    },
+    {
+      "passed": true,
+      "label": "at least three matched fresh-process trials"
+    },
+    {
+      "passed": true,
+      "label": "all completed-lap facts identical"
+    },
+    {
+      "passed": true,
+      "label": "all utterances identical (none skipped)"
+    },
+    {
+      "passed": true,
+      "label": "all 12 real waveforms sample-identical, including duration/rate"
+    },
+    {
+      "passed": true,
+      "label": "cold CPU work <=50% of baseline: 24.12%"
+    },
+    {
+      "passed": true,
+      "label": "cold latency does not regress by more than 25%"
+    },
+    {
+      "passed": true,
+      "label": "warm CPU work <=50% of baseline: 23.62%"
+    },
+    {
+      "passed": true,
+      "label": "warm latency does not regress by more than 25%"
+    },
+    {
+      "passed": true,
+      "label": "sampled TTS burst peak <=50% of baseline: 12.30%"
+    }
+  ],
+  "cpu_ratios": {
+    "cold": 0.2412097369068109,
+    "warm": 0.23616523772408418
+  },
+  "sampled_tts_peak_ratio": 0.12296427376821144,
+  "max_waveform_absolute_error": 0.0,
+  "waveforms_compared": 12,
+  "before": {
+    "cold_cpu_s": [
+      63.546875,
+      62.734375,
+      64.1875
+    ],
+    "warm_cpu_s": [
+      59.578125,
+      60.03125,
+      63.921875,
+      60.140625,
+      61.34375,
+      60.328125,
+      59.65625,
+      60.34375,
+      59.671875
+    ],
+    "median_cold_cpu_s": 63.546875,
+    "median_warm_cpu_s": 60.140625,
+    "median_cold_wall_s": 18.6069030999206,
+    "median_warm_wall_s": 15.23724739998579
+  },
+  "after": {
+    "cold_cpu_s": [
+      15.625,
+      15.328125,
+      15.078125
+    ],
+    "warm_cpu_s": [
+      14.40625,
+      14.828125,
+      14.203125,
+      13.546875,
+      13.765625,
+      13.984375,
+      13.78125,
+      14.25,
+      14.328125
+    ],
+    "median_cold_cpu_s": 15.328125,
+    "median_warm_cpu_s": 14.203125,
+    "median_cold_wall_s": 16.47637669998221,
+    "median_warm_wall_s": 15.20239660027437
+  }
+}

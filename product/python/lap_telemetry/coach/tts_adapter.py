@@ -47,6 +47,7 @@ class KokoroAdapter(TTSAdapter):
         self._voices_path = config.kokoro_voices
         self._voice = config.kokoro_voice
         self._speed = config.kokoro_speed
+        self._cpu_threads = config.kokoro_cpu_threads
         self._kokoro = None  # Lazy-loaded
 
     def _ensure_loaded(self) -> None:
@@ -55,6 +56,7 @@ class KokoroAdapter(TTSAdapter):
             return
         try:
             from kokoro_onnx import Kokoro  # type: ignore[import-untyped]
+            import onnxruntime as ort  # Kokoro's runtime dependency, kept lazy.
         except ImportError as e:
             raise RuntimeError(
                 "kokoro-onnx is not installed. "
@@ -74,8 +76,26 @@ class KokoroAdapter(TTSAdapter):
                 "Follow docs/TTS_SETUP.md to set up TTS voices."
             )
 
-        log.info("Loading Kokoro model: %s", model)
-        self._kokoro = Kokoro(str(model), str(voices))
+        if not callable(getattr(Kokoro, "from_session", None)):
+            raise RuntimeError(
+                "This kokoro-onnx version cannot accept a CPU-bounded session. "
+                "Upgrade with: pip install --upgrade kokoro-onnx"
+            )
+
+        # ORT's automatic pool can occupy every physical core and spin between
+        # inference tasks. A single session-local thread avoids competing with
+        # the simulator; no process-global OMP/BLAS settings affect the recorder.
+        options = ort.SessionOptions()
+        options.intra_op_num_threads = self._cpu_threads
+        options.inter_op_num_threads = 1
+        options.execution_mode = ort.ExecutionMode.ORT_SEQUENTIAL
+        options.add_session_config_entry("session.intra_op.allow_spinning", "0")
+        options.add_session_config_entry("session.inter_op.allow_spinning", "0")
+        log.info("Loading Kokoro model: %s (CPU threads=%d)", model, self._cpu_threads)
+        session = ort.InferenceSession(
+            str(model), sess_options=options, providers=["CPUExecutionProvider"]
+        )
+        self._kokoro = Kokoro.from_session(session, str(voices))
         log.info("Kokoro model loaded, voice=%s, speed=%.2f", self._voice, self._speed)
 
     def speak(self, text: str) -> None:

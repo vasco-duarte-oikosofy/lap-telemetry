@@ -1,0 +1,17 @@
+Feature: coach-cpu-performance (11 scripts)
+
+FAILED — 351 passed, 2 of 11 scripts failed in 16.2
+
+=== FAIL: dev/scripts/test_coach_cpu_budget.js (5 failures) ===
+[FAIL] test_configuration: 'TTSConfig' object has no attribute 'kokoro_cpu_threads'
+[FAIL] test_bounded_lazy_session: TTSConfig.__init__() got an unexpected keyword argument 'kokoro_cpu_threads'
+[FAIL] test_explicit_budget_and_retry: TTSConfig.__init__() got an unexpected keyword argument 'kokoro_cpu_threads'
+[FAIL] test_optional_dependency_failure: TTSConfig.__init__() got an unexpected keyword argument 'kokoro_cpu_threads'
+[FAIL] bounded Kokoro CPU policy tests exited 1
+
+=== FAIL: dev/scripts/test_nonblocking_coach_pipeline.js (1 failure) ===
+  [FAIL] test_nonblocking_coach_pipeline.py exited 0
+
+To re-run a failing test:
+  bash scripts/test-summary.sh dev/scripts/test_coach_cpu_budget.js
+  bash scripts/test-summary.sh dev/scripts/test_nonblocking_coach_pipeline.js
