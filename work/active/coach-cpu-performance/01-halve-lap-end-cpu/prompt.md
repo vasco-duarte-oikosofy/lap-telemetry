@@ -1,6 +1,7 @@
 # Slice 01 — Halve lap-end coaching CPU work
 
-**Status:** In progress. Explicitly requested by the user.
+**Status:** ✅ Complete in `4ffe4b7`. Both cold/warm CPU targets pass;
+all facts/text and 12 real waveforms match exactly. Live race-FPS approval pending.
 
 ## Goal
 
