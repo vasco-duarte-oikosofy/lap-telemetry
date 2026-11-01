@@ -1,6 +1,7 @@
 # Slice 39 — Long Beach turn labels visible in TinyPedal
 
-**Status:** In progress. User explicitly selected this one slice.
+**Status:** ✅ Implemented in lap-telemetry `406aec9` and TinyPedal `2d8d5a65`.
+All 11 labels verified in the real widget; user live in-game confirmation pending.
 
 ## Goal / diagnosed causes
 

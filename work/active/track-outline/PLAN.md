@@ -4,6 +4,8 @@
 
 **Goal:** Every LMU track that has session data must have an outline JSON in `product/data/track-outlines/` and a corresponding ES module wired into the manifest. Tracks with TUMFTM data get real outlines (varying widths, apex-ready). Tracks without TUMFTM data get clean trajectory outlines (constant-width shells around the driving line).
 
+**Feature tests (current slice):** `bash scripts/test-summary.sh --feature track-outline --pw`
+
 **Data source policy:** TUMFTM when available, otherwise `source: clean trajectory`. No bacinger/f1-circuits data — their centerlines are in WGS84 lon/lat and lack width data, making them no better than trajectory outlines after alignment.
 
 ---
@@ -54,11 +56,12 @@ Tracks are ordered by data quality: TUMFTM first (real widths), then trajectory-
 | `36-road-atlanta` | Michelin Raceway Road Atlanta | No TUMFTM | Clean trajectory + coaching + ref | ✅ Done (`0494e0c`; ref+model refreshed to race 1:16.304 in `56932a6`) |
 | `37-monza-curva-grande-f296` | Monza Curva Grande / Ferrari 296 GT3 (new car, existing track) | No TUMFTM | Ref 1:39.398 + model seeded from the curated Ginetta model (names + flat markers preserved) | ✅ Done (this slice) |
 | `38-long-beach-f499p` | Grand Prix of Long Beach / Ferrari 499P | No TUMFTM | Reference 1:15.889 + 11 official turns + trajectory outline; full flat T3/T7 geometry retained | ✅ `90c6e6e` (automated file:// render verified; live by-eye approval pending) |
+| `39-long-beach-tinypedal-turns` | Long Beach / TinyPedal turn labels | Existing curated turns | Track-only export, same-axis normalization, all 11 labels painted at 400/600px and 0/90° | ✅ `406aec9`; TinyPedal `2d8d5a65` (automated Qt QA passed; user live confirmation pending) |
 
 **Feature tests (slice 38):** `bash scripts/test-summary.sh --feature long-beach-f499p`
 
 **Completed:** Spa (base + endurance), Bahrain GP, Barcelona, Monza, Imola, Fuji International Speedway, Bahrain Outer, Daytona, Laguna Seca, Road Atlanta, Monza Curva Grande, Silverstone International, Long Beach.
-**In progress:** None. Long Beach live/by-eye QA remains pending; automated rendering passes.
+**In progress:** None. Long Beach web/TinyPedal live/by-eye confirmation remains pending; automated rendering passes.
 **Remaining:** 24 outlines needed (some may be aliases).
 
 ### Barcelona note
