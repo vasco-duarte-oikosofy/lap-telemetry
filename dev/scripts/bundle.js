@@ -32,7 +32,10 @@ let html = fs.readFileSync(HTML_FILE, 'utf8');
 // Step 2+: Inline CSS if the link tag exists and CSS file exists
 const cssLinkPattern = /<link\s+rel="stylesheet"\s+href="css\/styles\.css"\s*>/i;
 if (cssLinkPattern.test(html) && fs.existsSync(CSS_FILE)) {
-  const cssContent = fs.readFileSync(CSS_FILE, 'utf8');
+  // Format only: keep the generated single-file artifact within its line budget.
+  const cssContent = require('esbuild').transformSync(fs.readFileSync(CSS_FILE, 'utf8'), {
+    loader: 'css', minifyWhitespace: true,
+  }).code.trim();
   html = html.replace(cssLinkPattern, `<style>\n${cssContent}\n</style>`);
   console.log('✓ Inlined CSS from web/css/styles.css');
 }
@@ -69,7 +72,7 @@ if (needsBundling) {
   if (jsSourceType === 'file') {
     // Bundle main.js via esbuild
     bundledJs = execSync(
-      `npx esbuild "${jsSource}" --bundle --format=esm --external:'https://*' --platform=browser`,
+      `npx esbuild "${jsSource}" --bundle --minify-whitespace --format=esm --external:'https://*' --platform=browser`,
       { encoding: 'utf8', maxBuffer: 50 * 1024 * 1024 }
     );
     
@@ -86,7 +89,7 @@ if (needsBundling) {
     fs.writeFileSync(tempFile, inlineScript, 'utf8');
     
     bundledJs = execSync(
-      `npx esbuild "${tempFile}" --bundle --format=esm --external:'https://*' --platform=browser`,
+      `npx esbuild "${tempFile}" --bundle --minify-whitespace --format=esm --external:'https://*' --platform=browser`,
       { encoding: 'utf8', maxBuffer: 50 * 1024 * 1024 }
     );
     
