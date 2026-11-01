@@ -18,8 +18,9 @@ from lap_telemetry.parquet_utils import build_segments
 
 TRACK = 'grand-prix-of-long-beach'
 CAR = 'ferrari-af-corse-2026-50-lm'
-REF = ROOT / f'product/data/reference-laps/{TRACK}_{CAR}_time_01.15.889.parquet'
 MODEL = ROOT / f'product/data/track-coaching/{TRACK}_{CAR}.json'
+MODEL_DATA = json.loads(MODEL.read_text(encoding='utf-8'))
+REF = ROOT / MODEL_DATA['reference_lap']['path']
 OUTLINE = ROOT / f'product/data/track-outlines/{TRACK}.json'
 passed = failed = 0
 
@@ -42,11 +43,17 @@ def main():
     ref = pq.read_table(REF)
     ok(len(build_segments(ref['lap_number'].to_pylist())) == 1,
        'reference contains exactly one contiguous lap')
-    ok(set(ref['lap_number'].to_pylist()) == {10}, 'guard-approved lap 10, not abandoned lap 4')
+    ok(all(n > 0 for n in ref['lap_number'].to_pylist()), 'reference is a real positive-numbered lap')
     duration = float(ref.schema.metadata[b'authoritative_lap_time_s'])
-    ok(abs(duration - 75.888671875) < 0.001, f'authoritative telemetry timing: {duration:.6f}s')
+    ok(abs(duration - MODEL_DATA['reference_lap']['lap_time_s']) < 0.001,
+       f'authoritative telemetry timing matches current model: {duration:.6f}s')
+    ok(duration <= 74.8711, 'reference includes latest guarded practice improvement (1:14.871 or faster)')
+    ok('\\' not in MODEL_DATA['reference_lap']['path'], 'reference path stays portable across platforms')
+    ok(len(list(REF.parent.glob(f'{TRACK}_{CAR}_time_*.parquet'))) == 1,
+       'only one reference exists for this track/car; superseded lap removed')
     ok(all(ref['lap_valid'].to_pylist()), 'reference is valid throughout')
-    ok(3700 < ref.num_rows < 3900, 'reference frame count agrees with 50 Hz duration')
+    ok(abs(ref.num_rows - duration * 50) < duration * 50 * 0.10,
+       'reference frame count agrees with 50 Hz duration')
     model = load_track_coaching_model(MODEL)
     ok([c.id for c in model.corners] == [f't{i}' for i in range(1, 12)],
        'all 11 official turns remain ordered, including flat turns')
@@ -78,8 +85,16 @@ def main():
            f'{c.id}: physical left-hand bend, not a straight-line marker')
     ok(model.corners[9].s_end_m < model.corners[10].s_start_m,
        'Turn 10 left bend and Turn 11 right hairpin are separate zones')
+    ok([(c.s_start_m, c.apex_s_m, c.s_end_m) for c in model.corners[9:]] ==
+       [(2620, 2690, 2760), (2761, 2821, 2834)],
+       'reviewed T10/T11 split geometry retained instead of one merged braking event')
     outline = json.loads(OUTLINE.read_text(encoding='utf-8'))
     ok(outline['coordinate_system'] == 'sim_xy', 'outline uses simulator coordinates')
+    ok(outline.get('turns_reference_lap') == MODEL_DATA['reference_lap']['path'],
+       'map anchor provenance points to the current coaching reference')
+    ok(outline['alignment'].get('reference_lap_revision') ==
+       '90c6e6ecc69ddc3c5e793bf57aa4e1b856116e82',
+       'retained outline geometry keeps recoverable historical source provenance')
     ok('trajectory' in outline['source'].lower(), 'synthetic trajectory source is explicit')
     ok(len(outline['centerline']) == 500, 'outline retains 500 racing-line points')
     ok(all(len(outline[k]) == 500 for k in ('left_boundary', 'right_boundary')),

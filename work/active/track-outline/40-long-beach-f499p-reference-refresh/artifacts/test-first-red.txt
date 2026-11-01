@@ -1,0 +1,16 @@
+Feature: track-outline (23 scripts)
+
+FAILED — 792 passed, 2 of 23 scripts failed in 7.3
+
+=== FAIL: dev/scripts/test_long_beach_f499p.js (2 failures) ===
+[FAIL] reference includes latest guarded practice improvement (1:14.871 or faster)
+[FAIL] Long Beach 499P data contracts
+
+=== FAIL: dev/scripts/test_update_coaching_model.js (3 failures) ===
+  [FAIL] test_explicit_geometry_preservation_does_not_steal_events: match_corners() got an unexpected keyword argument 'preserve_geometry'
+  [FAIL] FLAGGED: unsafe refresh aborts before paired write
+  [FAIL] unknown: unsafe refresh aborts before paired write
+
+To re-run a failing test:
+  bash scripts/test-summary.sh dev/scripts/test_long_beach_f499p.js
+  bash scripts/test-summary.sh dev/scripts/test_update_coaching_model.js

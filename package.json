@@ -32,7 +32,11 @@
       "dev/scripts/test_update_coaching_model.js",
       "dev/scripts/test_turn_labels.js",
       "dev/scripts/test_turn_labels_scale.js",
-      "dev/scripts/test_turn_labels_parity.js"
+      "dev/scripts/test_turn_labels_parity.js",
+      "dev/scripts/test_bug_python_regressions.js",
+      "dev/scripts/test_coach_lap_comparison.js",
+      "dev/scripts/test_phase_detection.js",
+      "dev/scripts/test_js_pipeline_contract.js"
     ],
     "coach-cpu-performance": [
       "dev/scripts/test_coach_cpu_budget.js",

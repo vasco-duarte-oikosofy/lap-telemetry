@@ -3,9 +3,9 @@
   "track_id": "grand-prix-of-long-beach",
   "layout_id": "lmu-default",
   "reference_lap": {
-    "path": "product/data/reference-laps/grand-prix-of-long-beach_ferrari-af-corse-2026-50-lm_time_01.15.889.parquet",
+    "path": "product/data/reference-laps/grand-prix-of-long-beach_ferrari-af-corse-2026-50-lm_time_01.14.871.parquet",
     "car_id": "ferrari-af-corse-2026-50-lm",
-    "lap_time_s": 75.889,
+    "lap_time_s": 74.871,
     "detection_method": "throttle_brake_v1"
   },
   "lap_length_m": 3185.3,
@@ -13,9 +13,9 @@
     {
       "id": "t1",
       "name": "Turn 1",
-      "s_start_m": 534.0,
-      "apex_s_m": 730.0,
-      "s_end_m": 753.0,
+      "s_start_m": 549.0,
+      "apex_s_m": 729.0,
+      "s_end_m": 749.0,
       "apex_side": "left",
       "apex_side_source": "manual",
       "short_name": "1"
@@ -23,9 +23,9 @@
     {
       "id": "t2",
       "name": "Turn 2",
-      "s_start_m": 821.0,
-      "apex_s_m": 909.0,
-      "s_end_m": 925.0,
+      "s_start_m": 819.0,
+      "apex_s_m": 910.0,
+      "s_end_m": 935.0,
       "apex_side": "right",
       "apex_side_source": "manual",
       "short_name": "2"
@@ -44,9 +44,9 @@
     {
       "id": "t4",
       "name": "Turn 4",
-      "s_start_m": 998.0,
-      "apex_s_m": 1063.0,
-      "s_end_m": 1071.0,
+      "s_start_m": 996.0,
+      "apex_s_m": 1045.0,
+      "s_end_m": 1092.0,
       "apex_side": "right",
       "apex_side_source": "manual",
       "short_name": "4"
@@ -55,8 +55,8 @@
       "id": "t5",
       "name": "Turn 5",
       "s_start_m": 1136.0,
-      "apex_s_m": 1204.0,
-      "s_end_m": 1222.0,
+      "apex_s_m": 1203.0,
+      "s_end_m": 1224.0,
       "apex_side": "right",
       "apex_side_source": "manual",
       "short_name": "5"
@@ -64,9 +64,9 @@
     {
       "id": "t6",
       "name": "Turn 6",
-      "s_start_m": 1472.0,
-      "apex_s_m": 1606.0,
-      "s_end_m": 1644.0,
+      "s_start_m": 1484.0,
+      "apex_s_m": 1612.0,
+      "s_end_m": 1642.0,
       "apex_side": "left",
       "apex_side_source": "manual",
       "short_name": "6"
@@ -85,9 +85,9 @@
     {
       "id": "t8",
       "name": "Turn 8",
-      "s_start_m": 1799.0,
-      "apex_s_m": 1920.0,
-      "s_end_m": 1943.0,
+      "s_start_m": 1796.0,
+      "apex_s_m": 1929.0,
+      "s_end_m": 1935.0,
       "apex_side": "right",
       "apex_side_source": "manual",
       "short_name": "8"
@@ -95,9 +95,9 @@
     {
       "id": "t9",
       "name": "Turn 9",
-      "s_start_m": 2396.0,
-      "apex_s_m": 2540.0,
-      "s_end_m": 2567.0,
+      "s_start_m": 2392.0,
+      "apex_s_m": 2543.0,
+      "s_end_m": 2570.0,
       "apex_side": "right",
       "apex_side_source": "manual",
       "short_name": "9"

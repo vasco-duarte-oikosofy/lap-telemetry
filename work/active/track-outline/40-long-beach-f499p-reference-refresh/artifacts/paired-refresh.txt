@@ -1,0 +1,34 @@
+Track: grand-prix-of-long-beach  Vehicle: ferrari-af-corse-2026-50-lm  (1 sessions)
+  Fastest: lap 7 in session_20261101T175418Z_grand-prix-of-long-beach_lmu_practice.parquet -> 74.871s
+  Exported 3731 rows -> product\data\reference-laps\grand-prix-of-long-beach_ferrari-af-corse-2026-50-lm_time_01.14.871.parquet
+  Removed superseded reference (75.889s): grand-prix-of-long-beach_ferrari-af-corse-2026-50-lm_time_01.15.889.parquet
+
+AUDIT: 1 reference lap changed (added: ['grand-prix-of-long-beach_ferrari-af-corse-2026-50-lm_time_01.14.871.parquet'], superseded: ['grand-prix-of-long-beach_ferrari-af-corse-2026-50-lm_time_01.15.889.parquet']). OK.
+Fastest lap in session(s): lap 7 @ 74.871s (session_20261101T175418Z_grand-prix-of-long-beach_lmu_practice.parquet, vehicle ferrari-af-corse-2026-50-lm)
+Faster than existing reference - will export after corner check
+Corner check: model has 11, lap yields 8 (7 matched, 4 geometry preserved)
+  PRESERVED: Turn 3 (t3) keeps reviewed geometry; no event claimed
+  PRESERVED: Turn 7 (t7) keeps reviewed geometry; no event claimed
+  PRESERVED: Turn 10 (t10) keeps reviewed geometry; no event claimed
+  PRESERVED: Turn 11 (t11) keeps reviewed geometry; no event claimed
+  INFO: new corner at apex=2828m not in the model - ignored
+Geometry guard: all matched corners within 25 m - OK
+
+Exporting reference via export_fastest_reference_laps.py ...
+
+Updated coaching model -> C:\Users\duart\lap-telemetry\product\data\track-coaching\grand-prix-of-long-beach_ferrari-af-corse-2026-50-lm.json
+Updated diagnostics -> C:\Users\duart\lap-telemetry\product\data\track-coaching\grand-prix-of-long-beach_ferrari-af-corse-2026-50-lm.diagnostics.txt
+
+Corner geometry changes:
+  Turn                         Entry     Apex     Exit  (was Entry/Apex/Exit)
+  Turn 1                       549.0    729.0    749.0  (was 534.0 / 730.0 / 753.0)
+  Turn 2                       819.0    910.0    935.0  (was 821.0 / 909.0 / 925.0)
+  Turn 3                       940.0    950.0    990.0  (was 940.0 / 950.0 / 990.0)
+  Turn 4                       996.0   1045.0   1092.0  (was 998.0 / 1063.0 / 1071.0)
+  Turn 5                      1136.0   1203.0   1224.0  (was 1136.0 / 1204.0 / 1222.0)
+  Turn 6                      1484.0   1612.0   1642.0  (was 1472.0 / 1606.0 / 1644.0)
+  Turn 7                      1680.0   1725.0   1760.0  (was 1680.0 / 1725.0 / 1760.0)
+  Turn 8                      1796.0   1929.0   1935.0  (was 1799.0 / 1920.0 / 1943.0)
+  Turn 9                      2392.0   2543.0   2570.0  (was 2396.0 / 2540.0 / 2567.0)
+  Turn 10                     2620.0   2690.0   2760.0  (was 2620.0 / 2690.0 / 2760.0)
+  Turn 11                     2761.0   2821.0   2834.0  (was 2761.0 / 2821.0 / 2834.0)

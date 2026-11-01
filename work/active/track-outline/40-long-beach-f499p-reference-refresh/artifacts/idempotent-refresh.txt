@@ -1,0 +1,11 @@
+Fastest lap in session(s): lap 7 @ 74.871s (session_20261101T175418Z_grand-prix-of-long-beach_lmu_practice.parquet, vehicle ferrari-af-corse-2026-50-lm)
+Not faster than existing reference 74.871s - reference stays; model will be checked against grand-prix-of-long-beach_ferrari-af-corse-2026-50-lm_time_01.14.871.parquet
+Corner check: model has 11, lap yields 8 (7 matched, 4 geometry preserved)
+  PRESERVED: Turn 3 (t3) keeps reviewed geometry; no event claimed
+  PRESERVED: Turn 7 (t7) keeps reviewed geometry; no event claimed
+  PRESERVED: Turn 10 (t10) keeps reviewed geometry; no event claimed
+  PRESERVED: Turn 11 (t11) keeps reviewed geometry; no event claimed
+  INFO: new corner at apex=2828m not in the model - ignored
+Geometry guard: all matched corners within 25 m - OK
+
+Coaching model already up to date (grand-prix-of-long-beach_ferrari-af-corse-2026-50-lm.json) - nothing written.

@@ -1,0 +1,14 @@
+Canonical recovered file; 53817 rows. Overlapping snapshots excluded.
+segment lap rows time_s min_dist max_dist all_valid guarded
+  0   0  8293 5840.436523   -216.7   3184.6 True False
+  1   1  3961 79.474121      8.2   3194.8 True True
+  2   2  2449 50.306152      3.2   3185.8 True False
+  3   3  8238 165.008789   -216.7   3185.3 True False
+  4   4  3860 77.449707      9.0   3186.3 True True
+  5   5  3822 76.639160      5.7   3186.1 True True
+  6   6  3799 76.192871      3.1   3186.7 True True
+  7   7  3731 74.871094      3.8   3186.2 True True
+  8   8   807 16.335449     -1.1   3184.5 True False
+  9   9  5512 110.508789   -216.7   2066.6 True False
+ 10  10  9345 187.177338   -216.7   -216.6 True False
+BEST: lap 7, authoritative 74.871093750s, segment rows [34422,38153), 3731 rows, all valid.

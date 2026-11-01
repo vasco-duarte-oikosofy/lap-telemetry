@@ -21,6 +21,7 @@
     "method": "trajectory_trace",
     "width_per_side": 5.0,
     "reference_lap": "product/data/reference-laps/grand-prix-of-long-beach_ferrari-af-corse-2026-50-lm_time_01.15.889.parquet",
+    "reference_lap_revision": "90c6e6ecc69ddc3c5e793bf57aa4e1b856116e82",
     "notes": "Fastest guarded complete lap 10; full flat-turn shape retained."
   },
   "visual_qa": {
@@ -337,17 +338,18 @@
     {"x":183.075,"y":75.946}, {"x":176.65,"y":71.745}, {"x":170.204,"y":67.561}, {"x":163.721,"y":63.403}, {"x":157.179,"y":59.3},
     {"x":150.571,"y":55.281}, {"x":143.901,"y":51.357}, {"x":136.842,"y":47.374}, {"x":129.26,"y":44.549}, {"x":122.008,"y":41.973}
   ],
+  "turns_reference_lap": "product/data/reference-laps/grand-prix-of-long-beach_ferrari-af-corse-2026-50-lm_time_01.14.871.parquet",
   "turns": [
-    {"id":"t1","number":1,"name":null,"short_name":null,"apex_s_m":730.0,"x":-540.73,"y":205.275,"outward":[0.1956,-0.9807],"tangent":[-0.9807,-0.1956]},
-    {"id":"t2","number":2,"name":null,"short_name":null,"apex_s_m":909.0,"x":-687.145,"y":128.272,"outward":[-0.1873,-0.9823],"tangent":[-0.9823,0.1873]},
-    {"id":"t3","number":3,"name":null,"short_name":null,"apex_s_m":950.0,"x":-713.996,"y":150.508,"outward":[-0.7292,-0.6843],"tangent":[-0.6843,0.7292]},
-    {"id":"t4","number":4,"name":null,"short_name":null,"apex_s_m":1063.0,"x":-797.851,"y":222.534,"outward":[-0.977,-0.213],"tangent":[-0.213,0.977]},
-    {"id":"t5","number":5,"name":null,"short_name":null,"apex_s_m":1204.0,"x":-734.422,"y":340.481,"outward":[-0.2709,0.9626],"tangent":[0.9626,0.2709]},
-    {"id":"t6","number":6,"name":null,"short_name":null,"apex_s_m":1606.0,"x":-383.491,"y":160.151,"outward":[-0.2214,0.9752],"tangent":[0.9752,0.2214]},
-    {"id":"t7","number":7,"name":null,"short_name":null,"apex_s_m":1725.0,"x":-336.046,"y":255.898,"outward":[-0.9994,-0.0332],"tangent":[-0.0332,0.9994]},
-    {"id":"t8","number":8,"name":null,"short_name":null,"apex_s_m":1920.0,"x":-328.293,"y":441.947,"outward":[-0.5949,0.8038],"tangent":[0.8038,0.5949]},
-    {"id":"t9","number":9,"name":null,"short_name":null,"apex_s_m":2540.0,"x":280.615,"y":411.695,"outward":[0.7629,0.6465],"tangent":[0.6465,-0.7629]},
-    {"id":"t10","number":10,"name":null,"short_name":null,"apex_s_m":2690.0,"x":304.791,"y":271.112,"outward":[0.7425,0.6698],"tangent":[0.6698,-0.7425]},
-    {"id":"t11","number":11,"name":null,"short_name":null,"apex_s_m":2821.0,"x":418.72,"y":267.213,"outward":[0.9809,0.1946],"tangent":[0.1946,-0.9809]}
+    {"id":"t1","number":1,"name":null,"short_name":null,"apex_s_m":729.0,"x":-539.579,"y":205.566,"outward":[0.17,-0.9854],"tangent":[-0.9854,-0.17]},
+    {"id":"t2","number":2,"name":null,"short_name":null,"apex_s_m":910.0,"x":-687.239,"y":128.15,"outward":[-0.1535,-0.9881],"tangent":[-0.9881,0.1535]},
+    {"id":"t3","number":3,"name":null,"short_name":null,"apex_s_m":950.0,"x":-713.778,"y":150.447,"outward":[-0.7882,-0.6155],"tangent":[-0.6155,0.7882]},
+    {"id":"t4","number":4,"name":null,"short_name":null,"apex_s_m":1045.0,"x":-788.839,"y":206.812,"outward":[-0.8178,-0.5755],"tangent":[-0.5755,0.8178]},
+    {"id":"t5","number":5,"name":null,"short_name":null,"apex_s_m":1203.0,"x":-734.737,"y":339.714,"outward":[-0.2926,0.9562],"tangent":[0.9562,0.2926]},
+    {"id":"t6","number":6,"name":null,"short_name":null,"apex_s_m":1612.0,"x":-379.25,"y":158.944,"outward":[-0.3042,0.9526],"tangent":[0.9526,0.3042]},
+    {"id":"t7","number":7,"name":null,"short_name":null,"apex_s_m":1725.0,"x":-337.189,"y":256.427,"outward":[-0.9999,-0.0146],"tangent":[-0.0146,0.9999]},
+    {"id":"t8","number":8,"name":null,"short_name":null,"apex_s_m":1929.0,"x":-324.918,"y":446.507,"outward":[-0.4521,0.892],"tangent":[0.892,0.4521]},
+    {"id":"t9","number":9,"name":null,"short_name":null,"apex_s_m":2543.0,"x":283.531,"y":408.359,"outward":[0.8076,0.5897],"tangent":[0.5897,-0.8076]},
+    {"id":"t10","number":10,"name":null,"short_name":null,"apex_s_m":2690.0,"x":305.893,"y":272.08,"outward":[0.7087,0.7055],"tangent":[0.7055,-0.7087]},
+    {"id":"t11","number":11,"name":null,"short_name":null,"apex_s_m":2821.0,"x":418.179,"y":267.178,"outward":[0.8915,0.4529],"tangent":[0.4529,-0.8915]}
   ]
 }

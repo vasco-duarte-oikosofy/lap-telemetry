@@ -14,6 +14,9 @@ All checks run BEFORE any write. In particular, if any corner of the existing
 script aborts without touching anything — curated models must never silently
 lose hand-tuned detail (Bahrain Outer rule). Pass --allow-unmatched to keep
 the old geometry for unmatched corners and proceed anyway.
+Use --preserve-geometry CORNER_ID ... for reviewed flat/compound zones that
+must not claim a neighbouring braking event at all. Those explicit IDs are kept
+without requiring --allow-unmatched; unknown IDs abort before product writes.
 
 Usage:
     # normal: scan session(s) of ONE (track, vehicle), update ref if faster,
@@ -99,10 +102,18 @@ def detect_corners(ref_parquet: Path) -> tuple[list, str]:
         return candidates, DETECTION_METHOD_V1
 
 
-def match_corners(existing_corners: list[dict], candidates: list) -> tuple[list[tuple[dict, object | None]], list]:
+def match_corners(existing_corners: list[dict], candidates: list,
+                  preserve_geometry: set[str] | None = None
+                  ) -> tuple[list[tuple[dict, object | None]], list]:
     """Nearest-apex matching (each old corner claims the closest unclaimed
     candidate within MAX_APEX_DELTA_M). Returns [(old_corner, match_or_None)]
-    plus the unclaimed candidates."""
+    plus the unclaimed candidates. Explicitly preserved IDs never claim an
+    event; their reviewed geometry survives unchanged. Unknown IDs fail closed.
+    """
+    preserved = set(preserve_geometry or ())
+    unknown = preserved - {c.get("id") for c in existing_corners}
+    if unknown:
+        raise ValueError(f"unknown preserved corner IDs: {', '.join(sorted(unknown))}")
     apexes = [float(c.apex_m) for c in candidates]
     claimed = [False] * len(candidates)
 
@@ -120,6 +131,9 @@ def match_corners(existing_corners: list[dict], candidates: list) -> tuple[list[
 
     pairs: list[tuple[dict, object | None]] = []
     for old_c in existing_corners:
+        if old_c.get("id") in preserved:
+            pairs.append((old_c, None))
+            continue
         idx = nearest(float(old_c["apex_s_m"]))
         if idx is not None:
             claimed[idx] = True
@@ -181,6 +195,11 @@ def parse_args() -> argparse.Namespace:
         help="proceed even if curated corners have no match on the new lap "
              "(their old geometry and curated fields are kept); default is to "
              "abort with no changes",
+    )
+    p.add_argument(
+        "--preserve-geometry", nargs="+", default=[], metavar="CORNER_ID",
+        help="keep reviewed geometry for these stable corner IDs and exclude them "
+             "from braking-event matching; unknown IDs abort before any product write",
     )
     p.add_argument(
         "--max-geometry-delta-m", type=float, default=None,
@@ -263,10 +282,20 @@ def main() -> int:
 
     # --- 3. Corner dry-check BEFORE any write (bug 23) ---------------------
     candidates, detection_method = detect_corners(backing_lap)
-    pairs, leftover = match_corners(existing_corners, candidates)
-    unmatched = [old_c["name"] for old_c, m in pairs if m is None]
+    preserved = set(args.preserve_geometry)
+    try:
+        pairs, leftover = match_corners(existing_corners, candidates, preserve_geometry=preserved)
+    except ValueError as exc:
+        print(f"ERROR: {exc}. No product files were changed.", file=sys.stderr)
+        if tmp_lap is not None:
+            tmp_lap.unlink(missing_ok=True)
+        return 2
+    unmatched = [old_c["name"] for old_c, m in pairs if m is None and old_c.get("id") not in preserved]
     print(f"Corner check: model has {len(existing_corners)}, lap yields {len(candidates)} "
-          f"({len(existing_corners) - len(unmatched)} matched)")
+          f"({sum(m is not None for _, m in pairs)} matched, {len(preserved)} geometry preserved)")
+    for old_c, _ in pairs:
+        if old_c.get("id") in preserved:
+            print(f"  PRESERVED: {old_c['name']} ({old_c['id']}) keeps reviewed geometry; no event claimed")
     if unmatched and not args.allow_unmatched:
         print(f"\nABORTED - curated corners not reproduced on this lap: {', '.join(unmatched)}\n"
               f"No files were changed. Re-run with --allow-unmatched to keep their old\n"
@@ -333,7 +362,7 @@ def main() -> int:
         "track_id": existing_model["track_id"],
         "layout_id": existing_model["layout_id"],
         "reference_lap": {
-            "path": str(backing_rel),
+            "path": backing_rel.as_posix(),
             "car_id": vslug,
             "lap_time_s": round(backing_time, 3),
             "detection_method": detection_method,

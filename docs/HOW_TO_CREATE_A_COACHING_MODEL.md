@@ -270,7 +270,23 @@ No files were changed.
 This happens on faster laps: lighter braking merges chicane corners or drops light-braking turns entirely (Bahrain Outer precedent — its 1:10.845 reference is intentionally kept over a real 1:10.814 lap for exactly this reason). Your options:
 
 - **Leave the track as is** (default, and correct when the model encodes detail the new lap can't reproduce).
-- `--allow-unmatched` — proceed; unmatched corners keep their old geometry and all curated fields (logged with a warning). This is the normal path for flat corners, which never produce a braking event.
+- `--allow-unmatched` — proceed; unmatched corners keep their old geometry and all curated fields (logged with a warning). This does **not** prevent a flat/manual corner from incorrectly claiming a nearby event first.
+- `--preserve-geometry <stable-id> ...` — explicitly retain reviewed zones and exclude them from event matching. These selected corners need no `--allow-unmatched`; any unexpected unmatched corner still aborts. Unknown IDs fail before product writes. Combine with a reviewed `--max-geometry-delta-m` for the other corners.
+
+Long Beach has two real flat bends and a manually split final complex; preserve
+all four rather than snapping them onto the eight detected brake events:
+
+```powershell
+python dev/scripts/update_reference_and_coaching_model.py `
+  --session sessions/session_20261101T175418Z_grand-prix-of-long-beach_lmu_practice.parquet `
+  --track-id grand-prix-of-long-beach `
+  --preserve-geometry t3 t7 t10 t11 --max-geometry-delta-m 25
+```
+
+Review the new lap's signals to confirm retained zones are still valid. Default
+matching for other tracks is unchanged; this explicit preservation control does
+not automatically classify every flat/compound corner. Re-bake map anchors and
+perform the track-only TinyPedal export when refreshed model apices change.
 
 ### Refreshing a model from an existing reference
 

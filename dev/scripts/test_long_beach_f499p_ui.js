@@ -6,8 +6,9 @@ const path = require('path');
 const { pathToFileURL } = require('url');
 const ROOT = path.resolve(__dirname, '../..');
 const SLUG = 'grand-prix-of-long-beach';
-const REF = path.join(ROOT, 'product/data/reference-laps',
-  `${SLUG}_ferrari-af-corse-2026-50-lm_time_01.15.889.parquet`);
+const model = JSON.parse(fs.readFileSync(path.join(ROOT, 'product/data/track-coaching',
+  `${SLUG}_ferrari-af-corse-2026-50-lm.json`), 'utf8'));
+const REF = path.resolve(ROOT, model.reference_lap.path);
 function ok(value, label) {
   console.log(`${value ? '[PASS]' : '[FAIL]'} ${label}`);
   if (!value) throw new Error(label);
@@ -20,7 +21,7 @@ function ok(value, label) {
     // Replay the committed practice reference under the real recording filename.
     // This exercises filename-only track resolution without an untracked session dependency.
     await page.locator('#file-input').setInputFiles({
-      name: `session_20261101T114510Z_${SLUG}_lmu_practice.parquet`,
+      name: `session_20261101T175418Z_${SLUG}_lmu_practice.parquet`,
       mimeType: 'application/octet-stream', buffer: fs.readFileSync(REF),
     });
     await page.waitForFunction(() => window.__getSessionKeys?.().length > 0);

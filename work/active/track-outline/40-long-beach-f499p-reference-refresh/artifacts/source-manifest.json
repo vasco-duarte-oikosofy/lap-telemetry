@@ -1,0 +1,35 @@
+{
+  "captured_utc": "2026-11-01T18:42:08.928984+00:00",
+  "source": "sessions\\session_20261101T175418Z_grand-prix-of-long-beach_lmu_practice.parquet",
+  "sha256": "dea63e5775a69fcd9b7385fddb6d80ee66204c86a130b0fb57f647e6547bcb2a",
+  "sidecar": {
+    "schema_version": "2",
+    "recorder_version": "0.1.0a1",
+    "started_utc": "2026-11-01T17:54:18Z",
+    "ended_utc": "unknown",
+    "sim": "lmu",
+    "track": "Grand Prix of Long Beach",
+    "vehicle_name": "Ferrari AF Corse 2026 #50:LM",
+    "setup_file_guess": null,
+    "session_type_label": "practice",
+    "sample_rate_hz": 50.0,
+    "row_count": 53817,
+    "lap_count": 11,
+    "in_progress": false,
+    "recovered": true
+  },
+  "rows": 53817,
+  "excluded_overlapping_snapshots": [
+    "sessions\\session_20261101T175418Z_grand-prix-of-long-beach_lmu_practice.snap0.parquet",
+    "sessions\\session_20261101T175418Z_grand-prix-of-long-beach_lmu_practice.snap1.parquet",
+    "sessions\\session_20261101T175418Z_grand-prix-of-long-beach_lmu_practice.snap2.parquet",
+    "sessions\\session_20261101T175418Z_grand-prix-of-long-beach_lmu_practice.snap3.parquet",
+    "sessions\\session_20261101T175418Z_grand-prix-of-long-beach_lmu_practice.snap4.parquet",
+    "sessions\\session_20261101T175418Z_grand-prix-of-long-beach_lmu_practice.snap5.parquet",
+    "sessions\\session_20261101T175418Z_grand-prix-of-long-beach_lmu_practice.snap6.parquet",
+    "sessions\\session_20261101T175418Z_grand-prix-of-long-beach_lmu_practice.snap7.parquet",
+    "sessions\\session_20261101T175418Z_grand-prix-of-long-beach_lmu_practice.snap8.parquet",
+    "sessions\\session_20261101T175418Z_grand-prix-of-long-beach_lmu_practice.snap9.parquet"
+  ],
+  "note": "Recorder independently recovered the parts while initial assembly inspection was running. No partial merge was used; canonical recovered file is stable."
+}

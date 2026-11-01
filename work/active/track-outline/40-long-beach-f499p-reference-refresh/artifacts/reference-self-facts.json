@@ -1,0 +1,12 @@
+{
+  "type": "lap_coaching_summary",
+  "track_id": "grand-prix-of-long-beach",
+  "lap_number": 7,
+  "lap_time_delta_s": 0.0,
+  "top_losses": [],
+  "top_gains": [],
+  "constraints": {
+    "max_words": 35,
+    "style": "calm_concise_engineer"
+  }
+}
