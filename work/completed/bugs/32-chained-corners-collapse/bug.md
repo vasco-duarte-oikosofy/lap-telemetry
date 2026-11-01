@@ -102,4 +102,6 @@ let the exit detector emit at a chained boundary:
 
 ## Status
 
-🔧 In progress
+✅ Fixed in `8e0e2e5`, docs in `7fa6356` — user confirmed after a live session; moved to `work/completed/bugs/`.
+
+Regression test: `dev/scripts/test_bug32_chained_corners.py` (feature list `bug32-chained-corners`).

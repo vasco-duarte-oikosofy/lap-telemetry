@@ -25,7 +25,7 @@
 | `09-fuel-engineer-call` | ✅ 1ab96b7 | Speak "fuel laps remaining vs race laps remaining" using deterministic strategy facts plus LLM phrasing |
 | `10-facts-inspector` | ✅ Complete | Add `--print-facts` flag to `generate_utterance.py` — prints facts JSON to stdout and exits without calling the LLM |
 | `11-low-latency-utterance` | ✅ e14d71e | Add `--utterance-mode` options: `local-llm` (small local model, short prompt), `template` (deterministic phrase fill, no LLM), `cloud-llm` (current default). Also `--coach-mode off` for record-only |
-| `12-coach-short-corner-names` | 📋 Planned | Coach speaks the curated `short_name` when one exists (`Curva Alboreto (Parabolica)` → `Parabolica`, `Variante della Roggia 1` → `Roggia 1`). Currently `short_name` is only read by the map/turn-label code: `Corner` in `track_model.py` has no such field, so the loader discards it and every utterance uses the long `name` |
+| `12-coach-short-corner-names` | ✅ 4968f39 | Coach speaks the curated `short_name` when one exists (`Curva Alboreto (Parabolica)` → `Parabolica`, `Variante della Roggia 1` → `Roggia 1`), else falls back to `name`. `Corner.short_name` + `Corner.display_name` in `track_model.py`, wired into the facts and the corner-exit event. Only the Monza Curva Grande models have short names curated so far |
 
 ---
 
