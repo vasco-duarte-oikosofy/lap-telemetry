@@ -6,6 +6,7 @@
   "layout_name": "default",
   "coordinate_system": "sim_xy",
   "units": "sim_units",
+  "lap_length_m": 3185.3,
   "track_name_mapping": {
     "canonical_sim_track_name": "grand-prix-of-long-beach",
     "canonical_lmu_track_name": "Grand Prix of Long Beach",

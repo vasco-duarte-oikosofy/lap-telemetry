@@ -302,6 +302,27 @@ is the TinyPedal track map name; matching ignores accents, case and punctuation)
 The folder must ship inside the package because TinyPedal's `.gitignore` excludes
 `/trackmap/` and `*.json`; the data is re-included with a negation line.
 
+Publishing a coaching model or rebuilding compare.html does not publish this
+separate packaged data. For a single new track, export and verify only that map:
+
+```bash
+python dev/scripts/export_turn_labels_for_tinypedal.py --track "Grand Prix of Long Beach"
+python dev/scripts/export_turn_labels_for_tinypedal.py --track "Grand Prix of Long Beach" --check
+```
+
+`--track` matches the TinyPedal map name ignoring accents/case/punctuation and
+never falls back to exporting all tracks when the requested map is unknown.
+The no-filter command remains available for deliberate full exports/checks.
+Restart TinyPedal or reload the track map after adding data (labels load on map
+updates, not by watching the JSON file).
+
+When the outline carries explicit positive finite `lap_length_m`, the exporter
+uses it as the denominator because it is the simulator-distance axis of the
+baked `apex_s_m`. Without that metadata, the legacy geometric-length behavior
+is unchanged. Long Beach explicitly carries 3185.3 m: its jittered geometric
+trace is 3400.385 m, which would otherwise shift later labels far from their
+corners. All 11 official numbers, including flat T3/T7, are exported unchanged.
+
 ### Anchoring by accumulated geometry
 
 At runtime the widget interpolates `s_frac` into the recorded polyline by

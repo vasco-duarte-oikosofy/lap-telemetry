@@ -8,8 +8,8 @@ can share between the two code bases: our coordinates are LMU world coordinates,
 TinyPedal's are its own recording of the same lap, and nothing but the distance
 along the lap is common to both.
 
-So this exporter writes, next to each TinyPedal track map, a `<Track Name>.turns.json`
-holding each corner's **normalised distance** (`s_frac`, 0 at the start/finish
+So this exporter writes a packaged `<Track Name>.turns.json` in TinyPedal's
+`tinypedal/data/turn_labels/`, holding each corner's **normalised distance** (`s_frac`, 0 at the start/finish
 line, 1 at the end of the lap).  The widget interpolates that fraction into its
 own `dist` polyline at runtime, which keeps working for any recording, any
 `display_orientation`, and even if the two laps differ slightly in length.
@@ -20,6 +20,7 @@ track map are exported; everything else is reported and skipped.
 Usage:
     py dev/scripts/export_turn_labels_for_tinypedal.py            # write
     py dev/scripts/export_turn_labels_for_tinypedal.py --check    # verify only
+    py dev/scripts/export_turn_labels_for_tinypedal.py --track "Grand Prix of Long Beach"
 """
 
 from __future__ import annotations
@@ -68,7 +69,14 @@ def turn_fraction(apex_s_m: float, lap_length_m: float) -> float:
 
 def build_payload(outline: dict, tiny_track_name: str) -> dict:
     """TinyPedal turn-label payload for one outline."""
-    lap_length_m = centerline_length_m(outline["centerline"])
+    # Apex distances use the simulator's lap-distance axis, not necessarily the
+    # noisy/densified geometric trace length. Keep legacy exports byte-identical
+    # unless an outline explicitly supplies that authoritative distance axis.
+    lap_length_m = (outline["lap_length_m"] if "lap_length_m" in outline
+                    else centerline_length_m(outline["centerline"]))
+    if (isinstance(lap_length_m, bool) or not isinstance(lap_length_m, (int, float))
+            or not math.isfinite(lap_length_m) or lap_length_m <= 0):
+        raise ValueError("lap_length_m must be a finite positive number")
     turns = []
     for turn in outline["turns"]:
         turns.append({
@@ -110,16 +118,22 @@ def match_trackmap(outline: dict, svg_by_key: dict[str, str]) -> str | None:
     return None
 
 
-def collect(trackmap_dir: Path, out_dir: Path) -> tuple[list[tuple[Path, dict]], list[tuple[str, str]]]:
+def collect(trackmap_dir: Path, out_dir: Path, track: str | None = None
+            ) -> tuple[list[tuple[Path, dict]], list[tuple[str, str]]]:
     """(files to write, skipped reasons)."""
     svg_by_key = {normalize_name(path.stem): path.stem for path in trackmap_dir.glob("*.svg")}
     if not svg_by_key:
         raise SystemExit(f"no TinyPedal track maps found in {trackmap_dir}")
+    requested_key = normalize_name(track) if track is not None else None
+    if requested_key is not None and requested_key not in svg_by_key:
+        raise SystemExit(f"no TinyPedal track map found for requested track: {track}")
 
     writes: list[tuple[Path, dict]] = []
     skipped: list[tuple[str, str]] = []
     for outline in load_outlines():
         track_name = match_trackmap(outline, svg_by_key)
+        if requested_key is not None and (track_name is None or normalize_name(track_name) != requested_key):
+            continue
         if track_name is None:
             skipped.append((outline["track_name"], "no TinyPedal track map"))
             continue
@@ -145,11 +159,12 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--trackmap", type=Path,
                         default=DEFAULT_OUT.parents[2] / "trackmap",
                         help="TinyPedal track map folder, used to match track names")
+    parser.add_argument("--track", help="export/check only this TinyPedal track name (case/accent insensitive)")
     parser.add_argument("--check", action="store_true",
                         help="verify the files on disk are current; write nothing")
     args = parser.parse_args(argv)
 
-    writes, skipped = collect(args.trackmap, args.out)
+    writes, skipped = collect(args.trackmap, args.out, args.track)
     if not writes:
         print("nothing to export", file=sys.stderr)
         return 1

@@ -1,0 +1,25 @@
+{
+  "unchanged_original_files": {
+    "..\\tinypedal\\tinypedal\\data\\turn_labels\\Autodromo Enzo e Dino Ferrari.turns.json": true,
+    "..\\tinypedal\\tinypedal\\data\\turn_labels\\Aut\u00f3dromo Jos\u00e9 Carlos Pace.turns.json": true,
+    "..\\tinypedal\\tinypedal\\data\\turn_labels\\Circuit de Barcelona.turns.json": true,
+    "..\\tinypedal\\tinypedal\\data\\turn_labels\\Circuit de la Sarthe.turns.json": true,
+    "..\\tinypedal\\tinypedal\\data\\turn_labels\\Daytona International Speedway Road Course.turns.json": true,
+    "..\\tinypedal\\tinypedal\\data\\turn_labels\\Fuji Speedway Classic.turns.json": true,
+    "..\\tinypedal\\tinypedal\\data\\turn_labels\\Michelin Raceway Road Atlanta.turns.json": true,
+    "..\\tinypedal\\tinypedal\\data\\turn_labels\\Monza Curva Grande Circuit.turns.json": true,
+    "..\\tinypedal\\tinypedal\\data\\turn_labels\\Paul Ricard - 1A-V2-Short.turns.json": true,
+    "..\\tinypedal\\tinypedal\\data\\turn_labels\\Paul Ricard - 3A.turns.json": true,
+    "..\\tinypedal\\tinypedal\\data\\turn_labels\\Sebring International Raceway.turns.json": true,
+    "..\\tinypedal\\tinypedal\\data\\turn_labels\\Silverstone Grand Prix Circuit - ELMS.turns.json": true,
+    "..\\tinypedal\\tinypedal\\data\\turn_labels\\Silverstone International Circuit.turns.json": true,
+    "..\\tinypedal\\tinypedal\\data\\turn_labels\\WeatherTech Raceway Laguna Seca.turns.json": true,
+    "..\\tinypedal\\trackmap\\Grand Prix of Long Beach.svg": true,
+    "product\\data\\track-coaching\\grand-prix-of-long-beach_ferrari-af-corse-2026-50-lm.json": true,
+    "product\\data\\reference-laps\\grand-prix-of-long-beach_ferrari-af-corse-2026-50-lm_time_01.15.889.parquet": true
+  },
+  "all_unchanged": true,
+  "only_outline_change_is_lap_length_m": true,
+  "new_lap_length_m": 3185.3,
+  "tiny_new_payload": "..\\tinypedal\\tinypedal\\data\\turn_labels\\Grand Prix of Long Beach.turns.json"
+}

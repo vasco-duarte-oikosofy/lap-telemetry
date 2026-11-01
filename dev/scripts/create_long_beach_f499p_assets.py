@@ -75,6 +75,7 @@ def outline_from_ref(model):
         schema_version=1, source='Single lap trajectory (synthetic +/-5m width)',
         track_name='Grand Prix of Long Beach', sim_track_name='Grand Prix of Long Beach',
         layout_name='default', coordinate_system='sim_xy', units='sim_units',
+        lap_length_m=model['lap_length_m'],  # Same axis as apex_s_m; not trace arc length.
         track_name_mapping=dict(canonical_sim_track_name=TRACK,
                                 canonical_lmu_track_name='Grand Prix of Long Beach',
                                 accepted_sim_track_names=[TRACK],

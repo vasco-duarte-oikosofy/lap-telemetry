@@ -1,0 +1,21 @@
+Feature: track-outline (19 scripts)
+
+FAILED — 671 passed, 1 of 19 scripts failed in 6.0
+
+=== FAIL: dev/scripts/test_long_beach_tinypedal.js (13 failures) ===
+[FAIL] outline explicitly carries the coaching apices simulator-distance axis
+[FAIL] normalization uses simulator lap length, not noisy geometric length
+[FAIL] every fraction matches its reviewed coaching apex on the same distance axis
+[FAIL] invalid explicit distance axis rejected: 0
+[FAIL] invalid explicit distance axis rejected: -1
+[FAIL] invalid explicit distance axis rejected: True
+[FAIL] invalid explicit distance axis rejected: nan
+[FAIL] invalid explicit distance axis rejected: inf
+[FAIL] track-only CLI matches normalized name and exports successfully
+[FAIL] export filename is the exact TinyPedal track-map name
+[FAIL] test_long_beach_tinypedal.py exited 1
+[FAIL] Long Beach packaged turn data is available to the runtime loader
+[FAIL] test_long_beach_turn_labels.py exited 1
+
+To re-run a failing test:
+  bash scripts/test-summary.sh dev/scripts/test_long_beach_tinypedal.js

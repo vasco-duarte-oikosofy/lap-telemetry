@@ -208,6 +208,25 @@ Check that:
 - `lap_time_delta_s` is in the right ballpark for the lap you chose.
 - No crash or `KeyError` — all corner IDs resolved correctly.
 
+### Step 8 — Publish map turns to TinyPedal when a recorded map exists
+
+The coaching JSON/web bundle alone does **not** supply TinyPedal's turn labels.
+After the curated turns are baked into the track outline, export that track's
+packaged label data separately (the sibling TinyPedal map name must exist):
+
+```powershell
+python dev/scripts/export_turn_labels_for_tinypedal.py --track "Grand Prix of Long Beach"
+python dev/scripts/export_turn_labels_for_tinypedal.py --track "Grand Prix of Long Beach" --check
+```
+
+An outline's explicit `lap_length_m` must use the same simulator distance axis
+as its `apex_s_m` values, normally the coaching model's lap length. A geometric
+trace can be longer due to jitter: using it as the denominator shifts labels.
+Legacy outlines without this metadata retain their previous normalization.
+Restart TinyPedal/reload the track map to load the new packaged file. See
+[MAP_TURN_NAMES.md](specs/MAP_TURN_NAMES.md#the-tinypedal-port-tinypedal) for the
+schema and rendering contract. Do not regenerate other tracks as a side effect.
+
 ---
 
 ## Pipeline B — Updating an existing track (new fastest lap)
