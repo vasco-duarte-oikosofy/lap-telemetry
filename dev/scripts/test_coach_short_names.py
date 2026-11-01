@@ -73,7 +73,7 @@ def test_display_name_prefers_short() -> None:
     by_id = {c.id: c for c in model.corners}
 
     expected = {
-        "t1": "Grande",
+        "t1": "Curva Grande",
         "t2": "Roggia 1",
         "t3": "Roggia 2",
         "t4": "Lesmo 1",

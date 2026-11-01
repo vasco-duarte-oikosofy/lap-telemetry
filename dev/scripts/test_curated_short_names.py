@@ -32,6 +32,9 @@ def test_corpus():
     ok(len(paths) >= 33, f'all {len(paths)} coaching models are audited')
     expected = {
         'Farm Curve': 'Farm', 'Turn 10A': 'Ten A', 'Turn 10B': 'Ten B',
+        'Curva Grande': 'Curva Grande',
+        'Descida do Lago 1': 'Descida do Lago 1',
+        'Descida do Lago 2': 'Descida do Lago 2',
         'Turn 1': '1', 'Turn 9': '9', '100R': 'One Hundred R',
         'Lesmo 1': 'Lesmo 1', 'Lesmo 2': 'Lesmo 2',
         'Variante della Roggia 1': 'Roggia 1',
@@ -110,6 +113,25 @@ def test_writer():
            'writer refuses stale previews without overwriting changed geometry')
 
 
+def test_explicit_exceptions():
+    with tempfile.TemporaryDirectory() as directory:
+        path = Path(directory) / 'exceptions.json'
+        # User exceptions must override pre-existing aliases, not just missing ones.
+        path.write_text(json.dumps({'corners': [
+            {'id': 'grande', 'name': 'Curva Grande', 'short_name': 'Grande'},
+            {'id': 'lago1', 'name': 'Descida do Lago 1', 'short_name': 'Lago 1'},
+            {'id': 'lago2', 'name': 'Descida do Lago 2', 'short_name': 'Lago 2'},
+            {'id': 'lago', 'name': 'Descida do Lago'},
+            {'id': 'farm', 'name': 'Farm Curve', 'short_name': 'Farm'},
+        ]}), encoding='utf-8')
+        apply_changes(plan_changes(Path(directory)))
+        corners = json.loads(path.read_text(encoding='utf-8'))['corners']
+        ok(all(c['short_name'] == c['name'] for c in corners[:4]),
+           'exceptions preserve full names, with and without subdivision numbers')
+        ok(corners[4]['short_name'] == 'Farm', 'normal shortening still applies outside exceptions')
+        ok(not plan_changes(Path(directory)), 'exception aliases survive subsequent curation')
+
+
 def test_spoken_template():
     model = load_track_coaching_model(
         ROOT / 'product/data/track-coaching/michelin-raceway-road-atlanta_dkr-engineering-4-elms25.json')
@@ -125,6 +147,7 @@ def test_spoken_template():
 if __name__ == '__main__':
     test_corpus()
     test_writer()
+    test_explicit_exceptions()
     test_spoken_template()
     print(f'{passed}/{passed + failed} assertions passed')
     sys.exit(bool(failed))

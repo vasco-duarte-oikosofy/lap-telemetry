@@ -51,7 +51,7 @@
       "apex_side": "left",
       "apex_side_source": "manual",
       "target_throttle_pct": 68,
-      "short_name": "Lago 1"
+      "short_name": "Descida do Lago 1"
     },
     {
       "id": "t5",
@@ -62,7 +62,7 @@
       "apex_side": "left",
       "apex_side_source": "manual",
       "target_throttle_pct": 100,
-      "short_name": "Lago 2"
+      "short_name": "Descida do Lago 2"
     },
     {
       "id": "t6",

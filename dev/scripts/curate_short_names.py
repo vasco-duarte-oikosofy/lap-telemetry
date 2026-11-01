@@ -2,8 +2,8 @@
 """Preview/check/write reviewed coaching aliases, changing short_name ONLY.
 
 No blanket word stripping: e.g. Netz Hairpin must remain distinct from Netz.
-Existing curated aliases are reused across cars. Known proper names without a
-shorter unambiguous form keep their name. Numbers >=10 are spelt for TTS.
+Existing curated aliases are reused across cars, except explicit user-selected
+full-name exceptions. Numbers >=10 are spelt for TTS.
 Run without flags to review, --check to audit, --write to persist and audit.
 """
 import argparse
@@ -13,10 +13,14 @@ import re
 from pathlib import Path
 
 MODELS_DIR = Path(__file__).resolve().parents[2] / 'product/data/track-coaching'
-# Reviewed additions. Existing hand-curated aliases are authoritative.
+# User-selected proper names stay intact, even if older curation shortened them.
+FULL_NAME_EXCEPTIONS = {
+    'Curva Grande', 'Descida do Lago', 'Descida do Lago 1', 'Descida do Lago 2',
+}
+# Reviewed additions. Other existing hand-curated aliases are authoritative.
 REVIEWED = {
     'Farm Curve': 'Farm', 'The Link': 'Link', 'The Loop': 'Loop',
-    'Curva Grande': 'Grande', 'Andretti Hairpin': 'Andretti',
+    'Andretti Hairpin': 'Andretti',
     'Dunlop Curve': 'Dunlop', 'Dunlop Bypass': 'Dunlop',
     'First Corner': 'First', '13th Corner': 'Thirteenth',
     'Double left of Pouhon': 'Pouhon', 'Courbe Paul-Frère': 'Paul-Frère',
@@ -59,7 +63,7 @@ def plan_changes(directory=MODELS_DIR):
     curated = {}
     for _, model in models:
         for corner in model['corners']:
-            if corner.get('short_name'):
+            if corner.get('short_name') and corner['name'] not in FULL_NAME_EXCEPTIONS:
                 choices = curated.setdefault(corner['name'], set())
                 choices.add(corner['short_name'])
     for name, choices in curated.items():
@@ -73,7 +77,8 @@ def plan_changes(directory=MODELS_DIR):
             raise ValueError(f'Duplicate corner IDs in {path}')
         for corner in model['corners']:
             name = corner['name']
-            alias = corner.get('short_name') or aliases.get(name, name)
+            alias = (name if name in FULL_NAME_EXCEPTIONS
+                     else corner.get('short_name') or aliases.get(name, name))
             numbered = re.fullmatch(r'turn\s+(\d+[A-Za-z]?)', name, re.I)
             if numbered and not corner.get('short_name'):
                 alias = numbered[1]
