@@ -1,6 +1,7 @@
 # Slice 40 — Refresh Long Beach / Ferrari 499P reference and coaching model
 
-**Status:** In progress. User requested the latest practice session's faster lap.
+**Status:** ✅ Complete in main `a3a0f64` and TinyPedal master `2e45c0eb`.
+Lap 7 / 1:14.871 validated; all curation and reviewed geometry retained.
 
 ## Goal
 
