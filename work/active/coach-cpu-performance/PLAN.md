@@ -16,7 +16,11 @@ Feature tests: `bash scripts/test-summary.sh --feature coach-cpu-performance`.
 
 Slices 01 and 06 are complete. Slices 02–05 remain **planning only**, with no
 implementation started. User selection is required before any of those options
-proceeds; live race data from the new CPU reports is pending.
+proceeds; live race data from the new CPU reports is pending. The first captured
+race log turned out to contain no speech at all (Paul Ricard 1A had no reference
+lap yet), so it cannot confirm the live number — see
+[artifacts/race-log-investigation.md](06-live-utterance-cpu-report/artifacts/race-log-investigation.md)
+for the verdict, the measured target gap and the re-run command.
 
 [Measured evidence](01-halve-lap-end-cpu/artifacts/benchmark.md): warm cost is now
 23.62% of original, not yet 10%. The next total budget is ~6.01 CPU-s/event;
