@@ -1,0 +1,7 @@
+{
+  "lap_number": 10,
+  "time_s": 90.0625,
+  "start": 53011,
+  "end": 57493,
+  "reference_file": "product/data/reference-laps/autodromo-jose-carlos-pace_dkr-engineering-4-elms25_time_01.30.062.parquet"
+}

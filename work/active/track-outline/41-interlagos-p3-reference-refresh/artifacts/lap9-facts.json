@@ -1,0 +1,109 @@
+{
+  "type": "lap_coaching_summary",
+  "track_id": "autodromo-jose-carlos-pace",
+  "lap_number": 9,
+  "lap_time_delta_s": 1.721,
+  "top_losses": [
+    {
+      "corner_id": "t12",
+      "corner_name": "Jun\u00e7\u00e3o",
+      "apex_distance_m": 3251.0,
+      "phase": "exit_brake",
+      "loss_s": 0.604,
+      "driver_value": 82.3,
+      "reference_value": 99.5,
+      "unit": "km/h",
+      "confidence": "medium",
+      "phase_distance_m": 3265.0,
+      "gain_end_distance_m": 3391.0,
+      "exit_distance_delta_m": 15.0,
+      "reference_phase_distance_m": 3280.0,
+      "target_throttle_pct": 51.0
+    },
+    {
+      "corner_id": "t12",
+      "corner_name": "Jun\u00e7\u00e3o",
+      "apex_distance_m": 3251.0,
+      "phase": "minimum_speed",
+      "loss_s": 0.577,
+      "driver_value": 81.8,
+      "reference_value": 96.7,
+      "unit": "km/h",
+      "confidence": "high",
+      "driver_apex_distance_m": 3267.0,
+      "reference_apex_distance_m": 3251.0,
+      "apex_offset_m": -16.0,
+      "gain_end_distance_m": 3391.0,
+      "target_throttle_pct": 51.0
+    },
+    {
+      "corner_id": "t12",
+      "corner_name": "Jun\u00e7\u00e3o",
+      "apex_distance_m": 3251.0,
+      "phase": "exit_throttle",
+      "loss_s": 0.237,
+      "driver_value": 100.8,
+      "reference_value": 115.5,
+      "unit": "km/h",
+      "confidence": "medium",
+      "phase_distance_m": 3298.0,
+      "gain_end_distance_m": 3391.0,
+      "exit_distance_delta_m": -18.0,
+      "reference_phase_distance_m": 3280.0,
+      "target_throttle_pct": 51.0
+    }
+  ],
+  "top_gains": [
+    {
+      "corner_id": "t9",
+      "corner_name": "Pinheirinho",
+      "apex_distance_m": 2477.0,
+      "phase": "exit",
+      "loss_s": -0.082,
+      "driver_value": 125.6,
+      "reference_value": 117.8,
+      "unit": "km/h",
+      "confidence": "medium",
+      "phase_distance_m": 2539.0,
+      "gain_end_distance_m": 2654.0,
+      "exit_distance_delta_m": -2.0,
+      "reference_phase_distance_m": 2537.0,
+      "target_throttle_pct": 82.0
+    },
+    {
+      "corner_id": "t6",
+      "corner_name": "Ferradura 1",
+      "apex_distance_m": 2089.0,
+      "phase": "entry",
+      "loss_s": -0.069,
+      "driver_value": 226.3,
+      "reference_value": 215.6,
+      "unit": "km/h",
+      "confidence": "medium",
+      "phase_distance_m": 1949.0,
+      "gain_end_distance_m": 2089.0,
+      "entry_distance_delta_m": -25.0,
+      "reference_phase_distance_m": 1924.0
+    },
+    {
+      "corner_id": "t10",
+      "corner_name": "Bico",
+      "apex_distance_m": 2766.0,
+      "phase": "minimum_speed",
+      "loss_s": -0.058,
+      "driver_value": 76.1,
+      "reference_value": 75.0,
+      "unit": "km/h",
+      "confidence": "medium",
+      "driver_apex_distance_m": 2760.0,
+      "reference_apex_distance_m": 2766.0,
+      "apex_offset_m": 6.0,
+      "gain_end_distance_m": 2898.0,
+      "target_throttle_pct": 53.0
+    }
+  ],
+  "constraints": {
+    "max_words": 35,
+    "style": "calm_concise_engineer"
+  }
+}

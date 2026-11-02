@@ -1,0 +1,12 @@
+{
+  "type": "lap_coaching_summary",
+  "track_id": "autodromo-jose-carlos-pace",
+  "lap_number": 10,
+  "lap_time_delta_s": 0.0,
+  "top_losses": [],
+  "top_gains": [],
+  "constraints": {
+    "max_words": 35,
+    "style": "calm_concise_engineer"
+  }
+}

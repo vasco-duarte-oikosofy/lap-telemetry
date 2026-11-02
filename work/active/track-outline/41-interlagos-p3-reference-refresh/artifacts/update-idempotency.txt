@@ -1,0 +1,18 @@
+Fastest lap in session(s): lap 10 @ 90.062s (session_20261102T174436Z_autodromo-jose-carlos-pace_lmu_race.parquet, vehicle dkr-engineering-4-elms25)
+Not faster than existing reference 90.062s - reference stays; model will be checked against autodromo-jose-carlos-pace_dkr-engineering-4-elms25_time_01.30.062.parquet
+Corner check: model has 15, lap yields 7 (5 matched, 10 geometry preserved)
+  PRESERVED: Senna S 2 (t2) keeps reviewed geometry; no event claimed
+  PRESERVED: Curva do Sol (t3) keeps reviewed geometry; no event claimed
+  PRESERVED: Descida do Lago 2 (t5) keeps reviewed geometry; no event claimed
+  PRESERVED: Ferradura 1 (t6) keeps reviewed geometry; no event claimed
+  PRESERVED: Ferradura 2 (t7) keeps reviewed geometry; no event claimed
+  PRESERVED: Laranjinha (t8) keeps reviewed geometry; no event claimed
+  PRESERVED: Mergulho (t11) keeps reviewed geometry; no event claimed
+  PRESERVED: Café (t13) keeps reviewed geometry; no event claimed
+  PRESERVED: Subida das Boxes (t14) keeps reviewed geometry; no event claimed
+  PRESERVED: Arquibancadas (t15) keeps reviewed geometry; no event claimed
+  INFO: new corner at apex=2151m not in the model - ignored
+  INFO: new corner at apex=2355m not in the model - ignored
+Geometry guard: all matched corners within 25 m - OK
+
+Coaching model already up to date (autodromo-jose-carlos-pace_dkr-engineering-4-elms25.json) - nothing written.

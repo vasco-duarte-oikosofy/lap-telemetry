@@ -1,0 +1,41 @@
+Candidate scan of the frozen race session (segment-aware, never by lap_number):
+  lap  1    91.456s  full_lap=True  all_frames_valid=True
+  lap  2    91.021s  full_lap=True  all_frames_valid=True
+  lap  3    91.090s  full_lap=True  all_frames_valid=True
+  lap  4    91.846s  full_lap=True  all_frames_valid=True
+  lap  5    90.824s  full_lap=True  all_frames_valid=True
+  lap  6    90.767s  full_lap=True  all_frames_valid=True
+  lap  7    90.771s  full_lap=True  all_frames_valid=True
+  lap  8    90.975s  full_lap=True  all_frames_valid=True
+  lap  9    91.783s  full_lap=True  all_frames_valid=True
+  lap 10    90.062s  full_lap=True  all_frames_valid=True
+  lap 11    91.408s  full_lap=True  all_frames_valid=True
+  lap 12    91.085s  full_lap=True  all_frames_valid=True
+  lap 13    91.135s  full_lap=True  all_frames_valid=True
+  lap 14    92.029s  full_lap=True  all_frames_valid=True
+  lap 15    91.020s  full_lap=True  all_frames_valid=True
+  lap 16    91.162s  full_lap=True  all_frames_valid=True
+  lap 17    90.604s  full_lap=True  all_frames_valid=True
+  lap 18    90.177s  full_lap=True  all_frames_valid=True
+  lap 19    90.495s  full_lap=True  all_frames_valid=True
+  lap 20    99.788s  full_lap=True  all_frames_valid=True
+
+Selected: lap 10 @ 90.0625s  (previous reference 90.354s -> -0.2915s)
+
+Signals within +-0.5s of each curated apex (brake_max/throttle_min/|steer|_max/v_min):
+id     apex  old 1:30.354 lap              new 1:30.062 lap          name   [decision]
+t1      384  0.07/0.02/0.43/93             0.13/0.00/0.42/85         Senna S 1           [refreshed]
+t2      453  0.22/0.00/0.39/116            0.34/0.00/0.31/113        Senna S 2           [PRESERVED]
+t3      698  0.00/1.00/0.13/184            0.00/1.00/0.13/186        Curva do Sol        [PRESERVED]
+t4     1424  0.25/0.00/0.40/110            0.24/0.00/0.33/118        Descida do Lago 1   [refreshed]
+t5     1605  0.00/1.00/0.12/173            0.00/1.00/0.13/177        Descida do Lago 2   [PRESERVED]
+t6     2089  0.10/0.00/0.28/151            0.00/0.00/0.27/160        Ferradura 1         [PRESERVED]
+t7     2152  0.00/0.52/0.24/159            0.00/0.00/0.27/156        Ferradura 2         [PRESERVED]
+t8     2361  0.12/0.00/0.55/78             0.13/0.00/0.54/73         Laranjinha          [PRESERVED]
+t9     2477  0.13/0.00/0.52/89             0.10/0.00/0.40/90         Pinheirinho         [refreshed]
+t10    2766  0.13/0.00/0.60/73             0.08/0.00/0.58/75         Bico de Pato        [refreshed]
+t11    2949  0.00/0.45/0.31/159            0.00/1.00/0.26/160        Mergulho            [PRESERVED]
+t12    3251  0.18/0.00/0.40/102            0.18/0.00/0.38/97         Junção              [refreshed]
+t13    3391  0.00/1.00/0.07/149            0.00/1.00/0.08/148        Café                [PRESERVED]
+t14    3680  0.00/1.00/0.09/204            0.00/1.00/0.11/203        Subida das Boxes    [PRESERVED]
+t15    4020  0.00/1.00/0.05/241            0.00/1.00/0.05/240        Arquibancadas       [PRESERVED]

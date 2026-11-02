@@ -3,9 +3,9 @@
   "track_id": "autodromo-jose-carlos-pace",
   "layout_id": "default",
   "reference_lap": {
-    "path": "product\\data\\reference-laps\\autodromo-jose-carlos-pace_dkr-engineering-4-elms25_time_01.30.354.parquet",
+    "path": "product/data/reference-laps/autodromo-jose-carlos-pace_dkr-engineering-4-elms25_time_01.30.062.parquet",
     "car_id": "dkr-engineering-4-elms25",
-    "lap_time_s": 90.354,
+    "lap_time_s": 90.062,
     "detection_method": "throttle_brake_v1"
   },
   "lap_length_m": 4271.98,
@@ -13,9 +13,9 @@
     {
       "id": "t1",
       "name": "Senna S 1",
-      "s_start_m": 179.0,
+      "s_start_m": 167.0,
       "apex_s_m": 384.0,
-      "s_end_m": 418.0,
+      "s_end_m": 417.0,
       "apex_side": "left",
       "apex_side_source": "manual",
       "target_throttle_pct": 64,
@@ -45,9 +45,9 @@
     {
       "id": "t4",
       "name": "Descida do Lago 1",
-      "s_start_m": 1259.0,
-      "apex_s_m": 1432.0,
-      "s_end_m": 1459.0,
+      "s_start_m": 1273.0,
+      "apex_s_m": 1424.0,
+      "s_end_m": 1464.0,
       "apex_side": "left",
       "apex_side_source": "manual",
       "target_throttle_pct": 68,
@@ -98,9 +98,9 @@
     {
       "id": "t9",
       "name": "Pinheirinho",
-      "s_start_m": 2410.0,
-      "apex_s_m": 2472.0,
-      "s_end_m": 2538.0,
+      "s_start_m": 2408.0,
+      "apex_s_m": 2477.0,
+      "s_end_m": 2536.0,
       "apex_side": "left",
       "apex_side_source": "manual",
       "target_throttle_pct": 82
@@ -108,9 +108,9 @@
     {
       "id": "t10",
       "name": "Bico de Pato",
-      "s_start_m": 2651.0,
-      "apex_s_m": 2772.0,
-      "s_end_m": 2797.0,
+      "s_start_m": 2656.0,
+      "apex_s_m": 2766.0,
+      "s_end_m": 2796.0,
       "apex_side": "right",
       "apex_side_source": "manual",
       "target_throttle_pct": 53,
@@ -128,9 +128,9 @@
     {
       "id": "t12",
       "name": "Junção",
-      "s_start_m": 3134.0,
-      "apex_s_m": 3255.0,
-      "s_end_m": 3284.0,
+      "s_start_m": 3137.0,
+      "apex_s_m": 3251.0,
+      "s_end_m": 3280.0,
       "apex_side": "left",
       "apex_side_source": "manual",
       "target_throttle_pct": 51
