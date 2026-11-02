@@ -110,7 +110,7 @@ def main():
     output_path = Path(sys.argv[2])
     
     # Load trajectory JSON
-    with open(input_path, 'r') as f:
+    with open(input_path, 'r', encoding='utf-8') as f:
         trajectory_data = json.load(f)
     
     # Extract points
@@ -166,7 +166,7 @@ def main():
     }
     
     # Write output
-    with open(output_path, 'w') as f:
+    with open(output_path, 'w', encoding='utf-8') as f:
         json.dump(outline, f, indent=2)
         f.write('\n')
     

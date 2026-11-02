@@ -74,7 +74,7 @@ def vehicle_slug(vehicle_name: str) -> str:
 def read_vehicle_name(session_parquet: Path) -> str:
     sidecar = session_parquet.with_suffix(".json")
     if sidecar.exists():
-        return json.loads(sidecar.read_text()).get("vehicle_name", "")
+        return json.loads(sidecar.read_text(encoding="utf-8")).get("vehicle_name", "")
     return ""
 
 

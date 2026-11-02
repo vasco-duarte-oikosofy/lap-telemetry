@@ -109,7 +109,7 @@ def compute_boundaries(centerline, width_per_side=5.0):
 
 def load_lap_from_json(json_path):
     """Load a single lap from an exported JSON file."""
-    with open(json_path) as f:
+    with open(json_path, encoding='utf-8') as f:
         data = json.load(f)
     
     if 'trajectories' not in data or len(data['trajectories']) == 0:
@@ -351,7 +351,7 @@ def main():
     
     # Curated turn labels survive regeneration (docs/specs/MAP_TURN_NAMES.md).
     preserve_turns(outline, str(output_path))
-    with open(output_path, 'w') as f:
+    with open(output_path, 'w', encoding='utf-8') as f:
         json.dump(outline, f, indent=2)
         f.write('\n')
     

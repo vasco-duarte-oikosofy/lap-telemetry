@@ -30,8 +30,8 @@ def cli(arguments):
 
 
 def main():
-    outline = json.loads((ROOT / f'product/data/track-outlines/{SLUG}.json').read_text())
-    model = json.loads((ROOT / f'product/data/track-coaching/{SLUG}_ferrari-af-corse-2026-50-lm.json').read_text())
+    outline = json.loads((ROOT / f'product/data/track-outlines/{SLUG}.json').read_text(encoding='utf-8'))
+    model = json.loads((ROOT / f'product/data/track-coaching/{SLUG}_ferrari-af-corse-2026-50-lm.json').read_text(encoding='utf-8'))
     length = model['lap_length_m']
     check(outline.get('lap_length_m') == length == 3185.3,
           'outline explicitly carries the coaching apices simulator-distance axis')

@@ -130,7 +130,7 @@ def export_lap(df, lap_number, output_dir, track_name=None):
     
     # Write output
     output_path = output_dir / f"lap{lap_number}.json"
-    with open(output_path, 'w') as f:
+    with open(output_path, 'w', encoding='utf-8') as f:
         json.dump(output, f, indent=2)
     
     print(f"  ✅ Exported lap {lap_number}: {len(points)} points → {output_path}")
@@ -209,7 +209,7 @@ Examples:
     sidecar_path = args.parquet_file.with_suffix('.json')
     if sidecar_path.exists():
         try:
-            with open(sidecar_path) as f:
+            with open(sidecar_path, encoding='utf-8') as f:
                 meta = json.load(f)
                 track_name = meta.get('track', args.parquet_file.stem)
                 print(f"Track: {track_name}")

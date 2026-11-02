@@ -141,7 +141,7 @@ def main() -> int:
             sidecar = sp.with_suffix(".json")
             if not sidecar.exists():
                 continue
-            vname = json.loads(sidecar.read_text()).get("vehicle_name", "")
+            vname = json.loads(sidecar.read_text(encoding="utf-8")).get("vehicle_name", "")
             if vehicle_slug(vname) != vslug:
                 continue
             if any(abs(t - named_time) <= TIME_TOL_S for t in session_lap_times(sp)):
@@ -150,7 +150,7 @@ def main() -> int:
         if source is None:
             if track in sessions_by_track:
                 wrong_vehicle_only = all(
-                    vehicle_slug(json.loads(sp.with_suffix(".json").read_text()).get("vehicle_name", "")) != vslug
+                    vehicle_slug(json.loads(sp.with_suffix(".json").read_text(encoding="utf-8")).get("vehicle_name", "")) != vslug
                     for sp in sessions_by_track[track] if sp.with_suffix(".json").exists()
                 )
                 if wrong_vehicle_only:

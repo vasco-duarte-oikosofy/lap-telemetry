@@ -27,6 +27,7 @@ ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT / "dev" / "scripts"))
 
 import update_reference_and_coaching_model as updater  # noqa: E402
+from generate_track_coaching_model_from_reference import Candidate
 from update_reference_and_coaching_model import refresh_corners, match_corners
 
 _passed = 0
@@ -121,7 +122,7 @@ def test_explicit_geometry_preservation_does_not_steal_events() -> None:
 
 def test_preservation_and_geometry_guards_precede_export() -> None:
     model_path = ROOT / 'product/data/track-coaching/grand-prix-of-long-beach_ferrari-af-corse-2026-50-lm.json'
-    model = json.loads(model_path.read_text())
+    model = json.loads(model_path.read_text(encoding='utf-8'))
     preserved = {'t3', 't7', 't10', 't11'}
     candidates = [SimpleNamespace(s_start_m=c['s_start_m'] + (100 if c['id'] == 't1' else 0),
                                  apex_m=c['apex_s_m'], s_end_m=c['s_end_m'])
@@ -153,6 +154,59 @@ def test_preservation_and_geometry_guards_precede_export() -> None:
                   f'{expected_message}: reference exporter not called and model bytes untouched')
 
 
+
+def test_curated_unicode_names_round_trip_through_the_updater() -> None:
+    """Windows cp1252 must never mangle names like Junção/Hôtel.
+
+    The updater used to call read_text() without an encoding: on Windows that
+    decodes the UTF-8 model as cp1252, so a refresh wrote back mojibake
+    ("JunÃ§Ã£o"). Curated names must survive byte-identical.
+    """
+    model = {
+        "schema_version": 1,
+        "track_id": "autodromo-jose-carlos-pace",
+        "layout_id": "default",
+        "reference_lap": {"path": "product/data/reference-laps/old_time_01.30.354.parquet",
+                          "car_id": "dkr-engineering-4-elms25", "lap_time_s": 90.354,
+                          "detection_method": "throttle_brake_v1"},
+        "lap_length_m": 4271.98,
+        "corners": [{
+            "id": "t12", "name": "Junção", "short_name": "Junção",
+            "s_start_m": 3134.0, "apex_s_m": 3255.0, "s_end_m": 3284.0,
+            "apex_side": "left", "apex_side_source": "manual", "target_throttle_pct": 51,
+        }, {
+            "id": "t13", "name": "Café", "s_start_m": 3391.0, "apex_s_m": 3391.0,
+            "s_end_m": 3391.0, "apex_side": "left", "apex_side_source": "manual",
+            "target_throttle_pct": 100,
+        }],
+        "straight_zones": [],
+    }
+    candidates = [Candidate(apex_m=3255, min_speed_kph=82.0, prominence_kph=18.0,
+                            left_peak_kph=100.0, right_peak_kph=95.0,
+                            s_start_m=3134.0, s_end_m=3284.0)]
+    table = pa.table({'dummy': [1, 2, 3, 4]})
+    with tempfile.TemporaryDirectory() as folder:
+        path = Path(folder) / 'autodromo-jose-carlos-pace_dkr-engineering-4-elms25.json'
+        path.write_text(json.dumps(model, ensure_ascii=False), encoding='utf-8')
+        args = SimpleNamespace(ref=None, session=[Path('source.parquet')],
+                               track_id='autodromo-jose-carlos-pace', allow_unmatched=False,
+                               preserve_geometry=['t13'], max_geometry_delta_m=None)
+        output = io.StringIO()
+        with contextlib.redirect_stdout(output), contextlib.redirect_stderr(output),              patch.object(updater, 'parse_args', return_value=args),              patch.object(updater, 'COACHING_DIR', Path(folder)),              patch.object(updater, 'read_vehicle_name', return_value='DKR Engineering #4:ELMS25'),              patch.object(updater, 'existing_refs', return_value=[(Path('old.parquet'), 90.354)]),              patch.object(updater, 'find_complete_laps', return_value=[(10, 90.062, 0, 4)]),              patch.object(updater.pq, 'read_table', return_value=table),              patch.object(updater, 'detect_corners', return_value=(candidates, 'throttle_brake_v1')),              patch.object(updater.tempfile, 'gettempdir', return_value=folder),              patch.object(updater.subprocess, 'run') as export:
+            export.return_value.returncode = 0
+            code = updater.main()
+        raw = path.read_bytes()
+        written = json.loads(raw.decode('utf-8'))
+        names = [c['name'] for c in written['corners']]
+        check(code == 0 and export.called, 'updater ran the guarded export path')
+        check(names == ['Junção', 'Café'],
+              'curated Unicode names round-trip unchanged', repr(names))
+        check('Ã' not in raw.decode('utf-8'),
+              'no double-encoded UTF-8 is written back to a curated model')
+        check(written['corners'][1]['target_throttle_pct'] == 100,
+              'flat marker still preserved through the same run')
+
+
 def main() -> int:
     print("═══ Coaching-model updater merge tests ═══\n")
     test_matched_corner_keeps_curated_fields_and_takes_new_geometry()
@@ -160,7 +214,8 @@ def main() -> int:
     test_inputs_are_not_mutated()
     test_mixed_pairs_preserve_order()
     for test in [test_explicit_geometry_preservation_does_not_steal_events,
-                 test_preservation_and_geometry_guards_precede_export]:
+                 test_preservation_and_geometry_guards_precede_export,
+                 test_curated_unicode_names_round_trip_through_the_updater]:
         try:
             test()
         except Exception as error:

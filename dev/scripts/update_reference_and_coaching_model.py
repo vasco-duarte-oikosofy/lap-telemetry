@@ -277,7 +277,7 @@ def main() -> int:
               f"Use generate_track_coaching_model_from_reference.py to create one.",
               file=sys.stderr)
         return 1
-    existing_model = json.loads(coaching_path.read_text())
+    existing_model = json.loads(coaching_path.read_text(encoding="utf-8"))
     existing_corners = existing_model["corners"]
 
     # --- 3. Corner dry-check BEFORE any write (bug 23) ---------------------
@@ -372,8 +372,10 @@ def main() -> int:
         "straight_zones": existing_model.get("straight_zones", []),
     }
 
-    new_text = json.dumps(updated_model, indent=2) + "\n"
-    if new_text == coaching_path.read_text():
+    # ensure_ascii=False keeps curated names (Junção, Hôtel) readable; the read
+    # above must be explicit UTF-8, or Windows cp1252 turns them into mojibake.
+    new_text = json.dumps(updated_model, indent=2, ensure_ascii=False) + "\n"
+    if new_text == coaching_path.read_text(encoding="utf-8"):
         print(f"\nCoaching model already up to date ({coaching_path.name}) - nothing written.")
         return 0
 
