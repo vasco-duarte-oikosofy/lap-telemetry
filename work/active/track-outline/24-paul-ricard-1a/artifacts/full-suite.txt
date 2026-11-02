@@ -1,0 +1,62 @@
+Slice 24 test evidence (2026-11-01)
+
+Feature suite
+-------------
+$ PYTHONUTF8=1 bash scripts/test-summary.sh --pw --feature track-outline
+Feature: track-outline (26 scripts)
+ALL PASS — 945 assertions across 26 test scripts in 4.6
+Includes test_paul_ricard_1a.js (88 assertions), test_paul_ricard_1a_ui.js
+(Playwright file:// replay of the standalone artifact) and
+test_paul_ricard_1a_tinypedal.js (real Qt widget QA, 400/600px x 0/90deg).
+
+Full suite
+----------
+$ PYTHONUTF8=1 bash scripts/test-summary.sh --pw
+FAILED — 1954 passed, 6 of 78 scripts failed in 25.9
+
+=== FAIL: dev/scripts/test_static_outline_runtime_rendering.js (exit 1) ===
+=== FAIL: dev/scripts/test_apex_annotations.js (exit 1) ===
+=== FAIL: dev/scripts/test_apex_metrics.js (exit 1) ===
+=== FAIL: dev/scripts/test_apex_metrics_aggregate.js (exit 1) ===
+=== FAIL: dev/scripts/test_apex_metrics_surface_terrain.js (exit 1) ===
+=== FAIL: dev/scripts/test_track_outline_schema_compat.js (exit 1) ===
+
+All six abort with the same toolchain error before running assertions:
+
+  Error [ERR_UNSUPPORTED_ESM_URL_SCHEME]: Only URLs with a scheme in: file,
+  data, and node are supported by the default ESM loader. On Windows, absolute
+  paths must be valid file:// URLs. Received protocol 'c:'
+
+They call `await import(path.join(ROOT, '...'))` with a raw Windows path instead
+of pathToFileURL(). Node on this workstation is v22.22.3.
+
+Pre-existing, not caused by this slice
+--------------------------------------
+Verified against a clean checkout of HEAD (59a7539) in a separate worktree with
+none of this slice's files present:
+
+$ git worktree add /tmp/pr-head HEAD
+$ cd /tmp/pr-head
+$ for t in test_static_outline_runtime_rendering test_apex_annotations \
+    test_apex_metrics test_apex_metrics_aggregate \
+    test_apex_metrics_surface_terrain test_track_outline_schema_compat; do
+    node dev/scripts/$t.js >/dev/null 2>&1; echo "$t exit=$?"; done
+test_static_outline_runtime_rendering exit=1
+test_apex_annotations exit=1
+test_apex_metrics exit=1
+test_apex_metrics_aggregate exit=1
+test_apex_metrics_surface_terrain exit=1
+test_track_outline_schema_compat exit=1
+
+None of those files are touched by slice 24. Fixing them is a separate bug, not
+part of this slice (see handoff.md "Pre-existing failures").
+
+Host prerequisites used for this run
+------------------------------------
+- `python3` must resolve. This host had only python.exe in
+  %LOCALAPPDATA%\Programs\Python\Python310 and a WindowsApps `python3` stub that
+  exits 9009, so five python-wrapper tests failed with "Python was not found".
+  A `python3.exe` copy beside python.exe made them pass; nothing in the repo was
+  changed for that.
+- PYTHONUTF8=1 was exported for the run. Without it the same tests crash with
+  UnicodeEncodeError: 'charmap' codec ... cp1252 (Windows console default).

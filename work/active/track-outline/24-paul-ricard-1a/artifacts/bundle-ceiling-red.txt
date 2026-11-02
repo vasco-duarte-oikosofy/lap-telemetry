@@ -1,0 +1,10 @@
+Feature: track-outline (26 scripts)
+
+FAILED — 939 passed, 1 of 26 scripts failed in 4.7
+
+=== FAIL: dev/scripts/test_paul_ricard_1a_ui.js (2 failures) ===
+[FAIL] rebuilt standalone artifact respects the 437-line ceiling
+[FAIL] Error: rebuilt standalone artifact respects the 437-line ceiling
+
+To re-run a failing test:
+  bash scripts/test-summary.sh dev/scripts/test_paul_ricard_1a_ui.js

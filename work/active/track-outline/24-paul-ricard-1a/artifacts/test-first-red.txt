@@ -1,0 +1,18 @@
+Feature: track-outline (25 scripts)
+
+FAILED — 806 passed, 2 of 25 scripts failed in 4.6
+
+=== FAIL: dev/scripts/test_paul_ricard_1a.js (6 failures) ===
+[FAIL] exactly one NEW 1A/P3 reference exists
+[FAIL] new 1A/P3 coaching model exists
+[FAIL] new distinct 1A layout outline exists
+[FAIL] guarded new-layout writer exists
+[FAIL] Paul Ricard 1A/P3 data contracts
+[FAIL] runtime manifest resolves exact 1A simulator name
+
+=== FAIL: dev/scripts/test_paul_ricard_1a_ui.js (1 failure) ===
+[FAIL] Error: ENOENT: no such file or directory, open 'C:\Users\duart\lap-telemetry\product\data\track-coaching\paul-ricard---1a_dkr-engineering-4-elms25.json'
+
+To re-run a failing test:
+  bash scripts/test-summary.sh dev/scripts/test_paul_ricard_1a.js
+  bash scripts/test-summary.sh dev/scripts/test_paul_ricard_1a_ui.js

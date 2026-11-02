@@ -1,0 +1,14 @@
+Feature: track-outline (25 scripts)
+
+FAILED — 899 passed, 2 of 25 scripts failed in 4.7
+
+=== FAIL: dev/scripts/test_paul_ricard_1a.js (1 failure) ===
+[FAIL] filename-only replay resolves 1A despite inferred whitespace replacing the layout dash
+
+=== FAIL: dev/scripts/test_paul_ricard_1a_ui.js (2 failures) ===
+[FAIL] standalone file replay draws exact 1A layout: undefined
+[FAIL] Error: standalone file replay draws exact 1A layout: undefined
+
+To re-run a failing test:
+  bash scripts/test-summary.sh dev/scripts/test_paul_ricard_1a.js
+  bash scripts/test-summary.sh dev/scripts/test_paul_ricard_1a_ui.js

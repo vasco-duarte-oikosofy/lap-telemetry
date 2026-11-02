@@ -1,0 +1,20 @@
+Build currency check (2026-11-01)
+
+$ sha256sum product/dist/compare.html > /tmp/before.sha
+$ npm run build
+  ✓ Inlined CSS from web/css/styles.css
+  ✓ Found web/js/main.js — will bundle
+  ✓ Bundled web/js/main.js with esbuild
+  ✓ Wrote C:\Users\duart\lap-telemetry\product\dist\compare.html
+  ✓ Build complete
+$ sha256sum -c /tmp/before.sha
+product/dist/compare.html: OK
+$ wc -l product/dist/compare.html
+140 product/dist/compare.html
+
+=> committed bundle is byte-identical to a fresh build (no stale artifact) and
+   is 140 lines, under the 437-line file ceiling.
+
+Format parity (see build-format-parity.json): the whitespace-only esbuild change
+in 59a7539 leaves the rendered 1A PNG byte-identical
+(sha256 6b39ee1dc45e48493d39602c79d042c0a25a44f3344c160fb9374487d86b404e).

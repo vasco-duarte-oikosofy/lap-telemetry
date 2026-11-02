@@ -1,0 +1,5 @@
+Track: paul-ricard---1a  Vehicle: dkr-engineering-4-elms25  (1 sessions)
+  Fastest: lap 10 in session_20261101T190458Z_paul-ricard---1a_lmu_race.parquet -> 106.834s
+  Exported 5323 rows -> product\data\reference-laps\paul-ricard---1a_dkr-engineering-4-elms25_time_01.46.834.parquet
+
+AUDIT: 1 reference lap changed (added: ['paul-ricard---1a_dkr-engineering-4-elms25_time_01.46.834.parquet'], superseded: []). OK.

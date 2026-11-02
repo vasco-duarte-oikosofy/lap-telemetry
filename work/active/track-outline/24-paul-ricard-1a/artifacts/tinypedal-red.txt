@@ -1,0 +1,10 @@
+Feature: track-outline (26 scripts)
+
+FAILED — 908 passed, 1 of 26 scripts failed in 4.8
+
+=== FAIL: dev/scripts/test_paul_ricard_1a_tinypedal.js (2 failures) ===
+[FAIL] runtime loader finds NEW 1A packaged labels
+[FAIL] 1A real TinyPedal widget regression
+
+To re-run a failing test:
+  bash scripts/test-summary.sh dev/scripts/test_paul_ricard_1a_tinypedal.js

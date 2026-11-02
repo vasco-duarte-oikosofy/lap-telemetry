@@ -1,0 +1,2 @@
+session_20261101T185113Z_paul-ricard---1a_lmu_practice: 4232 rows, fastest complete valid=None
+session_20261101T185240Z_paul-ricard---1a_lmu_quali: 36787 rows, fastest complete valid=(4, 107.09112548828125, 23721, 29063)

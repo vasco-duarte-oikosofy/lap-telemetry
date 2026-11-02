@@ -1,0 +1,159 @@
+{
+  "schema_version": "1",
+  "track_id": "paul-ricard---1a",
+  "layout_id": "1a",
+  "reference_lap": {
+    "path": "product/data/reference-laps/paul-ricard---1a_dkr-engineering-4-elms25_time_01.46.834.parquet",
+    "car_id": "dkr-engineering-4-elms25",
+    "lap_time_s": 106.834,
+    "detection_method": "throttle_brake_v1"
+  },
+  "lap_length_m": 5696.9,
+  "corners": [
+    {
+      "id": "verrerie_1",
+      "name": "S de la Verrerie 1",
+      "short_name": "Verrerie 1",
+      "s_start_m": 560.0,
+      "apex_s_m": 607.0,
+      "s_end_m": 710.0,
+      "apex_side": "left",
+      "apex_side_source": "manual",
+      "target_throttle_pct": 100
+    },
+    {
+      "id": "verrerie_2",
+      "name": "S de la Verrerie 2",
+      "short_name": "Verrerie 2",
+      "s_start_m": 785.0,
+      "apex_s_m": 852.0,
+      "s_end_m": 970.0,
+      "apex_side": "right",
+      "apex_side_source": "manual",
+      "target_throttle_pct": 100
+    },
+    {
+      "id": "hotel_1",
+      "name": "Virage de l'Hôtel 1",
+      "short_name": "Hôtel 1",
+      "s_start_m": 1102.0,
+      "apex_s_m": 1279.0,
+      "s_end_m": 1298.0,
+      "apex_side": "right",
+      "apex_side_source": "manual"
+    },
+    {
+      "id": "hotel_2",
+      "name": "Virage de l'Hôtel 2",
+      "short_name": "Hôtel 2",
+      "s_start_m": 1305.0,
+      "apex_s_m": 1360.0,
+      "s_end_m": 1405.0,
+      "apex_side": "left",
+      "apex_side_source": "manual"
+    },
+    {
+      "id": "camp",
+      "name": "Virage du Camp",
+      "short_name": "Camp",
+      "s_start_m": 1406.0,
+      "apex_s_m": 1480.0,
+      "s_end_m": 1496.0,
+      "apex_side": "right",
+      "apex_side_source": "manual"
+    },
+    {
+      "id": "sainte_baume",
+      "name": "Virage de la Sainte-Baume",
+      "short_name": "Sainte-Baume",
+      "s_start_m": 1544.0,
+      "apex_s_m": 1600.0,
+      "s_end_m": 1640.0,
+      "apex_side": "right",
+      "apex_side_source": "manual"
+    },
+    {
+      "id": "mistral",
+      "name": "Ligne Droite du Mistral",
+      "short_name": "Mistral",
+      "s_start_m": 1780.0,
+      "apex_s_m": 1841.0,
+      "s_end_m": 1910.0,
+      "apex_side": "left",
+      "apex_side_source": "manual",
+      "target_throttle_pct": 100
+    },
+    {
+      "id": "signes",
+      "name": "Courbe de Signes",
+      "short_name": "Signes",
+      "s_start_m": 3674.0,
+      "apex_s_m": 3871.0,
+      "s_end_m": 3880.0,
+      "apex_side": "right",
+      "apex_side_source": "manual"
+    },
+    {
+      "id": "beausset_1",
+      "name": "Double Droite du Beausset 1",
+      "short_name": "Beausset 1",
+      "s_start_m": 4053.0,
+      "apex_s_m": 4265.0,
+      "s_end_m": 4330.0,
+      "apex_side": "right",
+      "apex_side_source": "manual"
+    },
+    {
+      "id": "beausset_2",
+      "name": "Double Droite du Beausset 2",
+      "short_name": "Beausset 2",
+      "s_start_m": 4331.0,
+      "apex_s_m": 4394.0,
+      "s_end_m": 4431.0,
+      "apex_side": "right",
+      "apex_side_source": "manual"
+    },
+    {
+      "id": "bendor",
+      "name": "Virage de Bendor",
+      "short_name": "Bendor",
+      "s_start_m": 4569.0,
+      "apex_s_m": 4732.0,
+      "s_end_m": 4769.0,
+      "apex_side": "left",
+      "apex_side_source": "manual"
+    },
+    {
+      "id": "garlaban",
+      "name": "Courbe du Garlaban",
+      "short_name": "Garlaban",
+      "s_start_m": 4810.0,
+      "apex_s_m": 4846.0,
+      "s_end_m": 5070.0,
+      "apex_side": "right",
+      "apex_side_source": "manual",
+      "target_throttle_pct": 100
+    },
+    {
+      "id": "lac",
+      "name": "Virage du Lac",
+      "short_name": "Lac",
+      "s_start_m": 5082.0,
+      "apex_s_m": 5227.0,
+      "s_end_m": 5310.0,
+      "apex_side": "left",
+      "apex_side_source": "manual"
+    },
+    {
+      "id": "pont",
+      "name": "Virage du Pont",
+      "short_name": "Pont",
+      "s_start_m": 5311.0,
+      "apex_s_m": 5377.0,
+      "s_end_m": 5398.0,
+      "apex_side": "right",
+      "apex_side_source": "manual"
+    }
+  ],
+  "straight_zones": []
+}

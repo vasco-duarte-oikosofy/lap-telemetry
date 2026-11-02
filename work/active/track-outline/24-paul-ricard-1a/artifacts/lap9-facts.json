@@ -1,0 +1,104 @@
+{
+  "type": "lap_coaching_summary",
+  "track_id": "paul-ricard---1a",
+  "lap_number": 9,
+  "lap_time_delta_s": 0.739,
+  "top_losses": [
+    {
+      "corner_id": "lac",
+      "corner_name": "Lac",
+      "apex_distance_m": 5227.0,
+      "phase": "exit",
+      "loss_s": 0.18,
+      "driver_value": 111.2,
+      "reference_value": 123.6,
+      "unit": "km/h",
+      "confidence": "medium",
+      "phase_distance_m": 5245.0,
+      "gain_end_distance_m": 5310.0,
+      "exit_distance_delta_m": 65.0,
+      "reference_phase_distance_m": 5310.0
+    },
+    {
+      "corner_id": "bendor",
+      "corner_name": "Bendor",
+      "apex_distance_m": 4732.0,
+      "phase": "entry",
+      "loss_s": 0.171,
+      "driver_value": 185.2,
+      "reference_value": 182.6,
+      "unit": "km/h",
+      "confidence": "medium",
+      "phase_distance_m": 4576.0,
+      "gain_end_distance_m": 4732.0,
+      "entry_distance_delta_m": -7.0,
+      "reference_phase_distance_m": 4569.0
+    },
+    {
+      "corner_id": "lac",
+      "corner_name": "Lac",
+      "apex_distance_m": 5227.0,
+      "phase": "minimum_speed",
+      "loss_s": 0.152,
+      "driver_value": 109.8,
+      "reference_value": 119.4,
+      "unit": "km/h",
+      "confidence": "high",
+      "driver_apex_distance_m": 5253.0,
+      "reference_apex_distance_m": 5227.0,
+      "apex_offset_m": -26.0,
+      "gain_end_distance_m": 5310.0
+    }
+  ],
+  "top_gains": [
+    {
+      "corner_id": "beausset_2",
+      "corner_name": "Beausset 2",
+      "apex_distance_m": 4394.0,
+      "phase": "minimum_speed",
+      "loss_s": -0.088,
+      "driver_value": 136.1,
+      "reference_value": 133.4,
+      "unit": "km/h",
+      "confidence": "high",
+      "driver_apex_distance_m": 4379.0,
+      "reference_apex_distance_m": 4394.0,
+      "apex_offset_m": 15.0,
+      "gain_end_distance_m": 4576.0
+    },
+    {
+      "corner_id": "lac",
+      "corner_name": "Lac",
+      "apex_distance_m": 5227.0,
+      "phase": "entry",
+      "loss_s": -0.061,
+      "driver_value": 211.5,
+      "reference_value": 209.5,
+      "unit": "km/h",
+      "confidence": "medium",
+      "phase_distance_m": 5088.0,
+      "gain_end_distance_m": 5227.0,
+      "entry_distance_delta_m": -5.0,
+      "reference_phase_distance_m": 5083.0
+    },
+    {
+      "corner_id": "beausset_2",
+      "corner_name": "Beausset 2",
+      "apex_distance_m": 4394.0,
+      "phase": "exit",
+      "loss_s": -0.057,
+      "driver_value": 142.1,
+      "reference_value": 137.3,
+      "unit": "km/h",
+      "confidence": "medium",
+      "phase_distance_m": 4427.0,
+      "gain_end_distance_m": 4576.0,
+      "exit_distance_delta_m": 5.0,
+      "reference_phase_distance_m": 4432.0
+    }
+  ],
+  "constraints": {
+    "max_words": 35,
+    "style": "calm_concise_engineer"
+  }
+}

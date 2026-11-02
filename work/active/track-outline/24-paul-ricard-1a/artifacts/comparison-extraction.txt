@@ -1,0 +1,24 @@
+Session: var\tmp\paul-ricard-1a\session_20261101T190458Z_paul-ricard---1a_lmu_race.parquet
+Total segments: 18
+  Segment 1: lap_number=0, frames=12890, duration=2:23.600  [INVALID]
+  Segment 2: lap_number=1, frames=5427, duration=1:48.782  [valid]
+  Segment 3: lap_number=2, frames=5377, duration=1:47.710  [valid]
+  Segment 4: lap_number=3, frames=5397, duration=1:48.196  [valid]
+  Segment 5: lap_number=4, frames=5269, duration=1:49.658  [valid]
+  Segment 6: lap_number=5, frames=5350, duration=1:47.309  [valid]
+  Segment 7: lap_number=6, frames=5348, duration=1:47.243  [valid]
+  Segment 8: lap_number=7, frames=5342, duration=1:47.124  [valid]
+  Segment 9: lap_number=8, frames=5339, duration=1:47.085  [valid]
+  Segment 10: lap_number=9, frames=5360, duration=1:47.573  [valid]
+  Segment 11: lap_number=10, frames=5323, duration=1:46.834  [valid]
+  Segment 12: lap_number=11, frames=5333, duration=1:47.067  [valid]
+  Segment 13: lap_number=12, frames=5348, duration=1:47.373  [valid]
+  Segment 14: lap_number=13, frames=5331, duration=1:47.045  [valid]
+  Segment 15: lap_number=14, frames=5342, duration=1:47.303  [valid]
+  Segment 16: lap_number=15, frames=5325, duration=1:46.975  [valid]
+  Segment 17: lap_number=16, frames=5690, duration=1:54.285  [valid]
+  Segment 18: lap_number=17, frames=1215, duration=0:24.697  [INVALID]
+Using segment 10 for lap_number=9 (5360 rows, 1:47.573)
+
+Extracted segment 10 (lap_number=9, 5360 rows) -> var\tmp\paul-ricard-1a\comparison-lap9.parquet
+Lap time: 1:47.573

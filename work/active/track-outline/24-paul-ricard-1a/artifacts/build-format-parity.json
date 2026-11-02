@@ -1,0 +1,8 @@
+{
+  "css": "esbuild minifyWhitespace only",
+  "js": "--minify-whitespace only; identifiers/syntax not minified",
+  "bundle_lines": 140,
+  "before_png_sha256": "6b39ee1dc45e48493d39602c79d042c0a25a44f3344c160fb9374487d86b404e",
+  "after_png_sha256": "6b39ee1dc45e48493d39602c79d042c0a25a44f3344c160fb9374487d86b404e",
+  "sample_render_byte_identical": true
+}

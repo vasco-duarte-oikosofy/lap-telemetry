@@ -1,0 +1,32 @@
+
+📋 Validating paul-ricard---1a.json...
+[32m✅ Outline JSON is valid[0m
+
+📦 Generating ES module for 'Paul Ricard - 1A'...
+[32m✅ Generated ES module: product\web\js\staticPaulRicard1aOutlineData.js[0m
+   Export name: PAUL_RICARD___1A_STATIC_OUTLINE
+
+📝 Updating manifest...
+[32m✅ Backed up manifest to trackOutlineManifest_backup.js[0m
+[33mℹ️  Import already present in manifest[0m
+[32m✅ Added 1 entries to OUTLINES map:[0m
+   - paul-ricard-1a
+
+🔍 Validating updated manifest...
+[32m✅ Manifest validation passed[0m
+
+🔨 Rebuilding product/dist/compare.html...
+Traceback (most recent call last):
+  File "C:\Users\duart\lap-telemetry\dev\scripts\register_outline.py", line 647, in <module>
+    main()
+  File "C:\Users\duart\lap-telemetry\dev\scripts\register_outline.py", line 627, in main
+    if not run_build():
+  File "C:\Users\duart\lap-telemetry\dev\scripts\register_outline.py", line 477, in run_build
+    result = subprocess.run(
+  File "C:\Users\duart\AppData\Local\Programs\Python\Python310\lib\subprocess.py", line 503, in run
+    with Popen(*popenargs, **kwargs) as process:
+  File "C:\Users\duart\AppData\Local\Programs\Python\Python310\lib\subprocess.py", line 971, in __init__
+    self._execute_child(args, executable, preexec_fn, close_fds,
+  File "C:\Users\duart\AppData\Local\Programs\Python\Python310\lib\subprocess.py", line 1456, in _execute_child
+    hp, ht, pid, tid = _winapi.CreateProcess(executable, args,
+FileNotFoundError: [WinError 2] The system cannot find the file specified
