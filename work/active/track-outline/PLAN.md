@@ -41,7 +41,7 @@ Tracks are ordered by data quality: TUMFTM first (real widths), then trajectory-
 | `21-sebring` | Sebring International Raceway | No TUMFTM | Clean trajectory | 🔲 Not started |
 | `22-sebring-school` | Sebring School Circuit | No TUMFTM | Clean trajectory | 🔲 Not started |
 | `23-paul-ricard` | Circuit Paul Ricard (ELMS) | No TUMFTM | Clean trajectory | 🔲 Not started |
-| `24-paul-ricard-1a` | Paul Ricard 1a | No TUMFTM | Clean trajectory | 🔲 Not started |
+| `24-paul-ricard-1a` | Paul Ricard 1A / Ginetta P3 | Latest race trajectory | New ref + official/flat corners + distinct layout | ✅ `3ef2ef9`; TinyPedal `e4b9ae06` (automated render + widget QA passed; user live confirmation pending) |
 | `25-paul-ricard-1av2` | Paul Ricard 1av2 | No TUMFTM | Clean trajectory | 🔲 Not started |
 | `26-paul-ricard-1av2-short` | Paul Ricard 1av2-short | No TUMFTM | Clean trajectory | 🔲 Not started |
 | `27-paul-ricard-3a` | Paul Ricard 3a | No TUMFTM | Clean trajectory | 🔲 Not started |
@@ -61,9 +61,11 @@ Tracks are ordered by data quality: TUMFTM first (real widths), then trajectory-
 
 **Feature tests (slice 38):** `bash scripts/test-summary.sh --feature long-beach-f499p`
 
-**Completed:** Spa (base + endurance), Bahrain GP, Barcelona, Monza, Imola, Fuji International Speedway, Bahrain Outer, Daytona, Laguna Seca, Road Atlanta, Monza Curva Grande, Silverstone International, Long Beach.
-**In progress:** None. Long Beach current ref is 1:14.871 (slice 40); live web/TinyPedal by-eye confirmation remains pending.
-**Remaining:** 24 outlines needed (some may be aliases).
+**Feature tests (Paul Ricard 1A):** `bash scripts/test-summary.sh --feature track-outline`
+
+**Completed:** Spa (base + endurance), Bahrain GP, Barcelona, Monza, Imola, Fuji International Speedway, Bahrain Outer, Daytona, Laguna Seca, Road Atlanta, Monza Curva Grande, Silverstone International, Long Beach, Paul Ricard 1A.
+**In progress:** None. Prior live visual confirmations remain pending.
+**Remaining:** 21 outlines needed (some may be aliases).
 
 ### Barcelona note
 
