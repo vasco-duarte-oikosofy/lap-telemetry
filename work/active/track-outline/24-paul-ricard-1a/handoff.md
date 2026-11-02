@@ -75,25 +75,31 @@ model, all 14 turn anchors in range and inside the official names, no aliasing o
   Node-on-Windows ESM issue below, reproduced unchanged on a clean HEAD worktree.
 - `artifacts/full-suite.txt` records both runs and the HEAD reproduction.
 
-### Pre-existing failures (not this slice — do not "fix" here)
+### Pre-existing failures (fixed after this slice landed — see below)
 
 `test_static_outline_runtime_rendering`, `test_apex_annotations`,
 `test_apex_metrics`, `test_apex_metrics_aggregate`,
-`test_apex_metrics_surface_terrain`, `test_track_outline_schema_compat` all die on
-`await import(path.join(ROOT, ...))` with
+`test_apex_metrics_surface_terrain`, `test_track_outline_schema_compat` used to
+die on `await import(path.join(ROOT, ...))` with
 `ERR_UNSUPPORTED_ESM_URL_SCHEME ... Received protocol 'c:'` on Node v22.22.3.
-They need `pathToFileURL()` like the newer tests already do. That is a separate
-bug; slice 24 touches none of those files.
+They were red before slice 24 and were deliberately left alone here.
 
-### Host prerequisites
+**Resolved afterwards in `aa9af28`** (`fix(dev): resolve Python in one place and
+import modules by file URL`): all six now import via `pathToFileURL()`, and every
+Node wrapper resolves Python through `dev/scripts/python.js` instead of spawning a
+bare `python3`. With that commit the full `--pw` suite is green here (2013
+assertions / 79 scripts) with no machine-level hacks.
 
-- `python3` must resolve to a real interpreter. On this workstation only
+### Host prerequisites (before `aa9af28`)
+
+- `python3` had to resolve to a real interpreter. On this workstation only
   `python.exe` existed in `%LOCALAPPDATA%\Programs\Python\Python310` plus a
   WindowsApps `python3` stub (exit 9009), so five python-wrapper tests failed with
-  "Python was not found". Adding a `python3.exe` beside `python.exe` fixed it; the
-  repo was not changed for this.
+  "Python was not found". A temporary `python3.exe` copy fixed it for the run; it
+  has been removed again — `aa9af28` makes it unnecessary.
 - Export `PYTHONUTF8=1`, otherwise those wrappers crash with
-  `UnicodeEncodeError: 'charmap' ... cp1252`.
+  `UnicodeEncodeError: 'charmap' ... cp1252`. `aa9af28` forces UTF-8 inside the
+  shared resolver, so no export is needed any more.
 
 ## User action / remaining work
 
@@ -104,8 +110,7 @@ bug; slice 24 touches none of those files.
   and the automated `file://` render (`artifacts/compare-outline.png`,
   `artifacts/paul-ricard-1a-{400,600}-{0,90}.png`) must not be reported as human
   approval.
-- Deferred TODOs: real (measured) 1A widths instead of the synthetic ±5 m shell;
-  the six pre-existing ESM test failures above.
+- Deferred TODOs: real (measured) 1A widths instead of the synthetic ±5 m shell.
 
 ## Untouched on purpose
 

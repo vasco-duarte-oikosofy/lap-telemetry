@@ -60,3 +60,12 @@ Host prerequisites used for this run
   changed for that.
 - PYTHONUTF8=1 was exported for the run. Without it the same tests crash with
   UnicodeEncodeError: 'charmap' codec ... cp1252 (Windows console default).
+
+Update after `aa9af28` (Python resolver + file:// imports, committed after slice 24):
+------------------------------------------------------------------------------
+$ bash scripts/test-summary.sh --pw
+ALL PASS — 2013 assertions across 79 test scripts in 27.6
+
+No PYTHONUTF8 export and no machine-level `python3` shim needed: the six tests
+above were fixed at the source (pathToFileURL) and every wrapper now resolves
+Python through dev/scripts/python.js.
