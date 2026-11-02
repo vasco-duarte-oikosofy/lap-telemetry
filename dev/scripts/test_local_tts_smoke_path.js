@@ -11,6 +11,7 @@
 'use strict';
 
 const { spawnSync } = require('child_process');
+const { runPython } = require('./python');
 const path = require('path');
 
 const ROOT = path.resolve(__dirname, '..', '..');
@@ -258,7 +259,7 @@ print("ALL OK")
 `;
 
 function runPythonTests() {
-  return spawnSync('python3', ['-c', PYTHON_CODE], { encoding: 'utf8', timeout: 60000 });
+  return runPython(['-c', PYTHON_CODE], { encoding: 'utf8', timeout: 60000 });
 }
 
 function main() {

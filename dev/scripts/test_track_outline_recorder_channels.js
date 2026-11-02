@@ -8,6 +8,7 @@
 'use strict';
 
 const { spawnSync } = require('child_process');
+const { runPython } = require('./python');
 const path = require('path');
 
 const ROOT = path.resolve(__dirname, '..', '..');
@@ -92,7 +93,7 @@ with tempfile.TemporaryDirectory() as td:
     assert sidecar['schema_version'] == '2', sidecar
 print('OK')
 `;
-  return spawnSync('python3', ['-c', code], { encoding: 'utf8', timeout: 30000 });
+  return runPython(['-c', code], { encoding: 'utf8', timeout: 30000 });
 }
 
 function main() {

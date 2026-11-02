@@ -14,26 +14,19 @@
  */
 
 const path = require('path');
-const { spawnSync } = require('child_process');
+const { runPython } = require('./python');
 
 const ROOT = path.resolve(__dirname, '..', '..');
 const SCRIPT = path.join(ROOT, 'dev', 'scripts', 'test_tinypedal_turn_label_export.py');
 
-// `python3` is a Microsoft Store stub on Windows; `py` is the real launcher.
-const CANDIDATES = process.platform === 'win32'
-  ? [['py', ['-3']], ['python', []], ['python3', []]]
-  : [['python3', []], ['python', []]];
-
-const env = { ...process.env, PYTHONIOENCODING: 'utf-8' };
-
-let result = null;
-for (const [command, prefix] of CANDIDATES) {
-  result = spawnSync(command, [...prefix, SCRIPT], { cwd: ROOT, encoding: 'utf8', timeout: 120000, env });
-  if (!result.error) break;
-}
-
-if (!result || result.error) {
-  console.log('  [FAIL] no Python interpreter found — ' + (result && result.error.message));
+// `python3` alone is not portable: Windows may only have `py -3`/`python` (and a
+// Store stub named `python3`), macOS usually has no `python`. See
+// docs/TESTING_LESSONS.md L16 — resolve once through the shared helper.
+let result;
+try {
+  result = runPython([SCRIPT], { cwd: ROOT, timeout: 120000 });
+} catch (error) {
+  console.log('  [FAIL] ' + error.message);
   console.log('\nRESULT: FAIL');
   process.exit(1);
 }

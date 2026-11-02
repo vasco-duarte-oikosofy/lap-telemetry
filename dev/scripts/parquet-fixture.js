@@ -14,6 +14,7 @@
  */
 
 const { spawnSync } = require('child_process');
+const { runPython } = require('./python');
 const os = require('os');
 const path = require('path');
 
@@ -78,7 +79,7 @@ class ParquetFixtureBuilder {
     }
 
     const code = 'import pyarrow as pa, pyarrow.parquet as pq\n' + snippets.join('\n');
-    const res = spawnSync('python3', ['-c', code], { encoding: 'utf8', timeout: 30000 });
+    const res = runPython(['-c', code], { encoding: 'utf8', timeout: 30000 });
     if (res.error || res.status !== 0) {
       throw new Error(`Parquet fixture creation failed: ${res.error?.message || res.stderr}`);
     }

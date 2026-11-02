@@ -7,6 +7,7 @@
  * Run: node dev/scripts/test_template_adapter.js
  */
 const { spawnSync } = require('child_process');
+const { runPython } = require('./python');
 const path = require('path');
 
 const ROOT = path.resolve(__dirname, '..', '..');
@@ -19,7 +20,7 @@ function ok(condition, label) {
   else           { fail++; console.log(`  [FAIL] ${label}`); }
 }
 
-const res = spawnSync('python3', [script], {
+const res = runPython([script], {
   encoding: 'utf8',
   timeout: 60000,
   env: { ...process.env, PYTHONPATH },

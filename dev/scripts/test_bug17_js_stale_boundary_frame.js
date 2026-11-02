@@ -7,6 +7,7 @@
 'use strict';
 
 const { spawnSync } = require('child_process');
+const { runPython } = require('./python');
 const fs = require('fs');
 const path = require('path');
 
@@ -64,7 +65,7 @@ cols = {name: table[name].to_pylist() for name in table.column_names}
 keep = [i for i, lap in enumerate(cols['lap_number']) if lap in (18, 19)]
 print(json.dumps({name: [cols[name][i] for i in keep] for name in cols}))
 `;
-  return spawnSync('python3', ['-c', code], {
+  return runPython(['-c', code], {
     encoding: 'utf8',
     timeout: 60000,
     env: { ...process.env },

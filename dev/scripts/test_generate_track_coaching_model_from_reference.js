@@ -8,6 +8,7 @@
 'use strict';
 
 const { spawnSync } = require('child_process');
+const { runPython } = require('./python');
 const path = require('path');
 
 const ROOT = path.resolve(__dirname, '..', '..');
@@ -158,7 +159,7 @@ if fail_count:
     sys.exit(1)
 `;
 
-const res = spawnSync('python3', ['-c', PYTHON_TEST, ROOT], {
+const res = runPython(['-c', PYTHON_TEST, ROOT], {
   cwd: ROOT,
   encoding: 'utf8',
   timeout: 30000,

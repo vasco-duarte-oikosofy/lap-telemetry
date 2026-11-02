@@ -2,10 +2,11 @@
 // Wrapper for test_bug27.py — runs the Python test and translates output
 // to the [PASS]/[FAIL] protocol expected by test-summary.sh.
 const { spawnSync } = require("child_process");
+const { runPython } = require('./python');
 const path = require("path");
 
 const script = path.resolve(__dirname, "test_bug27.py");
-const result = spawnSync("python", [script], { encoding: "utf-8" });
+const result = runPython([script], { encoding: "utf-8" });
 
 if (result.error) {
   console.error(result.error.message);

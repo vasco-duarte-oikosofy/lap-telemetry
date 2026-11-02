@@ -11,8 +11,10 @@ const { chromium } = require('playwright');
 const { startServer } = require('./lib/test-server');
 const fs = require('fs');
 const os = require('os');
+const { pathToFileURL } = require('url');
 const path = require('path');
 const { spawnSync } = require('child_process');
+const { runPython } = require('./python');
 
 const ROOT = path.resolve(__dirname, '..', '..');
 const WEB_DIR = path.join(ROOT, 'product', 'web');
@@ -87,7 +89,7 @@ if ${futureColumns ? 'True' : 'False'}:
   ])
 pq.write_table(pa.Table.from_arrays(cols, names=names), r'''${out}''', compression='snappy')
 `;
-  const res = spawnSync('python3', ['-c', code], { encoding: 'utf8', timeout: 30000 });
+  const res = runPython(['-c', code], { encoding: 'utf8', timeout: 30000 });
   if (res.error || res.status !== 0) {
     throw new Error(`pyarrow fixture failed: ${res.error?.message || res.stderr}`);
   }
@@ -108,7 +110,7 @@ async function loadFiles(page, files) {
 }
 
 async function runPureModuleTests() {
-  const mod = await import(path.join(ROOT, 'product/web/js/trackOutlineChannels.js'));
+  const mod = await import(pathToFileURL(path.join(ROOT, 'product/web/js/trackOutlineChannels.js')).href);
   const legacy = { lap_distance_m: [10, 20] };
   const future = {
     raw_lap_distance_m: [10.25, 20.25],

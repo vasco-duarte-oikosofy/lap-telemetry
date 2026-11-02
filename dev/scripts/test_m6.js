@@ -15,6 +15,7 @@ const fs = require('fs');
 const path = require('path');
 const os = require('os');
 const { spawnSync } = require('child_process');
+const { runPython } = require('./python');
 const { startServer } = require('./lib/test-server');
 
 // ── Paths ────────────────────────────────────────────────────────────────────
@@ -98,7 +99,7 @@ out = pa.Table.from_arrays(new_cols, names=new_names)
 pq.write_table(out, r'''${dstParquet}''', compression='snappy')
 print(f"abs={sum(abs_active)} tc={sum(tc_active)} of {n}")
 `;
-  const res = spawnSync('python3', ['-c', code], { encoding: 'utf8', timeout: 60000 });
+  const res = runPython(['-c', code], { encoding: 'utf8', timeout: 60000 });
   if (res.error) {
     throw new Error(`pyarrow build failed (spawn): ${res.error.message}`);
   }
@@ -170,7 +171,7 @@ with tempfile.TemporaryDirectory() as td:
     assert tc_vals  == [False, None], f"tc_vals={tc_vals!r}"
 print('OK')
 `;
-  const res = spawnSync('python3', ['-c', code], { encoding: 'utf8', timeout: 30000 });
+  const res = runPython(['-c', code], { encoding: 'utf8', timeout: 30000 });
   // Handle subprocess failure (missing deps, path issues, etc.)
   if (res.error) {
     return { ok: false, stdout: '', stderr: `spawnSync error: ${res.error.message}` };

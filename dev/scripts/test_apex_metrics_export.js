@@ -11,6 +11,7 @@ const fs = require('fs');
 const os = require('os');
 const path = require('path');
 const { spawnSync } = require('child_process');
+const { runPython } = require('./python');
 
 const ROOT = path.resolve(__dirname, '..', '..');
 const EXPORT_SCRIPT = path.join(ROOT, 'dev/scripts/export_apex_metrics.js');
@@ -68,7 +69,7 @@ if ${outlineColumns ? 'True' : 'False'}:
   ])
 pq.write_table(pa.Table.from_arrays(cols, names=names), r'''${out}''', compression='snappy')
 `;
-  const res = spawnSync('python3', ['-c', code], { encoding: 'utf8', timeout: 30000 });
+  const res = runPython(['-c', code], { encoding: 'utf8', timeout: 30000 });
   if (res.error || res.status !== 0) throw new Error(res.error?.message || res.stderr);
   return out;
 }

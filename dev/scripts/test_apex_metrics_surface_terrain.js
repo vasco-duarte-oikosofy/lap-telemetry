@@ -7,6 +7,7 @@
 
 'use strict';
 
+const { pathToFileURL } = require('url');
 const path = require('path');
 
 const ROOT = path.resolve(__dirname, '..', '..');
@@ -51,7 +52,7 @@ function lapData(overrides = {}) {
 }
 
 async function runTests() {
-  const mod = await import(path.join(ROOT, 'product/web/js/apexMetrics.js'));
+  const mod = await import(pathToFileURL(path.join(ROOT, 'product/web/js/apexMetrics.js')).href);
 
   const right = mod.computeApexMetricForLap(lapData(), corner({ apex_side: 'right' }));
   assert(right.surface_type === 21 && right.terrain_name === 'right-front-kerb',

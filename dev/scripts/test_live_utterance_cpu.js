@@ -1,9 +1,10 @@
 // @parallel true
 'use strict';
 const { spawnSync } = require('child_process');
+const { runPython } = require('./python');
 const path = require('path');
 const root = path.resolve(__dirname, '../..');
-const result = spawnSync('python', [path.join(__dirname, 'test_live_utterance_cpu.py')], {
+const result = runPython([path.join(__dirname, 'test_live_utterance_cpu.py')], {
   cwd: root, encoding: 'utf8', timeout: 60000,
   env: { ...process.env, PYTHONPATH: path.join(root, 'product/python'), PYTHONUTF8: '1' },
 });

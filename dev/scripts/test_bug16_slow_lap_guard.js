@@ -7,6 +7,7 @@
 'use strict';
 
 const { spawnSync } = require('child_process');
+const { runPython } = require('./python');
 const fs = require('fs');
 const path = require('path');
 
@@ -118,7 +119,7 @@ with tempfile.TemporaryDirectory() as td:
 
 print('python bug16 checks OK')
 `;
-  return spawnSync('python3', ['-c', code], {
+  return runPython(['-c', code], {
     encoding: 'utf8',
     timeout: 60000,
     env: { ...process.env, PYTHONPATH },

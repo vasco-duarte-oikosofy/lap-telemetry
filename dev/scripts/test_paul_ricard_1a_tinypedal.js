@@ -3,6 +3,7 @@
 const fs = require('fs');
 const path = require('path');
 const { spawnSync } = require('child_process');
+const { runPython } = require('./python');
 const ROOT = path.resolve(__dirname, '../..');
 const TINY = path.resolve(ROOT, '../tinypedal');
 let failed = false;
@@ -10,7 +11,7 @@ function ok(value, label) {
   console.log(`${value ? '[PASS]' : '[FAIL]'} ${label}`);
   if (!value) failed = true;
 }
-const check = spawnSync('python', ['-c', `
+const check = runPython(['-c', `
 import json,sys
 from pathlib import Path
 sys.path.insert(0,'dev/scripts')

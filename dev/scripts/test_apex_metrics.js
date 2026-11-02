@@ -7,6 +7,7 @@
 
 'use strict';
 
+const { pathToFileURL } = require('url');
 const path = require('path');
 
 const ROOT = path.resolve(__dirname, '..', '..');
@@ -51,7 +52,7 @@ function isNullMetric(metric) {
 }
 
 async function runTests() {
-  const mod = await import(path.join(ROOT, 'product/web/js/apexMetrics.js'));
+  const mod = await import(pathToFileURL(path.join(ROOT, 'product/web/js/apexMetrics.js')).href);
 
   const metric = mod.computeApexMetricForLap(lapData(), corner());
   assert(metric.corner_id === 't1' && metric.corner_name === 'La Source' && metric.lap === 7,

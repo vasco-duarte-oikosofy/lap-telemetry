@@ -67,14 +67,14 @@ const child = spawn('node', [script], { cwd: ROOT, stdio: ['ignore', 'pipe', 'pi
 **For Python subprocesses spawned from Node.js tests:**
 
 ```javascript
-// ✗ Wrong — PYTHONPATH may not be inherited
+// ✗ Wrong — PYTHONPATH may not be inherited, and `python3` is not portable (L16)
 const res = spawnSync('python3', ['-c', code], { encoding: 'utf8', timeout: 30000 });
 
-// ✓ Right — explicitly pass PYTHONPATH
-const res = spawnSync('python3', ['-c', code], {
-  encoding: 'utf8',
+// ✓ Right — resolve the interpreter once, pass PYTHONPATH explicitly
+const { runPython } = require('./python');
+const res = runPython(['-c', code], {
   timeout: 30000,
-  env: { ...process.env, PYTHONPATH: path.join(ROOT, 'product', 'python') }
+  env: { ...process.env, PYTHONPATH: path.join(ROOT, 'product', 'python') },
 });
 ```
 
@@ -305,8 +305,8 @@ follows the `[PASS]`/`[FAIL]` protocol:
 // @parallel true
 'use strict';
 
-const { spawnSync } = require('child_process');
 const path = require('path');
+const { runPython } = require('./python');   // see L16 — never spawn a bare python/python3
 
 const ROOT = path.resolve(__dirname, '..', '..');
 const PYTHONPATH = path.join(ROOT, 'product', 'python');
@@ -318,8 +318,7 @@ function ok(condition, label) {
   else           { fail++; console.log(`  [FAIL] ${label}`); }
 }
 
-const res = spawnSync('python3', [script], {
-  encoding: 'utf8',
+const res = runPython([script], {
   timeout: 60000,
   env: { ...process.env, PYTHONPATH },
 });
@@ -343,6 +342,7 @@ Then add `node dev/scripts/test_foo.js` to `package.json` `scripts.test`.
 2. **`env: { ...process.env, PYTHONPATH }`** — `spawnSync` does not inherit
    the parent's environment by default. Without explicit `PYTHONPATH`, Python
    will fail with `ModuleNotFoundError`. (See L1 for the general rule.)
+   `runPython()` merges this with the UTF-8 env from L17 for you.
 
 3. **The wrapper must contain `[PASS]`/`[FAIL]` in its source text.**
    `test_protocol_enforcement.js` does static analysis on `.js` source files —
@@ -354,7 +354,7 @@ Then add `node dev/scripts/test_foo.js` to `package.json` `scripts.test`.
 **Standalone use.** The Python script can still be run directly:
 
 ```bash
-python3 dev/scripts/test_foo.py
+$(node dev/scripts/python.js) dev/scripts/test_foo.py   # or: python3 … on macOS/Linux
 ```
 
 The wrapper only exists so the parallel runner can discover and execute it.
@@ -442,40 +442,69 @@ when UI code changes.
 
 ---
 
-## L16. Windows: use `python` (or the venv), not `python3`, in `.js` wrappers
+## L16. Resolve Python in ONE place — `dev/scripts/python.js`
 
-**Problem.** The Python-test wrappers (L12 template) call `spawnSync('python3', [script])`. On Windows, `python3` resolves to the Microsoft Store app-execution alias (a stub) unless real Python was installed via the Store. Under the parallel runner the stub returns exit code **9009** ("Python was not found; run without arguments to install from the Microsoft Store"), so every `python3`-based wrapper fails while the same `.py` run directly with the venv passes.
+**Problem.** Every Python-test wrapper (L12 template) used to spawn a bare
+`python3`. That fails on two of the three platforms we run on:
 
-**Symptom.** `bash scripts/test-summary.sh` reports `status 9009` for all Python-backed `.js` wrappers; `node dev/scripts/test_foo.js` singly also fails with 9009; but `.venv/Scripts/python.exe dev/scripts/test_foo.py` passes.
+- **Windows** — `python3` is usually the Microsoft Store App Execution Alias (a
+  stub that prints "Python was not found" and exits **9009**) unless Python came
+  from the Store, while `py -3` or `python` works.
+- **macOS** — there is no `python`, only `python3` (and `py` is not installed).
 
-**Solution.** Put the project venv on `PATH` before running the suite so both `python` and `python3` resolve to the venv interpreter:
+So each wrapper worked on exactly one platform, and we accrued per-script
+platform branches (`process.platform === 'win32' ? 'python' : 'python3'`) and a
+candidate-probing loop that silently accepted the Windows stub because it only
+checked for `ENOENT`, not for exit status.
 
-```bash
-export PATH=".venv/Scripts:$PATH"
-bash scripts/test-summary.sh --feature interactive-race-coach
+**Symptom.** `bash scripts/test-summary.sh` reports `status 9009` for every
+Python-backed wrapper on Windows, or `spawn python ENOENT` on macOS, while the
+same `.py` runs fine directly with the right interpreter.
+
+**Rule.** Never spawn `python`, `python3` or `py` directly. Use the resolver:
+
+```javascript
+const { runPython } = require('./python');
+const res = runPython([script], { timeout: 60000, env: { ...process.env, PYTHONPATH } });
 ```
 
-Prefer `python` over `python3` in new wrappers (the repo is currently inconsistent → some use `python`, some `python3`; `python` is the safer default on Windows). The L12 template's `python3` is a Linux-ism.
+`runPython(args, options)` behaves like `spawnSync` (same options, same result
+shape) but resolves the interpreter once per process and forces UTF-8 (L17).
+Resolution order is `LAP_TELEMETRY_PYTHON` (explicit override), then the project
+`.venv` (`bin/python` or `Scripts/python.exe`) if it exists, then on Windows
+`py -3` → `python` → `python3`, elsewhere `python3` → `python`. A candidate only
+wins if it reports `sys.version_info[0] == 3`, so the Store stub is rejected on
+evidence rather than assumption, and a venv without the dependencies is skipped
+in favour of the next candidate. From shell scripts:
+
+```bash
+PYTHON="$(node dev/scripts/python.js)"   # prints e.g. `py -3` or /usr/bin/python3
+```
+
+`test_python_interpreter.js` enforces this: it fails the build if any script
+under `dev/scripts/` spawns a bare interpreter, and it checks that a broken
+`LAP_TELEMETRY_PYTHON` fails loudly instead of silently falling back.
 
 ---
 
-## L17. Windows: set `PYTHONUTF8=1` for tests that print Unicode
+## L17. Python child processes must be forced into UTF-8 mode
 
-**Problem.** Several Python tests print Unicode characters (e.g. `→`, `\u2713`, em-dashes) to stdout. On Windows the default console encoding is cp1252, which cannot encode those characters, so the test crashes mid-run with:
+**Problem.** Several Python tests print Unicode characters (corner names like
+`Hôtel` and `Sainte-Baume`, arrows, em-dashes). On Windows the default console
+encoding is cp1252, which cannot encode them, so the test crashes mid-run with:
 
 ```text
 UnicodeEncodeError: 'charmap' codec can't encode character '\u2192' in position ...
 ```
 
-The test exits non-zero, the wrapper reports a failure, and the real assertion result is never reached → even though the test logic is correct.
+The test exits non-zero, the wrapper reports a failure, and the real assertion
+result is never reached — even though the test logic is correct.
 
-**Symptom.** A test passes under `-X utf8` (or on Linux) but fails in the runner on Windows with a `UnicodeEncodeError` from `cp1252.py`.
+**Symptom.** A test passes under `-X utf8` (or on Linux/macOS) but fails on
+Windows with a `UnicodeEncodeError` from `cp1252.py`, and `[PASS]` lines stop
+appearing partway through the Python output.
 
-**Solution.** Force UTF-8 for the run:
-
-```bash
-export PYTHONUTF8=1
-bash scripts/test-summary.sh --feature interactive-race-coach
-```
-
-(Combine with L16: `export PATH=".venv/Scripts:$PATH" PYTHONUTF8=1`.) `PYTHONUTF8=1` enables Python's UTF-8 mode globally for the spawned children, so `print()` of Unicode no longer hits the cp1252 encoder.
+**Rule.** Don't ask humans to remember `export PYTHONUTF8=1`. `runPython()` (L16)
+sets `PYTHONUTF8=1` and `PYTHONIOENCODING=utf-8` on every child, so wrappers
+inherit it automatically. Only direct `python script.py` invocations by hand
+need the env var (or `python -X utf8`).

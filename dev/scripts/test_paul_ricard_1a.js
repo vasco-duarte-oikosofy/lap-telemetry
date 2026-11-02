@@ -1,6 +1,7 @@
 // @parallel true
 'use strict';
 const { spawnSync } = require('child_process');
+const { runPython } = require('./python');
 const { pathToFileURL } = require('url');
 const path = require('path');
 const fs = require('fs');
@@ -10,7 +11,7 @@ function ok(value, label) {
   console.log(`${value ? '[PASS]' : '[FAIL]'} ${label}`);
   if (!value) failed = true;
 }
-const result = spawnSync('python', [path.join(__dirname, 'test_paul_ricard_1a.py')], {
+const result = runPython([path.join(__dirname, 'test_paul_ricard_1a.py')], {
   encoding: 'utf8', timeout: 60000,
   env: { ...process.env, PYTHONPATH: path.join(ROOT, 'product/python'), PYTHONUTF8: '1' },
 });

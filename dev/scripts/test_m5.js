@@ -13,6 +13,7 @@ const { chromium } = require('playwright');
 const fs = require('fs');
 const path = require('path');
 const { execSync, spawnSync } = require('child_process');
+const { runPython } = require('./python');
 const { startServer } = require('./lib/test-server');
 
 // ── Paths ─────────────────────────────────────────────────────────────────────
@@ -170,7 +171,7 @@ overlap = {
 
 json.dump({'dt': dt, 'overlap': overlap, 's_bins': s_bins[:5], 'r_bins': r_bins[:5]}, open('${outPath.replace(/\\/g, '\\\\')}', 'w'))
 `;
-  const res = spawnSync('python3', ['-c', code], { encoding: 'utf8', timeout: 30000 });
+  const res = runPython(['-c', code], { encoding: 'utf8', timeout: 30000 });
   if (res.error) {
     return { ok: false, stderr: `spawn error: ${res.error.message}` };
   }

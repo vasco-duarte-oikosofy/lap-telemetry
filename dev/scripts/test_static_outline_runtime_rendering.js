@@ -12,6 +12,7 @@
  */
 
 const fs = require('fs');
+const { pathToFileURL } = require('url');
 const path = require('path');
 
 let pass = 0;
@@ -28,7 +29,7 @@ const runtimePath = path.join(ROOT, 'product', 'web', 'js', 'staticSpaOutlineDat
 
 (async () => {
   const source = JSON.parse(fs.readFileSync(sourcePath, 'utf8'));
-  const { SPA_STATIC_OUTLINE } = await import(`${runtimePath}?t=${Date.now()}`);
+  const { SPA_STATIC_OUTLINE } = await import(`${pathToFileURL(runtimePath).href}?t=${Date.now()}`);
 
   ok(SPA_STATIC_OUTLINE != null, 'SPA_STATIC_OUTLINE is exported');
   ok(typeof SPA_STATIC_OUTLINE === 'object', 'SPA_STATIC_OUTLINE is an object');
@@ -39,7 +40,7 @@ const runtimePath = path.join(ROOT, 'product', 'web', 'js', 'staticSpaOutlineDat
   ok(SPA_STATIC_OUTLINE.schema_version === 1, 'runtime outline exposes schema v1');
 
   const modulePath = path.join(ROOT, 'product', 'web', 'js', 'staticTrackOutline.js');
-  const { renderStaticTrackOutlineSvg } = await import(`${modulePath}?t=${Date.now()}`);
+  const { renderStaticTrackOutlineSvg } = await import(`${pathToFileURL(modulePath).href}?t=${Date.now()}`);
   const outline = SPA_STATIC_OUTLINE;
 
   const transform = { toMapX: x => x / 10, toMapZ: y => 250 - y / 10 };

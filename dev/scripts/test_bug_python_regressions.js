@@ -3,6 +3,7 @@
 // @parallel true
 
 const { spawnSync } = require('child_process');
+const { runPython } = require('./python');
 const path = require('path');
 
 const ROOT = path.resolve(__dirname, '..', '..');
@@ -22,7 +23,7 @@ function ok(condition, label, detail = '') {
   else { fail++; console.log(`  [FAIL] ${label}${detail ? ' — ' + detail : ''}`); }
 }
 
-const res = spawnSync('python3', ['-m', 'pytest', '-q', ...tests], {
+const res = runPython(['-m', 'pytest', '-q', ...tests], {
   cwd: ROOT,
   encoding: 'utf8',
   timeout: 120000,

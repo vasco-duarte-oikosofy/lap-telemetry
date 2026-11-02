@@ -8,6 +8,7 @@
  * discover and execute the Python test script.
  */
 const { spawnSync } = require('child_process');
+const { runPython } = require('./python');
 const path = require('path');
 
 const ROOT = path.resolve(__dirname, '..', '..');
@@ -20,7 +21,7 @@ function ok(condition, label) {
   else           { fail++; console.log(`  [FAIL] ${label}`); }
 }
 
-const res = spawnSync('python', [script], {
+const res = runPython([script], {
   encoding: 'utf8',
   timeout: 120000,
   env: { ...process.env, PYTHONPATH, PYTHONUTF8: '1' },
