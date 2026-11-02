@@ -1,6 +1,7 @@
 # Slice 41 — Interlagos / Ginetta P3: faster race reference + model refresh
 
-Status: Complete. Trigger: the driver ran a P3 race at Autódromo José Carlos Pace
+Status: ✅ Complete in `fe29da7` (encoding guard: `3050f77`).
+Trigger: the driver ran a P3 race at Autódromo José Carlos Pace
 (Interlagos) whose fastest lap beats the curated 1:30.354 reference.
 
 ## Goal
