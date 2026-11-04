@@ -4,8 +4,8 @@
 
 /**
  * Bug 28 (dist/compare.html surface): the built standalone bundle must show
- * the authoritative telemetry-clock lap time (1:16.304), not the old stale
- * scorer value (1:17.345).
+ * the authoritative telemetry-clock lap time (1:16.304, and 1:15.815 for the
+ * current reference lap), not the old stale scorer value (1:17.345).
  *
  * Loads product/dist/compare.html (the shipped single-file build), feeds the
  * real Road Atlanta race session and the extracted reference lap, and asserts
@@ -21,7 +21,7 @@ const { startServer } = require('./lib/test-server');
 const ROOT = path.resolve(__dirname, '..', '..');
 const DIST = path.join(ROOT, 'product', 'dist');
 const RACE = path.join(ROOT, 'sessions', 'session_20261004T164430Z_michelin-raceway-road-atlanta_lmu_race.parquet');
-const REF = path.join(ROOT, 'product', 'data', 'reference-laps', 'michelin-raceway-road-atlanta_dkr-engineering-4-elms25_time_01.16.304.parquet');
+const REF = path.join(ROOT, 'product', 'data', 'reference-laps', 'michelin-raceway-road-atlanta_dkr-engineering-4-elms25_time_01.15.815.parquet');
 
 function assert(cond, message, detail = '') {
   if (!cond) throw new Error(`${message}${detail ? ` — ${detail}` : ''}`);
@@ -52,7 +52,7 @@ async function pickerLabels(page) {
     await page.locator('#file-input').setInputFiles(REF);
     await page.waitForFunction(() => window.__getSessionKeys?.().length > 0, { timeout: 20000 });
     labels = await pickerLabels(page);
-    assert(labels.some((l) => /1:16\.304/.test(l)), 'dist reference picker shows 1:16.304', labels.join(' | '));
+    assert(labels.some((l) => /1:15\.815/.test(l)), 'dist reference picker shows 1:15.815', labels.join(' | '));
   } finally {
     await browser.close();
     server.close();

@@ -31,7 +31,7 @@ from extract_reference_lap import _with_authoritative_metadata  # noqa: E402
 
 RACE = ROOT / "sessions" / "session_20261004T164430Z_michelin-raceway-road-atlanta_lmu_race.parquet"
 PRACTICE_TRUNCATED = ROOT / "sessions" / "session_20261004T155735Z_michelin-raceway-road-atlanta_lmu_practice.parquet"
-REF = ROOT / "product" / "data" / "reference-laps" / "michelin-raceway-road-atlanta_dkr-engineering-4-elms25_time_01.16.304.parquet"
+REF = ROOT / "product" / "data" / "reference-laps" / "michelin-raceway-road-atlanta_dkr-engineering-4-elms25_time_01.15.815.parquet"
 MODEL = ROOT / "product" / "data" / "track-coaching" / "michelin-raceway-road-atlanta_dkr-engineering-4-elms25.json"
 
 _passed = 0
@@ -106,9 +106,9 @@ def test_coach_surface() -> None:
         return
     model = load_track_coaching_model(MODEL)
     facts = compare_laps(RACE, REF, model, top_n=1, lap_number=21)
-    # race lap 21 = 76.417s, reference lap 15 = 76.304s => +0.113s
-    check(abs(facts.lap_time_delta_s - 0.113) < 0.02,
-          "coach delta uses the telemetry clock (lap 21 vs ref = +0.113s)",
+    # race lap 21 = 76.417s, current reference = 75.815s => +0.602s
+    check(abs(facts.lap_time_delta_s - 0.602) < 0.02,
+          "coach delta uses the telemetry clock (lap 21 vs ref = +0.602s)",
           f"{facts.lap_time_delta_s:+.3f}s")
 
 
@@ -117,9 +117,9 @@ def test_reference_file() -> None:
         check(False, "reference file present", str(REF))
         return
     t = pq.read_table(REF)
-    check(abs(authoritative_duration(t, 0, t.num_rows) - 76.304) < 0.001,
-          "reference metadata authoritative_lap_time_s = 76.304")
-    check(parse_lap_time_from_name(REF) == 76.304, "reference filename encodes 01.16.304")
+    check(abs(authoritative_duration(t, 0, t.num_rows) - 75.815) < 0.001,
+          "reference metadata authoritative_lap_time_s = 75.815")
+    check(parse_lap_time_from_name(REF) == 75.815, "reference filename encodes 01.15.815")
 
 
 def test_manual_extract_stamps_metadata() -> None:
