@@ -1,0 +1,10 @@
+{
+  "lap_number": 17,
+  "time_s": 75.8154,
+  "start_row": 86697,
+  "end_row": 90464,
+  "rows": 3767,
+  "reference_file": "product/data/reference-laps/michelin-raceway-road-atlanta_dkr-engineering-4-elms25_time_01.15.815.parquet",
+  "superseded_reference": "product/data/reference-laps/michelin-raceway-road-atlanta_dkr-engineering-4-elms25_time_01.16.304.parquet",
+  "improvement_s": 0.4886
+}

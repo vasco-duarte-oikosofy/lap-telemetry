@@ -1,0 +1,29 @@
+{
+  "source_files_unchanged": "92/92",
+  "frozen_file_unchanged": true,
+  "exported_reference_equals_selected_segment": true,
+  "selection": {
+    "lap_number": 17,
+    "time_s": 75.8154,
+    "start_row": 86697,
+    "end_row": 90464,
+    "rows": 3767,
+    "reference_file": "product/data/reference-laps/michelin-raceway-road-atlanta_dkr-engineering-4-elms25_time_01.15.815.parquet",
+    "superseded_reference": "product/data/reference-laps/michelin-raceway-road-atlanta_dkr-engineering-4-elms25_time_01.16.304.parquet",
+    "improvement_s": 0.4886
+  },
+  "curated_assets_checked": 223,
+  "curated_assets_changed": [
+    "product/data/track-coaching/michelin-raceway-road-atlanta_dkr-engineering-4-elms25.diagnostics.txt",
+    "product/data/track-coaching/michelin-raceway-road-atlanta_dkr-engineering-4-elms25.json",
+    "product/data/track-outlines/michelin-raceway-road-atlanta.json",
+    "product/web/js/staticMichelinRacewayRoadAtlantaOutlineData.js",
+    "product/dist/compare.html"
+  ],
+  "curated_assets_removed": [
+    "product/data/reference-laps/michelin-raceway-road-atlanta_dkr-engineering-4-elms25_time_01.16.304.parquet"
+  ],
+  "unexpected_changes": [],
+  "other_references_unchanged": true,
+  "validator_exit_code": 0
+}

@@ -1,0 +1,75 @@
+{
+  "type": "lap_coaching_summary",
+  "track_id": "michelin-raceway-road-atlanta",
+  "lap_number": 13,
+  "lap_time_delta_s": 1.186,
+  "top_losses": [
+    {
+      "corner_id": "t4",
+      "corner_name": "Esses",
+      "apex_distance_m": 1120.0,
+      "phase": "minimum_speed",
+      "loss_s": 0.532,
+      "driver_value": 126.5,
+      "reference_value": 149.9,
+      "unit": "km/h",
+      "confidence": "high",
+      "driver_apex_distance_m": 880.0,
+      "reference_apex_distance_m": 880.0,
+      "apex_offset_m": 0.0,
+      "gain_end_distance_m": 1302.0,
+      "target_throttle_pct": 100.0
+    },
+    {
+      "corner_id": "t3",
+      "corner_name": "3",
+      "apex_distance_m": 835.0,
+      "phase": "exit_brake",
+      "loss_s": 0.528,
+      "driver_value": 112.5,
+      "reference_value": 139.9,
+      "unit": "km/h",
+      "confidence": "medium",
+      "phase_distance_m": 851.0,
+      "gain_end_distance_m": 1095.0,
+      "exit_distance_delta_m": 10.0,
+      "reference_phase_distance_m": 861.0
+    },
+    {
+      "corner_id": "t3",
+      "corner_name": "3",
+      "apex_distance_m": 835.0,
+      "phase": "minimum_speed",
+      "loss_s": 0.503,
+      "driver_value": 112.1,
+      "reference_value": 139.5,
+      "unit": "km/h",
+      "confidence": "high",
+      "driver_apex_distance_m": 855.0,
+      "reference_apex_distance_m": 855.0,
+      "apex_offset_m": 0.0,
+      "gain_end_distance_m": 1095.0
+    }
+  ],
+  "top_gains": [
+    {
+      "corner_id": "t1",
+      "corner_name": "1",
+      "apex_distance_m": 453.0,
+      "phase": "entry",
+      "loss_s": -0.118,
+      "driver_value": 255.7,
+      "reference_value": 257.5,
+      "unit": "km/h",
+      "confidence": "medium",
+      "phase_distance_m": 280.0,
+      "gain_end_distance_m": 453.0,
+      "entry_distance_delta_m": 5.0,
+      "reference_phase_distance_m": 285.0
+    },
+    {
+      "corner_id": "t10a",
+      "corner_name": "Ten A",
+      "apex_distance_m": 3514.0,
+      "phase": "entry",
+      "loss_s

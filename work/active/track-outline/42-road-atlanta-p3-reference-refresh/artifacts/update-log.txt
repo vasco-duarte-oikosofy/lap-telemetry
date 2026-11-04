@@ -1,0 +1,37 @@
+Track: michelin-raceway-road-atlanta  Vehicle: dkr-engineering-4-elms25  (1 sessions)
+  Fastest: lap 17 in session_20261104T180435Z_michelin-raceway-road-atlanta_lmu_race.parquet -> 75.815s
+  Exported 3767 rows -> product\data\reference-laps\michelin-raceway-road-atlanta_dkr-engineering-4-elms25_time_01.15.815.parquet
+  Removed superseded reference (76.304s): michelin-raceway-road-atlanta_dkr-engineering-4-elms25_time_01.16.304.parquet
+
+AUDIT: 1 reference lap changed (added: ['michelin-raceway-road-atlanta_dkr-engineering-4-elms25_time_01.15.815.parquet'], superseded: ['michelin-raceway-road-atlanta_dkr-engineering-4-elms25_time_01.16.304.parquet']). OK.
+Fastest lap in session(s): lap 17 @ 75.815s (session_20261104T180435Z_michelin-raceway-road-atlanta_lmu_race.parquet, vehicle dkr-engineering-4-elms25)
+Faster than existing reference - will export after corner check
+Corner check: model has 13, lap yields 7 (7 matched, 6 geometry preserved)
+  PRESERVED: Turn 3 (t3) keeps reviewed geometry; no event claimed
+  PRESERVED: Turn 4 (The Esses) (t4) keeps reviewed geometry; no event claimed
+  PRESERVED: Turn 8 (t8) keeps reviewed geometry; no event claimed
+  PRESERVED: Turn 9 (t9) keeps reviewed geometry; no event claimed
+  PRESERVED: Turn 11 (t11) keeps reviewed geometry; no event claimed
+  PRESERVED: Turn 12 (t12) keeps reviewed geometry; no event claimed
+Geometry guard: all matched corners within 40 m - OK
+
+Exporting reference via export_fastest_reference_laps.py ...
+
+Updated coaching model -> C:\Users\duart\lap-telemetry\product\data\track-coaching\michelin-raceway-road-atlanta_dkr-engineering-4-elms25.json
+Updated diagnostics -> C:\Users\duart\lap-telemetry\product\data\track-coaching\michelin-raceway-road-atlanta_dkr-engineering-4-elms25.diagnostics.txt
+
+Corner geometry changes:
+  Turn                         Entry     Apex     Exit  (was Entry/Apex/Exit)
+  Turn 1                       284.0    453.0    457.0  (was 291.0 / 435.0 / 438.0)
+  Turn 2                       692.0    855.0    861.0  (was 676.0 / 823.0 / 857.0)
+  Turn 3                       775.0    835.0    875.0  (was 775.0 / 835.0 / 875.0)
+  Turn 4 (The Esses)           880.0   1120.0   1300.0  (was 880.0 / 1120.0 / 1300.0)
+  Turn 5                      1304.0   1431.0   1438.0  (was 1296.0 / 1422.0 / 1441.0)
+  Turn 6                      1854.0   1988.0   1995.0  (was 1846.0 / 1972.0 / 2030.0)
+  Turn 7                      2054.0   2150.0   2180.0  (was 2057.0 / 2139.0 / 2171.0)
+  Turn 8                      2350.0   2470.0   2600.0  (was 2350.0 / 2470.0 / 2600.0)
+  Turn 9                      2950.0   3100.0   3280.0  (was 2950.0 / 3100.0 / 3280.0)
+  Turn 10A                    3343.0   3514.0   3534.0  (was 3353.0 / 3517.0 / 3534.0)
+  Turn 10B                    3555.0   3585.0   3591.0  (was 3548.0 / 3575.0 / 3620.0)
+  Turn 11                     3620.0   3710.0   3780.0  (was 3620.0 / 3710.0 / 3780.0)
+  Turn 12                     3780.0   3990.0   4082.1  (was 3780.0 / 3990.0 / 4082.1)

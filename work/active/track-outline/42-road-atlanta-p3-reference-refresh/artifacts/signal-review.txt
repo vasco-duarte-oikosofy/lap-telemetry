@@ -1,0 +1,51 @@
+Candidate lap: lap 17, authoritative 75.815s (3767 rows) from session_20261104T180435Z_michelin-raceway-road-atlanta_lmu_race.parquet
+Old reference: 1:16.304 (3795 rows) michelin-raceway-road-atlanta_dkr-engineering-4-elms25_time_01.16.304.parquet
+Window: +/-0.5 s around the curated apex distance on each lap.
+
+corner                  apex_m lap   v@apex    vmin  thr_min  thr_mean  brake_max          steer  verdict
+----------------------------------------------------------------------------------------------------------------
+Turn 1                   435.0 old    190.0   190.0    0.000     0.514      0.128  0.208/0.223    braking event
+Turn 1                   435.0 new    187.1   182.7    0.000     0.269      0.162  0.204/0.222    braking event
+
+Turn 2                   823.0 old    128.6   128.6    0.000     0.269      0.243  0.195/0.252    braking event
+Turn 2                   823.0 new    145.8   140.5    0.000     0.000      0.174  0.139/0.213    braking event
+
+Turn 3                   835.0 old    130.7   128.6    0.000     0.390      0.188  0.171/0.252    braking event
+Turn 3                   835.0 new    143.1   139.5    0.000     0.009      0.115  0.155/0.213    braking event
+                       -> GEOMETRY PRESERVED
+
+Turn 4 (The Esses)      1120.0 old    209.2   206.6    0.598     0.909      0.000  0.163/0.213    lift only (throttle min 0.60)
+Turn 4 (The Esses)      1120.0 new    210.3   205.3    1.000     1.000      0.000  0.170/0.210    flat (no braking event)
+                       -> curated flat marker, GEOMETRY PRESERVED
+
+Turn 5                  1422.0 old    145.9   145.9    0.000     0.398      0.218 -0.271/-0.114   braking event
+Turn 5                  1422.0 new    154.6   152.3    0.000     0.231      0.283 -0.252/-0.168   braking event
+
+Turn 6                  1972.0 old    143.1   143.1    0.000     0.335      0.209  0.227/0.298    braking event
+Turn 6                  1972.0 new    155.1   149.1    0.000     0.086      0.211  0.218/0.301    braking event
+
+Turn 7                  2139.0 old     86.8    86.8    0.000     0.157      0.235  0.283/0.447    braking event
+Turn 7                  2139.0 new     97.7    93.1    0.000     0.072      0.102  0.378/0.429    braking event
+
+Turn 8                  2470.0 old    205.1   200.1    1.000     1.000      0.000 -0.025/-0.018   flat (no braking event)
+Turn 8                  2470.0 new    203.5   198.3    1.000     1.000      0.000 -0.028/-0.019   flat (no braking event)
+                       -> curated flat marker, GEOMETRY PRESERVED
+
+Turn 9                  3100.0 old    256.7   254.8    1.000     1.000      0.000  0.035/0.054    flat (no braking event)
+Turn 9                  3100.0 new    256.1   254.8    1.000     1.000      0.000  0.035/0.046    flat (no braking event)
+                       -> curated flat marker, GEOMETRY PRESERVED
+
+Turn 10A                3517.0 old    100.0   100.0    0.000     0.253      0.252 -0.347/-0.143   braking event
+Turn 10A                3517.0 new    108.5   108.0    0.000     0.283      0.154 -0.355/-0.230   braking event
+
+Turn 10B                3575.0 old    121.8   120.1    0.327     0.371      0.000  0.226/0.319    lift only (throttle min 0.33)
+Turn 10B                3575.0 new    124.0   121.6    0.000     0.366      0.000  0.182/0.356    lift only (throttle min 0.00)
+
+Turn 11                 3710.0 old    163.6   155.7    1.000     1.000      0.000  0.068/0.090    flat (no braking event)
+Turn 11                 3710.0 new    163.0   155.0    1.000     1.000      0.000  0.057/0.081    flat (no braking event)
+                       -> curated flat marker, GEOMETRY PRESERVED
+
+Turn 12                 3990.0 old    227.3   223.9    1.000     1.000      0.000  0.106/0.144    flat (no braking event)
+Turn 12                 3990.0 new    225.7   222.2    1.000     1.000      0.000  0.099/0.141    flat (no braking event)
+                       -> curated flat marker, GEOMETRY PRESERVED
+
