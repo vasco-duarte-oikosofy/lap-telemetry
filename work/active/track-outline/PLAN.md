@@ -61,6 +61,7 @@ Tracks are ordered by data quality: TUMFTM first (real widths), then trajectory-
 | `41-interlagos-p3-reference-refresh` | Interlagos / Ginetta P3 race | Unfinalized race recording, frozen closed shards, lap 10 | Ref 1:30.354 → 1:30.062; 5 corners refreshed, 10 preserved on signal evidence; outline anchors re-baked | ✅ `fe29da7`; encoding fix `3050f77` |
 | `42-road-atlanta-p3-reference-refresh` | Road Atlanta / P3 (DKR LMP3) race | Unfinalized race recording, frozen closed shards, lap 17 | Ref 1:16.304 → 1:15.815; 7 corners refreshed (≤35 m), 6 preserved (5 flat + compound Turn 3); outline anchors re-baked, curated map labels kept | ✅ `8de8c23` |
 | `43-imola-f296` | Imola / Ferrari 296 GT3 (new car, existing track) | Today's practice, lap 5 | Ref 1:46.173 + model seeded from the curated Ginetta model (11 official names kept); 8 corners refreshed (≤26 m), 3 compound second halves preserved; outline already current, unchanged | ✅ `24eb9a6` |
+| `44-imola-f296-faster` | Imola / Ferrari 296 GT3 faster practice | Second practice same day, lap 6 | Ref 1:46.173 → 1:45.534; 7 corners refreshed (≤14 m apex), Tamburello preserved (exit boundary is throttle modulation, 74 m spread across laps), 3 compound second halves kept; outline byte-identical | ✅ this slice |
 
 **Feature tests (slice 38):** `bash scripts/test-summary.sh --feature long-beach-f499p`
 
