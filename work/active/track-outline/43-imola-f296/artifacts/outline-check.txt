@@ -1,0 +1,34 @@
+# Imola outline check — 2026-11-07T08:23:30Z
+
+## Outline on disk
+file: product/data/track-outlines/autodromo-enzo-e-dino-ferrari.json
+source: Median trajectory from 2 laps  |  turns: 11
+  T1  Tamburello               apex=  704.0 short=None
+  T2  Variante Villeneuve 1    apex= 1419.0 short=Villeneuve 1
+  T3  Variante Villeneuve 2    apex= 1417.0 short=Villeneuve 2
+  T4  Tosa                     apex= 1696.0 short=None
+  T5  Piratella                apex= 2323.0 short=None
+  T6  Acque Minerali 1         apex= 2841.0 short=Acque 1
+  T7  Acque Minerali 2         apex= 2858.0 short=Acque 2
+  T8  Variante Alta 1          apex= 3385.0 short=Alta 1
+  T9  Variante Alta 2          apex= 3396.0 short=Alta 2
+  T10 Rivazza 1                apex= 4145.0 short=None
+  T11 Rivazza 2                apex= 4256.0 short=None
+
+## bake_outline_turns.py --check
+STALE autodromo-enzo-e-dino-ferrari: 11 turns (autodromo-enzo-e-dino-ferrari_dkr-engineering-4-elms25.json (11/11 named))
+
+0 track(s) with turns, 1 skipped
+
+## Why the raw bake reports STALE
+The baker selects the alphabetically-first curated model (Ginetta LMP3) and derives
+map labels from speech aliases, which would write short_name 'Rivazza 1'/'Rivazza 2'
+on T10/T11. The curated map deliberately shows numbers there (chicane-like pair),
+pinned by BAKED_SHORT_NAMES in dev/scripts/test_outline_turns.js. Names and
+apex_s_m on disk already match that model exactly, so no rebake is needed.
+
+## Contract test
+  [PASS] turns are valid: autodromo-enzo-e-dino-ferrari.json
+  [PASS] turns match the coaching model: autodromo-enzo-e-dino-ferrari
+41/41 assertions passed
+RESULT: PASS

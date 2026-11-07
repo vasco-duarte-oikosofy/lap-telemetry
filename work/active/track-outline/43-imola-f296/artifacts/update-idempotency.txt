@@ -1,0 +1,7 @@
+Mode: --ref  (autodromo-enzo-e-dino-ferrari_vista-af-corse-2026-21-lm_time_01.46.173.parquet, 106.173s, vehicle vista-af-corse-2026-21-lm)
+Corner check: model has 11, lap yields 8 (8 matched, 0 geometry preserved)
+  WARNING: Variante Villeneuve 2 keeps old geometry (--allow-unmatched)
+  WARNING: Acque Minerali 2 keeps old geometry (--allow-unmatched)
+  WARNING: Variante Alta 2 keeps old geometry (--allow-unmatched)
+
+Coaching model already up to date (autodromo-enzo-e-dino-ferrari_vista-af-corse-2026-21-lm.json) - nothing written.

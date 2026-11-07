@@ -1,0 +1,96 @@
+OK    algarve-international-circuit_dkr-engineering-4-elms25_time_01.40.706.parquet
+      * legacy-time delta 0.060s vs lap_time_s (pre-authoritative export)
+      * source: session_20261023T140706Z_algarve-international-circuit_lmu_practice.parquet
+OK    algarve-international-circuit_vista-af-corse-2025-21-lm_time_01.46.279.parquet
+      * source: session_20260519T181249Z_algarve-international-circuit_lmu.parquet
+OK    autodromo-enzo-e-dino-ferrari_dkr-engineering-4-elms25_time_01.40.607.parquet
+      * legacy-time delta 0.153s vs lap_time_s (pre-authoritative export)
+      * source: session_20260905T084259Z_autodromo-enzo-e-dino-ferrari_lmu_race.parquet
+OK    autodromo-enzo-e-dino-ferrari_ferrari-af-corse-2026-50-lm_time_01.33.546.parquet
+      * legacy-time delta 0.189s vs lap_time_s (pre-authoritative export)
+      * source: session_20260913T175842Z_autodromo-enzo-e-dino-ferrari_lmu_quali.parquet
+OK    autodromo-enzo-e-dino-ferrari_vista-af-corse-2026-21-lm_time_01.46.173.parquet
+      * legacy-time delta 0.176s vs lap_time_s (pre-authoritative export)
+      * source: session_20261107T075003Z_autodromo-enzo-e-dino-ferrari_lmu_practice.parquet
+OK    autodromo-jose-carlos-pace_dkr-engineering-4-elms25_time_01.30.062.parquet
+      * legacy-time delta 0.132s vs lap_time_s (pre-authoritative export)
+      * source: session_20261102T174436Z_autodromo-jose-carlos-pace_lmu_race.parquet
+OK    autodromo-nazionale-monza_dkr-engineering-4-elms25_time_01.45.828.parquet
+      * source: session_20260520T180234Z_autodromo-nazionale-monza_lmu.parquet
+OK    bahrain-international-circuit_dkr-engineering-4-elms25_time_01.56.052.parquet
+      * legacy-time delta 0.096s vs lap_time_s (pre-authoritative export)
+      * source: session_20260912T184317Z_bahrain-international-circuit_lmu_race.parquet
+OK    bahrain-outer-circuit_dkr-engineering-4-elms25_time_01.10.845.parquet
+      * legacy-time delta 0.196s vs lap_time_s (pre-authoritative export)
+      * source: session_20260529T152146Z_bahrain-outer-circuit_lmu.parquet
+OK    bahrain-outer-circuit_richard-mille-af-corse-2026-50-elms_time_01.13.936.parquet
+      * legacy-time delta 0.045s vs lap_time_s (pre-authoritative export)
+      * source: session_20261020T162529Z_bahrain-outer-circuit_lmu_practice.parquet
+OK    circuit-de-barcelona_dkr-engineering-4-elms25_time_01.36.456.parquet
+      * source: session_20260517T080343Z_circuit-de-barcelona_lmu.parquet
+OK    circuit-de-barcelona_ferrari-af-corse-2026-50-lm_time_01.40.065.parquet
+      * legacy-time delta 0.069s vs lap_time_s (pre-authoritative export)
+      * source: session_20261020T160203Z_circuit-de-barcelona_lmu_practice.parquet
+OK    circuit-de-la-sarthe_dkr-engineering-4-elms25_time_03.50.650.parquet
+      * source: session_20260614T160358Z_circuit-de-la-sarthe_lmu_practice.parquet
+OK    circuit-de-spa-francorchamps-endurance_dkr-engineering-4-elms25_time_02.14.185.parquet
+      * source: session_20260514T113246Z_circuit-de-spa-francorchamps-endurance_lmu.parquet
+OK    circuit-de-spa-francorchamps_dkr-engineering-4-elms25_time_02.13.835.parquet
+      * source: session_20260510T163054Z_circuit-de-spa-francorchamps_lmu.parquet
+OK    circuit-of-the-americas_dkr-engineering-4-elms25_time_02.03.733.parquet
+      * legacy-time delta 0.145s vs lap_time_s (pre-authoritative export)
+      * source: session_20260606T162319Z_circuit-of-the-americas_lmu_race.parquet
+OK    daytona-international-speedway-road-course_dkr-engineering-4-elms25_time_01.45.596.parquet
+      * source: session_20260808T164304Z_daytona-international-speedway-road-course_lmu_race.parquet
+OK    daytona-international-speedway-road-course_vista-af-corse-2026-54-wec_time_01.48.619.parquet
+      * legacy-time delta 0.040s vs lap_time_s (pre-authoritative export)
+      * source: session_20260830T062957Z_daytona-international-speedway-road-course_lmu_practice.parquet
+OK    fuji-speedway-classic_vista-af-corsa-2026-54-wec_time_01.38.541.parquet
+      * legacy-time delta 0.189s vs lap_time_s (pre-authoritative export)
+      * source: session_20260606T132344Z_fuji-speedway-classic_lmu_quali.parquet
+OK    fuji-speedway_dkr-engineering-4-elms25_time_01.36.564.parquet
+      * legacy-time delta 0.070s vs lap_time_s (pre-authoritative export)
+      * source: session_20261025T065239Z_fuji-speedway_lmu_quali.parquet
+OK    grand-prix-of-long-beach_ferrari-af-corse-2026-50-lm_time_01.14.871.parquet
+      * legacy-time delta 0.178s vs lap_time_s (pre-authoritative export)
+      * source: session_20261101T175418Z_grand-prix-of-long-beach_lmu_practice.parquet
+OK    lusail-international-circuit_dkr-engineering-4-elms25_time_01.51.975.parquet
+      * source: session_20260905T065812Z_lusail-international-circuit_lmu_practice.parquet
+OK    lusail-international-circuit_vista-af-corse-2026-54-wec_time_01.58.629.parquet
+      * legacy-time delta 0.190s vs lap_time_s (pre-authoritative export)
+      * source: session_20260913T082312Z_lusail-international-circuit_lmu_race.parquet
+OK    michelin-raceway-road-atlanta_dkr-engineering-4-elms25_time_01.15.815.parquet
+      * legacy-time delta 0.157s vs lap_time_s (pre-authoritative export)
+      * source: session_20261104T180435Z_michelin-raceway-road-atlanta_lmu_race.parquet
+OK    monza-curva-grande-circuit_dkr-engineering-4-elms25_time_01.35.182.parquet
+      * legacy-time delta 0.101s vs lap_time_s (pre-authoritative export)
+      * source: session_20261031T065746Z_monza-curva-grande-circuit_lmu_practice.parquet
+OK    monza-curva-grande-circuit_vista-af-corse-2026-54-wec_time_01.39.398.parquet
+      * legacy-time delta 0.072s vs lap_time_s (pre-authoritative export)
+      * source: session_20261031T152017Z_monza-curva-grande-circuit_lmu_practice.parquet
+OK    paul-ricard---1a-v2-short_ferrari-af-corse-2026-50-lm_time_01.36.804.parquet
+      * legacy-time delta 0.200s vs lap_time_s (pre-authoritative export)
+      * source: session_20260920T055844Z_paul-ricard---1a-v2-short_lmu_quali.parquet
+OK    paul-ricard---1a_dkr-engineering-4-elms25_time_01.46.834.parquet
+      * legacy-time delta 0.054s vs lap_time_s (pre-authoritative export)
+      * source: session_20261101T190458Z_paul-ricard---1a_lmu_race.parquet
+OK    paul-ricard---3a_dkr-engineering-4-elms25_time_01.17.166.parquet
+      * legacy-time delta 0.188s vs lap_time_s (pre-authoritative export)
+      * source: session_20260529T180345Z_paul-ricard---3a_lmu.parquet
+OK    sebring-international-raceway_logitech-g-challenge-9-lgc_time_02.04.384.parquet
+      * source: session_20260607T101328Z_sebring-international-raceway_lmu_race.parquet
+OK    silverstone-grand-prix-circuit---elms_dkr-engineering-4-elms25_time_01.53.513.parquet
+      * source: session_20260616T183246Z_silverstone-grand-prix-circuit---elms_lmu_quali.parquet
+OK    silverstone-international-circuit_vista-af-corse-2026-21-lm_time_01.02.909.parquet
+      * legacy-time delta 0.078s vs lap_time_s (pre-authoritative export)
+      * source: session_20261031T082426Z_silverstone-international-circuit_lmu_race.parquet
+OK    spa-francorchamps_wtm-12-lmp3-duqueine-hdf-spa_time_02.05.489.parquet
+      * row count 11467 vs ~6274 expected for 125.489s at 50 Hz (sampling-rate anomaly, lap_time_s consistent)
+      * source: session_20260512T140000Z_spa-francorchamps_lmu.parquet
+OK    weathertech-raceway-laguna-seca_dkr-engineering-4-elms25_time_01.21.495.parquet
+      * legacy-time delta 0.188s vs lap_time_s (pre-authoritative export)
+      * source: session_20260815T172700Z_weathertech-raceway-laguna-seca_lmu_practice.parquet
+OK    weathertech-raceway-laguna-seca_vista-af-corse-2026-54-wec_time_01.27.905.parquet
+      * source: session_20260808T155443Z_weathertech-raceway-laguna-seca_lmu_practice.parquet
+
+35 reference laps checked, 0 failures.

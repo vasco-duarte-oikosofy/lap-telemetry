@@ -1,0 +1,22 @@
+old reference: autodromo-enzo-e-dino-ferrari_dkr-engineering-4-elms25_time_01.40.607.parquet
+new reference: autodromo-enzo-e-dino-ferrari_vista-af-corse-2026-21-lm_time_01.46.173.parquet
+F296 apex events: 699m, 1413m, 1707m, 2333m, 2849m, 3383m, 4119m, 4249m
+
+corner                    apex(m) |        Ginetta thr/brk/spd |           F296 thr/brk/spd
+------------------------------------------------------------------------------------------------
+Tamburello                    699 |       19%  0.00  117.5 |       30%  0.00  110.2
+Variante Villeneuve 1        1413 |       13%  0.00  130.3 |       42%  0.00  110.1
+Variante Villeneuve 2        1417 |       26%  0.00  129.9 |       46%  0.00  110.3
+Tosa                         1707 |       40%  0.00   87.9 |       51%  0.00   76.3
+Piratella                    2333 |       98%  0.00  131.6 |       34%  0.00  125.2
+Acque Minerali 1             2849 |       47%  0.00  106.9 |       54%  0.00   92.9
+Acque Minerali 2             2858 |       47%  0.00  107.6 |      100%  0.00   96.5
+Variante Alta 1              3383 |       16%  0.00   84.4 |       17%  0.00   67.3
+Variante Alta 2              3396 |       72%  0.00   87.8 |      100%  0.00   75.7
+Rivazza 1                    4119 |        0%  0.30  103.0 |       23%  0.01   81.2
+Rivazza 2                    4249 |        2%  0.06  108.6 |       32%  0.00  107.6
+
+Preserved by --allow-unmatched (no braking event of their own):
+  Variante Villeneuve 2 (t3) is the second half of the t2 braking event; the GT3 brakes once for the complex.
+  Acque Minerali 2 (t7) is the second half of the t6 braking event; the GT3 brakes once for the complex.
+  Variante Alta 2 (t9) is the second half of the t8 braking event; the GT3 brakes once for the complex.

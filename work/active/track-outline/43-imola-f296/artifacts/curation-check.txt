@@ -1,0 +1,17 @@
+  t1 Tamburello               short=None           side=right flat=None | s_start_m 524.0->513.0, apex_s_m 704.0->699.0
+  t2 Variante Villeneuve 1    short=Villeneuve 1   side=right flat=None | s_start_m 1225.0->1223.0, apex_s_m 1419.0->1413.0, s_end_m 1441.0->1427.0
+  t3 Variante Villeneuve 2    short=Villeneuve 2   side=right flat=None | geometry unchanged (preserved)
+  t4 Tosa                     short=None           side=right flat=None | s_start_m 1595.0->1604.0, apex_s_m 1696.0->1707.0, s_end_m 1741.0->1747.0
+  t5 Piratella                short=None           side=right flat=None | s_start_m 2194.0->2203.0, apex_s_m 2323.0->2333.0, s_end_m 2332.0->2361.0
+  t6 Acque Minerali 1         short=Acque 1        side=right flat=None | s_start_m 2659.0->2652.0, apex_s_m 2841.0->2849.0, s_end_m 2867.0->2853.0
+  t7 Acque Minerali 2         short=Acque 2        side=right flat=None | geometry unchanged (preserved)
+  t8 Variante Alta 1          short=Alta 1         side=right flat=None | s_start_m 3198.0->3251.0, apex_s_m 3385.0->3383.0, s_end_m 3398.0->3393.0
+  t9 Variante Alta 2          short=Alta 2         side=right flat=None | geometry unchanged (preserved)
+ t10 Rivazza 1                short=Rivazza 1      side=right flat=None | s_start_m 3981.0->3990.0, apex_s_m 4145.0->4119.0, s_end_m 4156.0->4144.0
+ t11 Rivazza 2                short=Rivazza 2      side=right flat=None | s_start_m 4203.0->4196.0, apex_s_m 4256.0->4249.0, s_end_m 4279.0->4291.0
+
+curated corners: 11
+flat markers:    none in the curated Imola model
+reference:       product/data/reference-laps/autodromo-enzo-e-dino-ferrari_vista-af-corse-2026-21-lm_time_01.46.173.parquet (106.173s)
+
+OK - every name, id, short name, apex side and flat marker preserved
