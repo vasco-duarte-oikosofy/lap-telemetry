@@ -1,0 +1,12 @@
+{
+  "product/data/reference-laps/autodromo-enzo-e-dino-ferrari_dkr-engineering-4-elms25_time_01.40.607.parquet": "0a2ffb9cdf4252f572cc53e5312a5e665ff9b0f9e8c1be60825f684f3f3b69df",
+  "product/data/reference-laps/autodromo-enzo-e-dino-ferrari_ferrari-af-corse-2026-50-lm_time_01.33.546.parquet": "2e1b98c4370372fff280aae628d6bd23bba71ac7221ad3f394c5f78990a80887",
+  "product/data/reference-laps/autodromo-enzo-e-dino-ferrari_vista-af-corse-2026-21-lm_time_01.46.173.parquet": "099528f5814ba42c5011487cb4bf74fa221751fc2b3ea422618d6ac60d8522af",
+  "product/data/track-coaching/autodromo-enzo-e-dino-ferrari_dkr-engineering-4-elms25.diagnostics.txt": "b51333864bcef3ab9428fe2cbbdb6c62f2543355e521a5e38d28452084b03956",
+  "product/data/track-coaching/autodromo-enzo-e-dino-ferrari_dkr-engineering-4-elms25.json": "f984fa52b04e32de0319d54ce21dbfc8e621cec7146a5bb8a6737b49e656ade2",
+  "product/data/track-coaching/autodromo-enzo-e-dino-ferrari_ferrari-af-corse-2026-50-lm.diagnostics.txt": "e42eba6f3a7b91c0da195261f031cd757de7daca2f6ca2f29e7a996fecd0a6ed",
+  "product/data/track-coaching/autodromo-enzo-e-dino-ferrari_ferrari-af-corse-2026-50-lm.json": "4780e43980a19082975c03bfaec54ab3f92d69aa429dacbc5446f2eca69f5eac",
+  "product/data/track-coaching/autodromo-enzo-e-dino-ferrari_vista-af-corse-2026-21-lm.diagnostics.txt": "f03e5155742e36bb1e0d97e253684aa2471d9e4b379ba0e381030de2ea52454a",
+  "product/data/track-coaching/autodromo-enzo-e-dino-ferrari_vista-af-corse-2026-21-lm.json": "9e73293bbed291f9e9af905e640ff13834c77a1171c8f86765b827c3c8d89c42",
+  "product/data/track-outlines/autodromo-enzo-e-dino-ferrari.json": "3cd0a2e93fe0d628fd65594a5e8b76ff50cc738b5721eac296a0c2c26a0f580a"
+}

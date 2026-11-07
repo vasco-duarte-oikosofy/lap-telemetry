@@ -1,0 +1,34 @@
+Track: autodromo-enzo-e-dino-ferrari  Vehicle: vista-af-corse-2026-21-lm  (1 sessions)
+  Fastest: lap 6 in session_20261107T125508Z_autodromo-enzo-e-dino-ferrari_lmu_practice.parquet -> 105.534s
+  Exported 5263 rows -> product\data\reference-laps\autodromo-enzo-e-dino-ferrari_vista-af-corse-2026-21-lm_time_01.45.534.parquet
+  Removed superseded reference (106.173s): autodromo-enzo-e-dino-ferrari_vista-af-corse-2026-21-lm_time_01.46.173.parquet
+
+AUDIT: 1 reference lap changed (added: ['autodromo-enzo-e-dino-ferrari_vista-af-corse-2026-21-lm_time_01.45.534.parquet'], superseded: ['autodromo-enzo-e-dino-ferrari_vista-af-corse-2026-21-lm_time_01.46.173.parquet']). OK.
+Fastest lap in session(s): lap 6 @ 105.534s (session_20261107T125508Z_autodromo-enzo-e-dino-ferrari_lmu_practice.parquet, vehicle vista-af-corse-2026-21-lm)
+Faster than existing reference - will export after corner check
+Corner check: model has 11, lap yields 8 (7 matched, 1 geometry preserved)
+  PRESERVED: Tamburello (t1) keeps reviewed geometry; no event claimed
+  WARNING: Variante Villeneuve 2 keeps old geometry (--allow-unmatched)
+  WARNING: Acque Minerali 2 keeps old geometry (--allow-unmatched)
+  WARNING: Variante Alta 2 keeps old geometry (--allow-unmatched)
+  INFO: new corner at apex=704m not in the model - ignored
+Geometry guard: all matched corners within 40 m - OK
+
+Exporting reference via export_fastest_reference_laps.py ...
+
+Updated coaching model -> C:\Users\duart\lap-telemetry\product\data\track-coaching\autodromo-enzo-e-dino-ferrari_vista-af-corse-2026-21-lm.json
+Updated diagnostics -> C:\Users\duart\lap-telemetry\product\data\track-coaching\autodromo-enzo-e-dino-ferrari_vista-af-corse-2026-21-lm.diagnostics.txt
+
+Corner geometry changes:
+  Turn                         Entry     Apex     Exit  (was Entry/Apex/Exit)
+  Tamburello                   513.0    699.0    710.0  (was 513.0 / 699.0 / 710.0)
+  Variante Villeneuve 1       1229.0   1427.0   1433.0  (was 1223.0 / 1413.0 / 1427.0)
+  Variante Villeneuve 2       1404.0   1417.0   1420.0  (was 1404.0 / 1417.0 / 1420.0)
+  Tosa                        1604.0   1705.0   1727.0  (was 1604.0 / 1707.0 / 1747.0)
+  Piratella                   2200.0   2325.0   2351.0  (was 2203.0 / 2333.0 / 2361.0)
+  Acque Minerali 1            2638.0   2847.0   2854.0  (was 2652.0 / 2849.0 / 2853.0)
+  Acque Minerali 2            2836.0   2858.0   2861.0  (was 2836.0 / 2858.0 / 2861.0)
+  Variante Alta 1             3235.0   3389.0   3396.0  (was 3251.0 / 3383.0 / 3393.0)
+  Variante Alta 2             3374.0   3396.0   3398.0  (was 3374.0 / 3396.0 / 3398.0)
+  Rivazza 1                   3996.0   4122.0   4141.0  (was 3990.0 / 4119.0 / 4144.0)
+  Rivazza 2                   4201.0   4262.0   4298.0  (was 4196.0 / 4249.0 / 4291.0)

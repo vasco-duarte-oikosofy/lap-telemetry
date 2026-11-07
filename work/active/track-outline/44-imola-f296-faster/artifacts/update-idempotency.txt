@@ -1,0 +1,10 @@
+Mode: --ref  (autodromo-enzo-e-dino-ferrari_vista-af-corse-2026-21-lm_time_01.45.534.parquet, 105.534s, vehicle vista-af-corse-2026-21-lm)
+Corner check: model has 11, lap yields 8 (7 matched, 1 geometry preserved)
+  PRESERVED: Tamburello (t1) keeps reviewed geometry; no event claimed
+  WARNING: Variante Villeneuve 2 keeps old geometry (--allow-unmatched)
+  WARNING: Acque Minerali 2 keeps old geometry (--allow-unmatched)
+  WARNING: Variante Alta 2 keeps old geometry (--allow-unmatched)
+  INFO: new corner at apex=704m not in the model - ignored
+Geometry guard: all matched corners within 40 m - OK
+
+Coaching model already up to date (autodromo-enzo-e-dino-ferrari_vista-af-corse-2026-21-lm.json) - nothing written.

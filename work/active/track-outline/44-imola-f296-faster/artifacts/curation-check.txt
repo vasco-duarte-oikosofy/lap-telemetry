@@ -1,0 +1,16 @@
+  t1 Tamburello               short=None           side=right flat=None | geometry unchanged
+  t2 Variante Villeneuve 1    short=Villeneuve 1   side=right flat=None | s_start_m 1223.0->1229.0, apex_s_m 1413.0->1427.0, s_end_m 1427.0->1433.0
+  t3 Variante Villeneuve 2    short=Villeneuve 2   side=right flat=None | geometry unchanged
+  t4 Tosa                     short=None           side=right flat=None | apex_s_m 1707.0->1705.0, s_end_m 1747.0->1727.0
+  t5 Piratella                short=None           side=right flat=None | s_start_m 2203.0->2200.0, apex_s_m 2333.0->2325.0, s_end_m 2361.0->2351.0
+  t6 Acque Minerali 1         short=Acque 1        side=right flat=None | s_start_m 2652.0->2638.0, apex_s_m 2849.0->2847.0, s_end_m 2853.0->2854.0
+  t7 Acque Minerali 2         short=Acque 2        side=right flat=None | geometry unchanged
+  t8 Variante Alta 1          short=Alta 1         side=right flat=None | s_start_m 3251.0->3235.0, apex_s_m 3383.0->3389.0, s_end_m 3393.0->3396.0
+  t9 Variante Alta 2          short=Alta 2         side=right flat=None | geometry unchanged
+ t10 Rivazza 1                short=Rivazza 1      side=right flat=None | s_start_m 3990.0->3996.0, apex_s_m 4119.0->4122.0, s_end_m 4144.0->4141.0
+ t11 Rivazza 2                short=Rivazza 2      side=right flat=None | s_start_m 4196.0->4201.0, apex_s_m 4249.0->4262.0, s_end_m 4291.0->4298.0
+
+reference before: 106.173s (autodromo-enzo-e-dino-ferrari_vista-af-corse-2026-21-lm_time_01.46.173.parquet)
+reference now:    105.534s (autodromo-enzo-e-dino-ferrari_vista-af-corse-2026-21-lm_time_01.45.534.parquet)
+
+OK - every name, id, short name, apex side and flat marker preserved

@@ -1,0 +1,21 @@
+# Imola outline check - faster F296 lap refresh
+
+Outline hash before == after:
+  before: 3cd0a2e93fe0d628fd65594a5e8b76ff50cc738b5721eac296a0c2c26a0f580a
+  now:    3cd0a2e93fe0d628fd65594a5e8b76ff50cc738b5721eac296a0c2c26a0f580a
+  -> UNCHANGED
+
+The outline is per-layout and is baked from the curated Ginetta model (the
+baker's tie-break), which this session did not touch. The per-car F296 model
+and reference changed; the map does not.
+
+## bake_outline_turns.py --check
+STALE autodromo-enzo-e-dino-ferrari: 11 turns (autodromo-enzo-e-dino-ferrari_dkr-engineering-4-elms25.json (11/11 named))
+
+0 track(s) with turns, 1 skipped
+
+## Contract test
+  [PASS] turns are valid: autodromo-enzo-e-dino-ferrari.json
+  [PASS] turns match the coaching model: autodromo-enzo-e-dino-ferrari
+41/41 assertions passed
+RESULT: PASS

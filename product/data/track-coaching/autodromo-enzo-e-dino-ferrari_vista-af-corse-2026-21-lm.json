@@ -3,9 +3,9 @@
   "track_id": "autodromo-enzo-e-dino-ferrari",
   "layout_id": "lmu-default",
   "reference_lap": {
-    "path": "product/data/reference-laps/autodromo-enzo-e-dino-ferrari_vista-af-corse-2026-21-lm_time_01.46.173.parquet",
+    "path": "product/data/reference-laps/autodromo-enzo-e-dino-ferrari_vista-af-corse-2026-21-lm_time_01.45.534.parquet",
     "car_id": "vista-af-corse-2026-21-lm",
-    "lap_time_s": 106.173,
+    "lap_time_s": 105.534,
     "detection_method": "throttle_brake_v1"
   },
   "lap_length_m": 4904.3,
@@ -22,9 +22,9 @@
     {
       "id": "t2",
       "name": "Variante Villeneuve 1",
-      "s_start_m": 1223.0,
-      "apex_s_m": 1413.0,
-      "s_end_m": 1427.0,
+      "s_start_m": 1229.0,
+      "apex_s_m": 1427.0,
+      "s_end_m": 1433.0,
       "apex_side": "right",
       "apex_side_source": "default_cli_option",
       "short_name": "Villeneuve 1"
@@ -43,26 +43,26 @@
       "id": "t4",
       "name": "Tosa",
       "s_start_m": 1604.0,
-      "apex_s_m": 1707.0,
-      "s_end_m": 1747.0,
+      "apex_s_m": 1705.0,
+      "s_end_m": 1727.0,
       "apex_side": "right",
       "apex_side_source": "default_cli_option"
     },
     {
       "id": "t5",
       "name": "Piratella",
-      "s_start_m": 2203.0,
-      "apex_s_m": 2333.0,
-      "s_end_m": 2361.0,
+      "s_start_m": 2200.0,
+      "apex_s_m": 2325.0,
+      "s_end_m": 2351.0,
       "apex_side": "right",
       "apex_side_source": "default_cli_option"
     },
     {
       "id": "t6",
       "name": "Acque Minerali 1",
-      "s_start_m": 2652.0,
-      "apex_s_m": 2849.0,
-      "s_end_m": 2853.0,
+      "s_start_m": 2638.0,
+      "apex_s_m": 2847.0,
+      "s_end_m": 2854.0,
       "apex_side": "right",
       "apex_side_source": "default_cli_option",
       "short_name": "Acque 1"
@@ -80,9 +80,9 @@
     {
       "id": "t8",
       "name": "Variante Alta 1",
-      "s_start_m": 3251.0,
-      "apex_s_m": 3383.0,
-      "s_end_m": 3393.0,
+      "s_start_m": 3235.0,
+      "apex_s_m": 3389.0,
+      "s_end_m": 3396.0,
       "apex_side": "right",
       "apex_side_source": "default_cli_option",
       "short_name": "Alta 1"
@@ -101,9 +101,9 @@
       "id": "t10",
       "name": "Rivazza 1",
       "short_name": "Rivazza 1",
-      "s_start_m": 3990.0,
-      "apex_s_m": 4119.0,
-      "s_end_m": 4144.0,
+      "s_start_m": 3996.0,
+      "apex_s_m": 4122.0,
+      "s_end_m": 4141.0,
       "apex_side": "right",
       "apex_side_source": "default_cli_option"
     },
@@ -111,9 +111,9 @@
       "id": "t11",
       "name": "Rivazza 2",
       "short_name": "Rivazza 2",
-      "s_start_m": 4196.0,
-      "apex_s_m": 4249.0,
-      "s_end_m": 4291.0,
+      "s_start_m": 4201.0,
+      "apex_s_m": 4262.0,
+      "s_end_m": 4298.0,
       "apex_side": "right",
       "apex_side_source": "default_cli_option"
     }

@@ -1,0 +1,7 @@
+
+ABORTED - curated corners not reproduced on this lap: Variante Villeneuve 2, Acque Minerali 2, Variante Alta 2
+No files were changed. Re-run with --allow-unmatched to keep their old
+geometry, or leave the reference and model as they are.
+Fastest lap in session(s): lap 6 @ 105.534s (session_20261107T125508Z_autodromo-enzo-e-dino-ferrari_lmu_practice.parquet, vehicle vista-af-corse-2026-21-lm)
+Faster than existing reference - will export after corner check
+Corner check: model has 11, lap yields 8 (8 matched, 0 geometry preserved)

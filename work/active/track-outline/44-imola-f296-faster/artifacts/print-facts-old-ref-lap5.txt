@@ -1,0 +1,104 @@
+{
+  "type": "lap_coaching_summary",
+  "track_id": "autodromo-enzo-e-dino-ferrari",
+  "lap_number": 5,
+  "lap_time_delta_s": 0.639,
+  "top_losses": [
+    {
+      "corner_id": "t9",
+      "corner_name": "Alta 2",
+      "apex_distance_m": 3396.0,
+      "phase": "minimum_speed",
+      "loss_s": 0.23,
+      "driver_value": 67.2,
+      "reference_value": 77.3,
+      "unit": "km/h",
+      "confidence": "high",
+      "driver_apex_distance_m": 3383.0,
+      "reference_apex_distance_m": 3389.0,
+      "apex_offset_m": 6.0,
+      "gain_end_distance_m": 3991.0
+    },
+    {
+      "corner_id": "t4",
+      "corner_name": "Tosa",
+      "apex_distance_m": 1705.0,
+      "phase": "minimum_speed",
+      "loss_s": 0.21,
+      "driver_value": 76.1,
+      "reference_value": 74.1,
+      "unit": "km/h",
+      "confidence": "medium",
+      "driver_apex_distance_m": 1707.0,
+      "reference_apex_distance_m": 1705.0,
+      "apex_offset_m": -2.0,
+      "gain_end_distance_m": 2204.0
+    },
+    {
+      "corner_id": "t4",
+      "corner_name": "Tosa",
+      "apex_distance_m": 1705.0,
+      "phase": "exit",
+      "loss_s": 0.185,
+      "driver_value": 90.2,
+      "reference_value": 98.5,
+      "unit": "km/h",
+      "confidence": "medium",
+      "phase_distance_m": 1748.0,
+      "gain_end_distance_m": 2204.0,
+      "exit_distance_delta_m": -21.0,
+      "reference_phase_distance_m": 1727.0
+    }
+  ],
+  "top_gains": [
+    {
+      "corner_id": "t11",
+      "corner_name": "Rivazza 2",
+      "apex_distance_m": 4262.0,
+      "phase": "exit",
+      "loss_s": -0.185,
+      "driver_value": 114.2,
+      "reference_value": 112.4,
+      "unit": "km/h",
+      "confidence": "medium",
+      "phase_distance_m": 4291.0,
+      "gain_end_distance_m": 4896.0,
+      "exit_distance_delta_m": 8.0,
+      "reference_phase_distance_m": 4299.0
+    },
+    {
+      "corner_id": "t1",
+      "corner_name": "Tamburello",
+      "apex_distance_m": 699.0,
+      "phase": "exit",
+      "loss_s": -0.167,
+      "driver_value": 114.3,
+      "reference_value": 123.4,
+      "unit": "km/h",
+      "confidence": "medium",
+      "phase_distance_m": 713.0,
+      "gain_end_distance_m": 1224.0,
+      "exit_distance_delta_m": -3.0,
+      "reference_phase_distance_m": 710.0
+    },
+    {
+      "corner_id": "t1",
+      "corner_name": "Tamburello",
+      "apex_distance_m": 699.0,
+      "phase": "minimum_speed",
+      "loss_s": -0.143,
+      "driver_value": 110.1,
+      "reference_value": 122.2,
+      "unit": "km/h",
+      "confidence": "high",
+      "driver_apex_distance_m": 699.0,
+      "reference_apex_distance_m": 704.0,
+      "apex_offset_m": 5.0,
+      "gain_end_distance_m": 1224.0
+    }
+  ],
+  "constraints": {
+    "max_words": 35,
+    "style": "calm_concise_engineer"
+  }
+}
