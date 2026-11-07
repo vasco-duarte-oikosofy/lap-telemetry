@@ -1,0 +1,25 @@
+reference: 96.564s -> 96.544s
+path:      fuji-speedway_dkr-engineering-4-elms25_time_01.36.544.parquet
+corners:   11 -> 11
+
+corner             curated fields   before                 after
+First Corner       identical           562/   766/797       582/   771/784   
+Coca-Cola          identical          1188/  1314/1347     1193/  1326/1348  
+100R               identical          1552/  1699/1701     1571/  1743/1746  
+Hairpin            identical          1876/  2013/2046     1886/  2005/2031  
+Dunlop Bypass      identical          2682/  2846/2855     2676/  2842/2856  
+Turn 11            identical          2875/  2914/2930     2876/  2918/2929  
+Turn 12            identical          3059/  3132/3178     3054/  3116/3177  
+13th Corner        identical          3100/  3151/3161     3100/  3151/3161  
+Netz               identical          3284/  3310/3310     3284/  3310/3310  
+Netz Hairpin       identical          3291/  3404/3439     3289/  3385/3446  
+Panasonic          identical          3573/  3672/3715     3584/  3663/3691  
+
+bug 29 live check (the corners the old matcher corrupted):
+  Netz             3284/  3310/3310   ->   3284/  3310/3310    KEPT (expected for Netz/13th)
+  Netz Hairpin     3291/  3404/3439   ->   3289/  3385/3446    refreshed
+  13th Corner      3100/  3151/3161   ->   3100/  3151/3161    KEPT (expected for Netz/13th)
+
+flat markers: none in this model
+
+OK - curation preserved, markers untouched

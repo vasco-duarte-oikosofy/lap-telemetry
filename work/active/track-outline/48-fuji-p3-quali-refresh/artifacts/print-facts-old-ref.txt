@@ -1,0 +1,104 @@
+{
+  "type": "lap_coaching_summary",
+  "track_id": "fuji-speedway",
+  "lap_number": 10,
+  "lap_time_delta_s": 0.02,
+  "top_losses": [
+    {
+      "corner_id": "netz_hairpin",
+      "corner_name": "Netz Hairpin",
+      "apex_distance_m": 3385.0,
+      "phase": "exit_brake",
+      "loss_s": 0.167,
+      "driver_value": 84.2,
+      "reference_value": 90.5,
+      "unit": "km/h",
+      "confidence": "medium",
+      "phase_distance_m": 3401.0,
+      "gain_end_distance_m": 3573.0,
+      "exit_distance_delta_m": 46.0,
+      "reference_phase_distance_m": 3447.0
+    },
+    {
+      "corner_id": "netz_hairpin",
+      "corner_name": "Netz Hairpin",
+      "apex_distance_m": 3385.0,
+      "phase": "minimum_speed",
+      "loss_s": 0.161,
+      "driver_value": 83.6,
+      "reference_value": 89.2,
+      "unit": "km/h",
+      "confidence": "high",
+      "driver_apex_distance_m": 3404.0,
+      "reference_apex_distance_m": 3385.0,
+      "apex_offset_m": -19.0,
+      "gain_end_distance_m": 3573.0
+    },
+    {
+      "corner_id": "panasonic",
+      "corner_name": "Panasonic",
+      "apex_distance_m": 3663.0,
+      "phase": "exit_throttle",
+      "loss_s": 0.152,
+      "driver_value": 101.6,
+      "reference_value": 107.0,
+      "unit": "km/h",
+      "confidence": "medium",
+      "phase_distance_m": 3715.0,
+      "gain_end_distance_m": 4532.0,
+      "exit_distance_delta_m": -24.0,
+      "reference_phase_distance_m": 3691.0
+    }
+  ],
+  "top_gains": [
+    {
+      "corner_id": "1",
+      "corner_name": "First",
+      "apex_distance_m": 771.0,
+      "phase": "minimum_speed",
+      "loss_s": -0.225,
+      "driver_value": 75.5,
+      "reference_value": 63.1,
+      "unit": "km/h",
+      "confidence": "high",
+      "driver_apex_distance_m": 766.0,
+      "reference_apex_distance_m": 771.0,
+      "apex_offset_m": 5.0,
+      "gain_end_distance_m": 1188.0
+    },
+    {
+      "corner_id": "hairpin",
+      "corner_name": "Hairpin",
+      "apex_distance_m": 2005.0,
+      "phase": "entry",
+      "loss_s": -0.129,
+      "driver_value": 188.0,
+      "reference_value": 184.8,
+      "unit": "km/h",
+      "confidence": "medium",
+      "phase_distance_m": 1752.0,
+      "gain_end_distance_m": 2005.0,
+      "entry_distance_delta_m": 136.0,
+      "reference_phase_distance_m": 1888.0
+    },
+    {
+      "corner_id": "12",
+      "corner_name": "Twelve",
+      "apex_distance_m": 3116.0,
+      "phase": "exit",
+      "loss_s": -0.073,
+      "driver_value": 123.8,
+      "reference_value": 115.0,
+      "unit": "km/h",
+      "confidence": "medium",
+      "phase_distance_m": 3100.0,
+      "gain_end_distance_m": 3177.0,
+      "exit_distance_delta_m": 0.0,
+      "reference_phase_distance_m": 3100.0
+    }
+  ],
+  "constraints": {
+    "max_words": 35,
+    "style": "calm_concise_engineer"
+  }
+}

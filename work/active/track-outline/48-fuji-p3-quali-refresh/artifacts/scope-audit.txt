@@ -1,0 +1,9 @@
+scope audit (before -> now)
+  DELETED  product/data/reference-laps/fuji-speedway_dkr-engineering-4-elms25_time_01.36.564.parquet
+  changed   product/data/track-coaching/fuji-speedway_dkr-engineering-4-elms25.diagnostics.txt
+  changed   product/data/track-coaching/fuji-speedway_dkr-engineering-4-elms25.json
+  unchanged product/data/track-outlines/fuji-speedway-classic.json
+  changed   product/data/track-outlines/fuji-speedway_outline.json
+  changed   product/dist/compare.html
+  changed   product/web/js/staticFujiSpeedway_outlineOutlineData.js
+  ADDED    product\data\reference-laps\fuji-speedway_dkr-engineering-4-elms25_time_01.36.544.parquet

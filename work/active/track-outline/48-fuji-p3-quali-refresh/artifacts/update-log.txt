@@ -1,0 +1,31 @@
+Track: fuji-speedway  Vehicle: dkr-engineering-4-elms25  (1 sessions)
+  Fastest: lap 2 in session_20261107T141839Z_fuji-speedway_lmu_quali.parquet -> 96.544s
+  Exported 4760 rows -> product\data\reference-laps\fuji-speedway_dkr-engineering-4-elms25_time_01.36.544.parquet
+  Removed superseded reference (96.564s): fuji-speedway_dkr-engineering-4-elms25_time_01.36.564.parquet
+
+AUDIT: 1 reference lap changed (added: ['fuji-speedway_dkr-engineering-4-elms25_time_01.36.544.parquet'], superseded: ['fuji-speedway_dkr-engineering-4-elms25_time_01.36.564.parquet']). OK.
+Fastest lap in session(s): lap 2 @ 96.544s (session_20261107T141839Z_fuji-speedway_lmu_quali.parquet, vehicle dkr-engineering-4-elms25)
+Faster than existing reference - will export after corner check
+Corner check: model has 11, lap yields 9 (9 matched, 0 geometry preserved)
+  WARNING: 13th Corner keeps old geometry (--allow-unmatched)
+  WARNING: Netz keeps old geometry (--allow-unmatched)
+Geometry guard: all matched corners within 50 m - OK
+
+Exporting reference via export_fastest_reference_laps.py ...
+
+Updated coaching model -> C:\Users\duart\lap-telemetry\product\data\track-coaching\fuji-speedway_dkr-engineering-4-elms25.json
+Updated diagnostics -> C:\Users\duart\lap-telemetry\product\data\track-coaching\fuji-speedway_dkr-engineering-4-elms25.diagnostics.txt
+
+Corner geometry changes:
+  Turn                         Entry     Apex     Exit  (was Entry/Apex/Exit)
+  First Corner                 582.0    771.0    784.0  (was 562.0 / 766.0 / 797.0)
+  Coca-Cola                   1193.0   1326.0   1348.0  (was 1188.0 / 1314.0 / 1347.0)
+  100R                        1571.0   1743.0   1746.0  (was 1552.0 / 1699.0 / 1701.0)
+  Hairpin                     1886.0   2005.0   2031.0  (was 1876.0 / 2013.0 / 2046.0)
+  Dunlop Bypass               2676.0   2842.0   2856.0  (was 2682.0 / 2846.0 / 2855.0)
+  Turn 11                     2876.0   2918.0   2929.0  (was 2875.0 / 2914.0 / 2930.0)
+  Turn 12                     3054.0   3116.0   3177.0  (was 3059.0 / 3132.0 / 3178.0)
+  13th Corner                 3100.0   3151.0   3161.0  (was 3100.0 / 3151.0 / 3161.0)
+  Netz                        3284.0   3310.0   3310.0  (was 3284.0 / 3310.0 / 3310.0)
+  Netz Hairpin                3289.0   3385.0   3446.0  (was 3291.0 / 3404.0 / 3439.0)
+  Panasonic                   3584.0   3663.0   3691.0  (was 3573.0 / 3672.0 / 3715.0)
