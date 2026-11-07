@@ -1,6 +1,6 @@
 # Slice 43 — Imola / Ferrari 296 GT3 (new car, existing track)
 
-Status: 🔧 In progress
+Status: ✅ Complete in `24eb9a6`
 Trigger: the driver ran an Imola practice session today (2026-11-07, LMU,
 `session_20261107T075003Z_autodromo-enzo-e-dino-ferrari_lmu_practice.parquet`)
 in the Ferrari 296 GT3 `Vista AF Corse 2026 #21:LM`. Fastest complete lap:
