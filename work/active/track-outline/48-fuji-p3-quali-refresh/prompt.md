@@ -1,6 +1,6 @@
 # Slice 48 — Fuji / Ginetta P3: live validation of the bug 29 fix
 
-Status: ✅ Complete — reference and model refreshed; bug 29 behaved correctly on real data
+Status: ✅ Complete — reference and model refreshed; bug 29 behaved correctly on real data and the user accepted the result (bug closed 2026-11-07)
 Trigger: *"LETs do the fuji/p3 quali lap update to validate the fix for bug 29"*
 
 ## What ran

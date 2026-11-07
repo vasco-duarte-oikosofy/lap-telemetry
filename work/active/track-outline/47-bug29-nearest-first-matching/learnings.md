@@ -36,5 +36,7 @@
 
 - **Live confirmation is part of the process, not a formality.** The bug folder
   stays in `work/active/bugs/` until the user runs a real refresh and sees the
-  marker keep its geometry — that is the only evidence the fix behaves on their
-  machine with their tracks.
+  marker keep its geometry. That happened in slice 48: the Fuji refresh kept
+  `Netz` at 3284/3310/3310 and moved `Netz Hairpin` to its own event at 3385, and
+  the user accepted it — a fixture alone would never have proved the shipped
+  matcher behaves on their data.

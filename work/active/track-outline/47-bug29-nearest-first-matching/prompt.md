@@ -1,6 +1,6 @@
 # Slice 47 — Fix bug 29: nearest-first corner matching
 
-Status: ✅ Fixed (awaiting your live confirmation before the bug folder moves to `work/completed/bugs/`)
+Status: ✅ Fixed (`776519f`) and live-validated (`7ffa144`, Fuji P3 1:36.544 refresh); user-confirmed 2026-11-07, bug folder moved to `work/completed/bugs/`
 Trigger: *"let's fix bug 29 now"* — the greedy, model-order matcher in
 `update_reference_and_coaching_model.py` that let a curated corner absorb its
 neighbour's braking event.

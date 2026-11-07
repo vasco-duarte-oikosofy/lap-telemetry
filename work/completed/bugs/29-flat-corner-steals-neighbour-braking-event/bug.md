@@ -1,7 +1,8 @@
 # Bug 29 — Greedy nearest-apex match lets a curated flat corner steal a neighbouring corner's braking event
 
-**Status:** ✅ Fixed in `776519f` (2026-11-07). The folder stays in
-`work/active/bugs/` until a live refresh is confirmed by the user.
+**Status:** ✅ **Closed** — fixed in `776519f`, live-validated in `7ffa144`
+(Fuji P3 quali refresh, 1:36.564 → 1:36.544) and confirmed by the user on
+2026-11-07. Moved to `work/completed/bugs/`.
 
 ## Symptom
 
@@ -132,10 +133,28 @@ closer corner wants it. That is deliberate (it is what refreshes compound and
 light-braking corners); reviewed zones that must never match still need
 `--preserve-geometry`.
 
+## Live validation — 2026-11-07 (`7ffa144`)
+
+The Fuji P3 refresh for the 1:36.544 quali lap was run **without**
+`--preserve-geometry`, letting the fixed matcher decide ownership on its own:
+
+```
+Netz         3284/3310/3310 -> 3284/3310/3310   (KEPT, curated marker)
+Netz Hairpin 3291/3404/3439 -> 3289/3385/3446   (its own event, 19 m away)
+13th Corner  3100/3151/3161 -> 3100/3151/3161   (KEPT, curated marker)
+```
+
+The old matcher moved `Netz` to 3289/3404/3439 (+129 m of exit) on this same lap
+and reported the hairpin unmatched. All 11 names, IDs, short names and apex
+sides came through identical, the reference export passed its audit, and the
+user confirmed the result in the car/map. The `--preserve-geometry netz
+netz_hairpin` workaround is no longer needed.
+
 ## Files
 
 - `dev/scripts/update_reference_and_coaching_model.py` — `match_corners()` (fixed)
 - `dev/scripts/test_update_coaching_model.py` — regression case added
 - `docs/HOW_TO_CREATE_A_COACHING_MODEL.md` — the `--allow-unmatched` caveat that
   described this failure mode was corrected
-- Worked-around (not fixed) in `927c727` and `125716c`; fixed in `776519f`
+- Worked-around (not fixed) in `927c727` and `125716c`; fixed in `776519f`,
+  live-validated in `7ffa144` (Fuji P3 quali refresh), user-confirmed 2026-11-07

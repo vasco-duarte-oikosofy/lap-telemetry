@@ -21,9 +21,9 @@ left **Netz** unmatched with its curated zone intact. Under the old matcher the
 same lap produced `Netz` at 3289/3404/3439 (+129 m of exit) and reported the
 hairpin unmatched. `13th Corner` is unmatched on both, correctly.
 
-The bug folder is still in `work/active/bugs/29-…`; move it to
-`work/completed/bugs/` once you have seen this on your side (map/coach) and say
-so — AGENTS.md requires your confirmation, not mine.
+The user accepted the result on 2026-11-07, so the folder now lives in
+`work/completed/bugs/29-flat-corner-steals-neighbour-braking-event/` (bug.md
+status ✅ Closed, with this run recorded as its live validation).
 
 ## Reference provenance nuance (worth knowing)
 

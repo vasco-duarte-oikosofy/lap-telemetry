@@ -30,7 +30,7 @@ Only quali lap 2 beats the reference. Everything else in today's Fuji sessions
 3. **Bug 29 would corrupt Netz.** Greedy model-order matching lets `Netz`
    (3310) claim the Netz Hairpin event (3385) 75 m away and +136 m of exit
    movement; `netz_hairpin` then reports unmatched. Third occurrence of the same
-   bug on the same corner (see `work/active/bugs/29-…/bug.md`).
+   bug on the same corner (see `work/completed/bugs/29-flat-corner-steals-neighbour-braking-event/bug.md`).
 4. **The rest is noise.** Clean-lap spread on these two sessions: `100R` event
    apex 1626–1761 m (135 m), `Panasonic` 3650–3695 m. A +44 m move for 100R on
    this lap is sampling noise, not geometry.

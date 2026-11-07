@@ -7,7 +7,7 @@
 | `dev/scripts/update_reference_and_coaching_model.py` | `match_corners()` rewritten: rank all (corner, event) pairs by apex distance, claim globally nearest-first; ties keep the earlier corner |
 | `dev/scripts/test_update_coaching_model.py` | +2 tests (`test_nearest_corner_claims_the_event_not_the_earlier_listed_one`, `test_matching_is_deterministic_and_respects_the_distance_cap`) |
 | `docs/HOW_TO_CREATE_A_COACHING_MODEL.md` | `--allow-unmatched` caveat corrected (a listed-earlier corner can no longer steal) |
-| `work/active/bugs/29-flat-corner-steals-neighbour-braking-event/bug.md` | status → ✅ Fixed, third occurrence recorded |
+| `work/completed/bugs/29-flat-corner-steals-neighbour-braking-event/bug.md` | status → ✅ Fixed, third occurrence recorded |
 | `work/active/track-outline/47-bug29-nearest-first-matching/` | prompt, this handoff, learnings, artifacts |
 
 **No product data changed**: no reference lap, coaching model, outline, static
@@ -47,10 +47,11 @@ models were already hand-corrected for the historical damage.
 
 ## Not done / next
 
-- **Bug 29 folder is still in `work/active/bugs/`** — AGENTS.md says it moves to
-  `work/completed/bugs/` only after you confirm a live test. The natural live
-  test: run a refresh on a track where a marker corner sits next to a real one
-  (Fuji with `--allow-unmatched`) and check the marker keeps its geometry.
+- **Bug 29 is closed**: the live test ran in slice 48 (`7ffa144`) — the Fuji P3
+  1:36.544 refresh, without `--preserve-geometry`, kept `Netz` at
+  3284/3310/3310 while `Netz Hairpin` moved onto its own event at 3385. The user
+  confirmed it on 2026-11-07 and the folder now lives in
+  `work/completed/bugs/29-flat-corner-steals-neighbour-braking-event/`.
 - No data re-derivation was done, and none is needed: every committed model
   already has distinct apexes for these pairs.
 - `refresh_corners()` and the guards are unchanged; nothing else in the updater
