@@ -1,5 +1,8 @@
 # Bug 29 — Greedy nearest-apex match lets a curated flat corner steal a neighbouring corner's braking event
 
+**Status:** ✅ Fixed in `776519f` (2026-11-07). The folder stays in
+`work/active/bugs/` until a live refresh is confirmed by the user.
+
 ## Symptom
 
 `update_reference_and_coaching_model.py --allow-unmatched` silently corrupts
@@ -93,22 +96,46 @@ Current (buggy) output: `netz` claims `3291/3404/3439`, `netz_hairpin` is
 UNMATCHED. Expected: `netz` UNMATCHED (flat corner keeps its geometry) and
 `netz_hairpin` claims `3291/3404/3439`.
 
-## Fix direction
+## Fix — applied in `776519f`
 
-Claim candidates in ascending match distance (globally nearest pair first)
-instead of in model order: build all (old corner, candidate, distance) pairs,
-sort by distance, then assign greedily. The hairpin's 4 m match then wins over
-Netz's 94 m match, and Netz stays unmatched. Add a regression test to
-`dev/scripts/test_update_coaching_model.py` with the exact Fuji-shaped fixture
-(flat corner 94 m from a real corner's apex, listed before it) asserting the
-flat corner is unmatched and keeps its `target_throttle_pct`.
+`match_corners()` now ranks **every** legal (curated corner, candidate) pair by
+apex distance and serves the closest pair first:
 
-Consider also refusing a match when the candidate has no braking event at all
-while the curated corner is marked flat — but the ordering fix alone resolves
-the observed failure and needs no new heuristics.
+```python
+ranked = sorted((abs(event.apex_m - corner["apex_s_m"]), corner_index, candidate_index) ...)
+for distance, i, j in ranked:            # ascending: nothing closer follows
+    if distance > MAX_APEX_DELTA_M: break
+    if i in matches or claimed[j]: continue
+    matches[i] = candidates[j]; claimed[j] = True
+```
+
+The hairpin's 19 m match now wins over Netz's 75 m match and Netz stays
+unmatched. The `(distance, corner_index, candidate_index)` sort key keeps exact
+ties deterministic (earlier corner first), and `--preserve-geometry` plus the
+unknown-ID failure are unchanged.
+
+Regression test added: `test_nearest_corner_claims_the_event_not_the_earlier_listed_one`
+in `dev/scripts/test_update_coaching_model.py`, using the exact Fuji shape (flat
+marker at 3310 m, real corner at 3404 m, event at 3385 m) and asserting the
+marker is unmatched, keeps its geometry and keeps `target_throttle_pct`, while
+the real corner takes the new geometry. It failed 4 assertions before the fix.
+
+Re-running the old and new algorithms on the five reference laps already in the
+repo found **eight** ownership differences, all of the same shape and all
+corrected: Fuji `Netz`/`Netz Hairpin`, Interlagos `Ferradura 1`/`2`, Long Beach
+`Turn 3`/`4` and `Turn 10`/`11`. Imola and Road Atlanta were unaffected. The
+real Fuji dry run now aborts on `13th Corner, Netz` — the corners that truly
+have no event — instead of `13th Corner, Netz Hairpin` with a corrupted Netz.
+
+Heuristic note: a curated corner still claims an event within 150 m if no
+closer corner wants it. That is deliberate (it is what refreshes compound and
+light-braking corners); reviewed zones that must never match still need
+`--preserve-geometry`.
 
 ## Files
 
-- `dev/scripts/update_reference_and_coaching_model.py` — `match_corners()`
-- `dev/scripts/test_update_coaching_model.py` — needs the regression case
-- Worked-around (not fixed) in `927c727` and `125716c`
+- `dev/scripts/update_reference_and_coaching_model.py` — `match_corners()` (fixed)
+- `dev/scripts/test_update_coaching_model.py` — regression case added
+- `docs/HOW_TO_CREATE_A_COACHING_MODEL.md` — the `--allow-unmatched` caveat that
+  described this failure mode was corrected
+- Worked-around (not fixed) in `927c727` and `125716c`; fixed in `776519f`

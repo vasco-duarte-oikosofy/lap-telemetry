@@ -64,6 +64,7 @@ Tracks are ordered by data quality: TUMFTM first (real widths), then trajectory-
 | `44-imola-f296-faster` | Imola / Ferrari 296 GT3 faster practice | Second practice same day, lap 6 | Ref 1:46.173 → 1:45.534; 7 corners refreshed (≤14 m apex), Tamburello preserved (exit boundary is throttle modulation, 74 m spread across laps), 3 compound second halves kept; outline byte-identical | ✅ this slice |
 | `45-fuji-tinypedal-turns` | Fuji Speedway (base) / TinyPedal labels | Existing curated model, no baked turns | 11 official turns baked into the legacy-named `fuji-speedway_outline.json` (+`lap_length_m` from the model); `Fuji Speedway.turns.json` shipped to TinyPedal, `--check` clean; baker now resolves `<slug>_outline.json` | ✅ this slice |
 | `46-fuji-p3-quali-reference` | Fuji / Ginetta P3 quali + race check | 14:18 quali lap 2 (1:36.544) | **No change**: 20 ms faster but same 9 events, 2 manual corners (13th, Netz), bug 29 would corrupt Netz (+136 m), 100R apex spans 135 m across clean laps; reference stays 1:36.564 | ✅ this slice |
+| `47-bug29-nearest-first-matching` | Bug 29 / greedy corner matching | Fuji Netz/Netz Hairpin (third occurrence) | `match_corners()` now claims globally nearest-first (ties keep the earlier corner); +2 regression tests (27/31 -> 31/31); 8 corrected ownerships across 5 real laps (Fuji, Interlagos, Long Beach), no data change | ✅ `776519f` |
 
 **Feature tests (slice 38):** `bash scripts/test-summary.sh --feature long-beach-f499p`
 
