@@ -270,7 +270,7 @@ No files were changed.
 This happens on faster laps: lighter braking merges chicane corners or drops light-braking turns entirely (Bahrain Outer precedent — its 1:10.845 reference is intentionally kept over a real 1:10.814 lap for exactly this reason). Your options:
 
 - **Leave the track as is** (default, and correct when the model encodes detail the new lap can't reproduce).
-- `--allow-unmatched` — proceed; unmatched corners keep their old geometry and all curated fields (logged with a warning). This does **not** prevent a flat/manual corner from incorrectly claiming a nearby event first.
+- `--allow-unmatched` — proceed; unmatched corners keep their old geometry and all curated fields (logged with a warning). Matching is claimed **globally nearest-first** (bug 29), so a corner listed earlier can no longer absorb a neighbour's braking event; a curated corner still takes any event within 150 m that no closer corner wants, so keep using `--preserve-geometry` for reviewed zones you do not want matched at all.
 - `--preserve-geometry <stable-id> ...` — explicitly retain reviewed zones and exclude them from event matching. These selected corners need no `--allow-unmatched`; any unexpected unmatched corner still aborts. Unknown IDs fail before product writes. Combine with a reviewed `--max-geometry-delta-m` for the other corners.
 
 Long Beach has two real flat bends and a manually split final complex; preserve

@@ -105,42 +105,45 @@ def detect_corners(ref_parquet: Path) -> tuple[list, str]:
 def match_corners(existing_corners: list[dict], candidates: list,
                   preserve_geometry: set[str] | None = None
                   ) -> tuple[list[tuple[dict, object | None]], list]:
-    """Nearest-apex matching (each old corner claims the closest unclaimed
-    candidate within MAX_APEX_DELTA_M). Returns [(old_corner, match_or_None)]
-    plus the unclaimed candidates. Explicitly preserved IDs never claim an
-    event; their reviewed geometry survives unchanged. Unknown IDs fail closed.
+    """Nearest-apex matching, claimed globally nearest pair first.
+
+    Every legal (curated corner, candidate) pair is ranked by apex distance and
+    the closest pair is served first. Ownership must be decided by distance,
+    not by list position: claiming in model order let a curated corner absorb a
+    neighbour's braking event merely because it was listed earlier (bug 29 —
+    Fuji's Netz at 3310 m took the Netz Hairpin event at 3385 m, 75 m away,
+    while the hairpin sat 19 m from it and then reported unmatched).
+
+    Returns [(old_corner, match_or_None)] in model order, plus the unclaimed
+    candidates. Explicitly preserved IDs never claim an event; their reviewed
+    geometry survives unchanged. Unknown IDs fail closed.
     """
     preserved = set(preserve_geometry or ())
     unknown = preserved - {c.get("id") for c in existing_corners}
     if unknown:
         raise ValueError(f"unknown preserved corner IDs: {', '.join(sorted(unknown))}")
-    apexes = [float(c.apex_m) for c in candidates]
+
+    # (distance, corner index, candidate index) keeps ties deterministic: the
+    # earlier-listed corner wins an exact tie, as it always has.
+    ranked = sorted(
+        (abs(float(candidate.apex_m) - float(corner["apex_s_m"])), i, j)
+        for i, corner in enumerate(existing_corners)
+        if corner.get("id") not in preserved
+        for j, candidate in enumerate(candidates)
+    )
+
+    matches: dict[int, object] = {}
     claimed = [False] * len(candidates)
-
-    def nearest(old_apex: float) -> int | None:
-        best_idx, best_dist = None, float("inf")
-        for i, apex in enumerate(apexes):
-            if claimed[i]:
-                continue
-            dist = abs(apex - old_apex)
-            if dist < best_dist:
-                best_dist, best_idx = dist, i
-        if best_idx is not None and best_dist <= MAX_APEX_DELTA_M:
-            return best_idx
-        return None
-
-    pairs: list[tuple[dict, object | None]] = []
-    for old_c in existing_corners:
-        if old_c.get("id") in preserved:
-            pairs.append((old_c, None))
+    for distance, i, j in ranked:
+        if distance > MAX_APEX_DELTA_M:
+            break                       # ranked ascending: nothing closer follows
+        if i in matches or claimed[j]:
             continue
-        idx = nearest(float(old_c["apex_s_m"]))
-        if idx is not None:
-            claimed[idx] = True
-            pairs.append((old_c, candidates[idx]))
-        else:
-            pairs.append((old_c, None))
-    leftover = [candidates[i] for i, used in enumerate(claimed) if not used]
+        matches[i] = candidates[j]
+        claimed[j] = True
+
+    pairs = [(corner, matches.get(i)) for i, corner in enumerate(existing_corners)]
+    leftover = [candidates[j] for j, used in enumerate(claimed) if not used]
     return pairs, leftover
 
 

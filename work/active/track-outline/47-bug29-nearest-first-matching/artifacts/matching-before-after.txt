@@ -1,0 +1,27 @@
+
+== fuji-speedway / fuji-speedway_dkr-engineering-4-elms25
+   reference fuji-speedway_dkr-engineering-4-elms25_time_01.36.564.parquet (96.564s), 9 events, 11 corners
+   Netz                     model   3310 | was 3291/3404/3439       -> now UNMATCHED
+   Netz Hairpin             model   3404 | was UNMATCHED            -> now 3291/3404/3439
+
+== autodromo-enzo-e-dino-ferrari / autodromo-enzo-e-dino-ferrari_vista-af-corse-2026-21-lm
+   reference autodromo-enzo-e-dino-ferrari_vista-af-corse-2026-21-lm_time_01.45.534.parquet (105.534s), 8 events, 11 corners
+   no ownership differences on this lap
+
+== michelin-raceway-road-atlanta / michelin-raceway-road-atlanta_dkr-engineering-4-elms25
+   reference michelin-raceway-road-atlanta_dkr-engineering-4-elms25_time_01.15.815.parquet (75.815s), 7 events, 13 corners
+   no ownership differences on this lap
+
+== autodromo-jose-carlos-pace / autodromo-jose-carlos-pace_dkr-engineering-4-elms25
+   reference autodromo-jose-carlos-pace_dkr-engineering-4-elms25_time_01.30.062.parquet (90.062s), 7 events, 15 corners
+   Ferradura 1              model   2089 | was 1922/2151/2164       -> now UNMATCHED
+   Ferradura 2              model   2152 | was UNMATCHED            -> now 1922/2151/2164
+
+== grand-prix-of-long-beach / grand-prix-of-long-beach_ferrari-af-corse-2026-50-lm
+   reference grand-prix-of-long-beach_ferrari-af-corse-2026-50-lm_time_01.14.871.parquet (74.871s), 8 events, 11 corners
+   Turn 3                   model    950 | was 996/1045/1092        -> now UNMATCHED
+   Turn 4                   model   1045 | was UNMATCHED            -> now 996/1045/1092
+   Turn 10                  model   2690 | was 2617/2828/2835       -> now UNMATCHED
+   Turn 11                  model   2821 | was UNMATCHED            -> now 2617/2828/2835
+
+8 ownership difference(s) across 5 real laps

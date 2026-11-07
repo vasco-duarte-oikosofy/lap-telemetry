@@ -1,0 +1,21 @@
+# Bug 29 fix - before/after on the real laps
+
+## Unit regression (test-first)
+New tests in dev/scripts/test_update_coaching_model.py:
+  [PASS] matched corner takes the new lap geometry — 875.0/1115.0/1298.0
+  [PASS] earlier-listed flat corner does not steal its neighbour event
+  [PASS] the corner sitting on the event claims it
+  [PASS] unmatched flat corner keeps geometry and target_throttle_pct verbatim
+  [PASS] the real corner takes the new lap geometry
+  [PASS] a tie resolves to the earlier corner, deterministically
+  [PASS] candidates beyond MAX_APEX_DELTA_M stay unclaimed
+31/31 assertions passed
+
+## Real Fuji dry run (read-only, after the fix)
+
+ABORTED - curated corners not reproduced on this lap: 13th Corner, Netz
+No files were changed. Re-run with --allow-unmatched to keep their old
+geometry, or leave the reference and model as they are.
+Fastest lap in session(s): lap 2 @ 96.544s (session_20261107T141839Z_fuji-speedway_lmu_quali.parquet, vehicle dkr-engineering-4-elms25)
+Faster than existing reference - will export after corner check
+Corner check: model has 11, lap yields 9 (9 matched, 0 geometry preserved)

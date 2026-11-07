@@ -120,6 +120,54 @@ def test_explicit_geometry_preservation_does_not_steal_events() -> None:
     check(rejected, 'unknown preserved corner ID fails safely')
 
 
+def test_nearest_corner_claims_the_event_not_the_earlier_listed_one() -> None:
+    """Bug 29: Fuji's 'Netz' (3310 m) is listed before 'Netz Hairpin' (3404 m).
+
+    Model-order claiming handed the hairpin's braking event (3385 m on the
+    2026-11-07 quali lap) to Netz -- 75 m away, legal under the 150 m tolerance
+    -- and then reported the hairpin (19 m away) as unmatched. Ownership must be
+    decided by distance, not by list position.
+    """
+    netz = {"id": "netz", "name": "Netz", "s_start_m": 3284.0, "apex_s_m": 3310.0,
+            "s_end_m": 3310.0, "apex_side": "left", "apex_side_source": "manual",
+            "target_throttle_pct": 100}
+    hairpin = {"id": "netz_hairpin", "name": "Netz Hairpin", "s_start_m": 3291.0,
+               "apex_s_m": 3404.0, "s_end_m": 3439.0, "apex_side": "left",
+               "apex_side_source": "manual"}
+    event = SimpleNamespace(s_start_m=3360.0, apex_m=3385, s_end_m=3446.0)
+    before = [dict(netz), dict(hairpin)]
+
+    pairs, leftover = match_corners([netz, hairpin], [event])
+    check(pairs[0][1] is None,
+          'earlier-listed flat corner does not steal its neighbour event')
+    check(pairs[1][1] is event, 'the corner sitting on the event claims it')
+    check(leftover == [], 'the claimed event is no longer offered as leftover')
+
+    updated = refresh_corners(pairs)
+    check(updated[0] == netz,
+          'unmatched flat corner keeps geometry and target_throttle_pct verbatim')
+    check(updated[1]['s_start_m'] == 3360.0 and updated[1]['apex_s_m'] == 3385.0
+          and updated[1]['s_end_m'] == 3446.0,
+          'the real corner takes the new lap geometry')
+    check([netz, hairpin] == before, 'matching never mutates the model corners')
+
+
+def test_matching_is_deterministic_and_respects_the_distance_cap() -> None:
+    """Equal distances resolve to the earlier corner; far events stay unclaimed."""
+    early = {"id": "a", "name": "A", "s_start_m": 0.0, "apex_s_m": 100.0, "s_end_m": 0.0,
+             "apex_side": "right", "apex_side_source": "manual"}
+    late = {**early, "id": "b", "name": "B", "apex_s_m": 140.0}
+    event = SimpleNamespace(s_start_m=90.0, apex_m=120, s_end_m=130.0)
+    pairs, _ = match_corners([early, late], [event])
+    check(pairs[0][1] is event and pairs[1][1] is None,
+          'a tie resolves to the earlier corner, deterministically')
+
+    far = SimpleNamespace(s_start_m=400.0, apex_m=420, s_end_m=430.0)
+    pairs, leftover = match_corners([early], [event, far])
+    check(pairs[0][1] is event and leftover == [far],
+          'candidates beyond MAX_APEX_DELTA_M stay unclaimed')
+
+
 def test_preservation_and_geometry_guards_precede_export() -> None:
     model_path = ROOT / 'product/data/track-coaching/grand-prix-of-long-beach_ferrari-af-corse-2026-50-lm.json'
     model = json.loads(model_path.read_text(encoding='utf-8'))
@@ -214,6 +262,8 @@ def main() -> int:
     test_inputs_are_not_mutated()
     test_mixed_pairs_preserve_order()
     for test in [test_explicit_geometry_preservation_does_not_steal_events,
+                 test_nearest_corner_claims_the_event_not_the_earlier_listed_one,
+                 test_matching_is_deterministic_and_respects_the_distance_cap,
                  test_preservation_and_geometry_guards_precede_export,
                  test_curated_unicode_names_round_trip_through_the_updater]:
         try:
