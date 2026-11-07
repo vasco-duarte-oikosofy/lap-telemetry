@@ -1,0 +1,47 @@
+# Fuji Speedway base map - turn labels
+
+## Before
+TinyPedal shipped only 'Fuji Speedway Classic.turns.json' (9 turns).
+The base layout map had no labels.
+
+## Root cause
+baker looked for: C:\Users\duart\lap-telemetry\product\data\track-outlines\fuji-speedway.json  (does not exist)
+file on disk:     C:\Users\duart\lap-telemetry\product\data\track-outlines\fuji-speedway_outline.json
+turns before:     None
+
+-> the outline was never baked, and export_turn_labels_for_tinypedal.py
+   only exports outlines that already carry curated turns, so the base
+   layout was skipped while the Classic layout (canonical file name) was not.
+
+## Distance axis
+model lap_length_m:            4538.9
+reference lap max distance:    4534.8
+outline geometric centreline:  4489.5  (-1.1% vs the sim axis)
+-> stamped lap_length_m from the model (same practice as Long Beach and
+   Paul Ricard 1A) so the later labels are not ~1% (~50 m) late.
+
+## After
+lap_length_m 4538.9 | turns 11
+  T1  First Corner   short=First           apex=   766
+  T2  Coca-Cola      short=None            apex=  1314
+  T3  100R           short=One Hundred R   apex=  1699
+  T4  Hairpin        short=None            apex=  2013
+  T5  Dunlop Bypass  short=Dunlop          apex=  2846
+  T6  None           short=Eleven          apex=  2914
+  T7  None           short=Twelve          apex=  3132
+  T8  13th Corner    short=Thirteenth      apex=  3151
+  T9  Netz           short=None            apex=  3310
+  T10 Netz Hairpin   short=Netz Hairpin    apex=  3404
+  T11 Panasonic      short=None            apex=  3672
+
+## Export
+wrote Fuji Speedway.turns.json  (11 turns)
+export --check: exit 0 ('up to date')
+
+## Test
+  [PASS] turns are valid: fuji-speedway-classic.json
+  [PASS] turns are valid: fuji-speedway_outline.json
+  [PASS] turns match the coaching model: fuji-speedway-classic
+  [PASS] turns match the coaching model: fuji-speedway
+43/43 assertions passed
+RESULT: PASS

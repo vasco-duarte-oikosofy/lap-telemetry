@@ -6,6 +6,7 @@
   "layout_name": "default",
   "coordinate_system": "sim_xy",
   "units": "sim_units",
+  "lap_length_m": 4538.9,
   "track_name_mapping": {
     "canonical_sim_track_name": "fuji-speedway",
     "canonical_lmu_track_name": "Fuji Speedway",
@@ -27,8 +28,8 @@
     "notes": "Needs visual verification."
   },
   "caveats": [
-    "Width is constant +-5m \u2014 not measured from real track data.",
-    "Centerline follows racing line \u2014 not track geometric center.",
+    "Width is constant +-5m — not measured from real track data.",
+    "Centerline follows racing line — not track geometric center.",
     "No TUMFTM/bacinger data available. Upgrade requires OSM extraction.",
     "This outline is visual context only."
   ],
@@ -6036,6 +6037,195 @@
     {
       "x": -12.303567611694366,
       "y": 12.761412730319776
+    }
+  ],
+  "turns": [
+    {
+      "id": "1",
+      "number": 1,
+      "name": "First Corner",
+      "short_name": "First",
+      "apex_s_m": 766.0,
+      "x": 605.565,
+      "y": 451.436,
+      "outward": [
+        0.5453,
+        0.8382
+      ],
+      "tangent": [
+        0.8382,
+        -0.5453
+      ]
+    },
+    {
+      "id": "3",
+      "number": 2,
+      "name": "Coca-Cola",
+      "short_name": null,
+      "apex_s_m": 1314.0,
+      "x": 356.64,
+      "y": -2.489,
+      "outward": [
+        0.9914,
+        -0.1309
+      ],
+      "tangent": [
+        -0.1309,
+        -0.9914
+      ]
+    },
+    {
+      "id": "100r",
+      "number": 3,
+      "name": "100R",
+      "short_name": "One Hundred R",
+      "apex_s_m": 1699.0,
+      "x": 323.221,
+      "y": -334.888,
+      "outward": [
+        0.2695,
+        -0.963
+      ],
+      "tangent": [
+        -0.963,
+        -0.2695
+      ]
+    },
+    {
+      "id": "hairpin",
+      "number": 4,
+      "name": "Hairpin",
+      "short_name": null,
+      "apex_s_m": 2013.0,
+      "x": 87.994,
+      "y": -177.996,
+      "outward": [
+        0.0335,
+        -0.9994
+      ],
+      "tangent": [
+        -0.9994,
+        -0.0335
+      ]
+    },
+    {
+      "id": "dunlop_bypass",
+      "number": 5,
+      "name": "Dunlop Bypass",
+      "short_name": "Dunlop",
+      "apex_s_m": 2846.0,
+      "x": -307.564,
+      "y": -800.559,
+      "outward": [
+        -0.7093,
+        -0.7049
+      ],
+      "tangent": [
+        -0.7049,
+        0.7093
+      ]
+    },
+    {
+      "id": "11",
+      "number": 6,
+      "name": null,
+      "short_name": "Eleven",
+      "apex_s_m": 2914.0,
+      "x": -334.262,
+      "y": -748.064,
+      "outward": [
+        -0.5422,
+        -0.8402
+      ],
+      "tangent": [
+        -0.8402,
+        0.5422
+      ]
+    },
+    {
+      "id": "12",
+      "number": 7,
+      "name": null,
+      "short_name": "Twelve",
+      "apex_s_m": 3132.0,
+      "x": -503.907,
+      "y": -652.864,
+      "outward": [
+        -0.9994,
+        0.0359
+      ],
+      "tangent": [
+        0.0359,
+        0.9994
+      ]
+    },
+    {
+      "id": "13th_corner",
+      "number": 8,
+      "name": "13th Corner",
+      "short_name": "Thirteenth",
+      "apex_s_m": 3151.0,
+      "x": -500.642,
+      "y": -635.487,
+      "outward": [
+        -0.9447,
+        0.3279
+      ],
+      "tangent": [
+        0.3279,
+        0.9447
+      ]
+    },
+    {
+      "id": "netz",
+      "number": 9,
+      "name": "Netz",
+      "short_name": null,
+      "apex_s_m": 3310.0,
+      "x": -399.935,
+      "y": -529.086,
+      "outward": [
+        -0.9463,
+        0.3234
+      ],
+      "tangent": [
+        0.3234,
+        0.9463
+      ]
+    },
+    {
+      "id": "netz_hairpin",
+      "number": 10,
+      "name": "Netz Hairpin",
+      "short_name": "Netz Hairpin",
+      "apex_s_m": 3404.0,
+      "x": -419.23,
+      "y": -445.055,
+      "outward": [
+        -0.4303,
+        -0.9027
+      ],
+      "tangent": [
+        -0.9027,
+        0.4303
+      ]
+    },
+    {
+      "id": "panasonic",
+      "number": 11,
+      "name": "Panasonic",
+      "short_name": null,
+      "apex_s_m": 3672.0,
+      "x": -642.496,
+      "y": -534.043,
+      "outward": [
+        -0.8167,
+        -0.5771
+      ],
+      "tangent": [
+        -0.5771,
+        0.8167
+      ]
     }
   ]
 }

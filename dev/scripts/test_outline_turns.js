@@ -186,6 +186,7 @@ const BAKED_SHORT_NAMES = {
   'circuit-de-barcelona': [null, null, 'Renault', 'Repsol', null, null, 'Würth', null, 'Campsa', 'La Caixa', null, null, null, null],
   'circuit-de-la-sarthe': [null, 'Dunlop 1', 'Dunlop 2', 'Foret', null, null, null, 'Mulsanne', 'Indianapolis', null, null, 'Pont Entry', 'Pont Exit', null, null, null, null, null, null],
   'daytona-international-speedway-road-course': [null, null, 'Horseshoe', null, 'West Horseshoe', null, null, null, 'Bus Stop 1', 'Bus Stop 2', null, null],
+  'fuji-speedway': ['First', null, 'One Hundred R', null, 'Dunlop', 'Eleven', 'Twelve', 'Thirteenth', null, 'Netz Hairpin', null],
   'fuji-speedway-classic': Array(9).fill(null),
   'michelin-raceway-road-atlanta': [null, null, null, 'Esses', null, null, null, null, null, null, null, null, null],
   'monza-curva-grande-circuit': [null, 'Roggia 1', 'Roggia 2', null, null, 'Serraglio', 'Ascari 1', 'Ascari 2', 'Ascari 3', 'Parabolica'],
@@ -208,6 +209,7 @@ const KNOWN = {
   'circuit-de-la-sarthe': 'circuit-de-la-sarthe_dkr-engineering-4-elms25.json',
   'daytona-international-speedway-road-course': 'daytona-international-speedway-road-course_dkr-engineering-4-elms25.json',
   'fuji-speedway-classic': 'fuji-speedway-classic_vista-af-corsa-2026-54-wec.json',
+  'fuji-speedway': 'fuji-speedway_dkr-engineering-4-elms25.json',
   'michelin-raceway-road-atlanta': 'michelin-raceway-road-atlanta_dkr-engineering-4-elms25.json',
   'paul-ricard---1a-v2-short': 'paul-ricard---1a-v2-short_ferrari-af-corse-2026-50-lm.json',
   'paul-ricard---3a': 'paul-ricard---3a_dkr-engineering-4-elms25.json',
@@ -215,9 +217,15 @@ const KNOWN = {
   'silverstone-grand-prix-circuit---elms': 'silverstone-grand-prix-circuit---elms_dkr-engineering-4-elms25.json',
   'weathertech-raceway-laguna-seca': 'weathertech-raceway-laguna-seca_dkr-engineering-4-elms25.json',
 };
+// Legacy outlines whose file name does not match the manifest slug. Baking by
+// slug must still find them, or their turns never get baked at all (that is
+// exactly how the Fuji Speedway base map ended up without labels).
+const LEGACY_OUTLINE_FILES = {
+  'fuji-speedway': 'fuji-speedway_outline.json',
+};
 for (const [slug, modelFile] of Object.entries(KNOWN)) {
   check(`turns match the coaching model: ${slug}`, () => {
-    const outlinePath = path.join(OUTLINES_DIR, `${slug}.json`);
+    const outlinePath = path.join(OUTLINES_DIR, LEGACY_OUTLINE_FILES[slug] || `${slug}.json`);
     const outline = JSON.parse(fs.readFileSync(outlinePath, 'utf8'));
     const model = JSON.parse(fs.readFileSync(path.join(MODELS_DIR, modelFile), 'utf8'));
     assert.strictEqual(outline.turns.length, model.corners.length,

@@ -212,8 +212,22 @@ def write_turns(outline_path: Path, turns: list[dict]) -> None:
     outline_path.write_text(json.dumps(data, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
 
 
+def outline_file_for(slug: str) -> Path:
+    """Outline file for a manifest slug.
+
+    Some outlines predate the `<slug>.json` convention and are still named
+    `<slug>_outline.json` (Fuji Speedway base). Resolving the fallback here means
+    `bake_outline_turns.py <slug>` works for them too; without it their turns
+    were silently never baked and their TinyPedal map had no labels.
+    """
+    canonical = OUTLINES_DIR / f"{slug}.json"
+    if canonical.exists():
+        return canonical
+    return OUTLINES_DIR / f"{slug}_outline.json"
+
+
 def process(slug: str, check_only: bool) -> str:
-    outline_path = OUTLINES_DIR / f"{slug}.json"
+    outline_path = outline_file_for(slug)
     if not outline_path.exists():
         return f"skip  {slug}: no outline"
     outline = json.loads(outline_path.read_text(encoding="utf-8"))
