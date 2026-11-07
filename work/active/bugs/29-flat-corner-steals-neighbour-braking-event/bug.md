@@ -9,15 +9,21 @@ event, and the real corner is then reported as "unmatched — keeps old
 geometry". The refreshed model ends up with two corners on the same geometry
 and a flat marker sitting on the neighbour's braking zone.
 
-Observed twice on Fuji Speedway / Ginetta LMP3:
+Observed twice on Fuji Speedway / Ginetta LMP3 (three times counting the
+2026-11-07 dry run, which was aborted before writing):
 
 | refresh | flat corner | real corner | wrong result |
 |---|---|---|---|
 | `927c727` (ref 1:37.414) | Netz @ 3310 m | Netz Hairpin @ 3408 m | Netz moved to the hairpin event |
 | `125716c` (ref 1:36.564) | Netz @ 3310 m | Netz Hairpin @ 3404 m | Netz moved to 3291/3404/3439 |
+| 2026-11-07 quali lap 2 (ref 1:36.544, **not applied**) | Netz @ 3310 m | Netz Hairpin @ 3404 m | would move Netz to 3289/3385/3446 (+136 m exit); Netz Hairpin unmatched |
 
-Both times the model had to be corrected by hand after the run, and the run's
-own audit did not flag anything:
+The 2026-11-07 occurrence was caught in the dry run and nothing was written —
+the 20 ms-faster lap was rejected as a model source for other reasons too (see
+`work/active/track-outline/46-fuji-p3-quali-reference/handoff.md`).
+
+In the two applied refreshes the model had to be corrected by hand after the
+run, and the run's own audit did not flag anything:
 
 ```
 Corner check: model has 11, lap yields 9 (9 matched)

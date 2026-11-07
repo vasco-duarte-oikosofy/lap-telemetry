@@ -1,0 +1,50 @@
+current reference: fuji-speedway_dkr-engineering-4-elms25_time_01.36.564.parquet (96.564s)
+  detected events: 9 -> 766, 1314, 1699, 2013, 2846, 2914, 3132, 3404, 3672
+model corners:     11
+
+1. events per lap in today's quali + race
+   session_20261107T141839Z_fuji-speedway_lmu_quali.parquet
+     lap  1   97.421s ->  9 events: 758, 1321, 1756, 2014, 2836, 2921, 3127, 3400, 3660
+     lap  2   96.544s ->  9 events: 771, 1326, 1743, 2005, 2842, 2918, 3116, 3385, 3663
+     lap  3   96.682s ->  9 events: 759, 1331, 1746, 2025, 2840, 2918, 3127, 3387, 3659
+     lap  4   97.928s ->  9 events: 774, 1336, 1626, 2012, 2839, 2919, 3125, 3395, 3665
+   session_20261107T142746Z_fuji-speedway_lmu_race.parquet
+     lap  1  105.671s ->  8 events: 776, 1337, 1834, 2010, 2840, 3123, 3422, 3794
+     lap  2   97.978s ->  8 events: 762, 1333, 1747, 2015, 2843, 3121, 3392, 3661
+     lap  3   97.967s ->  8 events: 757, 1319, 1719, 2003, 2848, 3129, 3400, 3656
+     lap  4   97.070s -> 10 events: 764, 1324, 1710, 1815, 2017, 2841, 2914, 3123, 3403, 3666
+     lap  5   96.787s ->  9 events: 762, 1322, 1747, 2005, 2842, 2915, 3133, 3407, 3657
+     lap  6   97.067s ->  9 events: 759, 1328, 1756, 2022, 2841, 2915, 3137, 3412, 3668
+     lap  7   97.080s ->  9 events: 759, 1330, 1732, 2011, 2838, 2914, 3128, 3427, 3650
+     lap  8   97.625s ->  9 events: 771, 1333, 1761, 2014, 2838, 2905, 3129, 3402, 3670
+     lap  9   96.796s ->  9 events: 767, 1323, 1715, 2006, 2838, 2915, 3157, 3400, 3661
+     lap 10   96.770s ->  9 events: 763, 1318, 1677, 2002, 2845, 2914, 3158, 3395, 3660
+     lap 11   97.060s ->  8 events: 770, 1327, 1724, 2016, 2848, 3157, 3417, 3695
+     lap 12   96.779s ->  9 events: 768, 1334, 1706, 2003, 2842, 2914, 3137, 3407, 3667
+
+2. fastest lap: 20261107T141839Z lap 2 @ 96.544s
+
+3. what the greedy matcher would do (bug 29)
+   First Corner      766 ->    582/   771/   784 (max move    20 m)
+   Coca-Cola        1314 ->   1193/  1326/  1348 (max move    12 m)
+   100R             1699 ->   1571/  1743/  1746 (max move    45 m)
+   Hairpin          2013 ->   1886/  2005/  2031 (max move    15 m)
+   Dunlop Bypass    2846 ->   2676/  2842/  2856 (max move     6 m)
+   Turn 11          2914 ->   2876/  2918/  2929 (max move     4 m)
+   Turn 12          3132 ->   3054/  3116/  3177 (max move    16 m)
+   13th Corner      3151 -> UNMATCHED (keeps geometry)
+   Netz             3310 ->   3289/  3385/  3446 (max move   136 m)  <-- STEALS ITS NEIGHBOUR'S EVENT
+   Netz Hairpin     3404 -> UNMATCHED (keeps geometry)
+   Panasonic        3672 ->   3584/  3663/  3691 (max move    24 m)
+
+4. the manual markers have no event even on the current reference
+   Turn 11        apex   2914  zone   2875-2930   event within 5 m: yes
+   Turn 12        apex   3132  zone   3059-3178   event within 5 m: yes
+   13th Corner    apex   3151  zone   3100-3161   event within 5 m: NO (manual)
+   Netz           apex   3310  zone   3284-3310   event within 5 m: NO (manual)
+   Netz Hairpin   apex   3404  zone   3291-3439   event within 5 m: yes
+
+5. noise in the corners the refresh would touch (clean laps only)
+   clean laps used: 15 of 16
+   100R           model   1699 | today's laps span 1626-1761 (135 m)
+   Panasonic      model   3672 | today's laps span 3650-3695 (45 m)
