@@ -1,0 +1,104 @@
+{
+  "type": "lap_coaching_summary",
+  "track_id": "autodromo-enzo-e-dino-ferrari",
+  "lap_number": 15,
+  "lap_time_delta_s": 0.005,
+  "top_losses": [
+    {
+      "corner_id": "t3",
+      "corner_name": "Villeneuve 2",
+      "apex_distance_m": 1417.0,
+      "phase": "minimum_speed",
+      "loss_s": 0.042,
+      "driver_value": 114.3,
+      "reference_value": 117.7,
+      "unit": "km/h",
+      "confidence": "high",
+      "driver_apex_distance_m": 1413.0,
+      "reference_apex_distance_m": 1411.0,
+      "apex_offset_m": -2.0,
+      "gain_end_distance_m": 1600.0
+    },
+    {
+      "corner_id": "t3",
+      "corner_name": "Villeneuve 2",
+      "apex_distance_m": 1417.0,
+      "phase": "exit",
+      "loss_s": 0.035,
+      "driver_value": 116.4,
+      "reference_value": 119.9,
+      "unit": "km/h",
+      "confidence": "medium",
+      "phase_distance_m": 1420.0,
+      "gain_end_distance_m": 1600.0,
+      "exit_distance_delta_m": 0.0,
+      "reference_phase_distance_m": 1420.0
+    },
+    {
+      "corner_id": "t11",
+      "corner_name": "Rivazza 2",
+      "apex_distance_m": 4266.0,
+      "phase": "entry",
+      "loss_s": 0.034,
+      "driver_value": 125.7,
+      "reference_value": 127.4,
+      "unit": "km/h",
+      "confidence": "medium",
+      "phase_distance_m": 4198.0,
+      "gain_end_distance_m": 4266.0,
+      "entry_distance_delta_m": 6.0,
+      "reference_phase_distance_m": 4204.0
+    }
+  ],
+  "top_gains": [
+    {
+      "corner_id": "t7",
+      "corner_name": "Acque 2",
+      "apex_distance_m": 2858.0,
+      "phase": "minimum_speed",
+      "loss_s": -0.096,
+      "driver_value": 99.1,
+      "reference_value": 96.3,
+      "unit": "km/h",
+      "confidence": "high",
+      "driver_apex_distance_m": 2856.0,
+      "reference_apex_distance_m": 2861.0,
+      "apex_offset_m": 5.0,
+      "gain_end_distance_m": 3244.0
+    },
+    {
+      "corner_id": "t7",
+      "corner_name": "Acque 2",
+      "apex_distance_m": 2858.0,
+      "phase": "exit",
+      "loss_s": -0.093,
+      "driver_value": 101.3,
+      "reference_value": 96.5,
+      "unit": "km/h",
+      "confidence": "medium",
+      "phase_distance_m": 2863.0,
+      "gain_end_distance_m": 3244.0,
+      "exit_distance_delta_m": 1.0,
+      "reference_phase_distance_m": 2864.0
+    },
+    {
+      "corner_id": "t11",
+      "corner_name": "Rivazza 2",
+      "apex_distance_m": 4266.0,
+      "phase": "minimum_speed",
+      "loss_s": -0.087,
+      "driver_value": 101.8,
+      "reference_value": 98.8,
+      "unit": "km/h",
+      "confidence": "high",
+      "driver_apex_distance_m": 4257.0,
+      "reference_apex_distance_m": 4266.0,
+      "apex_offset_m": 9.0,
+      "gain_end_distance_m": 4897.0
+    }
+  ],
+  "constraints": {
+    "max_words": 35,
+    "style": "calm_concise_engineer"
+  }
+}

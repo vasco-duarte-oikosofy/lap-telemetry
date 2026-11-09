@@ -1,0 +1,20 @@
+
+ABORTED - no files were changed (reference not exported, model not overwritten).
+Fastest lap in session(s): lap 14 @ 105.099s (session_20261109T172456Z_autodromo-enzo-e-dino-ferrari_lmu_race.parquet, vehicle vista-af-corse-2026-21-lm)
+Faster than existing reference - will export after corner check
+Corner check: model has 11, lap yields 8 (7 matched, 4 geometry preserved)
+  PRESERVED: Tamburello (t1) keeps reviewed geometry; no event claimed
+  PRESERVED: Variante Villeneuve 2 (t3) keeps reviewed geometry; no event claimed
+  PRESERVED: Acque Minerali 2 (t7) keeps reviewed geometry; no event claimed
+  PRESERVED: Variante Alta 2 (t9) keeps reviewed geometry; no event claimed
+  INFO: new corner at apex=707m not in the model - ignored
+
+FLAGGED - 7 corner(s) would move > 0.5 m (entry/apex/exit). Model NOT overwritten; review manually.
+  Turn                        dEntry    dApex    dExit  -> new Entry/Apex/Exit (was ...)
+  Variante Villeneuve 1          2.0     16.0     14.0  -> 1227.0/1411.0/1419.0 (was 1229.0/1427.0/1433.0)
+  Tosa                           3.0     12.0      8.0  -> 1601.0/1717.0/1735.0 (was 1604.0/1705.0/1727.0)
+  Piratella                      9.0     15.0      3.0  -> 2209.0/2340.0/2354.0 (was 2200.0/2325.0/2351.0)
+  Acque Minerali 1              20.0     14.0     10.0  -> 2658.0/2861.0/2864.0 (was 2638.0/2847.0/2854.0)
+  Variante Alta 1               10.0      1.0      0.0  -> 3245.0/3390.0/3396.0 (was 3235.0/3389.0/3396.0)
+  Rivazza 1                      6.0      9.0      2.0  -> 3990.0/4131.0/4143.0 (was 3996.0/4122.0/4141.0)
+  Rivazza 2                      2.0      4.0     27.0  -> 4203.0/4266.0/4271.0 (was 4201.0/4262.0/4298.0)

@@ -1,0 +1,17 @@
+{
+  "source_shards_checked": 93,
+  "source_shards_unchanged": 93,
+  "frozen_file_unchanged": true,
+  "exported_ref_is_selected_segment": true,
+  "added": [
+    "product/data/reference-laps/autodromo-enzo-e-dino-ferrari_vista-af-corse-2026-21-lm_time_01.45.099.parquet"
+  ],
+  "removed": [
+    "product/data/reference-laps/autodromo-enzo-e-dino-ferrari_vista-af-corse-2026-21-lm_time_01.45.534.parquet"
+  ],
+  "changed": [
+    "product/data/track-coaching/autodromo-enzo-e-dino-ferrari_vista-af-corse-2026-21-lm.diagnostics.txt",
+    "product/data/track-coaching/autodromo-enzo-e-dino-ferrari_vista-af-corse-2026-21-lm.json"
+  ],
+  "other_curated_assets_unchanged": 195
+}

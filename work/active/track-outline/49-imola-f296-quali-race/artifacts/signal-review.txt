@@ -1,0 +1,290 @@
+21 clean laps across both sessions
+
+== detected braking events per lap (apex_m / entry_m / exit_m, min speed kph)
+race  lap 14  105.099  707[522-763]  1411[1227-1419]  1717[1601-1735]  2340[2209-2354]  2861[2658-2864]  3390[3245-3396]  4131[3990-4143]  4266[4203-4271]
+race  lap 15  105.104  706[514-713]  1413[1223-1416]  1709[1598-1744]  2338[2207-2341]  2856[2661-2863]  3390[3243-3398]  4136[3991-4150]  4257[4197-4288]
+quali lap  5  105.186  705[526-710]  1416[1238-1420]  1718[1595-1733]  2323[2198-2326]  2853[2660-2861]  3394[3243-3397]  4141[3983-4147]  4271[4203-4276]
+race  lap  4  105.386  687[530-710]  1422[1224-1427]  1697[1594-1738]  2311[2193-2344]  2847[2648-2867]  3378[3231-3394]  4132[3985-4142]  4262[4197-4269]
+race  lap 12  105.466  709[531-780]  1414[1239-1419]  1706[1601-1732]  2334[2211-2340]  2399[2385-2416]  2857[2658-2864]  3386[3246-3393]  4133[3993-4144]  4253[4200-4273]
+race  lap  8  105.564  694[539-710]  760[734-762]  1421[1236-1423]  1704[1615-1715]  2340[2203-2343]  2841[2652-2857]  3382[3240-3393]  4135[3973-4141]  4261[4200-4274]
+race  lap 13  105.615  684[524-708]  1414[1224-1420]  1696[1593-1729]  2343[2200-2348]  2853[2612-2856]  3387[3224-3395]  4136[3981-4160]  4245[4203-4267]
+quali lap  3  105.785  711[513-717]  1417[1252-1422]  1737[1599-1743]  2341[2206-2345]  2857[2657-2862]  3390[3241-3393]  4134[3986-4139]  4264[4200-4292]
+quali lap  4  106.138  760[545-770]  1421[1264-1426]  1710[1610-1731]  2333[2195-2336]  2857[2663-2858]  3391[3240-3397]  4128[3986-4142]  4264[4199-4295]
+race  lap 10  106.347  700[515-709]  759[735-762]  1426[1223-1428]  1711[1601-1733]  2322[2201-2325]  2830[2604-2855]  3381[3224-3389]  4123[3983-4139]  4262[4200-4269]
+race  lap  9  106.490  676[493-709]  1405[1211-1409]  1709[1606-1737]  2328[2204-2332]  2844[2650-2856]  3380[3228-3393]  4130[3986-4145]  4253[4200-4289]
+race  lap 11  106.556  692[423-759]  1424[1142-1428]  1695[1598-1743]  2358[2215-2361]  2849[2665-2856]  3395[3243-3399]  4129[3985-4136]  4239[4198-4277]
+race  lap  6  106.597  676[481-716]  906[887-909]  1422[1230-1425]  1702[1595-1733]  2316[2171-2325]  2831[2600-2860]  3375[3200-3394]  4128[3953-4135]  4267[4204-4273]
+quali lap  2  106.679  702[532-720]  1429[1236-1452]  1712[1605-1733]  2336[2206-2340]  2854[2659-2859]  3389[3244-3395]  4142[3986-4148]  4277[4204-4288]
+race  lap  3  106.693  698[532-705]  913[901-917]  1419[1240-1423]  1706[1602-1737]  2328[2203-2350]  2860[2656-2864]  3388[3236-3398]  4127[3989-4143]  4264[4200-4273]
+race  lap  7  107.994  697[528-764]  1446[1186-1474]  1691[1603-1725]  2322[2163-2330]  2842[2622-2855]  3361[3175-3397]  4132[3995-4153]  4256[4201-4273]
+race  lap  5  108.174  682[490-704]  1173[1145-1179]  1407[1240-1449]  1695[1592-1746]  2335[2097-2337]  2506[2475-2542]  2840[2594-2861]  3380[3237-3392]  4125[3974-4130]  4258[4199-4286]
+quali lap  1  108.200  721[528-727]  741[741-794]  1425[1234-1446]  1713[1612-1723]  2343[2200-2350]  2858[2644-2860]  3381[3241-3400]  4126[3984-4150]  4267[4200-4298]
+race  lap 16  109.318  760[535-761]  1505[1247-1556]  1711[1626-1729]  2343[2199-2345]  2854[2653-2870]  3390[3203-3394]  4137[3964-4153]  4253[4203-4271]
+race  lap  2  111.126  174[99-177]  466[347-473]  691[498-713]  766[735-784]  1390[1115-1506]  1698[1507-1747]  2324[2202-2330]  2846[2610-2865]  3392[3239-3398]  4126[3990-4136]  4250[4199-4276]
+race  lap  1  131.075  695[549-758]  876[846-930]  1418[1174-1444]  1717[1587-1734]  2347[2205-2367]  2847[2593-2859]  3386[3138-3394]  3421[3415-3422]  3865[3838-3870]  4139[3928-4252]  4261[4253-4294]
+
+== curated zone review (±120 m around each curated apex, mean over all clean laps)
+
+t1   Tamburello               apex= 699.0 zone=(513, 710)
+   race  lap 14  105.099  brake_mean=0.202 throttle_mean=0.388 min_speed= 115.4
+   race  lap 15  105.104  brake_mean=0.213 throttle_mean=0.435 min_speed= 113.8
+   quali lap  5  105.186  brake_mean=0.229 throttle_mean=0.472 min_speed= 112.7
+   race  lap  4  105.386  brake_mean=0.237 throttle_mean=0.437 min_speed= 118.3
+   race  lap 12  105.466  brake_mean=0.268 throttle_mean=0.332 min_speed= 107.8
+   race  lap  8  105.564  brake_mean=0.281 throttle_mean=0.422 min_speed= 114.3
+   race  lap 13  105.615  brake_mean=0.244 throttle_mean=0.499 min_speed= 113.8
+   quali lap  3  105.785  brake_mean=0.206 throttle_mean=0.417 min_speed= 117.6
+   quali lap  4  106.138  brake_mean=0.300 throttle_mean=0.236 min_speed=  95.8
+   race  lap 10  106.347  brake_mean=0.183 throttle_mean=0.410 min_speed= 117.8
+   race  lap  9  106.490  brake_mean=0.163 throttle_mean=0.508 min_speed= 116.8
+   race  lap 11  106.556  brake_mean=0.184 throttle_mean=0.426 min_speed= 112.5
+   race  lap  6  106.597  brake_mean=0.178 throttle_mean=0.493 min_speed= 112.1
+   quali lap  2  106.679  brake_mean=0.226 throttle_mean=0.256 min_speed= 119.9
+   race  lap  3  106.693  brake_mean=0.250 throttle_mean=0.477 min_speed= 110.3
+   race  lap  7  107.994  brake_mean=0.315 throttle_mean=0.395 min_speed= 100.0
+   race  lap  5  108.174  brake_mean=0.266 throttle_mean=0.528 min_speed= 109.3
+   quali lap  1  108.200  brake_mean=0.251 throttle_mean=0.336 min_speed=  96.0
+   race  lap 16  109.318  brake_mean=0.250 throttle_mean=0.287 min_speed= 105.9
+   race  lap  2  111.126  brake_mean=0.157 throttle_mean=0.366 min_speed=  99.1
+   race  lap  1  131.075  brake_mean=0.132 throttle_mean=0.445 min_speed=  92.8
+   fastest-lap nearest event apex 707 m (delta +8 m)
+
+t2   Variante Villeneuve 1    apex=1427.0 zone=(1229, 1433)
+   race  lap 14  105.099  brake_mean=0.076 throttle_mean=0.564 min_speed= 117.7
+   race  lap 15  105.104  brake_mean=0.076 throttle_mean=0.563 min_speed= 114.3
+   quali lap  5  105.186  brake_mean=0.077 throttle_mean=0.546 min_speed= 120.0
+   race  lap  4  105.386  brake_mean=0.083 throttle_mean=0.520 min_speed= 117.8
+   race  lap 12  105.466  brake_mean=0.100 throttle_mean=0.551 min_speed= 111.5
+   race  lap  8  105.564  brake_mean=0.107 throttle_mean=0.531 min_speed= 110.2
+   race  lap 13  105.615  brake_mean=0.077 throttle_mean=0.546 min_speed= 115.6
+   quali lap  3  105.785  brake_mean=0.090 throttle_mean=0.539 min_speed= 111.2
+   quali lap  4  106.138  brake_mean=0.158 throttle_mean=0.526 min_speed= 105.1
+   race  lap 10  106.347  brake_mean=0.095 throttle_mean=0.503 min_speed= 112.8
+   race  lap  9  106.490  brake_mean=0.097 throttle_mean=0.588 min_speed= 102.1
+   race  lap 11  106.556  brake_mean=0.056 throttle_mean=0.508 min_speed= 110.6
+   race  lap  6  106.597  brake_mean=0.059 throttle_mean=0.525 min_speed= 116.4
+   quali lap  2  106.679  brake_mean=0.118 throttle_mean=0.477 min_speed= 110.3
+   race  lap  3  106.693  brake_mean=0.083 throttle_mean=0.540 min_speed= 108.9
+   race  lap  7  107.994  brake_mean=0.069 throttle_mean=0.424 min_speed= 116.8
+   race  lap  5  108.174  brake_mean=0.070 throttle_mean=0.588 min_speed= 116.0
+   quali lap  1  108.200  brake_mean=0.114 throttle_mean=0.473 min_speed= 101.1
+   race  lap 16  109.318  brake_mean=0.255 throttle_mean=0.142 min_speed=  52.0
+   race  lap  2  111.126  brake_mean=0.025 throttle_mean=0.537 min_speed= 107.5
+   race  lap  1  131.075  brake_mean=0.050 throttle_mean=0.592 min_speed=  96.4
+   fastest-lap nearest event apex 1411 m (delta -16 m)
+
+t3   Variante Villeneuve 2    apex=1417.0 zone=(1404, 1420)
+   race  lap 14  105.099  brake_mean=0.079 throttle_mean=0.522 min_speed= 117.7
+   race  lap 15  105.104  brake_mean=0.081 throttle_mean=0.521 min_speed= 114.3
+   quali lap  5  105.186  brake_mean=0.081 throttle_mean=0.505 min_speed= 120.0
+   race  lap  4  105.386  brake_mean=0.083 throttle_mean=0.479 min_speed= 117.8
+   race  lap 12  105.466  brake_mean=0.112 throttle_mean=0.510 min_speed= 111.5
+   race  lap  8  105.564  brake_mean=0.114 throttle_mean=0.490 min_speed= 110.2
+   race  lap 13  105.615  brake_mean=0.086 throttle_mean=0.505 min_speed= 115.6
+   quali lap  3  105.785  brake_mean=0.108 throttle_mean=0.498 min_speed= 111.2
+   quali lap  4  106.138  brake_mean=0.173 throttle_mean=0.485 min_speed= 105.1
+   race  lap 10  106.347  brake_mean=0.098 throttle_mean=0.461 min_speed= 112.8
+   race  lap  9  106.490  brake_mean=0.117 throttle_mean=0.546 min_speed= 102.1
+   race  lap 11  106.556  brake_mean=0.078 throttle_mean=0.466 min_speed= 110.6
+   race  lap  6  106.597  brake_mean=0.064 throttle_mean=0.483 min_speed= 116.4
+   quali lap  2  106.679  brake_mean=0.119 throttle_mean=0.435 min_speed= 110.3
+   race  lap  3  106.693  brake_mean=0.094 throttle_mean=0.498 min_speed= 108.9
+   race  lap  7  107.994  brake_mean=0.069 throttle_mean=0.382 min_speed= 116.8
+   race  lap  5  108.174  brake_mean=0.070 throttle_mean=0.553 min_speed= 116.0
+   quali lap  1  108.200  brake_mean=0.117 throttle_mean=0.431 min_speed= 101.1
+   race  lap 16  109.318  brake_mean=0.255 throttle_mean=0.109 min_speed=  52.0
+   race  lap  2  111.126  brake_mean=0.028 throttle_mean=0.499 min_speed= 107.5
+   race  lap  1  131.075  brake_mean=0.050 throttle_mean=0.568 min_speed=  96.4
+   fastest-lap nearest event apex 1411 m (delta -6 m)
+
+t4   Tosa                     apex=1705.0 zone=(1604, 1727)
+   race  lap 14  105.099  brake_mean=0.138 throttle_mean=0.503 min_speed=  78.6
+   race  lap 15  105.104  brake_mean=0.135 throttle_mean=0.492 min_speed=  80.9
+   quali lap  5  105.186  brake_mean=0.135 throttle_mean=0.483 min_speed=  75.3
+   race  lap  4  105.386  brake_mean=0.140 throttle_mean=0.519 min_speed=  81.3
+   race  lap 12  105.466  brake_mean=0.141 throttle_mean=0.530 min_speed=  77.3
+   race  lap  8  105.564  brake_mean=0.175 throttle_mean=0.617 min_speed=  68.2
+   race  lap 13  105.615  brake_mean=0.143 throttle_mean=0.542 min_speed=  77.2
+   quali lap  3  105.785  brake_mean=0.135 throttle_mean=0.491 min_speed=  71.6
+   quali lap  4  106.138  brake_mean=0.150 throttle_mean=0.577 min_speed=  76.7
+   race  lap 10  106.347  brake_mean=0.135 throttle_mean=0.522 min_speed=  74.8
+   race  lap  9  106.490  brake_mean=0.137 throttle_mean=0.549 min_speed=  80.0
+   race  lap 11  106.556  brake_mean=0.140 throttle_mean=0.531 min_speed=  77.6
+   race  lap  6  106.597  brake_mean=0.141 throttle_mean=0.528 min_speed=  78.6
+   quali lap  2  106.679  brake_mean=0.141 throttle_mean=0.551 min_speed=  76.6
+   race  lap  3  106.693  brake_mean=0.143 throttle_mean=0.546 min_speed=  76.6
+   race  lap  7  107.994  brake_mean=0.131 throttle_mean=0.599 min_speed=  71.7
+   race  lap  5  108.174  brake_mean=0.142 throttle_mean=0.501 min_speed=  74.6
+   quali lap  1  108.200  brake_mean=0.141 throttle_mean=0.581 min_speed=  68.6
+   race  lap 16  109.318  brake_mean=0.066 throttle_mean=0.644 min_speed=  75.2
+   race  lap  2  111.126  brake_mean=0.111 throttle_mean=0.462 min_speed=  78.4
+   race  lap  1  131.075  brake_mean=0.131 throttle_mean=0.463 min_speed=  60.6
+   fastest-lap nearest event apex 1717 m (delta +12 m)
+
+t5   Piratella                apex=2325.0 zone=(2200, 2351)
+   race  lap 14  105.099  brake_mean=0.155 throttle_mean=0.481 min_speed= 132.8
+   race  lap 15  105.104  brake_mean=0.161 throttle_mean=0.473 min_speed= 126.7
+   quali lap  5  105.186  brake_mean=0.157 throttle_mean=0.512 min_speed= 128.5
+   race  lap  4  105.386  brake_mean=0.165 throttle_mean=0.509 min_speed= 122.5
+   race  lap 12  105.466  brake_mean=0.169 throttle_mean=0.437 min_speed= 126.7
+   race  lap  8  105.564  brake_mean=0.162 throttle_mean=0.453 min_speed= 126.7
+   race  lap 13  105.615  brake_mean=0.159 throttle_mean=0.431 min_speed= 127.2
+   quali lap  3  105.785  brake_mean=0.157 throttle_mean=0.468 min_speed= 129.3
+   quali lap  4  106.138  brake_mean=0.155 throttle_mean=0.473 min_speed= 125.5
+   race  lap 10  106.347  brake_mean=0.174 throttle_mean=0.526 min_speed= 123.9
+   race  lap  9  106.490  brake_mean=0.180 throttle_mean=0.516 min_speed= 119.5
+   race  lap 11  106.556  brake_mean=0.173 throttle_mean=0.478 min_speed= 127.8
+   race  lap  6  106.597  brake_mean=0.147 throttle_mean=0.529 min_speed= 125.6
+   quali lap  2  106.679  brake_mean=0.176 throttle_mean=0.479 min_speed= 118.6
+   race  lap  3  106.693  brake_mean=0.176 throttle_mean=0.480 min_speed= 121.3
+   race  lap  7  107.994  brake_mean=0.143 throttle_mean=0.504 min_speed= 124.8
+   race  lap  5  108.174  brake_mean=0.098 throttle_mean=0.507 min_speed= 123.6
+   quali lap  1  108.200  brake_mean=0.157 throttle_mean=0.430 min_speed= 122.7
+   race  lap 16  109.318  brake_mean=0.153 throttle_mean=0.433 min_speed= 126.9
+   race  lap  2  111.126  brake_mean=0.180 throttle_mean=0.515 min_speed= 118.3
+   race  lap  1  131.075  brake_mean=0.214 throttle_mean=0.415 min_speed=  93.1
+   fastest-lap nearest event apex 2340 m (delta +15 m)
+
+t6   Acque Minerali 1         apex=2847.0 zone=(2638, 2854)
+   race  lap 14  105.099  brake_mean=0.118 throttle_mean=0.470 min_speed=  96.3
+   race  lap 15  105.104  brake_mean=0.108 throttle_mean=0.510 min_speed=  99.1
+   quali lap  5  105.186  brake_mean=0.118 throttle_mean=0.495 min_speed= 100.6
+   race  lap  4  105.386  brake_mean=0.116 throttle_mean=0.531 min_speed=  99.8
+   race  lap 12  105.466  brake_mean=0.120 throttle_mean=0.498 min_speed= 101.2
+   race  lap  8  105.564  brake_mean=0.124 throttle_mean=0.521 min_speed=  97.3
+   race  lap 13  105.615  brake_mean=0.101 throttle_mean=0.485 min_speed=  97.0
+   quali lap  3  105.785  brake_mean=0.123 throttle_mean=0.468 min_speed=  98.3
+   quali lap  4  106.138  brake_mean=0.115 throttle_mean=0.485 min_speed=  96.8
+   race  lap 10  106.347  brake_mean=0.114 throttle_mean=0.525 min_speed=  95.2
+   race  lap  9  106.490  brake_mean=0.129 throttle_mean=0.489 min_speed=  88.6
+   race  lap 11  106.556  brake_mean=0.125 throttle_mean=0.534 min_speed=  93.1
+   race  lap  6  106.597  brake_mean=0.099 throttle_mean=0.527 min_speed=  94.9
+   quali lap  2  106.679  brake_mean=0.118 throttle_mean=0.523 min_speed=  94.1
+   race  lap  3  106.693  brake_mean=0.105 throttle_mean=0.476 min_speed=  96.1
+   race  lap  7  107.994  brake_mean=0.108 throttle_mean=0.552 min_speed=  92.4
+   race  lap  5  108.174  brake_mean=0.111 throttle_mean=0.505 min_speed=  75.3
+   quali lap  1  108.200  brake_mean=0.107 throttle_mean=0.482 min_speed=  98.7
+   race  lap 16  109.318  brake_mean=0.102 throttle_mean=0.496 min_speed=  98.8
+   race  lap  2  111.126  brake_mean=0.093 throttle_mean=0.501 min_speed=  94.9
+   race  lap  1  131.075  brake_mean=0.067 throttle_mean=0.563 min_speed=  71.5
+   fastest-lap nearest event apex 2861 m (delta +14 m)
+
+t7   Acque Minerali 2         apex=2858.0 zone=(2836, 2861)
+   race  lap 14  105.099  brake_mean=0.118 throttle_mean=0.509 min_speed=  96.3
+   race  lap 15  105.104  brake_mean=0.107 throttle_mean=0.548 min_speed=  99.1
+   quali lap  5  105.186  brake_mean=0.118 throttle_mean=0.536 min_speed= 100.6
+   race  lap  4  105.386  brake_mean=0.116 throttle_mean=0.558 min_speed=  99.8
+   race  lap 12  105.466  brake_mean=0.120 throttle_mean=0.534 min_speed= 101.2
+   race  lap  8  105.564  brake_mean=0.124 throttle_mean=0.567 min_speed=  97.3
+   race  lap 13  105.615  brake_mean=0.101 throttle_mean=0.531 min_speed=  97.0
+   quali lap  3  105.785  brake_mean=0.123 throttle_mean=0.513 min_speed=  98.3
+   quali lap  4  106.138  brake_mean=0.112 throttle_mean=0.529 min_speed=  96.8
+   race  lap 10  106.347  brake_mean=0.114 throttle_mean=0.571 min_speed=  95.2
+   race  lap  9  106.490  brake_mean=0.129 throttle_mean=0.535 min_speed=  88.6
+   race  lap 11  106.556  brake_mean=0.115 throttle_mean=0.580 min_speed=  93.1
+   race  lap  6  106.597  brake_mean=0.099 throttle_mean=0.565 min_speed=  94.9
+   quali lap  2  106.679  brake_mean=0.118 throttle_mean=0.558 min_speed=  94.1
+   race  lap  3  106.693  brake_mean=0.105 throttle_mean=0.518 min_speed=  96.1
+   race  lap  7  107.994  brake_mean=0.108 throttle_mean=0.581 min_speed=  92.4
+   race  lap  5  108.174  brake_mean=0.111 throttle_mean=0.546 min_speed=  75.3
+   quali lap  1  108.200  brake_mean=0.107 throttle_mean=0.527 min_speed=  98.7
+   race  lap 16  109.318  brake_mean=0.102 throttle_mean=0.532 min_speed=  98.8
+   race  lap  2  111.126  brake_mean=0.093 throttle_mean=0.542 min_speed=  94.9
+   race  lap  1  131.075  brake_mean=0.067 throttle_mean=0.596 min_speed=  71.5
+   fastest-lap nearest event apex 2861 m (delta +3 m)
+
+t8   Variante Alta 1          apex=3389.0 zone=(3235, 3396)
+   race  lap 14  105.099  brake_mean=0.170 throttle_mean=0.489 min_speed=  78.1
+   race  lap 15  105.104  brake_mean=0.165 throttle_mean=0.483 min_speed=  82.3
+   quali lap  5  105.186  brake_mean=0.164 throttle_mean=0.475 min_speed=  80.9
+   race  lap  4  105.386  brake_mean=0.120 throttle_mean=0.516 min_speed=  85.7
+   race  lap 12  105.466  brake_mean=0.186 throttle_mean=0.502 min_speed=  78.2
+   race  lap  8  105.564  brake_mean=0.171 throttle_mean=0.509 min_speed=  81.4
+   race  lap 13  105.615  brake_mean=0.122 throttle_mean=0.499 min_speed=  78.7
+   quali lap  3  105.785  brake_mean=0.176 throttle_mean=0.495 min_speed=  78.2
+   quali lap  4  106.138  brake_mean=0.168 throttle_mean=0.480 min_speed=  78.2
+   race  lap 10  106.347  brake_mean=0.158 throttle_mean=0.520 min_speed=  65.8
+   race  lap  9  106.490  brake_mean=0.157 throttle_mean=0.529 min_speed=  78.0
+   race  lap 11  106.556  brake_mean=0.203 throttle_mean=0.470 min_speed=  70.4
+   race  lap  6  106.597  brake_mean=0.149 throttle_mean=0.521 min_speed=  77.7
+   quali lap  2  106.679  brake_mean=0.173 throttle_mean=0.504 min_speed=  75.2
+   race  lap  3  106.693  brake_mean=0.179 throttle_mean=0.491 min_speed=  74.3
+   race  lap  7  107.994  brake_mean=0.153 throttle_mean=0.515 min_speed=  64.9
+   race  lap  5  108.174  brake_mean=0.163 throttle_mean=0.516 min_speed=  79.2
+   quali lap  1  108.200  brake_mean=0.157 throttle_mean=0.494 min_speed=  80.6
+   race  lap 16  109.318  brake_mean=0.126 throttle_mean=0.498 min_speed=  77.0
+   race  lap  2  111.126  brake_mean=0.218 throttle_mean=0.479 min_speed=  64.0
+   race  lap  1  131.075  brake_mean=0.105 throttle_mean=0.501 min_speed=  72.1
+   fastest-lap nearest event apex 3390 m (delta +1 m)
+
+t9   Variante Alta 2          apex=3396.0 zone=(3374, 3398)
+   race  lap 14  105.099  brake_mean=0.146 throttle_mean=0.518 min_speed=  78.1
+   race  lap 15  105.104  brake_mean=0.144 throttle_mean=0.512 min_speed=  82.3
+   quali lap  5  105.186  brake_mean=0.141 throttle_mean=0.504 min_speed=  80.9
+   race  lap  4  105.386  brake_mean=0.103 throttle_mean=0.545 min_speed=  85.7
+   race  lap 12  105.466  brake_mean=0.164 throttle_mean=0.531 min_speed=  78.2
+   race  lap  8  105.564  brake_mean=0.150 throttle_mean=0.538 min_speed=  81.4
+   race  lap 13  105.615  brake_mean=0.105 throttle_mean=0.528 min_speed=  78.7
+   quali lap  3  105.785  brake_mean=0.153 throttle_mean=0.524 min_speed=  78.2
+   quali lap  4  106.138  brake_mean=0.149 throttle_mean=0.509 min_speed=  78.2
+   race  lap 10  106.347  brake_mean=0.137 throttle_mean=0.549 min_speed=  65.8
+   race  lap  9  106.490  brake_mean=0.139 throttle_mean=0.558 min_speed=  78.0
+   race  lap 11  106.556  brake_mean=0.185 throttle_mean=0.499 min_speed=  70.4
+   race  lap  6  106.597  brake_mean=0.132 throttle_mean=0.550 min_speed=  77.7
+   quali lap  2  106.679  brake_mean=0.150 throttle_mean=0.533 min_speed=  75.2
+   race  lap  3  106.693  brake_mean=0.158 throttle_mean=0.520 min_speed=  74.3
+   race  lap  7  107.994  brake_mean=0.134 throttle_mean=0.544 min_speed=  64.9
+   race  lap  5  108.174  brake_mean=0.144 throttle_mean=0.545 min_speed=  79.2
+   quali lap  1  108.200  brake_mean=0.134 throttle_mean=0.523 min_speed=  80.6
+   race  lap 16  109.318  brake_mean=0.109 throttle_mean=0.527 min_speed=  77.0
+   race  lap  2  111.126  brake_mean=0.197 throttle_mean=0.508 min_speed=  64.0
+   race  lap  1  131.075  brake_mean=0.104 throttle_mean=0.524 min_speed=  72.1
+   fastest-lap nearest event apex 3390 m (delta -6 m)
+
+t10  Rivazza 1                apex=4122.0 zone=(3996, 4141)
+   race  lap 14  105.099  brake_mean=0.358 throttle_mean=0.303 min_speed=  81.1
+   race  lap 15  105.104  brake_mean=0.334 throttle_mean=0.251 min_speed=  83.3
+   quali lap  5  105.186  brake_mean=0.334 throttle_mean=0.258 min_speed=  84.7
+   race  lap  4  105.386  brake_mean=0.328 throttle_mean=0.272 min_speed=  83.5
+   race  lap 12  105.466  brake_mean=0.358 throttle_mean=0.284 min_speed=  80.5
+   race  lap  8  105.564  brake_mean=0.299 throttle_mean=0.269 min_speed=  84.1
+   race  lap 13  105.615  brake_mean=0.344 throttle_mean=0.259 min_speed=  77.6
+   quali lap  3  105.785  brake_mean=0.330 throttle_mean=0.285 min_speed=  82.0
+   quali lap  4  106.138  brake_mean=0.331 throttle_mean=0.288 min_speed=  85.8
+   race  lap 10  106.347  brake_mean=0.342 throttle_mean=0.307 min_speed=  79.1
+   race  lap  9  106.490  brake_mean=0.325 throttle_mean=0.291 min_speed=  82.2
+   race  lap 11  106.556  brake_mean=0.342 throttle_mean=0.297 min_speed=  80.0
+   race  lap  6  106.597  brake_mean=0.261 throttle_mean=0.323 min_speed=  85.5
+   quali lap  2  106.679  brake_mean=0.305 throttle_mean=0.263 min_speed=  83.6
+   race  lap  3  106.693  brake_mean=0.330 throttle_mean=0.307 min_speed=  80.4
+   race  lap  7  107.994  brake_mean=0.355 throttle_mean=0.269 min_speed=  81.7
+   race  lap  5  108.174  brake_mean=0.317 throttle_mean=0.308 min_speed=  78.2
+   quali lap  1  108.200  brake_mean=0.320 throttle_mean=0.277 min_speed=  81.9
+   race  lap 16  109.318  brake_mean=0.266 throttle_mean=0.271 min_speed=  81.0
+   race  lap  2  111.126  brake_mean=0.369 throttle_mean=0.308 min_speed=  75.8
+   race  lap  1  131.075  brake_mean=0.285 throttle_mean=0.198 min_speed=  74.9
+   fastest-lap nearest event apex 4131 m (delta +9 m)
+
+t11  Rivazza 2                apex=4262.0 zone=(4201, 4298)
+   race  lap 14  105.099  brake_mean=0.032 throttle_mean=0.743 min_speed=  87.2
+   race  lap 15  105.104  brake_mean=0.021 throttle_mean=0.698 min_speed=  86.1
+   quali lap  5  105.186  brake_mean=0.030 throttle_mean=0.718 min_speed=  84.9
+   race  lap  4  105.386  brake_mean=0.019 throttle_mean=0.738 min_speed=  88.4
+   race  lap 12  105.466  brake_mean=0.034 throttle_mean=0.761 min_speed=  85.8
+   race  lap  8  105.564  brake_mean=0.035 throttle_mean=0.740 min_speed=  88.0
+   race  lap 13  105.615  brake_mean=0.035 throttle_mean=0.765 min_speed=  80.6
+   quali lap  3  105.785  brake_mean=0.022 throttle_mean=0.727 min_speed=  85.0
+   quali lap  4  106.138  brake_mean=0.024 throttle_mean=0.697 min_speed=  91.4
+   race  lap 10  106.347  brake_mean=0.034 throttle_mean=0.748 min_speed=  88.2
+   race  lap  9  106.490  brake_mean=0.029 throttle_mean=0.752 min_speed=  88.4
+   race  lap 11  106.556  brake_mean=0.037 throttle_mean=0.778 min_speed=  87.3
+   race  lap  6  106.597  brake_mean=0.043 throttle_mean=0.748 min_speed=  92.3
+   quali lap  2  106.679  brake_mean=0.014 throttle_mean=0.685 min_speed=  83.6
+   race  lap  3  106.693  brake_mean=0.026 throttle_mean=0.740 min_speed=  87.1
+   race  lap  7  107.994  brake_mean=0.028 throttle_mean=0.740 min_speed=  87.0
+   race  lap  5  108.174  brake_mean=0.022 throttle_mean=0.719 min_speed=  88.1
+   quali lap  1  108.200  brake_mean=0.023 throttle_mean=0.699 min_speed=  86.9
+   race  lap 16  109.318  brake_mean=0.030 throttle_mean=0.767 min_speed=  83.9
+   race  lap  2  111.126  brake_mean=0.033 throttle_mean=0.757 min_speed=  86.3
+   race  lap  1  131.075  brake_mean=0.030 throttle_mean=0.656 min_speed=  75.5
+   fastest-lap nearest event apex 4266 m (delta +4 m)

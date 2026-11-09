@@ -1,0 +1,10 @@
+{
+  "lap_number": 14,
+  "time_s": 105.0986,
+  "start_row": 87725,
+  "end_row": 92956,
+  "rows": 5231,
+  "reference_file": "product/data/reference-laps/autodromo-enzo-e-dino-ferrari_vista-af-corse-2026-21-lm_time_01.45.099.parquet",
+  "superseded_reference": "product/data/reference-laps/autodromo-enzo-e-dino-ferrari_vista-af-corse-2026-21-lm_time_01.45.534.parquet",
+  "improvement_s": 0.4354
+}

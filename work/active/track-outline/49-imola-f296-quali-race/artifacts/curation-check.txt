@@ -1,0 +1,15 @@
+curated fields identical on all 11 corners:
+  t1 Tamburello | short: None | apex_side: right | target_throttle_pct: None
+  t2 Variante Villeneuve 1 | short: Villeneuve 1 | apex_side: right | target_throttle_pct: None
+  t3 Variante Villeneuve 2 | short: Villeneuve 2 | apex_side: right | target_throttle_pct: None
+  t4 Tosa | short: None | apex_side: right | target_throttle_pct: None
+  t5 Piratella | short: None | apex_side: right | target_throttle_pct: None
+  t6 Acque Minerali 1 | short: Acque 1 | apex_side: right | target_throttle_pct: None
+  t7 Acque Minerali 2 | short: Acque 2 | apex_side: right | target_throttle_pct: None
+  t8 Variante Alta 1 | short: Alta 1 | apex_side: right | target_throttle_pct: None
+  t9 Variante Alta 2 | short: Alta 2 | apex_side: right | target_throttle_pct: None
+  t10 Rivazza 1 | short: Rivazza 1 | apex_side: right | target_throttle_pct: None
+  t11 Rivazza 2 | short: Rivazza 2 | apex_side: right | target_throttle_pct: None
+schema_version/track_id/layout_id/lap_length_m/straight_zones identical
+reference lap_time_s: 105.534 -> 105.099
+OK
