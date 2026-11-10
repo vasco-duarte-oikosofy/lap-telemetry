@@ -134,9 +134,15 @@ live `top_n=3` cap** — the debrief needs every corner, not the top three.
 Computed against the **session's own best eligible lap** (a lap cannot be
 unreliable against itself):
 
-- **Optimal lap** from best sector times, when the session has sectors
-  (`last_sector_1_s` / `last_sector_2_s`); older recordings without the
-  columns fall back to a per-corner minimum-speed proxy and say so.
+- **Optimal lap** from a **speed envelope**: the fastest speed observed in each
+  distance bin across the clean laps, integrated as `sum(ds / v)`. It is
+  optimistic by construction (it assumes instantaneous speed changes) and the
+  report says so. Sector times are *not* used: the recorder's
+  `last_sector_1_s` / `last_sector_2_s` channels are missing on whole laps and
+  repeat identical values across consecutive laps, so "sum of best sectors"
+  would be computed from a handful of laps (see slice 03).
+- **Time available** = best clean lap minus the envelope. It is the size of the
+  repeatability prize, not a target for a single lap.
 - Lap-time spread: best, median, and each lap's delta to best.
 - Per corner and phase: spread of minimum speed, entry distance, exit
   distance, apex offset, and apex offset drift. Spread — not mean — is the
@@ -266,8 +272,12 @@ provider plumbing and no credentials in files. Only the derived facts
   laps stay in the analysis but are excluded from the clean-lap consistency
   set, and counted.
 - **`lap_valid`** is unreliable in older recordings (see above).
-- **Sectors** are absent from older recordings; the optimal-lap number is
-  then a proxy and is labelled as such.
+- **Sector channels are unreliable** on current recordings (missing on whole
+  laps, stale across consecutive laps), so sector-based metrics are not offered.
+- **Duplicated rows**: some recordings contain rows whose clock is frozen while
+  distance still advances (bug 34). A resampler sees zero elapsed time over that
+  stretch, so such laps are rejected as `short` instead of producing phantom
+  multi-second gains.
 - **Multi-apex corners** inherit the existing ambiguity in the coaching
   models (chicanes and double-apex sweepers are one corner with one apex).
 - **Setup changes** between stints are invisible; a session with a setup
