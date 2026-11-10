@@ -1,0 +1,8 @@
+      * source: session_20260512T140000Z_spa-francorchamps_lmu.parquet
+OK    weathertech-raceway-laguna-seca_dkr-engineering-4-elms25_time_01.21.495.parquet
+      * legacy-time delta 0.188s vs lap_time_s (pre-authoritative export)
+      * source: session_20260815T172700Z_weathertech-raceway-laguna-seca_lmu_practice.parquet
+OK    weathertech-raceway-laguna-seca_vista-af-corse-2026-54-wec_time_01.27.905.parquet
+      * source: session_20260808T155443Z_weathertech-raceway-laguna-seca_lmu_practice.parquet
+
+36 reference laps checked, 0 failures.

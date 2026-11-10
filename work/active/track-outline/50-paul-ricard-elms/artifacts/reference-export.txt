@@ -1,0 +1,5 @@
+Track: paul-ricard---elms  Vehicle: vista-af-corse-2026-21-lm  (1 sessions)
+  Fastest: lap 8 in session_20261110T175322Z_paul-ricard---elms_lmu_practice.parquet -> 127.601s
+  Exported 6361 rows -> product\data\reference-laps\paul-ricard---elms_vista-af-corse-2026-21-lm_time_02.07.601.parquet
+
+AUDIT: 1 reference lap changed (added: ['paul-ricard---elms_vista-af-corse-2026-21-lm_time_02.07.601.parquet'], superseded: []). OK.

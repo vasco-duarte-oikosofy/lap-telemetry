@@ -1,0 +1,28 @@
+sidecar {
+  "schema_version": "2",
+  "recorder_version": "0.1.0a1",
+  "started_utc": "2026-11-10T17:53:22Z",
+  "ended_utc": "2026-11-10T18:16:29Z",
+  "sim": "lmu",
+  "track": "Paul Ricard - ELMS",
+  "vehicle_name": "Vista AF Corse 2026 #21:LM",
+  "setup_file_guess": null,
+  "session_type_label": "practice",
+  "sample_rate_hz": 50.0,
+  "row_count": 69113,
+  "lap_count": 12,
+  "in_progress": false
+}
+12 contiguous segments, 69113 rows
+seg 0 lap 0 rows= 9152 auth=5976.800s sampled=5976.800s d0=   -91.2 d1=  5803.9 min=   -92.6 max=  5803.9 valid=True wall=   183.2s
+seg 1 lap 1 rows= 6589 auth= 131.950s sampled= 131.950s d0=  5805.6 d1=  5803.7 min=     5.7 max=  5805.6 valid=True wall=   132.0s
+seg 2 lap 2 rows= 6815 auth= 136.485s sampled= 136.485s d0=  5804.6 d1=  5804.3 min=     2.1 max=  5804.6 valid=True wall=   136.6s
+seg 3 lap 3 rows= 6793 auth= 135.976s sampled= 135.976s d0=  5806.1 d1=  5794.7 min=     7.0 max=  5806.1 valid=True wall=   136.0s
+seg 4 lap 4 rows= 6453 auth= 129.410s sampled= 129.410s d0=    -1.9 d1=  5804.7 min=    -1.9 max=  5804.7 valid=True wall=   129.4s
+seg 5 lap 5 rows= 6442 auth= 129.102s sampled= 129.102s d0=  5805.5 d1=  5804.0 min=     3.1 max=  5805.5 valid=True wall=   129.2s
+seg 6 lap 6 rows= 6523 auth= 130.783s sampled= 130.783s d0=  5804.8 d1=  5804.3 min=     7.4 max=  5804.8 valid=True wall=   130.8s
+seg 7 lap 7 rows= 6375 auth= 127.712s sampled= 127.712s d0=  5806.1 d1=  5804.4 min=     3.6 max=  5806.1 valid=True wall=   127.8s
+seg 8 lap 8 rows= 6361 auth= 127.499s sampled= 127.499s d0=  5805.3 d1=  5805.2 min=     2.9 max=  5805.3 valid=True wall=   127.6s
+seg 9 lap 9 rows= 6366 auth= 127.698s sampled= 127.698s d0=  5806.9 d1=  5803.9 min=    13.7 max=  5806.9 valid=True wall=   127.8s
+seg10 lap10 rows=  482 auth=   9.735s sampled=   9.735s d0=  5805.6 d1=   212.0 min=    15.6 max=  5805.6 valid=True wall=     9.8s
+seg11 lap11 rows=  762 auth=   0.596s sampled=   0.596s d0=   -91.2 d1=   -91.2 min=   -91.2 max=   -91.1 valid=True wall=     0.6s

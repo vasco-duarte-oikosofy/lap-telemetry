@@ -1,0 +1,30 @@
+=== changed/added tracked files (excluding this slice's own workspace) ===
+ M docs/TRACK_OUTLINE_COVERAGE.md
+ M package.json
+ M product/dist/compare.html
+ M product/web/js/trackOutlineManifest.js
+ M work/active/track-outline/PLAN.md
+?? dev/scripts/align_tinypedal_map_start_line.py
+?? dev/scripts/create_paul_ricard_elms_assets.py
+?? dev/scripts/test_paul_ricard_elms.js
+?? dev/scripts/test_paul_ricard_elms.py
+?? dev/scripts/test_paul_ricard_elms_tinypedal.js
+?? dev/scripts/test_paul_ricard_elms_ui.js
+?? dev/scripts/test_tinypedal_map_alignment.js
+?? dev/scripts/test_tinypedal_map_alignment.py
+?? product/data/reference-laps/paul-ricard---elms_vista-af-corse-2026-21-lm_time_02.07.601.parquet
+?? product/data/track-coaching/paul-ricard---elms_vista-af-corse-2026-21-lm.diagnostics.txt
+?? product/data/track-coaching/paul-ricard---elms_vista-af-corse-2026-21-lm.json
+?? product/data/track-outlines/paul-ricard---elms.json
+?? product/web/js/staticPaulRicardElmsOutlineData.js
+
+=== unchanged curated assets check ===
+?? product/data/reference-laps/paul-ricard---elms_vista-af-corse-2026-21-lm_time_02.07.601.parquet
+?? product/data/track-coaching/paul-ricard---elms_vista-af-corse-2026-21-lm.diagnostics.txt
+?? product/data/track-coaching/paul-ricard---elms_vista-af-corse-2026-21-lm.json
+?? product/data/track-outlines/paul-ricard---elms.json
+
+=== reference folder count ===
+36
+=== coaching models ===
+37

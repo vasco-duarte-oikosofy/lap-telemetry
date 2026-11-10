@@ -1,0 +1,40 @@
+{
+  "type": "lap_coaching_summary",
+  "track_id": "paul-ricard---elms",
+  "lap_number": 7,
+  "lap_time_delta_s": 0.212,
+  "top_losses": [
+    {
+      "corner_id": "lac",
+      "corner_name": "Lac",
+      "apex_distance_m": 5380.0,
+      "phase": "entry",
+      "loss_s": 0.137,
+      "driver_value": 203.4,
+      "reference_value": 202.4,
+      "unit": "km/h",
+      "confidence": "medium",
+      "phase_distance_m": 5195.0,
+      "gain_end_distance_m": 5380.0,
+      "entry_distance_delta_m": -4.0,
+      "reference_phase_distance_m": 5191.0
+    },
+    {
+      "corner_id": "hotel_2",
+      "corner_name": "H\u00f4tel 2",
+      "apex_distance_m": 1411.0,
+      "phase": "entry",
+      "loss_s": 0.112,
+      "driver_value": 130.4,
+      "reference_value": 129.1,
+      "unit": "km/h",
+      "confidence": "medium",
+      "phase_distance_m": 1341.0,
+      "gain_end_distance_m": 1411.0,
+      "entry_distance_delta_m": 1.0,
+      "reference_phase_distance_m": 1342.0
+    },
+    {
+      "corner_id": "chicane_nord_1",
+      "corner_name": "Chicane 1",
+      "apex_distance_m": 2960.0,

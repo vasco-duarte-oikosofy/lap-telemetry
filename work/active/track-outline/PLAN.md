@@ -67,6 +67,7 @@ Tracks are ordered by data quality: TUMFTM first (real widths), then trajectory-
 | `47-bug29-nearest-first-matching` | Bug 29 / greedy corner matching | Fuji Netz/Netz Hairpin (third occurrence) | `match_corners()` now claims globally nearest-first (ties keep the earlier corner); +2 regression tests (27/31 -> 31/31); 8 corrected ownerships across 5 real laps (Fuji, Interlagos, Long Beach), no data change | ✅ `776519f`; live-validated `7ffa144` |
 | `48-fuji-p3-quali-refresh` | Fuji / Ginetta P3 quali lap (bug 29 live validation) | 14:18 quali lap 2, 1:36.544 | Ref 1:36.564 → 1:36.544; 9 corners refreshed, **Netz kept 3284/3310/3310 while Netz Hairpin took its own event** (old matcher moved Netz +129 m); outline + TinyPedal labels re-derived | ✅ `7ffa144` |
 | `49-imola-f296-quali-race` | Imola / Ferrari 296 GT3, 2026-11-09 quali + race | Race lap 14, 1:45.099 (quali best 1:45.186) | Ref 1:45.534 → 1:45.099; 7 corners refreshed (≤20 m), Tamburello preserved (exit 704–780 m across 21 laps) + 3 compound second halves kept; outline byte-identical | ✅ `78c0ede` |
+| `50-paul-ricard-elms` | Paul Ricard - ELMS / Ferrari 296 GT3 (new layout + new car) | 2026-11-10 practice, lap 8 | Ref 2:07.601 + new 16-zone coaching model (official names, Chicane Nord pair, two flat bends) + trajectory outline + TinyPedal labels; the recorded ELMS map started 165 m past the timing line and was re-started with the new alignment guard | ✅ `868dac4`+`f5780d7` |
 
 **Feature tests (slice 38):** `bash scripts/test-summary.sh --feature long-beach-f499p`
 
