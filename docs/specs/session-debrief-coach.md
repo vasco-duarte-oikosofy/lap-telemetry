@@ -1,7 +1,7 @@
 # Session Debrief Coach
 
-Status: planned (2026-11). Implementation tracked in
-[`work/active/session-debrief/PLAN.md`](../../work/active/session-debrief/PLAN.md).
+Status: implemented (2026-11), eight slices. Plan and per-slice learnings:
+[`work/completed/session-debrief/`](../../work/completed/session-debrief/).
 
 ## Purpose
 

@@ -34,7 +34,7 @@ _MIN_TRAIL_M = 5.0
 _MAX_PLAUSIBLE_DISTANCE_M = 60.0
 
 
-def _ordinal(value: int) -> str:
+def ordinal(value: int) -> str:
     if 10 <= value % 100 <= 20:
         return f"{value}th"
     suffix = {1: "st", 2: "nd", 3: "rd"}.get(value % 10, "th")
@@ -98,9 +98,9 @@ def _clause_gear(driver: CornerExtras | None, reference: CornerExtras | None) ->
         return None
     if mine > theirs:
         return (f"one gear lower at the apex "
-                f"({_ordinal(theirs)}, not {_ordinal(mine)})")
+                f"({ordinal(theirs)}, not {ordinal(mine)})")
     return (f"one gear higher at the apex "
-            f"({_ordinal(theirs)}, not {_ordinal(mine)})")
+            f"({ordinal(theirs)}, not {ordinal(mine)})")
 
 
 def _speed_deficit(items: list[CornerLoss]) -> float:

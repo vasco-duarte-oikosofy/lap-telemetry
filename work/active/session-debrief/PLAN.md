@@ -20,8 +20,8 @@ measurable targets for the next stint.
 | `04-extended-corner-facts` | ✅ 94c8de3 | Gear, brake peak/area, trail-braking depth, steering corrections, TC/ABS duty and lateral line offset per corner; rear slip refused with evidence; graceful degradation with a reason per unusable channel |
 | `05-improvement-priorities` | ✅ 417a732 | One ranked row per corner (score = recurring + 0.35 × spread) with a computed fix from measured deltas, or an explicit "no single measurable cause" |
 | `06-markdown-report` | ✅ 96a952c | `--report-only --no-llm` writes `<session>_debrief.md`: summary, clean-lap table, optimal lap, top priorities, per-corner appendix, excluded laps |
-| `07-llm-debrief-summary` | ✅ (this commit) | Coach voice contract + compact-report grounding: the opening debrief and one-shot `--ask` answers, with contract tests against a fake adapter |
-| `08-interactive-debrief` | 🔲 Not started | Multi-turn REPL: history, automatic corner drill-down, `/corner`, `/laps`, `/plan`, `/save`; transcript in `_debrief.json`, targets in `_plan.md` |
+| `07-llm-debrief-summary` | ✅ 37985e9 | Coach voice contract + compact-report grounding: the opening debrief and one-shot `--ask` answers, with contract tests against a fake adapter |
+| `08-interactive-debrief` | ✅ (this commit) | Multi-turn REPL: history, automatic corner drill-down, `/corner`, `/laps`, `/plan`, `/save`; transcript in `_debrief.json`, targets in `_plan.md` |
 
 ---
 

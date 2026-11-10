@@ -92,13 +92,10 @@ def run(
         print(destination)
         return 0
 
-    print(
-        "lap-telemetry debrief: the coaching conversation is not implemented yet.\n"
-        "Use --report-only for the report, --list for the inventory, or --json "
-        "for the facts.",
-        file=sys.stderr,
-    )
-    return 1
+    from .session_conversation import run_repl
+
+    target_dir = out_dir if out_dir is not None else path.resolve().parent
+    return run_repl(facts, target_dir, no_llm=no_llm)
 
 
 def _answer(question: str, facts, *, no_llm: bool) -> int:
