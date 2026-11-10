@@ -8,6 +8,7 @@ from pathlib import Path
 
 import pyarrow.parquet as pq
 
+from lap_telemetry.lap_signals import sector_times
 from lap_telemetry.parquet_utils import authoritative_duration, build_segments
 
 
@@ -140,8 +141,6 @@ def _run_file(path: Path) -> int:
     lap_col      = t.column("lap_number").to_pylist()
     lap_t_col    = t.column("lap_time_s").to_pylist()
     valid_col    = t.column("lap_valid").to_pylist() if has_valid_col else None
-    s1_col       = t.column("last_sector_1_s").to_pylist() if has_sectors else None
-    s2_col       = t.column("last_sector_2_s").to_pylist() if has_sectors else None
 
     segments = build_segments(lap_col)
     num_segs = len(segments)
@@ -175,34 +174,15 @@ def _run_file(path: Path) -> int:
             valid_str = "yes" if all(seg_valid) else "no"
 
         s1_str = s2_str = s3_str = "-"
-        if not is_incomplete and s1_col is not None and seg_idx + 1 < num_segs:
-            # mLastSector* describes the previously-completed lap. The first
-            # frame of the next segment *should* carry this lap's S1/S2, but
-            # the SHM is sometimes mid-update at the exact boundary tick (O1)
-            # or still holding the prior lap's values (O2). Walk up to 25
-            # frames into the next segment to find settled values. See
-            # DESIGN §10 O1/O2.
-            next_seg_start = segments[seg_idx + 1][1]
-            next_seg_end   = segments[seg_idx + 1][2]
-            walk_end = min(next_seg_start + 25, next_seg_end)
-            s1 = s2 = None
-            for fi in range(next_seg_start, walk_end):
-                _s1 = s1_col[fi]
-                _cum = s2_col[fi]
-                if (
-                    _s1 is not None
-                    and _cum is not None
-                    and _s1 > 0.0
-                    and _cum > _s1
-                ):
-                    s1, cum_s2 = _s1, _cum
-                    break
-            valid_sectors = s1 is not None
-            if valid_sectors:
-                # SHM: LastSector1 = S1 dur, LastSector2 = S1+S2 cumulative.
+        if not is_incomplete and has_sectors and seg_idx + 1 < num_segs:
+            # mLastSector* describes the previously-completed lap, so this lap's
+            # sectors live at the start of the next segment (settled a few frames
+            # in — see DESIGN §10 O1/O2). See lap_signals.sector_times.
+            s1, s2, s3 = sector_times(t, segments, seg_idx, max_lap_t)
+            if s1 is not None:
                 s1_str = _fmt_sector(s1)
-                s2_str = _fmt_sector(cum_s2 - s1)
-                s3_str = _fmt_sector(max_lap_t - cum_s2)
+                s2_str = _fmt_sector(s2)
+                s3_str = _fmt_sector(s3)
 
         print(
             f"{lap_num:>4}   {frames:>6}   {duration_str:>10}   "

@@ -138,3 +138,40 @@ def validity_column(table: pa.Table) -> tuple[list[Any] | None, bool]:
     if values is None:
         return None, False
     return values, len({v for v in values if v is not None}) > 1
+
+
+def sector_times(
+    table: pa.Table,
+    segments: list[tuple[int, int, int]],
+    index: int,
+    lap_duration_s: float,
+    *,
+    settle_frames: int = 25,
+) -> tuple[float | None, float | None, float | None]:
+    """Sector times (S1, S2, S3) of the completed lap at ``segments[index]``.
+
+    The sim's ``mLastSector*`` channels describe the *previously completed* lap,
+    so a lap's sectors appear at the start of the next segment. That frame is
+    sometimes mid-update at the boundary tick or still holding the lap before,
+    so walk a few frames until the pair is settled. ``mLastSector2`` is
+    cumulative (S1+S2); S3 is the remainder of the lap duration.
+
+    Returns ``(None, None, None)`` for the last segment or when the columns are
+    missing.
+    """
+    s1_col = column_values(table, "last_sector_1_s")
+    s2_col = column_values(table, "last_sector_2_s")
+    if s1_col is None or s2_col is None or index + 1 >= len(segments):
+        return (None, None, None)
+
+    next_start, next_end = segments[index + 1][1], segments[index + 1][2]
+    walk_end = min(next_start + settle_frames, next_end)
+    for i in range(next_start, walk_end):
+        first = s1_col[i]
+        cumulative = s2_col[i]
+        if first is None or cumulative is None:
+            continue
+        if first > 0.0 and cumulative > first:
+            return (float(first), float(cumulative) - float(first),
+                    float(lap_duration_s) - float(cumulative))
+    return (None, None, None)
