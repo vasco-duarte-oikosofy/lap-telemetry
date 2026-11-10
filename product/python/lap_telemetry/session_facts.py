@@ -273,11 +273,15 @@ def build_session_facts(
         session.table, clean_records, inputs.track_model.lap_length_m
     )
 
+    consistency = build_consistency(laps, envelope_s)
     return SessionDebriefFacts(
         session=summary,
         laps=laps,
         excluded=excluded_laps(records) + unanalysable,
-        consistency=build_consistency(laps, envelope_s),
+        consistency=consistency,
         reference_corners=reference_corners,
-        priorities=build_priorities(laps, reference_corners),
+        priorities=build_priorities(
+            laps, reference_corners,
+            total_gap_s=consistency.pace.mean_gap_s if consistency.pace else None,
+        ),
     )

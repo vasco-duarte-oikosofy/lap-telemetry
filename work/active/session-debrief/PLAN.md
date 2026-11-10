@@ -19,7 +19,7 @@ measurable targets for the next stint.
 | `03-consistency-metrics` | ✅ e85a1c8 | Session-best baseline, optimal lap from a **speed envelope** (sectors are unusable, see the slice), lap spread, per-corner-phase spread, and separate "slow every lap" vs "inconsistent" rankings |
 | `04-extended-corner-facts` | ✅ 94c8de3 | Gear, brake peak/area, trail-braking depth, steering corrections, TC/ABS duty and lateral line offset per corner; rear slip refused with evidence; graceful degradation with a reason per unusable channel |
 | `05-improvement-priorities` | ✅ 417a732 | One ranked row per corner (score = recurring + 0.35 × spread) with a computed fix from measured deltas, or an explicit "no single measurable cause" |
-| `06-markdown-report` | 🔲 Not started | `--report-only --no-llm` writes `<session>_debrief.md`: summary, clean-lap table, optimal lap, top priorities, per-corner appendix, excluded laps |
+| `06-markdown-report` | ✅ (this commit) | `--report-only --no-llm` writes `<session>_debrief.md`: summary, clean-lap table, optimal lap, top priorities, per-corner appendix, excluded laps |
 | `07-llm-debrief-summary` | 🔲 Not started | Coach voice contract + compact-report grounding: the opening debrief and one-shot `--ask` answers, with contract tests against a fake adapter |
 | `08-interactive-debrief` | 🔲 Not started | Multi-turn REPL: history, automatic corner drill-down, `/corner`, `/laps`, `/plan`, `/save`; transcript in `_debrief.json`, targets in `_plan.md` |
 

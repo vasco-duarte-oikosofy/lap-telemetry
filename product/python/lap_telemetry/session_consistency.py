@@ -43,6 +43,7 @@ class LapPace:
     std_dev_s: float
     envelope_lap_s: float
     time_available_s: float
+    mean_gap_s: float = 0.0
     basis: str = "speed_envelope"
 
     def to_dict(self) -> dict[str, Any]:
@@ -55,6 +56,7 @@ class LapPace:
             "std_dev_s": round(self.std_dev_s, 3),
             "envelope_lap_s": round(self.envelope_lap_s, 3),
             "time_available_s": round(self.time_available_s, 3),
+            "mean_gap_s": round(self.mean_gap_s, 3),
             "basis": self.basis,
         }
 
@@ -236,7 +238,8 @@ def speed_envelope_optimal(
 
 def lap_pace(laps: list, envelope_lap_s: float) -> LapPace:
     """Lap-to-lap pace summary over the clean laps."""
-    clean = sorted(lap.lap_time_s for lap in laps if getattr(lap, "clean", True))
+    clean_laps = [lap for lap in laps if getattr(lap, "clean", True)]
+    clean = sorted(lap.lap_time_s for lap in clean_laps)
     if not clean:
         return LapPace(0, 0.0, 0.0, 0.0, 0.0, 0.0, envelope_lap_s, 0.0)
     best = clean[0]
@@ -249,6 +252,7 @@ def lap_pace(laps: list, envelope_lap_s: float) -> LapPace:
         std_dev_s=statistics.pstdev(clean),
         envelope_lap_s=envelope_lap_s,
         time_available_s=max(0.0, best - envelope_lap_s),
+        mean_gap_s=statistics.fmean([lap.delta_s for lap in clean_laps]),
     )
 
 

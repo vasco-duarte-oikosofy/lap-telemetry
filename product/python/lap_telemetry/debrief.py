@@ -36,6 +36,8 @@ def run(
     *,
     list_only: bool = False,
     json_only: bool = False,
+    report_only: bool = False,
+    out_dir: Path | None = None,
     reference: Path | None = None,
     track_model_path: Path | None = None,
     track: str | None = None,
@@ -80,9 +82,26 @@ def run(
         print(json.dumps(facts.to_dict(), indent=2))
         return 0
 
+    if report_only:
+        destination = _write_report(facts, session, path, out_dir)
+        print(destination)
+        return 0
+
     print(
-        "lap-telemetry debrief: the report and the coaching conversation are not "
-        "implemented yet.\nUse --list for the lap inventory or --json for the facts.",
+        "lap-telemetry debrief: the coaching conversation is not implemented yet.\n"
+        "Use --report-only for the report, --list for the inventory, or --json "
+        "for the facts.",
         file=sys.stderr,
     )
     return 1
+
+
+def _write_report(facts, session, path: Path, out_dir: Path | None) -> Path:
+    """Write the Markdown report next to the session, or into ``out_dir``."""
+    from .session_report import render_session_report, report_filename
+
+    target_dir = out_dir if out_dir is not None else path.resolve().parent
+    target_dir.mkdir(parents=True, exist_ok=True)
+    destination = target_dir / report_filename(session.stem)
+    destination.write_text(render_session_report(facts), encoding="utf-8")
+    return destination

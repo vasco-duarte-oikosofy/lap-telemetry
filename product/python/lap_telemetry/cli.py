@@ -92,6 +92,16 @@ def _build_parser() -> argparse.ArgumentParser:
         help="Print the session facts as JSON and exit.",
     )
     debrief.add_argument(
+        "--report-only",
+        action="store_true",
+        help="Write the Markdown report and exit (no conversation).",
+    )
+    debrief.add_argument(
+        "--out",
+        type=Path,
+        help="Directory for the report (default: next to the session).",
+    )
+    debrief.add_argument(
         "--reference",
         type=Path,
         help="Reference lap Parquet (default: resolve by track and car).",
@@ -130,6 +140,8 @@ def main(argv: Sequence[str] | None = None) -> int:
             args.file,
             list_only=args.list,
             json_only=args.json,
+            report_only=args.report_only,
+            out_dir=args.out,
             reference=args.reference,
             track_model_path=args.track_model,
             track=args.track,
