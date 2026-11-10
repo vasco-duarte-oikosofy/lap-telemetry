@@ -5,18 +5,19 @@ from pathlib import Path
 
 import pyarrow.parquet as pq
 
-from lap_telemetry.parquet_utils import authoritative_duration, build_segments
-
 from .entry_detection import find_entry_point, find_brake_point
 from .exit_detection import find_exit_points
 from .facts import PartialLapError, PhaseDetectionThresholds, CornerLoss, LapComparisonFacts
 from .js_pipeline import run_js_pipeline, delta_t_ms_to_seconds
+from .lap_table import (
+    duration_segment_for_lap,
+    is_implausibly_slow_lap,
+    segment_duration,
+    strip_stale_boundary_frames,
+    try_column,
+)
 from .resample import resample_column, compute_delta_time_trace
 from .track_model import TrackCoachingModel, Corner
-
-
-_SLOW_LAP_RATIO_THRESHOLD = 1.15
-_SLOW_LAP_RATIO_EPSILON = 1e-9
 
 
 def compute_minimum_speed_per_corner(
@@ -93,61 +94,6 @@ def find_straight_end_after_corner(
     return entry_idx
 
 
-def _try_column(table, name: str) -> list[float] | None:
-    """Extract a column from a Parquet table; return None if missing."""
-    try:
-        raw = table.column(name).to_pylist()
-        return [v if v is not None else 0.0 for v in raw]
-    except (KeyError, AttributeError):
-        return None
-
-
-def _duration_segment_for_lap(table, lap_number: int | None) -> tuple[int, int, int | None, int | None]:
-    """Find the segment whose duration should describe this comparison lap."""
-    lap_numbers = table.column("lap_number").to_pylist()
-    segments = build_segments(lap_numbers)
-    if not segments:
-        return (0, 0, None, None)
-
-    selected_idx = 0
-    if lap_number is not None:
-        for idx, (seg_lap_number, _start, _end) in enumerate(segments):
-            if seg_lap_number == lap_number:
-                selected_idx = idx
-                break
-
-    _lap_num, start, end = segments[selected_idx]
-    if selected_idx + 1 < len(segments):
-        _next_lap, next_start, next_end = segments[selected_idx + 1]
-        return (start, end, next_start, next_end)
-    return (start, end, None, None)
-
-
-def _segment_duration(
-    table,
-    segment: tuple[int, int, int | None, int | None],
-    *,
-    allow_same_segment_scoring: bool = False,
-) -> float:
-    start, end, next_start, next_end = segment
-    return authoritative_duration(
-        table,
-        start,
-        end,
-        next_start,
-        next_end,
-        allow_same_segment_scoring=allow_same_segment_scoring,
-    )
-
-
-def _is_implausibly_slow_lap(driver_lap_time: float, ref_lap_time: float) -> bool:
-    if driver_lap_time <= 0 or ref_lap_time <= 0:
-        return False
-    return (
-        (driver_lap_time / ref_lap_time)
-        > (_SLOW_LAP_RATIO_THRESHOLD + _SLOW_LAP_RATIO_EPSILON)
-    )
-
 
 def compare_laps(
     current_lap_path: Path | str,
@@ -178,7 +124,7 @@ def compare_laps(
 
     full_current_table = pq.read_table(current_lap_path)
     current_table = full_current_table
-    current_duration_segment = _duration_segment_for_lap(full_current_table, lap_number)
+    current_duration_segment = duration_segment_for_lap(full_current_table, lap_number)
 
     # Filter to a specific lap number if requested (for Parquet-based coach path).
     if lap_number is not None:
@@ -186,18 +132,7 @@ def compare_laps(
         mask = [ln == lap_number for ln in lap_numbers]
         current_table = full_current_table.filter(mask)
 
-    # Strip stale cross-lap boundary frames: the first frame(s) of a new lap
-    # sometimes carry the previous lap's position (dist > halfway) with a
-    # negative lap_time_s. These cause the head-partial coverage check to fire
-    # incorrectly and produce phantom speed readings at turn 1.
-    _lt = current_table.column("lap_time_s").to_pylist()
-    _ld = current_table.column("lap_distance_m").to_pylist()
-    stale_mask = [
-        not (lt < 0 and ld > track_model.lap_length_m * 0.5)
-        for lt, ld in zip(_lt, _ld)
-    ]
-    if not all(stale_mask):
-        current_table = current_table.filter(stale_mask)
+    current_table = strip_stale_boundary_frames(current_table, track_model.lap_length_m)
 
     # Guard against partial-lap data before the expensive JS pipeline.
     _guard_dist = current_table.column("lap_distance_m").to_pylist()
@@ -215,14 +150,14 @@ def compare_laps(
         )
 
     ref_table = pq.read_table(reference_lap_path)
-    ref_duration_segment = _duration_segment_for_lap(ref_table, None)
-    driver_lap_time = _segment_duration(full_current_table, current_duration_segment)
-    ref_lap_time = _segment_duration(
+    ref_duration_segment = duration_segment_for_lap(ref_table, None)
+    driver_lap_time = segment_duration(full_current_table, current_duration_segment)
+    ref_lap_time = segment_duration(
         ref_table,
         ref_duration_segment,
         allow_same_segment_scoring=True,
     )
-    if _is_implausibly_slow_lap(driver_lap_time, ref_lap_time):
+    if is_implausibly_slow_lap(driver_lap_time, ref_lap_time):
         ratio = driver_lap_time / ref_lap_time
         raise PartialLapError(
             f"lap duration {driver_lap_time:.1f}s is {ratio * 100:.0f}% of "
@@ -237,10 +172,10 @@ def compare_laps(
     ref_speed = ref_table.column("speed_kph").to_pylist()
     ref_lap_times = ref_table.column("lap_time_s").to_pylist()
 
-    driver_throttle = _try_column(current_table, "throttle_norm")
-    driver_brake = _try_column(current_table, "brake_norm")
-    ref_throttle = _try_column(ref_table, "throttle_norm")
-    ref_brake = _try_column(ref_table, "brake_norm")
+    driver_throttle = try_column(current_table, "throttle_norm")
+    driver_brake = try_column(current_table, "brake_norm")
+    ref_throttle = try_column(ref_table, "throttle_norm")
+    ref_brake = try_column(ref_table, "brake_norm")
 
     max_dist = int(max(max(current_dist), max(ref_dist)))
     track_length = min(max_dist, int(track_model.lap_length_m))
