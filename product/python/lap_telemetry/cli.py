@@ -86,6 +86,23 @@ def _build_parser() -> argparse.ArgumentParser:
         action="store_true",
         help="Print the lap inventory (which laps are real flying laps) and exit.",
     )
+    debrief.add_argument(
+        "--json",
+        action="store_true",
+        help="Print the session facts as JSON and exit.",
+    )
+    debrief.add_argument(
+        "--reference",
+        type=Path,
+        help="Reference lap Parquet (default: resolve by track and car).",
+    )
+    debrief.add_argument(
+        "--track-model",
+        type=Path,
+        help="Coaching model JSON (default: resolve by track and car).",
+    )
+    debrief.add_argument("--track", help="Override the track name from the sidecar.")
+    debrief.add_argument("--car", dest="vehicle_name", help="Override the vehicle name.")
 
     return parser
 
@@ -109,7 +126,15 @@ def main(argv: Sequence[str] | None = None) -> int:
         return compare_run(args.current_lap, args.reference_lap, args.track_model)
     if args.cmd == "debrief":
         from .debrief import run as debrief_run
-        return debrief_run(args.file, list_only=args.list)
+        return debrief_run(
+            args.file,
+            list_only=args.list,
+            json_only=args.json,
+            reference=args.reference,
+            track_model_path=args.track_model,
+            track=args.track,
+            vehicle_name=args.vehicle_name,
+        )
     parser.error(f"unknown command: {args.cmd}")
     return 2  # unreachable
 

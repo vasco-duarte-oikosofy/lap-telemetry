@@ -105,6 +105,7 @@ def compare_lap_tables(
     reference_lap_time_s: float,
     thresholds: PhaseDetectionThresholds | None = None,
     top_n: int | None = 3,
+    reject_implausibly_slow: bool = True,
 ) -> LapComparisonFacts:
     """Compare one lap's rows against the reference table.
 
@@ -121,6 +122,10 @@ def compare_lap_tables(
         reference_lap_time_s: Authoritative duration of the reference lap.
         thresholds: Phase detection thresholds (default if None).
         top_n: Number of losses and gains to return, or ``None`` for every one.
+        reject_implausibly_slow: Refuse laps far slower than the reference
+            (pit stops, safety cars). The live coach needs this; the session
+            debrief classifies laps itself and wants the traffic-affected lap
+            instead of losing it.
     """
     if thresholds is None:
         thresholds = PhaseDetectionThresholds()
@@ -145,7 +150,7 @@ def compare_lap_tables(
     ref_table = reference_table
     driver_lap_time = driver_lap_time_s
     ref_lap_time = reference_lap_time_s
-    if is_implausibly_slow_lap(driver_lap_time, ref_lap_time):
+    if reject_implausibly_slow and is_implausibly_slow_lap(driver_lap_time, ref_lap_time):
         ratio = driver_lap_time / ref_lap_time
         raise PartialLapError(
             f"lap duration {driver_lap_time:.1f}s is {ratio * 100:.0f}% of "
