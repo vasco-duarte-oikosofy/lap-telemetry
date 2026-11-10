@@ -28,7 +28,16 @@ shard-merge case.
 ## Commands
 
 ```bash
-bash scripts/test-summary.sh --feature session-debrief        # 14 scripts, green
+bash scripts/test-summary.sh --feature session-debrief        # 19 scripts, 484 assertions, green
+bash scripts/test-summary.sh                                 # 1553 passed, 4 pre-existing failures
+```
+
+The full suite has four failures on this machine that also fail at the
+pre-slice baseline `1417653` (verified in a `git worktree`): two duration tests
+that need untracked recordings under `sessions/`, `test_turn_labels_parity`
+(needs `../tinypedal/.venv`) and `test_turn_labels_scale` (160/161 named turns).
+`dev/scripts/test_nonblocking_coach_pipeline.js` also fails at baseline and is
+not part of `package.json` `scripts.test`.
 
 PYTHONPATH=product/python python3 -m lap_telemetry debrief \
   dev/sessions/session_20260524T141613Z_paul-ricard---3a_lmu.parquet --list

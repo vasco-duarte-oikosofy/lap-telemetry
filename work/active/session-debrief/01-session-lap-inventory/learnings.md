@@ -77,3 +77,18 @@
   commit rather than a separate `refactor:` commit — the file had to grow before
   it could be split, and reverting the fix to commit the split first would have
   produced a red tree.
+- **A refactor of shared modules needs the full suite, not the feature suite.** The
+  `lap_comparator` extraction is imported by five test scripts that are not in
+  `testFeatures["session-debrief"]`: `test_coach_short_names`,
+  `test_live_after_lap_spoken_summary`, `test_bug_python_regressions`,
+  `test_bug32_chained_corners` and `test_nonblocking_coach_pipeline`. They are
+  now in the feature list (except the last, which is pre-existing broken and not
+  in `package.json` `scripts.test` either).
+- **"The full suite is green" needs a named baseline.** `scripts.test` is a
+  hand-maintained list, so "full suite" does not mean "every test file". Four
+  scripts fail on this machine at the pre-slice commit `1417653` as well
+  (`test_lap_duration_telemetry`, `test_lap_duration_surfaces`,
+  `test_turn_labels_parity`, `test_turn_labels_scale`), and
+  `test_nonblocking_coach_pipeline` fails there too without being in the suite
+  at all. Verified with `git worktree add ... 1417653`, not by assumption. The
+  baseline is 1553 passed / 4 failed, and it is unchanged after the slice.

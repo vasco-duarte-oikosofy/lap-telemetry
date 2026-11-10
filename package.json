@@ -216,7 +216,11 @@
       "dev/scripts/test_coach_lap_comparison.js",
       "dev/scripts/test_ghost_lap_filter.js",
       "dev/scripts/test_session_lap_inventory.js",
-      "dev/scripts/test_lap_classification_invariants.js"
+      "dev/scripts/test_lap_classification_invariants.js",
+      "dev/scripts/test_coach_short_names.js",
+      "dev/scripts/test_live_after_lap_spoken_summary.js",
+      "dev/scripts/test_bug_python_regressions.js",
+      "dev/scripts/test_bug32_chained_corners.js"
     ]
   }
 }
