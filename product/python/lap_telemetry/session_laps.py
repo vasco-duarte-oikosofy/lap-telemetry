@@ -267,7 +267,7 @@ def classify_laps(table: pa.Table, sample_rate_hz: float | None = None) -> list[
                 reason = f"lap starts at {min(zone):.0f} m"
 
         if status == LapStatus.ELIGIBLE and (
-            idx == 0 or lap_number != segments[idx - 1][0] + 1
+            idx == 0 or (lap_number == 0 and segments[idx - 1][0] != 0)
         ):
             status = LapStatus.OUT_LAP
             reason = "first segment of a stint"

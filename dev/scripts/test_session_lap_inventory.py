@@ -164,6 +164,36 @@ def test_integrity_and_slow_rules() -> None:
     check(r[3].status == LapStatus.PIT_LAP, "duration above the band is a pit-lap", r[3].status)
 
 
+def test_stint_boundary_is_a_restart_not_a_gap() -> None:
+    """A skipped lap number is not a new stint; a reset to 0 is.
+
+    Real recordings contain stuck/dropped lap numbers (a paused sim leaves
+    segment after segment on lap 9), so ``11`` can follow ``9``. Treating that
+    as a pit exit discarded good laps; Lusail 2026-09-05 lost its fastest lap
+    this way.
+    """
+    table = synth_session([
+        {"lap_number": 9, "duration_s": 115.0, "frames": 1500, "covered_m": 2700.0},
+        {"lap_number": 11, "duration_s": 112.6, "frames": 5630},   # gap, not a stint boundary
+        {"lap_number": 9, "duration_s": 115.0, "frames": 1500, "covered_m": 2700.0},
+        {"lap_number": 13, "duration_s": 111.0, "frames": 5550},  # fastest lap
+        {"lap_number": 14, "duration_s": 113.0, "frames": 5650},
+        {"lap_number": 15, "duration_s": 20.0, "frames": 1000, "covered_m": 800.0},
+    ])
+    r = by_segment(classify_laps(table))
+    check(r[1].status == LapStatus.ELIGIBLE, "a skipped lap number is not a stint boundary", r[1].status)
+    check(r[3].status == LapStatus.ELIGIBLE, "the lap after a gap is eligible", r[3].status)
+    check(r[3].clean, "a lap after a gap can still be the reference lap")
+
+    restart = synth_session([
+        {"lap_number": 2, "duration_s": 80.0, "frames": 4000},
+        {"lap_number": 0, "duration_s": 120.0, "frames": 6000},
+        {"lap_number": 1, "duration_s": 80.0, "frames": 4000},
+    ])
+    rr = by_segment(classify_laps(restart))
+    check(rr[1].status == LapStatus.OUT_LAP, "a reset to lap 0 starts a new stint", rr[1].status)
+
+
 def test_lap_valid_only_when_it_discriminates() -> None:
     specs = [
         {"lap_number": 0, "duration_s": 150.0, "frames": 7500},
@@ -286,6 +316,7 @@ def main() -> int:
     test_synthetic_classification()
     test_clean_flag_uses_fastest_eligible_lap()
     test_integrity_and_slow_rules()
+    test_stint_boundary_is_a_restart_not_a_gap()
     test_lap_valid_only_when_it_discriminates()
     test_shard_merge()
     test_real_session_inventory()
