@@ -15,7 +15,7 @@ from typing import Any
 
 import pyarrow as pa
 
-from lap_telemetry.parquet_utils import authoritative_duration
+from lap_telemetry.parquet_utils import authoritative_duration, build_segments
 
 
 # A car below this speed for this long is in the pit lane, not racing.
@@ -28,6 +28,12 @@ START_WINDOW_S = 3.0
 # Frame count must agree with the lap duration within this factor; outside it
 # the duration or the row count is broken and the lap cannot be trusted.
 FRAME_INTEGRITY_FACTOR = 2.0
+
+# Rows must match the recording clock: one sample per tick. A lap with
+# duplicated rows has a frozen clock over part of its trace, which produces
+# phantom delta-t swings (a 3.5 s "gain" at the last corner). Across 315
+# eligible laps in dev/sessions this is 1.000 +- 0.002, with three outliers.
+ROW_RATE_TOLERANCE = 0.10
 
 
 def column_values(table: pa.Table, name: str) -> list[Any] | None:
@@ -42,14 +48,26 @@ def column_values(table: pa.Table, name: str) -> list[Any] | None:
 
 
 def sample_rate_hz(table: pa.Table) -> float | None:
-    """Derive the recording rate from the session clock, if present."""
+    """Derive the recording rate from the session clock.
+
+    Uses the **median per-segment** rows-per-second, not the whole-file ratio:
+    one segment with a stalled clock or duplicated rows must not change the
+    rate the other segments are judged by.
+    """
     clock = column_values(table, "session_time_s")
-    if not clock or len(clock) < 2:
+    lap_numbers = column_values(table, "lap_number")
+    if not clock or not lap_numbers or len(clock) < 2:
         return None
-    span = float(clock[-1]) - float(clock[0])
-    if span <= 0:
+    rates: list[float] = []
+    for _lap, start, end in build_segments(lap_numbers):
+        if end - start < 2:
+            continue
+        span = float(clock[end - 1]) - float(clock[start])
+        if span > 0:
+            rates.append((end - start) / span)
+    if not rates:
         return None
-    return (len(clock) - 1) / span
+    return statistics.median(rates)
 
 
 def stationary_seconds(
@@ -103,6 +121,13 @@ def entry_peak_speed(
         velocity = float(value)
         peak = velocity if peak is None else max(peak, velocity)
     return peak
+
+
+def row_rate_ratio(frames: int, span_s: float, rate_hz: float | None) -> float | None:
+    """Rows per expected row over a segment's recording-clock span."""
+    if rate_hz is None or rate_hz <= 0 or span_s <= 0:
+        return None
+    return frames / (span_s * rate_hz)
 
 
 def segment_durations(

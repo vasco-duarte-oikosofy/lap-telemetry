@@ -18,8 +18,10 @@ import pyarrow as pa
 from lap_telemetry.lap_signals import (
     FRAME_INTEGRITY_FACTOR,
     PIT_STOP_MIN_S,
+    ROW_RATE_TOLERANCE,
     column_values,
     entry_peak_speed,
+    row_rate_ratio,
     sample_rate_hz as derive_sample_rate,
     segment_durations,
     stationary_seconds,
@@ -162,6 +164,16 @@ def classify_laps(table: pa.Table, sample_rate_hz: float | None = None) -> list[
             elif frames > expected * FRAME_INTEGRITY_FACTOR:
                 status = LapStatus.SHORT
                 reason = f"{frames} frames for a {duration:.3f} s lap"
+
+        if status == LapStatus.ELIGIBLE and rate and clock is not None:
+            span = float(clock[end - 1]) - float(clock[start])
+            ratio = row_rate_ratio(frames, span, rate)
+            if ratio is not None and abs(ratio - 1.0) > ROW_RATE_TOLERANCE:
+                status = LapStatus.SHORT
+                reason = (
+                    f"{frames} rows for a {span:.1f} s span at {rate:.0f} Hz "
+                    f"({ratio:.2f}x expected)"
+                )
 
         if validity_trusted and validity is not None:
             zone_valid = validity[start:end]

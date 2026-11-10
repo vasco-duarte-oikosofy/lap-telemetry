@@ -72,7 +72,7 @@ def check(condition: bool, name: str, detail: str = "") -> None:
 def _classify(path: Path):
     session = load_session(path)
     records = classify_laps(session.table, sample_rate_hz=session.sample_rate_hz)
-    return session.table, records
+    return session.table, records, session.sample_rate_hz
 
 
 def test_random_sessions_are_justified() -> None:
@@ -95,8 +95,8 @@ def test_committed_sessions_are_justified() -> None:
         if not path.exists():
             check(False, f"fixture present: {label}", str(path))
             continue
-        table, records = _classify(path)
-        problems = audit_classification(table, records)
+        table, records, rate = _classify(path)
+        problems = audit_classification(table, records, sample_rate_hz=rate)
         check(not problems, f"every exclusion is justified — {label}",
               "; ".join(problems[:3]))
 
@@ -107,7 +107,7 @@ def test_recording_that_starts_on_a_flying_lap_keeps_it() -> None:
     if not path.exists():
         check(False, "silverstone fixture present", str(path))
         return
-    _table, records = _classify(path)
+    _table, records, rate = _classify(path)
     first = records[0]
     check(first.status == LapStatus.ELIGIBLE,
           "segment 0 entered at racing speed is a real lap", first.status)
@@ -121,7 +121,7 @@ def test_recording_that_starts_in_the_pits_drops_it() -> None:
     if not path.exists():
         check(False, "barcelona fixture present", str(path))
         return
-    _table, records = _classify(path)
+    _table, records, rate = _classify(path)
     first = records[0]
     check(first.status == LapStatus.OUT_LAP,
           "segment 0 entered from the pit box is an out-lap", first.status)

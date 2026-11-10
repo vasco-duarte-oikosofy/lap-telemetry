@@ -228,13 +228,17 @@ def test_real_session_inventory() -> None:
 
     eligible = [x for x in records if x.status == LapStatus.ELIGIBLE]
     clean = [x for x in eligible if x.clean]
-    check(len(eligible) == 19, "19 laps are eligible", str(len(eligible)))
-    check(len(clean) == 17, "17 of them are clean", str(len(clean)))
+    check(len(eligible) == 18, "18 laps are eligible", str(len(eligible)))
+    check(len(clean) == 16, "16 of them are clean", str(len(clean)))
     check(len(eligible) >= MIN_ELIGIBLE_LAPS, "the session clears the five-lap gate")
     check(all(x.reason for x in records if x.status != LapStatus.ELIGIBLE),
           "every excluded segment states a reason")
     check(all(79.0 < x.duration_s < 95.0 for x in eligible),
           "eligible lap durations are all flying-lap length")
+    dup = [x for x in records if x.status == LapStatus.SHORT]
+    check(len(dup) == 1 and dup[0].segment_index == 2,
+          "a lap with duplicated rows is rejected as short",
+          str([(x.segment_index, x.reason) for x in dup]))
 
 
 def test_real_lusail_stuck_lap_number() -> None:

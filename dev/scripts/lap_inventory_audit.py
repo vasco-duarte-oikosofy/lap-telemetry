@@ -29,8 +29,10 @@ import pyarrow as pa
 from lap_telemetry.parquet_utils import build_segments
 from lap_telemetry.lap_signals import (
     FRAME_INTEGRITY_FACTOR,
+    sample_rate_hz as derive_sample_rate,
     PIT_STOP_MIN_S,
     PIT_STOP_SPEED_KPH,
+    ROW_RATE_TOLERANCE,
     START_WINDOW_S,
 )
 from lap_telemetry.session_laps import (
@@ -151,11 +153,7 @@ def audit_classification(
         return problems
 
     names = set(table.schema.names)
-    rate = sample_rate_hz
-    if rate is None:
-        clock = table.column("session_time_s").to_pylist()
-        span = float(clock[-1]) - float(clock[0])
-        rate = (len(clock) - 1) / span if span > 0 else None
+    rate = sample_rate_hz or derive_sample_rate(table)
 
     distances = table.column("lap_distance_m").to_pylist() if "lap_distance_m" in names else None
     lap_length = max((d for d in distances if d is not None), default=0.0) if distances else 0.0
@@ -230,9 +228,17 @@ def audit_classification(
             if not rate or r.duration_s <= 0:
                 problems.append(f"{where}: cannot justify without a sample rate")
             else:
-                ratio = r.frames / (r.duration_s * rate)
-                if 1 / FRAME_INTEGRITY_FACTOR <= ratio <= FRAME_INTEGRITY_FACTOR:
-                    problems.append(f"{where}: {r.frames} frames agree with the duration")
+                by_duration = r.frames / (r.duration_s * rate)
+                clock = table.column("session_time_s").to_pylist()
+                span = float(clock[r.end_row - 1]) - float(clock[r.start_row])
+                by_rows = r.frames / (span * rate) if span > 0 else 1.0
+                duration_odd = not (1 / FRAME_INTEGRITY_FACTOR <= by_duration <= FRAME_INTEGRITY_FACTOR)
+                rows_odd = abs(by_rows - 1.0) > ROW_RATE_TOLERANCE
+                if not duration_odd and not rows_odd:
+                    problems.append(
+                        f"{where}: {r.frames} rows agree with both the duration "
+                        f"({by_duration:.2f}x) and the clock ({by_rows:.2f}x)"
+                    )
 
         elif r.status == LapStatus.INVALID:
             if not (validity_trusted and validity is not None):

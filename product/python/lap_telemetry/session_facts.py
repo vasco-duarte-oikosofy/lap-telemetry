@@ -17,6 +17,7 @@ from .coach.facts import CornerLoss, PartialLapError, corner_loss_to_dict
 from .coach.lap_comparator import compare_lap_tables
 from .coach.lap_table import slice_segment
 from .lap_signals import yardstick_seconds
+from .session_consistency import Consistency, build_consistency, speed_envelope_optimal
 from .session_inputs import DebriefInputs
 from .session_laps import LapRecord, LapStatus
 from .session_source import SessionSource
@@ -117,6 +118,7 @@ class SessionDebriefFacts:
     session: SessionSummary
     laps: list[LapFacts] = field(default_factory=list)
     excluded: list[ExcludedLap] = field(default_factory=list)
+    consistency: Consistency = field(default_factory=Consistency)
 
     @property
     def type(self) -> str:
@@ -128,6 +130,7 @@ class SessionDebriefFacts:
             "schema_version": SCHEMA_VERSION,
             "session": self.session.to_dict(),
             "laps": [lap.to_dict() for lap in self.laps],
+            "consistency": self.consistency.to_dict(),
             "excluded": [item.to_dict() for item in self.excluded],
         }
 
@@ -227,8 +230,14 @@ def build_session_facts(
         else:
             unanalysable.append(result)
 
+    clean_records = [r for r in eligible if r.clean]
+    envelope_s, _uncovered, _used = speed_envelope_optimal(
+        session.table, clean_records, inputs.track_model.lap_length_m
+    )
+
     return SessionDebriefFacts(
         session=summary,
         laps=laps,
         excluded=excluded_laps(records) + unanalysable,
+        consistency=build_consistency(laps, envelope_s),
     )

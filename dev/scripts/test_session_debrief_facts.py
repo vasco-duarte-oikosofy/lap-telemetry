@@ -90,7 +90,7 @@ def test_lap_identity_is_the_segment() -> None:
     facts = build_session_facts(session, records, inputs)
     by_segment = {lap.segment_index: lap for lap in facts.laps}
 
-    check(len(facts.laps) == 19, "one entry per eligible lap", str(len(facts.laps)))
+    check(len(facts.laps) == 18, "one entry per eligible lap", str(len(facts.laps)))
     check(by_segment[1].lap_number == 1 and by_segment[4].lap_number == 1,
           "both stints contribute a lap numbered 1")
     check(abs(by_segment[1].lap_time_s - 84.804) < 0.01,
@@ -117,7 +117,7 @@ def test_facts_are_reference_relative_and_uncapped() -> None:
     check(abs(facts.session.reference_lap_s - 77.166) < 0.001,
           "the baseline is the reference file's certified time",
           f"{facts.session.reference_lap_s:.3f}")
-    check(facts.session.eligible_laps == 19 and facts.session.clean_laps == 17,
+    check(facts.session.eligible_laps == 18 and facts.session.clean_laps == 16,
           "eligible and clean counts come from the inventory",
           f"{facts.session.eligible_laps}/{facts.session.clean_laps}")
 
@@ -141,10 +141,10 @@ def test_excluded_laps_are_reported() -> None:
     excluded = excluded_laps(records)
     facts = build_session_facts(session, records, inputs)
 
-    check(len(excluded) == 6, "the six non-eligible segments are listed", str(len(excluded)))
+    check(len(excluded) == 7, "the seven non-eligible segments are listed", str(len(excluded)))
     check(len(facts.excluded) == len(excluded), "and appear in the facts payload")
     check(all(x.reason for x in excluded), "each states why it was dropped")
-    check({x.status for x in excluded} == {"out-lap", "in-lap", "pit-lap", "incomplete"},
+    check({x.status for x in excluded} == {"out-lap", "in-lap", "pit-lap", "incomplete", "short"},
           "the status vocabulary matches the inventory",
           str(sorted({x.status for x in excluded})))
 
@@ -236,7 +236,7 @@ def test_cli_json_round_trip() -> None:
 
     check(code == 0, "the practice session exits zero", err.getvalue()[:100])
     payload = json.loads(out.getvalue())
-    check(len(payload["laps"]) == 19, "CLI prints every eligible lap")
+    check(len(payload["laps"]) == 18, "CLI prints every eligible lap")
     check(payload["session"]["track"] == "Paul Ricard - 3A", "CLI carries the session header")
 
 

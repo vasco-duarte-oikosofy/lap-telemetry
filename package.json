@@ -221,7 +221,8 @@
       "dev/scripts/test_live_after_lap_spoken_summary.js",
       "dev/scripts/test_bug_python_regressions.js",
       "dev/scripts/test_bug32_chained_corners.js",
-      "dev/scripts/test_session_debrief_facts.js"
+      "dev/scripts/test_session_debrief_facts.js",
+      "dev/scripts/test_session_consistency.js"
     ]
   }
 }
