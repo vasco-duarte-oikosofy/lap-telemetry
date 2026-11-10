@@ -166,9 +166,13 @@ omitted, never zero-filled).
   pressure is still applied.
 - **Steering**: steering reversals and rate variance inside the corner
   (mid-corner correction proxy).
-- **Rear slip**: maximum rear slip angle in the corner and at exit
-  (oversteer / stability proxy).
-- **Electronics**: `tc_active` / `abs_active` duty in the corner.
+- **Rear slip**: *refused on current recordings.* The `slip_angle_*_deg`
+  channels wrap at ±180° and their magnitude tracks neither turn rate nor
+  braking, so they are not slip angles as stored (slice 04). The payload says
+  why; it does not report a number.
+- **Electronics**: `tc_active` / `abs_active` duty in the corner, over recorded
+  samples only. A flag that is missing, mostly null, or never true in the
+  session is reported as unmeasurable, never as 0%.
 - **Line**: lateral path offset at apex versus the reference, when
   `path_lateral_m` exists.
 
@@ -280,6 +284,9 @@ provider plumbing and no credentials in files. Only the derived facts
   multi-second gains.
 - **Multi-apex corners** inherit the existing ambiguity in the coaching
   models (chicanes and double-apex sweepers are one corner with one apex).
+  Chained corners also share one braking event, so the second corner's
+  `brake_peak` only sees residual pressure.
+- **Rear slip is not measurable** from current recordings (see above).
 - **Setup changes** between stints are invisible; a session with a setup
   change in the middle will look like an inconsistency.
 

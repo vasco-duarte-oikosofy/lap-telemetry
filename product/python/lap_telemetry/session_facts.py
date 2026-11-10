@@ -17,6 +17,15 @@ from .coach.facts import CornerLoss, PartialLapError, corner_loss_to_dict
 from .coach.lap_comparator import compare_lap_tables
 from .coach.lap_table import slice_segment
 from .lap_signals import yardstick_seconds
+from .session_corner_extras import (
+    CornerChannels,
+    CornerExtras,
+    corner_channels,
+    extract_all_corners,
+    phase_windows,
+    reference_windows,
+    unmeasurable_channels,
+)
 from .session_consistency import Consistency, build_consistency, speed_envelope_optimal
 from .session_inputs import DebriefInputs
 from .session_laps import LapRecord, LapStatus
@@ -51,6 +60,8 @@ class SessionSummary:
     reference_lap_s: float
     reference_file: str
     track_model_file: str
+    # channel -> why it cannot be measured in this session
+    unmeasurable_channels: dict[str, str] = field(default_factory=dict)
 
     def to_dict(self) -> dict[str, Any]:
         return {
@@ -66,6 +77,7 @@ class SessionSummary:
             "reference_lap_s": round(self.reference_lap_s, 3),
             "reference_file": self.reference_file,
             "track_model_file": self.track_model_file,
+            "unmeasurable_channels": self.unmeasurable_channels,
         }
 
 
@@ -79,6 +91,7 @@ class LapFacts:
     delta_s: float
     clean: bool
     phases: list[CornerLoss] = field(default_factory=list)
+    corners: list[CornerExtras] = field(default_factory=list)
 
     def to_dict(self) -> dict[str, Any]:
         return {
@@ -88,6 +101,7 @@ class LapFacts:
             "delta_s": round(self.delta_s, 3),
             "clean": self.clean,
             "phases": [corner_loss_to_dict(p) for p in self.phases],
+            "corners": [c.to_dict() for c in self.corners],
         }
 
 
@@ -119,6 +133,7 @@ class SessionDebriefFacts:
     laps: list[LapFacts] = field(default_factory=list)
     excluded: list[ExcludedLap] = field(default_factory=list)
     consistency: Consistency = field(default_factory=Consistency)
+    reference_corners: list[CornerExtras] = field(default_factory=list)
 
     @property
     def type(self) -> str:
@@ -131,6 +146,7 @@ class SessionDebriefFacts:
             "session": self.session.to_dict(),
             "laps": [lap.to_dict() for lap in self.laps],
             "consistency": self.consistency.to_dict(),
+            "reference_corners": [c.to_dict() for c in self.reference_corners],
             "excluded": [item.to_dict() for item in self.excluded],
         }
 
@@ -162,6 +178,8 @@ def _analyse_lap(
     session: SessionSource,
     record: LapRecord,
     inputs: DebriefInputs,
+    reference_channels: CornerChannels,
+    unmeasurable: dict[str, str],
 ) -> LapFacts | ExcludedLap:
     """Analyse one lap, or explain why it could not be analysed."""
     lap_table = slice_segment(session.table, record.start_row, record.end_row)
@@ -188,6 +206,11 @@ def _analyse_lap(
         )
 
     phases = sorted(facts.top_losses + facts.top_gains, key=_phase_sort_key)
+    windows = phase_windows(inputs.track_model.corners, phases)
+    extras = extract_all_corners(
+        corner_channels(lap_table, unmeasurable=unmeasurable),
+        inputs.track_model.corners, windows, reference=reference_channels,
+    )
     return LapFacts(
         segment_index=record.segment_index,
         lap_number=record.lap_number,
@@ -195,6 +218,7 @@ def _analyse_lap(
         delta_s=facts.lap_time_delta_s,
         clean=record.clean,
         phases=phases,
+        corners=extras,
     )
 
 
@@ -205,6 +229,10 @@ def build_session_facts(
 ) -> SessionDebriefFacts:
     """Analyse every eligible lap and collect the session payload."""
     eligible = [r for r in records if r.status == LapStatus.ELIGIBLE]
+
+    unmeasurable = unmeasurable_channels(session.table)
+    reference_channels = corner_channels(
+        inputs.reference_table, unmeasurable=unmeasurable)
 
     summary = SessionSummary(
         stem=session.stem,
@@ -219,16 +247,23 @@ def build_session_facts(
         reference_lap_s=inputs.reference_lap_time_s,
         reference_file=inputs.reference_file,
         track_model_file=inputs.track_model_file,
+        unmeasurable_channels=unmeasurable,
     )
 
     laps: list[LapFacts] = []
     unanalysable: list[ExcludedLap] = []
     for record in eligible:
-        result = _analyse_lap(session, record, inputs)
+        result = _analyse_lap(session, record, inputs, reference_channels, unmeasurable)
         if isinstance(result, LapFacts):
             laps.append(result)
         else:
             unanalysable.append(result)
+
+    reference_corners = extract_all_corners(
+        reference_channels,
+        inputs.track_model.corners,
+        reference_windows(inputs.track_model.corners, [lap.phases for lap in laps]),
+    )
 
     clean_records = [r for r in eligible if r.clean]
     envelope_s, _uncovered, _used = speed_envelope_optimal(
@@ -240,4 +275,5 @@ def build_session_facts(
         laps=laps,
         excluded=excluded_laps(records) + unanalysable,
         consistency=build_consistency(laps, envelope_s),
+        reference_corners=reference_corners,
     )
