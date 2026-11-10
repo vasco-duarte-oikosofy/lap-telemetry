@@ -72,6 +72,21 @@ def _build_parser() -> argparse.ArgumentParser:
         help="Path to track coaching model JSON.",
     )
 
+    debrief = sub.add_parser(
+        "debrief",
+        help="Analyse a whole recorded session and coach the driver through it.",
+    )
+    debrief.add_argument(
+        "file",
+        type=Path,
+        help="Session Parquet, or one of its .partN.parquet shards.",
+    )
+    debrief.add_argument(
+        "--list",
+        action="store_true",
+        help="Print the lap inventory (which laps are real flying laps) and exit.",
+    )
+
     return parser
 
 
@@ -92,6 +107,9 @@ def main(argv: Sequence[str] | None = None) -> int:
     if args.cmd == "compare-laps":
         from .coach.cli import run as compare_run
         return compare_run(args.current_lap, args.reference_lap, args.track_model)
+    if args.cmd == "debrief":
+        from .debrief import run as debrief_run
+        return debrief_run(args.file, list_only=args.list)
     parser.error(f"unknown command: {args.cmd}")
     return 2  # unreachable
 

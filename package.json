@@ -214,7 +214,8 @@
       "dev/scripts/test_losses_delta_time.js",
       "dev/scripts/test_js_pipeline_contract.js",
       "dev/scripts/test_coach_lap_comparison.js",
-      "dev/scripts/test_ghost_lap_filter.js"
+      "dev/scripts/test_ghost_lap_filter.js",
+      "dev/scripts/test_session_lap_inventory.js"
     ]
   }
 }
