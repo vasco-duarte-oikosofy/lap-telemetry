@@ -37,6 +37,14 @@
   helper produced 10 Hz frames; the derived sample rate then came out at ~30 Hz
   and the frame-integrity rule silently stopped meaning anything. Tests that
   fabricate telemetry need to fabricate it at the real rate.
+- **A forward gap in `lap_number` is not a new stint.** The first version of the
+  out-lap rule fired whenever `lap_number != previous + 1`. Running it on
+  `session_20260905T065812Z_lusail-international-circuit_lmu_practice` showed
+  why that is wrong: after a pause the recorder keeps emitting segments stuck
+  on lap 9, so `11` follows `9` and `13` follows `9`. Both were declared
+  out-laps, and the fastest lap of the session (1:52.620, quicker than the lap
+  that survived) was thrown away. A stint only restarts when numbering resets
+  to 0 — a gap is missing data. Lusail went from 2 to 4 eligible laps.
 - **Four full-suite failures on this machine are pre-existing.** Verified by
   stashing this slice and re-running: `test_lap_duration_telemetry`,
   `test_lap_duration_surfaces` (need untracked recordings under `sessions/`),
