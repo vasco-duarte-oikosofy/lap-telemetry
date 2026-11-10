@@ -21,7 +21,7 @@ measurable targets for the next stint.
 | `05-improvement-priorities` | ✅ 417a732 | One ranked row per corner (score = recurring + 0.35 × spread) with a computed fix from measured deltas, or an explicit "no single measurable cause" |
 | `06-markdown-report` | ✅ 96a952c | `--report-only --no-llm` writes `<session>_debrief.md`: summary, clean-lap table, optimal lap, top priorities, per-corner appendix, excluded laps |
 | `07-llm-debrief-summary` | ✅ 37985e9 | Coach voice contract + compact-report grounding: the opening debrief and one-shot `--ask` answers, with contract tests against a fake adapter |
-| `08-interactive-debrief` | ✅ (this commit) | Multi-turn REPL: history, automatic corner drill-down, `/corner`, `/laps`, `/plan`, `/save`; transcript in `_debrief.json`, targets in `_plan.md` |
+| `08-interactive-debrief` | ✅ b9fe635 | Multi-turn REPL: history, automatic corner drill-down, `/corner`, `/laps`, `/plan`, `/save`; transcript in `_debrief.json`, targets in `_plan.md` |
 
 ---
 
@@ -66,3 +66,30 @@ and leave with three numeric targets for the next stint.
   those fixtures exist locally; add them to `testFeatures["session-debrief"]`
   in `package.json` on a machine that has them (slice 01 touches
   `parquet_utils`).
+
+---
+
+## Mission outcome
+
+All eight slices are complete. What a driver can do now, in one command:
+
+```bash
+lap-telemetry debrief sessions/<my-session>.parquet --no-llm
+```
+
+- the lap inventory, with every excluded segment and its reason;
+- every eligible lap compared against the curated reference, uncapped;
+- consistency: best/median/spread, a speed-envelope optimal lap, and separate
+  "slow every lap" and "erratic" rankings;
+- per-corner gear, brake peak/area, trail-braking depth, steering, TC/ABS duty
+  and line offset (rear slip refused: the channel is not a slip angle);
+- one ranked, deduplicated list of priorities with a computed fix per corner;
+- `<session>_debrief.md`, `<session>_debrief.json`, `<session>_plan.md`.
+
+With a provider configured (`coach_config.toml` + API key) the same command
+holds a conversation and `/plan` writes two or three measured targets.
+
+Known open work this mission filed: **bug 33** (the coach re-derives a reference
+lap's duration instead of using its certified time) and **bug 34** (some
+recordings contain duplicated rows with a stalled clock; the inventory now
+rejects those laps as `short`).
