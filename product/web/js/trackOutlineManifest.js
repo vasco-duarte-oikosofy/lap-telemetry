@@ -32,6 +32,7 @@ import { MONZA_CURVA_GRANDE_CIRCUIT_STATIC_OUTLINE } from './staticMonzaCurvaGra
 import { SILVERSTONE_INTERNATIONAL_CIRCUIT_STATIC_OUTLINE } from './staticSilverstoneInternationalCircuitOutlineData.js';
 import { GRAND_PRIX_OF_LONG_BEACH_STATIC_OUTLINE } from './staticGrandPrixOfLongBeachOutlineData.js';
 import { PAUL_RICARD___1A_STATIC_OUTLINE } from './staticPaulRicard1aOutlineData.js';
+import { PAUL_RICARD___ELMS_STATIC_OUTLINE } from './staticPaulRicardElmsOutlineData.js';
 
 // slug normalization: lowercase, collapse whitespace to single dash,
 // transliterate accents via NFKD (ó→o, é→e), strip non-alnum/dash.
@@ -101,6 +102,9 @@ const OUTLINES = new Map([
   // Paul Ricard - 1A
   ['paul-ricard---1a', PAUL_RICARD___1A_STATIC_OUTLINE],
   ['paul-ricard-1a', PAUL_RICARD___1A_STATIC_OUTLINE],
+  // Paul Ricard - ELMS
+  ['paul-ricard---elms', PAUL_RICARD___ELMS_STATIC_OUTLINE],
+  ['paul-ricard-elms', PAUL_RICARD___ELMS_STATIC_OUTLINE],
 ]);
 
 /**
