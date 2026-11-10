@@ -67,6 +67,15 @@ def generate_utterance(
     return utterance
 
 
+def call_llm(config: LLMConfig, messages: list[dict[str, str]]) -> str:
+    """Send chat messages to the configured provider and return the reply.
+
+    Public so other products (the session debrief) reuse the same provider
+    plumbing instead of growing a second client for the same config.
+    """
+    return _call_llm(config, messages)
+
+
 def _call_llm(config: LLMConfig, messages: list[dict[str, str]]) -> str:
     """Call the LLM provider.
 
