@@ -70,6 +70,11 @@ The user story:
 - Resolved per **(track, car)** exactly as the live coach does today, via
   `reference_resolver` / `track_model_resolver` / `vehicle_catalog.json`.
   Liveries of one car model share a canonical slug (bug 27).
+- The reference **duration** is the time the export certified (the
+  `<mm>.<ss>.<mmm>` in the filename, or the `authoritative_lap_time_s` metadata
+  stamp when present), never a re-derivation: an extracted reference is a single
+  segment, so the telemetry-clock method is unavailable and the fallback scorer
+  value reads up to a second high. Every lap delta is measured against it.
 - A curated reference lap and coaching model are **required**. Missing data
   is an error with an actionable message pointing at
   `docs/HOW_TO_CREATE_A_COACHING_MODEL.md`, never a silent car-blind

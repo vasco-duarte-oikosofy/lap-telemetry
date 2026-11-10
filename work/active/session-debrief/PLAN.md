@@ -15,7 +15,7 @@ measurable targets for the next stint.
 | Slice | Status | Vertical outcome |
 |---|---|---|
 | `01-session-lap-inventory` | ✅ 8cecacb (fixes 744717a, this commit) | Auto-merge session shards into an in-memory view and classify every contiguous lap segment (eligible / out-lap / in-lap / pit-lap / incomplete / short / invalid); `debrief --list` prints the inventory with rejection reasons. Includes the `lap_comparator` refactor needed to analyse a segment instead of a lap number |
-| `02-per-lap-debrief-facts` | 🔲 Not started | Every eligible lap compared against the curated reference at segment granularity, uncapped, into a `SessionDebriefFacts` JSON that `debrief --json` prints. Gate: at least five eligible laps |
+| `02-per-lap-debrief-facts` | ✅ 14f8cfe | Every eligible lap compared against the curated reference at segment granularity, uncapped, into a `SessionDebriefFacts` JSON that `debrief --json` prints. Gate: at least five eligible laps |
 | `03-consistency-metrics` | 🔲 Not started | Session-best baseline, optimal lap from best sectors (proxy when absent), lap spread, per-corner-phase spread, and separate "slow every lap" vs "inconsistent" rankings |
 | `04-extended-corner-facts` | 🔲 Not started | Gear, brake peak/area, trail-braking depth, steering corrections, rear slip, TC/ABS duty and lateral line offset added per corner phase, degrading gracefully on older sessions |
 | `05-improvement-priorities` | 🔲 Not started | Ranked, deduplicated opportunities combining recurring loss, consistency spread and corner weight, each with a computed suggested change ("brake 6 m later") |
