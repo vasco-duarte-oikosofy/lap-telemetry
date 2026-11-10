@@ -200,6 +200,21 @@
       "dev/scripts/test_static_outline_manifest_exports.js",
       "dev/scripts/test_tinypedal_turn_label_export.js",
       "dev/scripts/test_turn_labels_parity.js"
+    ],
+    "session-debrief": [
+      "dev/scripts/test_runner_self_test.js",
+      "dev/scripts/test_protocol_enforcement.js",
+      "dev/scripts/test_python_interpreter.js",
+      "dev/scripts/test_curated_utf8_names.js",
+      "dev/scripts/test_bug13_authoritative_duration.js",
+      "dev/scripts/test_compare_reference_duration.js",
+      "dev/scripts/test_bug16_slow_lap_guard.js",
+      "dev/scripts/test_phase_detection.js",
+      "dev/scripts/test_delta_time_gains.js",
+      "dev/scripts/test_losses_delta_time.js",
+      "dev/scripts/test_js_pipeline_contract.js",
+      "dev/scripts/test_coach_lap_comparison.js",
+      "dev/scripts/test_ghost_lap_filter.js"
     ]
   }
 }
