@@ -3,6 +3,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
+import pyarrow as pa
 import pyarrow.parquet as pq
 
 from .entry_detection import find_entry_point, find_brake_point
@@ -95,44 +96,36 @@ def find_straight_end_after_corner(
 
 
 
-def compare_laps(
-    current_lap_path: Path | str,
-    reference_lap_path: Path | str,
+def compare_lap_tables(
+    driver_table: pa.Table,
+    reference_table: pa.Table,
     track_model: TrackCoachingModel,
+    *,
+    driver_lap_time_s: float,
+    reference_lap_time_s: float,
     thresholds: PhaseDetectionThresholds | None = None,
-    top_n: int = 3,
-    lap_number: int | None = None,
+    top_n: int | None = 3,
 ) -> LapComparisonFacts:
-    """Compare a current lap against a reference lap.
+    """Compare one lap's rows against the reference table.
 
-    Uses phase-detection (throttle lift / speed peak / brake release /
-    full throttle) per corner. Delta-t computed via JS pipeline
-    (product/web/js/pipeline.js) to match the web UI exactly.
+    This is the single implementation of the analysis. ``compare_laps`` wraps
+    it for a Parquet path and a lap number; the session debrief wraps it for a
+    lap *segment*, which is the only correct identity when a sim restart resets
+    ``lap_number`` mid-recording.
 
     Args:
-        current_lap_path: Path to Parquet with current session data.
-        reference_lap_path: Path to reference lap Parquet.
-        track_model: Track coaching model for corner definitions.
+        driver_table: Rows of exactly one lap.
+        reference_table: Rows of the reference lap.
+        track_model: Corner definitions and track length.
+        driver_lap_time_s: Authoritative duration of the driver's lap.
+        reference_lap_time_s: Authoritative duration of the reference lap.
         thresholds: Phase detection thresholds (default if None).
-        top_n: Number of top losses/gains to return.
-        lap_number: If set, filter current_lap_path to only this lap number
-            before comparison. This is used by the coach to read data from
-            the session Parquet instead of the bus buffer.
+        top_n: Number of losses and gains to return, or ``None`` for every one.
     """
     if thresholds is None:
         thresholds = PhaseDetectionThresholds()
 
-    full_current_table = pq.read_table(current_lap_path)
-    current_table = full_current_table
-    current_duration_segment = duration_segment_for_lap(full_current_table, lap_number)
-
-    # Filter to a specific lap number if requested (for Parquet-based coach path).
-    if lap_number is not None:
-        lap_numbers = full_current_table.column("lap_number").to_pylist()
-        mask = [ln == lap_number for ln in lap_numbers]
-        current_table = full_current_table.filter(mask)
-
-    current_table = strip_stale_boundary_frames(current_table, track_model.lap_length_m)
+    current_table = strip_stale_boundary_frames(driver_table, track_model.lap_length_m)
 
     # Guard against partial-lap data before the expensive JS pipeline.
     _guard_dist = current_table.column("lap_distance_m").to_pylist()
@@ -149,14 +142,9 @@ def compare_laps(
             f"head-partial or session-end (threshold {track_model.lap_length_m * 0.80:.0f}m)"
         )
 
-    ref_table = pq.read_table(reference_lap_path)
-    ref_duration_segment = duration_segment_for_lap(ref_table, None)
-    driver_lap_time = segment_duration(full_current_table, current_duration_segment)
-    ref_lap_time = segment_duration(
-        ref_table,
-        ref_duration_segment,
-        allow_same_segment_scoring=True,
-    )
+    ref_table = reference_table
+    driver_lap_time = driver_lap_time_s
+    ref_lap_time = reference_lap_time_s
     if is_implausibly_slow_lap(driver_lap_time, ref_lap_time):
         ratio = driver_lap_time / ref_lap_time
         raise PartialLapError(
@@ -355,4 +343,47 @@ def compare_laps(
         lap_time_delta_s=lap_time_delta,
         top_losses=top_losses,
         top_gains=top_gains,
+    )
+
+def compare_laps(
+    current_lap_path: Path | str,
+    reference_lap_path: Path | str,
+    track_model: TrackCoachingModel,
+    thresholds: PhaseDetectionThresholds | None = None,
+    top_n: int | None = 3,
+    lap_number: int | None = None,
+) -> LapComparisonFacts:
+    """Compare one lap of a Parquet file against a reference lap.
+
+    Phase detection (throttle lift / brake release / full throttle) and the
+    delta-t trace come from ``product/web/js/pipeline.js``, so the numbers match
+    the web UI exactly.
+
+    ``lap_number`` selects the lap by lap number, which is only a valid identity
+    when the file holds a single stint or a one-lap shard — a sim restart resets
+    lap numbering mid-recording. The session debrief therefore calls
+    ``compare_lap_tables`` directly with a lap segment.
+    """
+    full_current_table = pq.read_table(current_lap_path)
+    current_table = full_current_table
+    if lap_number is not None:
+        lap_numbers = full_current_table.column("lap_number").to_pylist()
+        current_table = full_current_table.filter([ln == lap_number for ln in lap_numbers])
+
+    ref_table = pq.read_table(reference_lap_path)
+    return compare_lap_tables(
+        current_table,
+        ref_table,
+        track_model,
+        driver_lap_time_s=segment_duration(
+            full_current_table,
+            duration_segment_for_lap(full_current_table, lap_number),
+        ),
+        reference_lap_time_s=segment_duration(
+            ref_table,
+            duration_segment_for_lap(ref_table, None),
+            allow_same_segment_scoring=True,
+        ),
+        thresholds=thresholds,
+        top_n=top_n,
     )

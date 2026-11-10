@@ -63,44 +63,50 @@ class LapComparisonFacts:
 
     def to_dict(self) -> dict[str, Any]:
         """Convert to dictionary for JSON serialization."""
-        def _corner_dict(c: CornerLoss) -> dict[str, Any]:
-            d: dict[str, Any] = {
-                "corner_id": c.corner_id,
-                "corner_name": c.corner_name,
-                "apex_distance_m": c.apex_distance_m,
-                "phase": c.phase,
-                "loss_s": round(c.loss_s, 3),
-                "driver_value": round(c.driver_value, 1),
-                "reference_value": round(c.reference_value, 1),
-                "unit": c.unit,
-                "confidence": c.confidence,
-            }
-            if c.phase_distance_m is not None:
-                d["phase_distance_m"] = round(c.phase_distance_m, 1)
-            if c.driver_apex_distance_m is not None:
-                d["driver_apex_distance_m"] = round(c.driver_apex_distance_m, 1)
-            if c.reference_apex_distance_m is not None:
-                d["reference_apex_distance_m"] = round(c.reference_apex_distance_m, 1)
-            if c.apex_offset_m is not None:
-                d["apex_offset_m"] = round(c.apex_offset_m, 1)
-            if c.gain_end_distance_m is not None:
-                d["gain_end_distance_m"] = round(c.gain_end_distance_m, 1)
-            if c.entry_distance_delta_m is not None:
-                d["entry_distance_delta_m"] = round(c.entry_distance_delta_m, 1)
-            if c.exit_distance_delta_m is not None:
-                d["exit_distance_delta_m"] = round(c.exit_distance_delta_m, 1)
-            if c.reference_phase_distance_m is not None:
-                d["reference_phase_distance_m"] = round(c.reference_phase_distance_m, 1)
-            if c.target_throttle_pct is not None:
-                d["target_throttle_pct"] = c.target_throttle_pct
-            return d
-
         return {
             "type": self.type,
             "track_id": self.track_id,
             "lap_number": self.lap_number,
             "lap_time_delta_s": round(self.lap_time_delta_s, 3),
-            "top_losses": [_corner_dict(c) for c in self.top_losses],
-            "top_gains": [_corner_dict(c) for c in self.top_gains],
+            "top_losses": [corner_loss_to_dict(c) for c in self.top_losses],
+            "top_gains": [corner_loss_to_dict(c) for c in self.top_gains],
             "constraints": self.constraints,
         }
+
+
+def corner_loss_to_dict(c: CornerLoss) -> dict[str, Any]:
+    """Serialize one corner-phase fact.
+
+    Shared by the single-lap summary and the session debrief so the two cannot
+    drift into different JSON shapes for the same object.
+    """
+    d: dict[str, Any] = {
+        "corner_id": c.corner_id,
+        "corner_name": c.corner_name,
+        "apex_distance_m": c.apex_distance_m,
+        "phase": c.phase,
+        "loss_s": round(c.loss_s, 3),
+        "driver_value": round(c.driver_value, 1),
+        "reference_value": round(c.reference_value, 1),
+        "unit": c.unit,
+        "confidence": c.confidence,
+    }
+    if c.phase_distance_m is not None:
+        d["phase_distance_m"] = round(c.phase_distance_m, 1)
+    if c.driver_apex_distance_m is not None:
+        d["driver_apex_distance_m"] = round(c.driver_apex_distance_m, 1)
+    if c.reference_apex_distance_m is not None:
+        d["reference_apex_distance_m"] = round(c.reference_apex_distance_m, 1)
+    if c.apex_offset_m is not None:
+        d["apex_offset_m"] = round(c.apex_offset_m, 1)
+    if c.gain_end_distance_m is not None:
+        d["gain_end_distance_m"] = round(c.gain_end_distance_m, 1)
+    if c.entry_distance_delta_m is not None:
+        d["entry_distance_delta_m"] = round(c.entry_distance_delta_m, 1)
+    if c.exit_distance_delta_m is not None:
+        d["exit_distance_delta_m"] = round(c.exit_distance_delta_m, 1)
+    if c.reference_phase_distance_m is not None:
+        d["reference_phase_distance_m"] = round(c.reference_phase_distance_m, 1)
+    if c.target_throttle_pct is not None:
+        d["target_throttle_pct"] = c.target_throttle_pct
+    return d
