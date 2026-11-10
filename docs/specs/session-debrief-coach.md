@@ -100,7 +100,8 @@ Each segment is classified as one of:
 | `in-lap` | Duration far below the reference band (e.g. 21.9 s vs a 79.5 s reference) |
 | `pit-lap` | Duration above the band |
 | `incomplete` | Distance coverage fails (existing `PartialLapError` guard), or the segment is the last of the session |
-| `short` | Far fewer frames than the duration implies (broken segment) |
+| `short` | Far fewer or far more frames than the duration implies (broken segment) |
+| `invalid` | `lap_valid` discriminates in this session and any frame of the segment is `False` |
 
 Default rules, all overridable:
 
