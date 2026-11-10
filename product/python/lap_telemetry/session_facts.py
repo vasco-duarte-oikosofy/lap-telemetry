@@ -29,6 +29,7 @@ from .session_corner_extras import (
 from .session_consistency import Consistency, build_consistency, speed_envelope_optimal
 from .session_inputs import DebriefInputs
 from .session_laps import LapRecord, LapStatus
+from .session_priorities import Priority, build_priorities
 from .session_source import SessionSource
 
 
@@ -134,6 +135,7 @@ class SessionDebriefFacts:
     excluded: list[ExcludedLap] = field(default_factory=list)
     consistency: Consistency = field(default_factory=Consistency)
     reference_corners: list[CornerExtras] = field(default_factory=list)
+    priorities: list[Priority] = field(default_factory=list)
 
     @property
     def type(self) -> str:
@@ -147,6 +149,7 @@ class SessionDebriefFacts:
             "laps": [lap.to_dict() for lap in self.laps],
             "consistency": self.consistency.to_dict(),
             "reference_corners": [c.to_dict() for c in self.reference_corners],
+            "priorities": [p.to_dict() for p in self.priorities],
             "excluded": [item.to_dict() for item in self.excluded],
         }
 
@@ -276,4 +279,5 @@ def build_session_facts(
         excluded=excluded_laps(records) + unanalysable,
         consistency=build_consistency(laps, envelope_s),
         reference_corners=reference_corners,
+        priorities=build_priorities(laps, reference_corners),
     )

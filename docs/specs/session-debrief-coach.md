@@ -190,6 +190,12 @@ reference's own phase distances, e.g. "brake 6 m later", "back on throttle
 apex", "release the brake 3 m past the apex". The suggestion is computed,
 not invented by the model.
 
+Concretely (slice 05): `score = recurring_loss_s + 0.35 * spread_s`, one row
+per corner (never one per phase), and clauses ordered by the headline phase so
+the advice matches the loss. Distance deltas beyond 60 m are ignored as
+detection noise, and when no delta explains the loss the priority says
+"no single measurable cause" rather than guessing.
+
 ## Conversation model
 
 - The model receives a **compact report** (~2–4 KB: session meta, lap table,
