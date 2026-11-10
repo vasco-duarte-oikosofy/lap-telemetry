@@ -19,7 +19,7 @@ from dataclasses import dataclass, field
 from typing import Any
 
 from .coach.facts import CornerLoss
-from .session_corner_extras import CornerExtras
+from .session_corner_extras import CornerExtras, aggregate_corners, median_of
 
 
 SPREAD_WEIGHT = 0.35
@@ -83,25 +83,6 @@ def _mean(values: list[float]) -> float:
     return sum(values) / len(values) if values else 0.0
 
 
-def _median(values: list[float]) -> float | None:
-    if not values:
-        return None
-    ordered = sorted(values)
-    middle = len(ordered) // 2
-    if len(ordered) % 2:
-        return ordered[middle]
-    return (ordered[middle - 1] + ordered[middle]) / 2.0
-
-
-def _mode(values: list[int]) -> int | None:
-    counts: dict[int, int] = {}
-    for value in values:
-        counts[value] = counts.get(value, 0) + 1
-    if not counts:
-        return None
-    return max(counts.items(), key=lambda kv: kv[1])[0]
-
-
 def _plausible(distance_m: float) -> float | None:
     """A timing delta worth coaching; anything longer is a detection artefact."""
     if _MIN_DISTANCE_M <= abs(distance_m) <= _MAX_PLAUSIBLE_DISTANCE_M:
@@ -147,7 +128,7 @@ def _clause_exit_speed(phases: list[CornerLoss]) -> str | None:
 def _clause_entry(phases: list[CornerLoss]) -> str | None:
     deltas = [_plausible(item.entry_distance_delta_m)
               for item in phases if item.phase == "entry"]
-    delta = _median([d for d in deltas if d is not None])
+    delta = median_of([d for d in deltas if d is not None])
     if delta is not None and delta > 0:
         return f"brake {delta:.0f} m later"
     return None
@@ -165,7 +146,7 @@ def _clause_exit(phases: list[CornerLoss]) -> str | None:
                           ("exit", "get back on the throttle {d:.0f} m earlier")):
         deltas = [_plausible(item.exit_distance_delta_m)
                   for item in phases if item.phase == kind]
-        delta = _median([d for d in deltas if d is not None])
+        delta = median_of([d for d in deltas if d is not None])
         if delta is not None and delta > 0:
             return wording.format(d=delta)
     return None
@@ -254,32 +235,6 @@ def _kind(recurring: float, spread: float, laps: int, affected: int) -> str:
     return "inconsistent"
 
 
-def _aggregate_corners(laps: list) -> dict[str, CornerExtras]:
-    """One representative channel set per corner: dominant gear, median trail."""
-    collected: dict[str, list[CornerExtras]] = {}
-    for lap in laps:
-        for extra in getattr(lap, "corners", []):
-            collected.setdefault(extra.corner_id, []).append(extra)
-
-    aggregated: dict[str, CornerExtras] = {}
-    for corner_id, items in collected.items():
-        first = items[0]
-        gears = [i.gear_at_apex for i in items if i.gear_at_apex]
-        trails = [i.trail_brake_depth_m for i in items if i.trail_brake_depth_m is not None]
-        aggregated[corner_id] = CornerExtras(
-            corner_id=corner_id,
-            corner_name=first.corner_name,
-            apex_distance_m=first.apex_distance_m,
-            window_source=first.window_source,
-            gear_at_apex=_mode(gears),
-            gear_at_exit=_mode([i.gear_at_exit for i in items if i.gear_at_exit]),
-            trail_brake_depth_m=_median(trails),
-            lateral_at_apex_m=_median(
-                [i.lateral_at_apex_m for i in items if i.lateral_at_apex_m is not None]),
-        )
-    return aggregated
-
-
 def build_priorities(
     laps: list,
     reference_corners: list[CornerExtras],
@@ -293,7 +248,7 @@ def build_priorities(
 
     reference = {extra.corner_id: extra for extra in reference_corners}
     grouped: dict[str, list[CornerLoss]] = {}
-    extras = _aggregate_corners(clean)
+    extras = aggregate_corners(clean)
     for lap in clean:
         for item in lap.phases:
             grouped.setdefault(item.corner_id, []).append(item)

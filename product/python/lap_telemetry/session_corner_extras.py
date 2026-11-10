@@ -497,3 +497,48 @@ def _slip_is_usable(values: list[float]) -> bool:
     if not known:
         return False
     return max(known) <= SLIP_SANE_MAX_DEG
+
+
+def median_of(values: list[float]) -> float | None:
+    if not values:
+        return None
+    ordered = sorted(values)
+    middle = len(ordered) // 2
+    if len(ordered) % 2:
+        return ordered[middle]
+    return (ordered[middle - 1] + ordered[middle]) / 2.0
+
+
+def mode_of(values: list[int]) -> int | None:
+    counts: dict[int, int] = {}
+    for value in values:
+        counts[value] = counts.get(value, 0) + 1
+    if not counts:
+        return None
+    return max(counts.items(), key=lambda kv: kv[1])[0]
+
+
+def aggregate_corners(laps: list) -> dict[str, CornerExtras]:
+    """One representative channel set per corner: dominant gear, median trail."""
+    collected: dict[str, list[CornerExtras]] = {}
+    for lap in laps:
+        for extra in getattr(lap, "corners", []):
+            collected.setdefault(extra.corner_id, []).append(extra)
+
+    aggregated: dict[str, CornerExtras] = {}
+    for corner_id, items in collected.items():
+        first = items[0]
+        gears = [i.gear_at_apex for i in items if i.gear_at_apex]
+        trails = [i.trail_brake_depth_m for i in items if i.trail_brake_depth_m is not None]
+        aggregated[corner_id] = CornerExtras(
+            corner_id=corner_id,
+            corner_name=first.corner_name,
+            apex_distance_m=first.apex_distance_m,
+            window_source=first.window_source,
+            gear_at_apex=mode_of(gears),
+            gear_at_exit=mode_of([i.gear_at_exit for i in items if i.gear_at_exit]),
+            trail_brake_depth_m=median_of(trails),
+            lateral_at_apex_m=median_of(
+                [i.lateral_at_apex_m for i in items if i.lateral_at_apex_m is not None]),
+        )
+    return aggregated
