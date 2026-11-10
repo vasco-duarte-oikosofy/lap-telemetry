@@ -212,7 +212,12 @@ detection noise, and when no delta explains the loss the priority says
   entry" can be reconciled with the telemetry).
 - Numbers in the reply must exist in the injected facts. The prompt forbids
   invented values and the reply is validated against the fact numbers where
-  cheaply possible (a warning, not a hard failure, on mismatch).
+  cheaply possible (a warning, not a hard failure, on mismatch). Rounding is
+  allowed — `0.7 s` for a fact of `0.702 s` — but a number that is absent from
+  the grounding is reported.
+- `--no-llm` uses a deterministic template adapter that obeys the same voice
+  contract (one positive with a number, one loss, one fix, exactly one
+  question), so the feature works and is testable without a model.
 
 ### Coach voice contract
 

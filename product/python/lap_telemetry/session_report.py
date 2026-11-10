@@ -54,7 +54,7 @@ def format_lap_time(seconds: float) -> str:
     return f"{minutes}:{remainder:06.3f}"
 
 
-def _corner_label(name: str) -> str:
+def corner_label(name: str) -> str:
     """Some models name a corner "2"; read it as "corner 2"."""
     return f"corner {name}" if name.isdigit() else name
 
@@ -94,14 +94,14 @@ def _headline(facts: SessionDebriefFacts) -> list[str]:
     if facts.priorities:
         top = facts.priorities[0]
         lines.append(
-            f"The one to fix is **{_corner_label(top.corner_name)}** — "
+            f"The one to fix is **{corner_label(top.corner_name)}** — "
             f"{top.recurring_loss_s:.3f} s a lap, "
             f"{_KIND_PHRASE.get(top.kind, top.kind)}, "
             f"{_pct(top.share_of_gap)} of your average "
             f"{facts.consistency.pace.mean_gap_s:.3f} s "
             f"gap: *{top.suggestion}*."
             if facts.consistency.pace
-            else f"The one to fix is **{_corner_label(top.corner_name)}**: *{top.suggestion}*."
+            else f"The one to fix is **{corner_label(top.corner_name)}**: *{top.suggestion}*."
         )
     return lines
 
@@ -153,7 +153,7 @@ def _priorities(facts: SessionDebriefFacts) -> list[str]:
     lines: list[str] = []
     for priority in facts.priorities[:3]:
         lines.append(
-            f"{priority.rank}. **{_corner_label(priority.corner_name)}** — "
+            f"{priority.rank}. **{corner_label(priority.corner_name)}** — "
             f"{priority.recurring_loss_s:.3f} s per lap "
             f"({_KIND_TEXT.get(priority.kind, priority.kind)}, "
             f"{_pct(priority.share_of_gap)} of the gap)  \n"
@@ -214,7 +214,7 @@ def _corner_table(facts: SessionDebriefFacts) -> list[str]:
             offset = extra.lateral_at_apex_m - ref_extra.lateral_at_apex_m
         rank = verdicts.get(corner_id)
         lines.append(
-            f"| {_corner_label(extra.corner_name)} | {extra.apex_distance_m:.0f} | "
+            f"| {corner_label(extra.corner_name)} | {extra.apex_distance_m:.0f} | "
             f"{f'{speed[0]:.1f}' if speed else '—'} | "
             f"{f'{speed[1]:.1f}' if speed else '—'} | "
             f"{extra.gear_at_apex or '—'} | "

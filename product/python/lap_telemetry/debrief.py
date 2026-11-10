@@ -37,6 +37,8 @@ def run(
     list_only: bool = False,
     json_only: bool = False,
     report_only: bool = False,
+    ask: str | None = None,
+    no_llm: bool = False,
     out_dir: Path | None = None,
     reference: Path | None = None,
     track_model_path: Path | None = None,
@@ -82,6 +84,9 @@ def run(
         print(json.dumps(facts.to_dict(), indent=2))
         return 0
 
+    if ask:
+        return _answer(ask, facts, no_llm=no_llm)
+
     if report_only:
         destination = _write_report(facts, session, path, out_dir)
         print(destination)
@@ -94,6 +99,26 @@ def run(
         file=sys.stderr,
     )
     return 1
+
+
+def _answer(question: str, facts, *, no_llm: bool) -> int:
+    """One question, one grounded answer, no conversation state."""
+    from .coach.coach_config import load_config
+    from .coach.debrief_coach import DebriefCoach
+    from .coach.llm_adapter import LLMAdapterError
+
+    coach = DebriefCoach(config=None if no_llm else load_config())
+    try:
+        answer = coach.ask(question, facts)
+    except LLMAdapterError as exc:
+        print(f"lap-telemetry debrief: {exc}", file=sys.stderr)
+        print("Use --no-llm for a grounded answer without a model.",
+              file=sys.stderr)
+        return 1
+    print(answer.text)
+    for warning in answer.warnings:
+        print(f"warning: {warning}", file=sys.stderr)
+    return 0
 
 
 def _write_report(facts, session, path: Path, out_dir: Path | None) -> Path:

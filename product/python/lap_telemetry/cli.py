@@ -97,6 +97,16 @@ def _build_parser() -> argparse.ArgumentParser:
         help="Write the Markdown report and exit (no conversation).",
     )
     debrief.add_argument(
+        "--ask",
+        metavar="QUESTION",
+        help="Ask one question, print the coach's answer and exit.",
+    )
+    debrief.add_argument(
+        "--no-llm",
+        action="store_true",
+        help="Never call a model: the report and answers come from the facts.",
+    )
+    debrief.add_argument(
         "--out",
         type=Path,
         help="Directory for the report (default: next to the session).",
@@ -141,6 +151,8 @@ def main(argv: Sequence[str] | None = None) -> int:
             list_only=args.list,
             json_only=args.json,
             report_only=args.report_only,
+            ask=args.ask,
+            no_llm=args.no_llm,
             out_dir=args.out,
             reference=args.reference,
             track_model_path=args.track_model,
