@@ -51,3 +51,29 @@
   `test_turn_labels_parity` (needs a `../tinypedal/.venv` checkout) and
   `test_turn_labels_scale` (160/161 named turns). None are caused by the
   debrief work.
+- **The same bug had a second instance, found only by auditing the whole corpus.**
+  The out-lap rule also treated `segment_index == 0` as a pit exit. Recordings
+  that start with the car already on a flying lap have a segment 0 at
+  201–258 km/h, and seven sessions were losing a real (often fastest) lap
+  because of where the recording began. The corpus split is clean — pit/standing
+  entries are 0.1–75 km/h — so the rule now requires a stint boundary **and** an
+  entry below 100 km/h.
+- **Fixture assertions would not have caught either bug.** Both were fixed by
+  reasoning about what the record can support, so the regression guard is an
+  *audit* (`dev/scripts/lap_inventory_audit.py`) that re-derives every
+  exclusion's justification from the raw table, plus a seeded random session
+  generator (60 sessions, 330 segments) and a meta-test proving the auditor
+  reports a violation when handed the historical mistakes. After the fix the
+  audit is clean across all 57 committed sessions and recovers a segment-0 lap
+  in four of them.
+- **A "clean" flag is a property of the eligible set, not of the lap.** The
+  audit checks `clean == duration <= 1.05 * best_eligible` on every record, so a
+  future rule that reorders or reshapes the eligible set cannot leave stale
+  clean flags behind.
+- **The classifier outgrew its file the moment the new rule landed.** It split
+  into `session_source` (shards + sidecar), `lap_signals` (per-segment
+  measurements) and `lap_inventory_view` (text output), leaving
+  `session_laps.py` at 208 lines of classification. The split is in the fix
+  commit rather than a separate `refactor:` commit — the file had to grow before
+  it could be split, and reverting the fix to commit the split first would have
+  produced a red tree.

@@ -15,19 +15,21 @@ import sys
 import tempfile
 from pathlib import Path
 
-import pyarrow as pa
 import pyarrow.parquet as pq
 
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT / "product" / "python"))
+sys.path.insert(0, str(ROOT / "dev" / "scripts"))
 
+from lap_inventory_audit import synth_session  # noqa: E402
+
+from lap_telemetry.lap_inventory_view import format_inventory  # noqa: E402
 from lap_telemetry.session_laps import (  # noqa: E402
-    LapStatus,
     MIN_ELIGIBLE_LAPS,
+    LapStatus,
     classify_laps,
-    format_inventory,
-    load_session,
 )
+from lap_telemetry.session_source import load_session  # noqa: E402
 
 REAL_SESSION = (
     ROOT / "dev" / "sessions"
@@ -48,54 +50,6 @@ def check(condition: bool, name: str, detail: str = "") -> None:
         print(f"  [FAIL] {name}{' — ' + detail if detail else ''}")
 
 
-def synth_session(specs: list[dict]) -> pa.Table:
-    """Build a session table from per-segment specs.
-
-    Each spec: ``lap_number``, ``duration_s``, ``frames``, optionally
-    ``speed_kph`` (float) or ``stop_s`` (stationary time at the end),
-    ``covered_m`` (distance reached, default a full lap).
-
-    ``session_time_s - lap_time_s`` is the telemetry lap-start ET, so setting
-    one start ET per segment produces the intended ``authoritative_duration``
-    (difference between consecutive start ETs).
-    """
-    lap_number: list[int] = []
-    session_time: list[float] = []
-    lap_time: list[float] = []
-    distance: list[float] = []
-    speed: list[float] = []
-    valid: list[bool] = []
-
-    start_et = 100.0
-    for spec in specs:
-        frames = spec["frames"]
-        duration = spec["duration_s"]
-        covered = spec.get("covered_m", 4000.0)
-        stop_s = spec.get("stop_s", 0.0)
-        step = duration / max(1, frames)
-        for i in range(frames):
-            t = i * step
-            lap_number.append(spec["lap_number"])
-            lap_time.append(t)
-            session_time.append(start_et + t)
-            distance.append(covered * i / max(1, frames - 1))
-            # Stop at the very end of the segment, so the next segment's ET
-            # still advances by ``duration``.
-            remaining = duration - t
-            speed.append(0.0 if remaining <= stop_s else 200.0)
-            valid.append(spec.get("valid", True))
-        start_et += duration
-
-    return pa.table({
-        "lap_number": lap_number,
-        "lap_time_s": lap_time,
-        "session_time_s": session_time,
-        "lap_distance_m": distance,
-        "speed_kph": speed,
-        "lap_valid": valid,
-    })
-
-
 def by_segment(records) -> dict[int, object]:
     return {r.segment_index: r for r in records}
 
@@ -103,11 +57,11 @@ def by_segment(records) -> dict[int, object]:
 def test_synthetic_classification() -> None:
     """Each rule produces the intended status on a controlled session."""
     table = synth_session([
-        {"lap_number": 0, "duration_s": 150.0, "frames": 7500},                   # out-lap
+        {"lap_number": 0, "duration_s": 150.0, "frames": 7500, "start_speed": 0.2},   # out-lap
         {"lap_number": 1, "duration_s": 80.0, "frames": 4000},                   # eligible + clean
         {"lap_number": 2, "duration_s": 81.0, "frames": 4050},                   # eligible + clean
         {"lap_number": 3, "duration_s": 30.0, "frames": 1500},                   # in-lap
-        {"lap_number": 0, "duration_s": 140.0, "frames": 7000},                  # restart out-lap
+        {"lap_number": 0, "duration_s": 140.0, "frames": 7000, "start_speed": 0.2},  # restart out-lap
         {"lap_number": 1, "duration_s": 100.0, "frames": 5000, "stop_s": 9.0},   # pit-lap (stop)
         {"lap_number": 2, "duration_s": 79.5, "frames": 3975},                   # eligible + clean
         {"lap_number": 3, "duration_s": 120.0, "frames": 100, "covered_m": 500.0},  # incomplete
@@ -187,7 +141,7 @@ def test_stint_boundary_is_a_restart_not_a_gap() -> None:
 
     restart = synth_session([
         {"lap_number": 2, "duration_s": 80.0, "frames": 4000},
-        {"lap_number": 0, "duration_s": 120.0, "frames": 6000},
+        {"lap_number": 0, "duration_s": 120.0, "frames": 6000, "start_speed": 0.2},
         {"lap_number": 1, "duration_s": 80.0, "frames": 4000},
     ])
     rr = by_segment(classify_laps(restart))
@@ -283,9 +237,100 @@ def test_real_session_inventory() -> None:
           "eligible lap durations are all flying-lap length")
 
 
+def test_real_lusail_stuck_lap_number() -> None:
+    """Regression: stuck lap numbers must not manufacture pit exits.
+
+    This recording keeps emitting fragments of lap 9 after a pause, so the
+    sequence runs 9, 11, 9, 13, 9, 15, 16, 9, 10. Treating every non-consecutive
+    lap number as a stint boundary threw away segments 1 and 4, and segment 4
+    (1:52.620) was the fastest lap of the session — faster than the lap the
+    coach would have kept. Only a reset to lap 0 may start a stint.
+    """
+    session_path = (
+        ROOT / "dev" / "sessions"
+        / "session_20260905T065812Z_lusail-international-circuit_lmu_practice.parquet"
+    )
+    if not session_path.exists():
+        check(False, "Lusail fixture present", str(session_path))
+        return
+
+    session = load_session(session_path)
+    records = classify_laps(session.table, sample_rate_hz=session.sample_rate_hz)
+    r = by_segment(records)
+
+    check(len(records) == 11, "fixture has 11 contiguous segments", str(len(records)))
+    check(r[1].status == LapStatus.ELIGIBLE,
+          "11 after a stuck 9 is a continued stint, not an out-lap", r[1].status)
+    check(r[4].status == LapStatus.ELIGIBLE,
+          "13 after a stuck 9 is a continued stint, not an out-lap", r[4].status)
+
+    eligible = [x for x in records if x.eligible]
+    fastest = min(eligible, key=lambda x: x.duration_s)
+    check(fastest.segment_index == 5 and abs(fastest.duration_s - 111.975) < 0.01,
+          "the fastest lap of the session is the 1:51.975", 
+          f"segment {fastest.segment_index} at {fastest.duration_s:.3f} s")
+    check(r[4].duration_s - fastest.duration_s < 1.0,
+          "the lap the old rule discarded (1:52.620) is within a second of the best",
+          f"segment 4 at {r[4].duration_s:.3f} s")
+    check(len(eligible) == 4, "four laps are eligible after the fix", str(len(eligible)))
+    check(sum(1 for x in eligible if x.clean) == 3, "three of them are clean")
+
+    check([x for x in records if x.status == LapStatus.OUT_LAP] == [],
+          "a session with no lap-0 reset reports no out-laps")
+    stuck = [x for x in records if x.lap_number == 9]
+    check(len(stuck) == 4 and all(x.status == LapStatus.INCOMPLETE for x in stuck),
+          "every stuck lap-9 fragment is incomplete",
+          str([(x.segment_index, x.status) for x in stuck]))
+    check(all(x.status != LapStatus.OUT_LAP or x.lap_number == 0 for x in records),
+          "invariant: only a lap-0 reset can be an out-lap")
+
+
+def test_out_lap_needs_a_pit_exit() -> None:
+    """A stint boundary is only an out-lap if the car entered from the pits.
+
+    Recording can start with the car already on a flying lap. That segment 0
+    passes coverage and duration, so calling it an out-lap discards a real lap
+    purely because of where the recording began.
+    """
+    slow_start = classify_laps(synth_session([
+        {"lap_number": 0, "duration_s": 150.0, "frames": 7500, "start_speed": 0.2},
+        {"lap_number": 1, "duration_s": 80.0, "frames": 4000},
+        {"lap_number": 2, "duration_s": 20.0, "frames": 1000, "covered_m": 700.0},
+    ]))
+    check(by_segment(slow_start)[0].status == LapStatus.OUT_LAP,
+          "segment 0 entered from the pits is an out-lap", slow_start[0].status)
+
+    racing_start = classify_laps(synth_session([
+        {"lap_number": 0, "duration_s": 80.5, "frames": 4025, "start_speed": 210.0},
+        {"lap_number": 1, "duration_s": 80.0, "frames": 4000},
+        {"lap_number": 2, "duration_s": 20.0, "frames": 1000, "covered_m": 700.0},
+    ]))
+    check(by_segment(racing_start)[0].status == LapStatus.ELIGIBLE,
+          "segment 0 started on a flying lap is kept", racing_start[0].status)
+    check(by_segment(racing_start)[0].clean,
+          "the recovered lap participates in the clean set")
+
+    reset_at_speed = classify_laps(synth_session([
+        {"lap_number": 2, "duration_s": 80.0, "frames": 4000},
+        {"lap_number": 0, "duration_s": 80.2, "frames": 4010, "start_speed": 205.0},
+        {"lap_number": 1, "duration_s": 20.0, "frames": 1000, "covered_m": 700.0},
+    ]))
+    check(by_segment(reset_at_speed)[1].status == LapStatus.ELIGIBLE,
+          "a lap-0 reset at racing speed is not a pit exit", reset_at_speed[1].status)
+
+    # Without speed/session-time channels the rule falls back to the lap number.
+    table = synth_session([
+        {"lap_number": 0, "duration_s": 150.0, "frames": 7500},
+        {"lap_number": 1, "duration_s": 80.0, "frames": 4000},
+        {"lap_number": 2, "duration_s": 20.0, "frames": 1000, "covered_m": 700.0},
+    ]).drop_columns(["speed_kph"])
+    check(classify_laps(table)[0].status == LapStatus.OUT_LAP,
+          "without speed data the lap-number fallback still applies")
+
+
 def test_format_inventory() -> None:
     records = classify_laps(synth_session([
-        {"lap_number": 0, "duration_s": 150.0, "frames": 7500},
+        {"lap_number": 0, "duration_s": 150.0, "frames": 7500, "start_speed": 0.2},
         {"lap_number": 1, "duration_s": 80.0, "frames": 4000},
         {"lap_number": 2, "duration_s": 120.0, "frames": 100, "covered_m": 500.0},
     ]))
@@ -317,9 +362,11 @@ def main() -> int:
     test_clean_flag_uses_fastest_eligible_lap()
     test_integrity_and_slow_rules()
     test_stint_boundary_is_a_restart_not_a_gap()
+    test_out_lap_needs_a_pit_exit()
     test_lap_valid_only_when_it_discriminates()
     test_shard_merge()
     test_real_session_inventory()
+    test_real_lusail_stuck_lap_number()
     test_format_inventory()
     print(f"\n{_passed}/{_passed + _failed} assertions passed")
     return 1 if _failed else 0

@@ -9,7 +9,9 @@ from __future__ import annotations
 import sys
 from pathlib import Path
 
-from .session_laps import classify_laps, format_inventory, load_session
+from .lap_inventory_view import format_inventory
+from .session_laps import classify_laps
+from .session_source import load_session
 
 
 def run(path: Path, *, list_only: bool = False) -> int:
