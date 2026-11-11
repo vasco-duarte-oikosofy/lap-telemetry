@@ -3,9 +3,9 @@
   "track_id": "silverstone-national-circuit",
   "layout_id": "national",
   "reference_lap": {
-    "path": "product/data/reference-laps/silverstone-national-circuit_dkr-engineering-4-elms25_time_00.50.446.parquet",
+    "path": "product/data/reference-laps/silverstone-national-circuit_dkr-engineering-4-elms25_time_00.50.392.parquet",
     "car_id": "dkr-engineering-4-elms25",
-    "lap_time_s": 50.446,
+    "lap_time_s": 50.392,
     "detection_method": "throttle_brake_v1"
   },
   "lap_length_m": 2639.1,
@@ -23,8 +23,8 @@
       "id": "maggots",
       "name": "Maggots",
       "s_start_m": 790.0,
-      "apex_s_m": 836.0,
-      "s_end_m": 850.0,
+      "apex_s_m": 828.0,
+      "s_end_m": 833.0,
       "apex_side": "left",
       "apex_side_source": "manual",
       "target_throttle_pct": 100
@@ -32,17 +32,17 @@
     {
       "id": "becketts",
       "name": "Becketts",
-      "s_start_m": 854.0,
-      "apex_s_m": 1067.0,
-      "s_end_m": 1091.0,
+      "s_start_m": 834.0,
+      "apex_s_m": 1068.0,
+      "s_end_m": 1089.0,
       "apex_side": "right",
       "apex_side_source": "manual"
     },
     {
       "id": "brooklands",
       "name": "Brooklands",
-      "s_start_m": 1746.0,
-      "apex_s_m": 1924.0,
+      "s_start_m": 1740.0,
+      "apex_s_m": 1921.0,
       "s_end_m": 1960.0,
       "apex_side": "left",
       "apex_side_source": "manual"
@@ -51,8 +51,8 @@
       "id": "luffield",
       "name": "Luffield",
       "s_start_m": 2003.0,
-      "apex_s_m": 2105.0,
-      "s_end_m": 2168.0,
+      "apex_s_m": 2102.0,
+      "s_end_m": 2153.0,
       "apex_side": "right",
       "apex_side_source": "manual"
     },

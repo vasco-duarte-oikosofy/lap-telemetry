@@ -34,6 +34,30 @@
   evidence `var/test-output/silverstone-national-p3/outline.png`: three outline
   parts paint and all six labels render (`test_silverstone_national_p3_ui.js`).
 
+## Refresh 3 — the 18:54 practice stint (0:50.446 → 0:50.392)
+
+`artifacts/reference-refresh-3.txt`. One command, as documented:
+
+```bash
+py dev/scripts/update_reference_and_coaching_model.py   --session sessions/session_20261111T185406Z_silverstone-national-circuit_lmu_practice.parquet   --track-id silverstone-national-circuit   --preserve-geometry copse maggots woodcote --max-geometry-delta-m 40 --min-lap-time-s 30
+```
+
+Lap 16 of the 18:54 stint, authoritative **50.392 s**, 2507 rows; audit added one
+reference and superseded `…_time_00.50.446.parquet`. Becketts 854→**834** entry /
+1067→**1068** apex, Brooklands 1746→**1740** / 1924→**1921**, Luffield 2003/2105→**2102**/2168→**2153**.
+Copse, Maggots and Woodcote preserved again.
+
+**Maggots collided with Becketts a second time**: the refreshed Becketts entry
+moved to 834 m while Maggots' curated exit was 850 m, so the two zones overlapped
+by 16 m. Fix (runbook Step 6): Maggots re-curated to `790 / 828 / 833` — the flat
+left's apex moved 836→828 because that is where the new lap's steering is most
+negative inside the flat span, and the exit is the new lift onset (833 m;
+throttle 1.00 / brake 0.00 through 832.5 m on the reference). This is *not* just
+"clip the exit": clipping would have left the apex outside its own zone.
+
+The Tinypedal labels were re-exported (Maggots `s_frac` moved), the static module
+and bundle rebuilt, and the test pins moved to 0:50.392 / 2507 rows / lap 16.
+
 ## Layout identity (why this is not International or GP-ELMS)
 
 The National lap follows the curated GP-ELMS reference line within **9 m**

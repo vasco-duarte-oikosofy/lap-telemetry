@@ -59,6 +59,20 @@ zero brake through 851 m on the reference lap). **Always re-check
 `a.s_end_m <= b.s_start_m` after a refresh that mixes preserved and matched
 corners.**
 
+## 5b. The Maggots/Becketts collision recurs on every refresh — plan for it
+
+It happened on all three refreshes: the updater refreshes Becketts' entry
+(861 → 854 → 834 m) while Maggots is preserved, so the flat left's exit keeps
+getting swallowed. The first time, clipping Maggots' exit (860 → 850) was enough.
+The second time it was not: Becketts' entry moved *before* Maggots' apex, so the
+curve had to be re-curated (`790 / 828 / 833`), with the apex re-read from the
+steering minimum inside the flat span.
+
+Rule: after a refresh that preserves a flat corner next to a refreshed brake
+zone, verify `s_start < apex < s_end` **and** `a.s_end_m <= b.s_start_m`, and
+re-read the flat corner's apex from the new lap if the exit had to move earlier
+than the old apex.
+
 ## 6. Keeping the outline compact
 
 `bake_outline_turns.py` rewrites the whole outline with `json.dumps(indent=2)`,

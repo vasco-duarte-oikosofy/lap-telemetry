@@ -21,7 +21,7 @@
     "method": "trajectory_trace",
     "width_per_side": 5.0,
     "centerline_source_lap": "0:50.859 (2026-11-11 practice, lap 7 of session_20261111T172218Z)",
-    "notes": "Centreline traced from the first guarded reference; turn anchors re-baked to the current 0:50.446 reference (practice lap 20 of session_20261111T173251Z)."
+    "notes": "Centreline traced from the first guarded reference; turn anchors re-baked to the current 0:50.392 reference (practice lap 16 of session_20261111T185406Z)."
   },
   "visual_qa": {
     "status": "pending",
@@ -341,11 +341,11 @@
     {"x":-17.672,"y":846.605}, {"x":-11.504,"y":847.77}, {"x":-4.923,"y":848.958}, {"x":1.862,"y":849.052}, {"x":8.246,"y":848.77}
   ],
   "turns": [
-    {"id":"copse","number":1,"name":"Copse","short_name":null,"apex_s_m":359.0,"x":356.347,"y":862.352,"outward":[0.4167,0.9091],"tangent":[0.9091,-0.4167]},
-    {"id":"maggots","number":2,"name":"Maggots","short_name":null,"apex_s_m":836.0,"x":477.66,"y":426.961,"outward":[0.9899,0.1417],"tangent":[0.1417,-0.9899]},
-    {"id":"becketts","number":3,"name":"Becketts","short_name":null,"apex_s_m":1067.0,"x":511.718,"y":217.216,"outward":[0.665,-0.7468],"tangent":[-0.7468,-0.665]},
-    {"id":"brooklands","number":4,"name":"Brooklands","short_name":null,"apex_s_m":1924.0,"x":-170.627,"y":653.587,"outward":[0.592,-0.8059],"tangent":[-0.8059,-0.592]},
-    {"id":"luffield","number":5,"name":"Luffield","short_name":null,"apex_s_m":2105.0,"x":-252.795,"y":519.178,"outward":[-0.047,-0.9989],"tangent":[-0.9989,0.047]},
-    {"id":"woodcote","number":6,"name":"Woodcote","short_name":null,"apex_s_m":2469.0,"x":-153.212,"y":795.18,"outward":[-0.5212,0.8534],"tangent":[0.8534,0.5212]}
+    {"id":"copse","number":1,"name":"Copse","short_name":null,"apex_s_m":359.0,"x":355.791,"y":863.211,"outward":[0.3873,0.922],"tangent":[0.922,-0.3873]},
+    {"id":"maggots","number":2,"name":"Maggots","short_name":null,"apex_s_m":828.0,"x":476.869,"y":434.933,"outward":[0.9928,0.1196],"tangent":[0.1196,-0.9928]},
+    {"id":"becketts","number":3,"name":"Becketts","short_name":null,"apex_s_m":1068.0,"x":511.509,"y":216.441,"outward":[0.8844,-0.4667],"tangent":[-0.4667,-0.8844]},
+    {"id":"brooklands","number":4,"name":"Brooklands","short_name":null,"apex_s_m":1921.0,"x":-167.483,"y":654.304,"outward":[0.5741,-0.8188],"tangent":[-0.8188,-0.5741]},
+    {"id":"luffield","number":5,"name":"Luffield","short_name":null,"apex_s_m":2102.0,"x":-249.753,"y":517.814,"outward":[0.004,-1.0],"tangent":[-1.0,-0.004]},
+    {"id":"woodcote","number":6,"name":"Woodcote","short_name":null,"apex_s_m":2469.0,"x":-153.792,"y":794.946,"outward":[-0.537,0.8436],"tangent":[0.8436,0.537]}
   ]
 }

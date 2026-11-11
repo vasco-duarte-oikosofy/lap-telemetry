@@ -34,7 +34,7 @@ TRACK_NAME = 'Silverstone National Circuit'
 SESSION = ROOT / 'sessions/session_20261111T172218Z_silverstone-national-circuit_lmu_practice.parquet'
 MODEL = ROOT / f'product/data/track-coaching/{TRACK}_{CAR}.json'
 OUTLINE = ROOT / f'product/data/track-outlines/{TRACK}.json'
-REF_NAME = f'{TRACK}_{CAR}_time_00.50.446.parquet'
+REF_NAME = f'{TRACK}_{CAR}_time_00.50.392.parquet'
 # id, official name, side, flat.  Silverstone's National corner list is Copse,
 # Maggots, Becketts, Brooklands, Luffield, Woodcote. Maggots is the flat left
 # flick into the complex and Becketts the braked right that peels onto the
@@ -91,10 +91,10 @@ def main():
     t = pq.read_table(ref)
     duration = float(t.schema.metadata[b'authoritative_lap_time_s'])
     ok(len(build_segments(t['lap_number'].to_pylist())) == 1, 'reference is a contiguous segment')
-    ok(set(t['lap_number'].to_pylist()) == {20}, 'fastest complete valid lap 20 selected')
+    ok(set(t['lap_number'].to_pylist()) == {16}, 'fastest complete valid lap 16 selected')
     ok(all(t['lap_valid'].to_pylist()), 'reference is valid in every frame')
-    ok(t.num_rows == 2512, 'reference contains exactly the selected 2512 source rows')
-    ok(abs(duration - 50.446) < 0.001, 'authoritative practice time 0:50.446')
+    ok(t.num_rows == 2507, 'reference contains exactly the selected 2507 source rows')
+    ok(abs(duration - 50.392) < 0.001, 'authoritative practice time 0:50.392')
     ok(abs(raw['reference_lap']['lap_time_s'] - duration) < 0.001, 'model/ref authoritative times agree')
     ok('\\' not in raw['reference_lap']['path'], 'committed reference path is portable')
     m = load_track_coaching_model(MODEL)
@@ -134,7 +134,7 @@ def main():
     ok(o['lap_length_m'] == m.lap_length_m, 'map fractions use simulator axis, not geometric trace length')
     ok('reference_lap' not in o['alignment'],
        'outline provenance is a stable note, not a path to a superseded reference')
-    ok('0:50.446' in o['alignment']['notes'], 'outline records the refreshed anchors reference')
+    ok('0:50.392' in o['alignment']['notes'], 'outline records the refreshed anchors reference')
     ok([x['id'] for x in o['turns']] == [z[0] for z in ZONES] and
        [x['name'] for x in o['turns']] == [z[1] for z in ZONES],
        'all six official names reach the map')

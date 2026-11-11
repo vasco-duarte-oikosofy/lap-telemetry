@@ -16,6 +16,11 @@ Geometry: valid practice lap 7, 50.859 s, source 20261111T172218Z.
 The brake/lift detector finds only four events (Copse, Becketts, Brooklands,
 Luffield): the flat Maggots left and the flat Woodcote right are invisible to it.
 Refuse differing existing curation; future references use the guarded updater.
+NOTE: the curated model has been refreshed three times since this onboarding
+(0:50.446, then 0:50.392 practice lap 16 of the 18:54 stint), so the ZONES below
+record the *onboarding* state only — the guarded updater owns the live values
+(Maggots is now 790/828/833, Becketts 834/1068/1089, Brooklands 1740/1921/1960,
+Luffield 2003/2102/2153).
 """
 import argparse
 import copy

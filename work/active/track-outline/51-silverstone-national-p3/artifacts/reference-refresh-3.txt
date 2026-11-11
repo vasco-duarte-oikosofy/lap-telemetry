@@ -1,0 +1,28 @@
+Track: silverstone-national-circuit  Vehicle: dkr-engineering-4-elms25  (1 sessions)
+  Fastest: lap 16 in session_20261111T185406Z_silverstone-national-circuit_lmu_practice.parquet -> 50.392s
+  Exported 2507 rows -> product\data\reference-laps\silverstone-national-circuit_dkr-engineering-4-elms25_time_00.50.392.parquet
+  Removed superseded reference (50.446s): silverstone-national-circuit_dkr-engineering-4-elms25_time_00.50.446.parquet
+
+AUDIT: 1 reference lap changed (added: ['silverstone-national-circuit_dkr-engineering-4-elms25_time_00.50.392.parquet'], superseded: ['silverstone-national-circuit_dkr-engineering-4-elms25_time_00.50.446.parquet']). OK.
+Fastest lap in session(s): lap 16 @ 50.392s (session_20261111T185406Z_silverstone-national-circuit_lmu_practice.parquet, vehicle dkr-engineering-4-elms25)
+Faster than existing reference - will export after corner check
+Corner check: model has 6, lap yields 4 (3 matched, 3 geometry preserved)
+  PRESERVED: Copse (copse) keeps reviewed geometry; no event claimed
+  PRESERVED: Maggots (maggots) keeps reviewed geometry; no event claimed
+  PRESERVED: Woodcote (woodcote) keeps reviewed geometry; no event claimed
+  INFO: new corner at apex=381m not in the model - ignored
+Geometry guard: all matched corners within 40 m - OK
+
+Exporting reference via export_fastest_reference_laps.py ...
+
+Updated coaching model -> C:\Users\duart\lap-telemetry\product\data\track-coaching\silverstone-national-circuit_dkr-engineering-4-elms25.json
+Updated diagnostics -> C:\Users\duart\lap-telemetry\product\data\track-coaching\silverstone-national-circuit_dkr-engineering-4-elms25.diagnostics.txt
+
+Corner geometry changes:
+  Turn                         Entry     Apex     Exit  (was Entry/Apex/Exit)
+  Copse                        242.0    359.0    435.0  (was 242.0 / 359.0 / 435.0)
+  Maggots                      790.0    836.0    850.0  (was 790.0 / 836.0 / 850.0)
+  Becketts                     834.0   1068.0   1089.0  (was 854.0 / 1067.0 / 1091.0)
+  Brooklands                  1740.0   1921.0   1960.0  (was 1746.0 / 1924.0 / 1960.0)
+  Luffield                    2003.0   2102.0   2153.0  (was 2003.0 / 2105.0 / 2168.0)
+  Woodcote                    2360.0   2469.0   2580.0  (was 2360.0 / 2469.0 / 2580.0)
