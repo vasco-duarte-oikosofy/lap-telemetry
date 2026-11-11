@@ -1,0 +1,108 @@
+Commands: /corner <name>, /laps, /plan, /save, /help, /quit
+Coach: Good news first: your best lap, 0:50.638, was only +0.192 to the reference, so the one-lap pace is already there. The recurring loss is Becketts: 1.480 s per lap, and it's also your messiest corner at 2.220 s spread over 27 laps, so it's costing you both pace and consistency. Mechanism: you're rolling off the brake too early — at the exit-brake point you're at 91.6 km/h against the reference's 112.8, in the same gear, second. One fix: hold the brake 6 m longer at Becketts and let that minimum speed carry through. When you go back out, tell me — is the early brake there deliberate because the car's moving under you, or just habit?
+You:   Coach: Becketts is your entire gap on its own — 1.480 s a lap, and the exact spot is the exit of the braking zone: you release at 91.6 km/h while the reference is at 112.8 km/h, in the same second gear. Entry is fine; the release is early.
+
+Your brake data shows why: you press harder than needed — peaks up to 0.95 against the reference's 0.71 — and the trail length swings from 0 to 50 m lap to lap where theirs sits at a steady 24. Hard stab, early let-off. That's why your minimum speed medians 103.6 against 109.0 and swings 28.3 km/h — and why the corner costs you anywhere from a tenth to 2.220 s. Your worst laps, like the 82.6 km/h one in first gear, weren't brave laps, they were messy releases.
+
+One fix: hold the brake 6 m longer before releasing.
+
+Did that worst lap feel like a mistake under braking, or just the rhythm getting away from you?
+You:   CORNER: Luffield (apex 2105 m)
+priority #3: 0.144 s per lap, 17% of the gap, both
+fix: hold the brake 41 m longer
+reference: gear 1, brake peak 0.55, trail 63 m, line 4.7 m
+you: gear 1, trail 63 m, line 4.2 m
+
+minimum speed spread: 16.7 km/h | minimum-speed loss spread: 1.122 s | median speed: 93.4 km/h
+
+Per-lap detail (clean laps):
+| seg | min speed km/h | ref km/h | gear | brake | trail m | loss s |
+|---|---:|---:|---:|---:|---:|---:|
+| 1 | 97.4 | 95.3 | 1 | 0.61 | 55 | +0.067 |
+| 2 | 92.5 | 95.3 | 1 | 0.61 | 75 | -0.076 |
+| 3 | 93.2 | 95.3 | 1 | 0.61 | 74 | +0.050 |
+| 4 | 90.9 | 95.3 | 1 | 0.46 | 55 | +0.022 |
+| 5 | 92.4 | 95.3 | 1 | 0.42 | 0 | +0.032 |
+| 6 | 97.4 | 95.3 | 1 | 0.57 | 96 | +0.075 |
+| 7 | 89.6 | 95.3 | 1 | 0.44 | 69 | +0.008 |
+| 8 | 93.0 | 95.3 | 1 | 0.61 | 30 | +0.092 |
+| 9 | 97.2 | 95.3 | 1 | 0.51 | 62 | -0.027 |
+| 10 | 97.3 | 95.3 | 1 | 0.51 | 50 | +0.004 |
+| 11 | 91.5 | 95.3 | 1 | 0.57 | 36 | +0.125 |
+| 12 | 98.5 | 95.3 | 1 | 0.51 | 71 | +0.113 |
+| 13 | 92.0 | 95.3 | 1 | 0.48 | 50 | +0.042 |
+| 16 | 90.0 | 95.3 | 1 | 0.59 | 42 | -0.040 |
+| 17 | 101.4 | 95.3 | 1 | 0.69 | 87 | +0.064 |
+| 19 | 87.0 | 95.3 | 1 | 0.65 | 91 | +0.110 |
+| 20 | 97.1 | 95.3 | 1 | 0.55 | 0 | -0.044 |
+| 22 | 92.9 | 95.3 | 1 | 0.66 | 89 | +0.014 |
+| 23 | 93.7 | 95.3 | 1 | 0.70 | 1 | -0.025 |
+| 24 | 98.4 | 95.3 | 1 | 0.72 | 70 | +0.072 |
+| 25 | 102.8 | 95.3 | 1 | 0.48 | 92 | +0.290 |
+| 26 | 94.5 | 95.3 | 1 | 0.56 | 68 | -0.046 |
+| 27 | 90.3 | 95.3 | 1 | 0.64 | 37 | -0.073 |
+… (truncated)
+
+Gear's already right in Luffield — first, same as the reference — so that's not your problem here.
+
+The average loss is small: 0.144 a lap, 17% of the gap. What's actually costing you is the scatter — this is your second-most inconsistent corner, 1.122 s spread on the minimum-speed loss. Min speed runs 87.0 on lap 19 up to 102.8 on lap 25, and your brake peaks swing 0.42 to 0.72 against the reference's 0.55. You're hunting the braking point instead of repeating one.
+
+The fix: hold the brake 41 m longer. The exit_brake phase is where the time leaks — 99.6 km/h against the reference 102.4 — and that's the stated correction for it.
+
+Do you have a fixed brake marker for Luffield, or are you adjusting it lap to lap?
+You:   Coach: Three of thirty-two laps weren't even clean, so there's the good news up front: your best, a 0:50.638, was only +0.192 off the reference — the raw pace is real. The consistency is the weak side. Standard deviation across your 31 clean laps is 0.565 s, median 0:51.120, and the spread from your best to your worst clean lap is 2.061 s. That's the whole story: on a good lap you're a fifth off the reference, on a bad one you're over two seconds back.
+
+The biggest recurring loss is Becketts — 1.480 s per lap — and it's also your most inconsistent corner, 2.220 s of spread. The mechanism is the same every time: at exit brake you're at 91.6 km/h against the reference's 112.8, and in the same gear, second. You're coming off the pedal too early, so you arrive at the complex slow and the whole exit is compromised. One fix: hold the brake 6 m longer — nothing else, just that.
+
+Where does that early release come from — is the car moving on entry, or are you just not trusting the braking zone?
+You:   seg | lap | time | vs reference | clean
+1 | 1 | 0:51.476 | +1.030 | yes
+2 | 2 | 0:50.811 | +0.365 | yes
+3 | 3 | 0:51.315 | +0.869 | yes
+4 | 4 | 0:51.920 | +1.474 | yes
+5 | 5 | 0:51.704 | +1.258 | yes
+6 | 6 | 0:51.191 | +0.745 | yes
+7 | 7 | 0:50.745 | +0.299 | yes
+8 | 8 | 0:50.703 | +0.257 | yes
+9 | 9 | 0:52.698 | +2.252 | yes
+10 | 10 | 0:50.736 | +0.290 | yes
+11 | 11 | 0:50.638 | +0.192 | yes
+12 | 12 | 0:51.507 | +1.061 | yes
+13 | 13 | 0:52.569 | +2.123 | yes
+14 | 14 | 0:56.888 | +6.442 | no
+15 | 15 | 0:51.896 | +1.450 | yes
+16 | 16 | 0:50.840 | +0.394 | yes
+17 | 17 | 0:52.010 | +1.564 | yes
+19 | 19 | 0:51.544 | +1.098 | yes
+20 | 20 | 0:51.120 | +0.674 | yes
+22 | 22 | 0:51.057 | +0.611 | yes
+23 | 23 | 0:50.901 | +0.455 | yes
+24 | 24 | 0:51.322 | +0.876 | yes
+25 | 25 | 0:51.648 | +1.202 | yes
+26 | 26 | 0:51.103 | +0.657 | yes
+27 | 27 | 0:51.029 | +0.583 | yes
+28 | 28 | 0:50.728 | +0.282 | yes
+29 | 29 | 0:50.687 | +0.241 | yes
+30 | 30 | 0:50.972 | +0.526 | yes
+31 | 31 | 0:50.709 | +0.263 | yes
+32 | 32 | 0:51.137 | +0.691 | yes
+33 | 33 | 0:51.050 | +0.604 | yes
+34 | 34 | 0:52.388 | +1.942 | yes
+You:   # Plan — Silverstone National Circuit
+
+Session best 0:50.638, 0.849 s off the reference on average, spread 2.061 s over 31 clean laps.
+
+1. **Becketts** — hold the brake 6 m longer.
+   Measured now: 1.480 s lost per lap, 100% of your gap.
+   Target: 112.8 km/h at the brake release, against 91.6 km/h today.
+
+2. **Copse** — one gear higher at the apex (5th, not 4th).
+   Measured now: 0.286 s lost per lap, 34% of your gap.
+   Target: 203.5 km/h at the brake release, against 188.4 km/h today; 5th gear at the apex, against 4th today.
+
+3. **Luffield** — hold the brake 41 m longer.
+   Measured now: 0.144 s lost per lap, 17% of your gap.
+   Target: 102.4 km/h at the brake release, against 99.6 km/h today.
+
+Written to var\debrief\session_20261111T180351Z_silverstone-national-circuit_lmu_race_plan.md
+You:   

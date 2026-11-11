@@ -143,6 +143,26 @@ from create_silverstone_national_p3_assets import compact_outline, TRACK
 # then compact_outline(outline) -> 351 lines
 ```
 
+## Debrief sessions run against these assets
+
+The refresh was validated by running the session debrief twice against the live
+assets (transcripts/reports in `artifacts/debrief-*`):
+
+- **race** `session_20261111T180351Z` — 32 eligible / 31 clean, best **0:50.638**
+  (+0.192). Coach's #1 was Becketts "1.480 s/lap", which turned out to be two
+  laps (5 and 9, `exit_brake` on 2/27 laps; per-lap median 0.095 s) —
+  `artifacts/debrief-race-becketts-detail.txt` has the raw-signal analysis:
+  brake on **+17 m** later, peak **0.80 vs 0.71**, release **23 m** earlier,
+  apex **4 km/h** slower, on 27/31 laps. Line, gear and apex position were
+  identical to the reference.
+- **practice** `session_20261111T185406Z` (the source of the 0:50.392 reference)
+  — 16 eligible / 15 clean, best **0:50.392** (= the reference). Becketts
+  **0.376 s/lap, 59 %** of the 0.636 s mean gap, traced to brake trail 9–40 m vs
+  the reference's steady 21 m.
+
+Both runs confirm the model resolves by (track, car) → `ginetta-lmp3` and that
+the refreshed Maggots/Becketts geometry chains cleanly (1 m gap).
+
 ## Tests
 
 - `bash scripts/test-summary.sh --feature track-outline --pw`:

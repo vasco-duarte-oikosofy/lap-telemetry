@@ -20,6 +20,7 @@ var/screenshots/*
 !var/screenshots/README.md
 var/tmp/*
 !var/tmp/README.md
+var/debrief*/*
 node_modules/
 package-lock.json
 

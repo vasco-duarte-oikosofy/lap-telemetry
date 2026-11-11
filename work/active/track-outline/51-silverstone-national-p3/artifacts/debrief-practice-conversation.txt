@@ -1,0 +1,89 @@
+Commands: /corner <name>, /laps, /plan, /save, /help, /quit
+Coach: Good news first: your best lap is 0:50.392, bang on the reference, and 15 of 16 laps were clean — the one-lap pace is already there.
+
+The recurring loss is Becketts on the exit-brake. You're down to 101.6 km/h there against 110.4 in the reference, same gear, and it's costing you 0.376 s every lap — that's 59% of your 0.636 s mean gap to reference. It's also your most inconsistent corner, with 0.975 s of spread, so this one corner is where your lap times scatter.
+
+One fix: hold the brake 14 m longer into Becketts before you tip in and let it run.
+
+Are you releasing the pedal early there because the car feels unsettled on entry?
+You:   Coach: Straight to it: on lap 16 you matched the reference exactly — 0:50.392, +0.000. The pace is there.
+
+The session as a whole looks different. Your mean gap is 0.636 s across 15 clean laps and your median is 0:50.782, about +0.390, so on most laps you're leaving over half a second on the table. The spread is 1.937 s, and your first lap was the slowest clean one at +1.937.
+
+The single biggest recurring loss is Becketts: 0.376 s per lap, 59% of the gap. On exit_brake you're running 101.6 km/h against the reference's 110.4 km/h in the same gear 2 — you're releasing the brake early and paying for it all the way out of the corner. One fix: hold the brake 14 m longer there. That alone outweighs Copse and Brooklands put together.
+
+Are you willing to run the next stint focused only on that brake point and ignore the stopwatch?
+You:   CORNER: Becketts (apex 1068 m)
+priority #1: 0.376 s per lap, 59% of the gap, both
+fix: hold the brake 14 m longer
+reference: gear 2, brake peak 0.63, trail 21 m, line 4.1 m
+you: gear 2, trail 19 m, line 4.1 m
+
+minimum speed spread: 15.2 km/h | minimum-speed loss spread: 0.975 s | median speed: 104.8 km/h
+
+Per-lap detail (clean laps):
+| seg | min speed km/h | ref km/h | gear | brake | trail m | loss s |
+|---|---:|---:|---:|---:|---:|---:|
+| 1 | 101.8 | 108.5 | 2 | 0.64 | 13 | +0.304 |
+| 2 | 98.6 | 108.5 | 2 | 0.57 | 12 | +0.308 |
+| 3 | 97.9 | 108.5 | 2 | 0.54 | 9 | +0.895 |
+| 4 | 100.8 | 108.5 | 2 | 0.52 | 11 | +0.285 |
+| 5 | 106.0 | 108.5 | 2 | 0.64 | 19 | +0.005 |
+| 6 | 107.2 | 108.5 | 2 | 0.62 | 23 | +0.097 |
+| 7 | 101.0 | 108.5 | 2 | 0.67 | 15 | -0.080 |
+| 9 | 98.1 | 108.5 | 2 | 0.60 | 20 | +0.132 |
+| 10 | 108.0 | 108.5 | 2 | 0.71 | 34 | -0.069 |
+| 11 | 104.8 | 108.5 | 2 | 0.99 | 40 | +0.071 |
+| 12 | 113.1 | 108.5 | 2 | 0.73 | 26 | -0.009 |
+| 13 | 106.3 | 108.5 | 2 | 0.53 | 18 | +0.155 |
+| 14 | 107.5 | 108.5 | 2 | 0.61 | 19 | +0.084 |
+
+You matched the session reference outright — 0:50.392 on lap 16 — and laps 10 through 12 were all within 0.14.
+
+Becketts is still your biggest loss: 0.376 s a lap, 59% of the gap. The mechanism is exit braking — your median minimum speed there is 104.8 km/h against 108.5 needed, with a 15.2 km/h spread across the stint. Early on you were dropping to 97.9–101: you came off the pedal at 9–15 m of trail against the reference's 21. When you held it 26–40 m on laps 10–12, the loss went to zero or better — lap 12 at 113.1 km/h actually beat the corner. This is 0.975 s of spread you're giving away lap to lap, not car performance.
+
+The fix is one thing: hold the brake 14 m longer at Becketts, and keep that same trail every lap, not just on the good ones.
+
+What made those laps 10–12 feel different — did the front just come alive for you there?
+You:   Coach: Yes, it moved — a lot. First the good: on laps 10 and 12 you genuinely beat Becketts, minimum speed 108.0 and 113.1 km/h against the reference, losses of -0.069 and -0.009.
+
+But see how you got there. Early, laps 1 to 4, you braked light and short — brake peaks 0.52 to 0.64, trail only 9 to 13 metres — and the minimum speed sank as far as 97.9, costing +0.895 on lap 3. Then laps 10 to 12 you went the other way: brake 0.71 to 0.99, trail 26 to 40 metres. By lap 13 you'd dropped back to 0.53 and 18 metres and handed +0.155 straight back.
+
+So Becketts isn't a speed problem, it's a repeat problem — 0.975 s spread over 13 laps, 0.376 s per lap, 59% of your whole gap. The fix in the data is simple: hold the brake 14 m longer, every lap, not 9 and not 40.
+
+What brake marker did you use on lap 12 — and can you find that same spot again next stint?
+You:   seg | lap | time | vs reference | clean
+1 | 1 | 0:52.329 | +1.937 | yes
+2 | 2 | 0:51.596 | +1.204 | yes
+3 | 3 | 0:52.049 | +1.657 | yes
+4 | 4 | 0:51.464 | +1.072 | yes
+5 | 5 | 0:51.242 | +0.850 | yes
+6 | 6 | 0:50.782 | +0.390 | yes
+7 | 7 | 0:50.858 | +0.466 | yes
+8 | 8 | 0:53.297 | +2.905 | no
+9 | 9 | 0:51.355 | +0.963 | yes
+10 | 10 | 0:50.415 | +0.023 | yes
+11 | 11 | 0:50.516 | +0.124 | yes
+12 | 12 | 0:50.526 | +0.134 | yes
+13 | 13 | 0:50.710 | +0.318 | yes
+14 | 14 | 0:50.602 | +0.210 | yes
+15 | 15 | 0:50.587 | +0.195 | yes
+16 | 16 | 0:50.392 | +0.000 | yes
+You:   # Plan — Silverstone National Circuit
+
+Session best 0:50.392, 0.636 s off the reference on average, spread 1.937 s over 15 clean laps.
+
+1. **Becketts** — hold the brake 14 m longer.
+   Measured now: 0.376 s lost per lap, 59% of your gap.
+   Target: 110.4 km/h at the brake release, against 101.6 km/h today.
+
+2. **Copse** — hold the brake 26 m past the apex and brake 9 m later.
+   Measured now: 0.162 s lost per lap, 26% of your gap.
+   Target: 202.8 km/h onto the straight, against 192.5 km/h today.
+
+3. **Brooklands** — hold the brake 32 m longer and carry 2 km/h more speed onto the straight.
+   Measured now: 0.115 s lost per lap, 18% of your gap.
+   Target: 118.2 km/h at the brake release, against 112.1 km/h today.
+
+Written to var\debrief-practice\session_20261111T185406Z_silverstone-national-circuit_lmu_practice_plan.md
+You:   
