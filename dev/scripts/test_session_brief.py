@@ -163,9 +163,88 @@ def test_validation() -> None:
     check(any("question" in w for w in two_questions),
           "two questions are flagged", str(two_questions))
 
+    degenerate = validate_reply(
+        "Count: Start(1) with(2) the(3) good(4): you(5) lose(6) 0.702 s. Was it?",
+        grounding=grounding)
+    check(any("annotation" in w for w in degenerate),
+          "word-by-word annotation is flagged as degenerate", str(degenerate))
+
+    truncated = validate_reply(
+        "It is not how slow you go — your median there is 70.4 against 65.0 and",
+        grounding=grounding)
+    check(any("truncated" in w for w in truncated),
+          "a reply that stops mid-sentence is flagged", str(truncated))
+
     long_reply = " ".join(["you are slow here"] * 80) + " 0.702 s. Was it?"
     check(any("words" in w for w in validate_reply(long_reply, grounding=grounding)),
           "a rambling reply is flagged")
+
+
+def test_drilldown_numbers_are_grounded() -> None:
+    """Numbers that only appear in the corner block are still the facts."""
+    facts = _facts()
+    from lap_telemetry.session_brief import corner_block
+
+    block = corner_block(facts, "t1")
+    spread = re.search(r"minimum speed spread: ([\d.]+) km/h", block)
+    check(spread is not None, "the block states a minimum-speed spread",
+          str(spread))
+    value = spread.group(1)
+    check(value not in build_grounding(facts),
+          "the spread is not in the session grounding, only in the drill-down",
+          value)
+
+    model = FakeModel(f"You had {value} km/h of apex-speed spread at Bretelle. "
+                      f"Did it feel like the same corner each lap?")
+    answer = DebriefCoach(model=model).ask("why was Bretelle so bad?", facts)
+    check(not answer.warnings,
+          "a drill-down number is not reported as invented", str(answer.warnings))
+
+    liar = FakeModel("You lost 4.7 s there. Did it feel slow?")
+    check(DebriefCoach(model=liar).ask("why was Bretelle so bad?", facts).warnings,
+          "an invented number is still caught when a drill-down is present")
+
+
+def test_provider_failure_is_explained() -> None:
+    """A dead provider is one sentence, not a traceback."""
+    from lap_telemetry.coach.llm_adapter import LLMAdapterError
+    from lap_telemetry.session_conversation import Conversation
+
+    facts = _facts()
+    import tempfile
+
+    class DeadCoach:
+        def ask(self, question, facts):
+            raise LLMAdapterError("Error code: 410 — model retired")
+
+    with tempfile.TemporaryDirectory() as tmp:
+        convo = Conversation(facts, DeadCoach(), out_dir=Path(tmp))
+        text = convo.handle("where am I losing time?")
+        check("retired" in text or "model" in text.lower(),
+              "the provider error reaches the driver", text[:100])
+        check("--no-llm" in text, "with a way to recover", text[:140])
+        check(convo.transcript[-1]["role"] == "coach",
+              "and it is part of the transcript")
+
+
+def test_provider_errors_are_wrapped() -> None:
+    """Callers should only ever need to catch LLMAdapterError."""
+    from lap_telemetry.coach import llm_adapter
+    from lap_telemetry.coach.coach_config import LLMConfig
+
+    original = llm_adapter._call_via_openai
+    def boom(config, messages):
+        raise RuntimeError("410 model retired")
+    llm_adapter._call_via_openai = boom
+    try:
+        try:
+            llm_adapter.call_llm(LLMConfig(provider="ollama"), [{"role": "user", "content": "hi"}])
+        except llm_adapter.LLMAdapterError as exc:
+            check("410" in str(exc), "a provider exception becomes LLMAdapterError", str(exc))
+        else:
+            check(False, "a provider exception becomes LLMAdapterError")
+    finally:
+        llm_adapter._call_via_openai = original
 
 
 def test_template_adapter() -> None:
@@ -205,6 +284,9 @@ def main() -> int:
     test_corner_block()
     test_messages()
     test_validation()
+    test_drilldown_numbers_are_grounded()
+    test_provider_failure_is_explained()
+    test_provider_errors_are_wrapped()
     test_template_adapter()
     test_cli()
     total = _passed + _failed

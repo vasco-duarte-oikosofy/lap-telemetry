@@ -32,3 +32,21 @@
 The real provider path (`call_llm` with Ollama) is exercised only by hand, not in
 CI: no key and no network in the test environment. The message assembly, the
 contract and the validation are all covered by the fake adapter.
+
+## What the first live run taught (added after the mission closed)
+
+- **"At most 120 words" is a trap for small models.** `glm-5.3-flash` started
+  literally counting: `Count: Positive(1) first(2): … You(57) arrive(58)`. The
+  word limit now lives only in the validator; the prompt asks for brevity
+  without a number, and annotation is flagged as degenerate output.
+- **Validate against what you actually sent.** The drill-down numbers
+  (22.9 km/h spread, lap 4 at 86.4, +1.559 s) were reported as invented because
+  `validate_reply` only saw the session grounding. The validator now receives
+  grounding + drill-down, exactly the text the model was given.
+- **A dead provider must not be a traceback.** A retired model id
+  (`glm-5.1:cloud`, 410) crashed the REPL; provider SDK errors are now wrapped
+  in `LLMAdapterError` and the conversation continues with one sentence saying
+  what happened and how to recover.
+- **Providers can split a reply.** One answer arrived starting mid-word because
+  the first characters went into the `reasoning` field. Not recoverable, so it
+  is detected: a reply that does not end in a sentence terminator is flagged.

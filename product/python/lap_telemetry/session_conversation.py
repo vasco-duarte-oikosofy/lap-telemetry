@@ -15,6 +15,7 @@ from pathlib import Path
 from typing import Any, Callable, Iterable
 
 from .coach.debrief_coach import DebriefCoach
+from .coach.llm_adapter import LLMAdapterError
 from .session_brief import corner_block, find_corner
 from .session_facts import SessionDebriefFacts
 from .session_priorities import ordinal
@@ -167,7 +168,18 @@ class Conversation:
 
     def _ask(self, question: str) -> str:
         self._record("driver", question)
-        answer = self.coach.ask(question, self.facts)
+        try:
+            answer = self.coach.ask(question, self.facts)
+        except LLMAdapterError as exc:
+            # A retired model or a dead network must not end the session with a
+            # traceback: say what happened and how to keep working.
+            text = (f"I could not reach the coach model ({exc}). "
+                    f"Fix coach_config.toml and the API key, or run with --no-llm "
+                    f"for the same facts without a model.")
+            self._record("coach", text, warnings=["provider error"])
+            self.history.append(("driver", question))
+            self.history.append(("coach", text))
+            return text
         self._record("coach", answer.text, warnings=answer.warnings or None)
         self.history.append(("driver", question))
         self.history.append(("coach", answer.text))
@@ -266,10 +278,9 @@ class Conversation:
             if answer == "__QUIT__":
                 break
             if answer:
-                printer(answer if line.strip().startswith("/plan") or
-                        line.strip().startswith("/laps") or
-                        line.strip().startswith("/corner")
-                        else f"Coach: {answer}")
+                # Commands print their own output; only questions are the coach
+                # speaking.
+                printer(answer if line.strip().startswith("/") else f"Coach: {answer}")
         self.write_transcript()
         if not self.plan_path.exists():
             self.write_plan()

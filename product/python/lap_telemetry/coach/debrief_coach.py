@@ -30,19 +30,24 @@ MAX_WORDS = 160
 MAX_POINTS = 3
 
 SYSTEM_PROMPT = """\
-You are a driver-coach debriefing a driver after a practice stint. You have raced
-Hypercars and GT3s and you have coached before: warm, direct, and hard to
+You are a race driver-coach debriefing a driver after a practice stint. You have
+raced Hypercars and GT3s and you have coached before: warm, direct, and hard to
 impress. You never invent telemetry.
 
-RULES
-1. Open with one real positive, with a number from the facts.
-2. Then the single biggest recurring loss, with its number and its mechanism.
-3. At most three coaching points. One fix at a time.
-4. At most 120 words. Exactly one question back to the driver.
-5. Never soften a gap: a 2 second gap is two seconds.
-6. Never invent a number. If it is not in the grounding, you do not know it.
-7. Speak about corners by their names from the facts.
-8. No preamble, no bullet lists, no motivational filler, no emoji.
+HOW YOU TALK
+- Open with one real positive, with a number from the facts.
+- Then the single biggest recurring loss: its number and its mechanism.
+- One fix at a time. Never more than three things in a reply.
+- End with exactly one question, then stop.
+- Keep it short: a driver is still in the car, not reading a page.
+- Never soften a gap. Two seconds is two seconds.
+- Use the corner names from the facts.
+
+WHAT YOU MUST NOT DO
+- Never state a number that is not in the facts below.
+- Never number, index, annotate or count your own words, and never show your
+  reasoning or your working. Plain prose only.
+- No preamble, no bullet lists, no motivational filler, no emoji.
 
 The driver's facts follow. Answer only from them.
 """
@@ -117,6 +122,10 @@ def validate_reply(reply: str, grounding: str) -> list[str]:
     questions = reply.count("?")
     if questions != 1:
         warnings.append(f"reply has {questions} questions (need exactly one)")
+    if re.search(r"\w\(\d+\)", reply) or "Count:" in reply:
+        warnings.append("reply contains word-by-word annotation (degenerate output)")
+    if reply and reply[-1] not in ".?!\"'" and not reply.endswith(")."):
+        warnings.append("reply looks truncated (no sentence ending)")
     return warnings
 
 
@@ -157,8 +166,13 @@ def _template_answer(
 
 def build_messages(
     facts: SessionDebriefFacts, question: str
-) -> tuple[list[dict[str, str]], str | None]:
-    """System contract + grounding, then the driver's question."""
+) -> tuple[list[dict[str, str]], str | None, str]:
+    """System contract + grounding, then the driver's question.
+
+    Returns ``(messages, corner_id, injected_facts)`` — the last one is exactly
+    what the model was allowed to read, so validation can check against the same
+    text instead of only the session-level grounding.
+    """
     grounding = build_grounding(facts)
     corner_id = find_corner(facts, question)
     detail = corner_block(facts, corner_id) if corner_id else ""
@@ -172,7 +186,8 @@ def build_messages(
         {"role": "system", "content": system},
         {"role": "user", "content": user},
     ]
-    return messages, corner_id
+    injected = f"{grounding}\n{detail}" if detail else grounding
+    return messages, corner_id, injected
 
 
 class DebriefCoach:
@@ -187,8 +202,7 @@ class DebriefCoach:
         self.config = config
 
     def ask(self, question: str, facts: SessionDebriefFacts) -> CoachAnswer:
-        messages, corner_id = build_messages(facts, question)
-        grounding = build_grounding(facts)
+        messages, corner_id, injected = build_messages(facts, question)
         if self.model is not None:
             text = self.model(messages)
         elif self.config is not None:
@@ -198,7 +212,7 @@ class DebriefCoach:
         text = text.strip()
         return CoachAnswer(
             text=text,
-            warnings=validate_reply(text, grounding),
+            warnings=validate_reply(text, injected),
             question=question,
             messages=messages,
         )

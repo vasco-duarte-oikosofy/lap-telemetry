@@ -72,8 +72,17 @@ def call_llm(config: LLMConfig, messages: list[dict[str, str]]) -> str:
 
     Public so other products (the session debrief) reuse the same provider
     plumbing instead of growing a second client for the same config.
+
+    Every provider failure is re-raised as ``LLMAdapterError``: callers should
+    not have to catch ``openai.APIStatusError``, ``litellm``'s exceptions and
+    their own network errors to tell the driver one sentence.
     """
-    return _call_llm(config, messages)
+    try:
+        return _call_llm(config, messages)
+    except LLMAdapterError:
+        raise
+    except Exception as exc:  # noqa: BLE001 - provider SDKs raise many types
+        raise LLMAdapterError(f"{type(exc).__name__}: {exc}") from exc
 
 
 def _call_llm(config: LLMConfig, messages: list[dict[str, str]]) -> str:

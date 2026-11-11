@@ -1,6 +1,6 @@
 [llm]
 provider = "ollama"
-model = "glm-5.1:cloud"
+model = "glm-5.3-flash:cloud"
 api_key_env = "OLLAMA_API_KEY"              # local Ollama doesn't validate this
 temperature = 0.3
 max_tokens = 4096

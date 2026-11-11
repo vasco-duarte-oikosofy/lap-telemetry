@@ -100,11 +100,7 @@ def build_grounding(facts: SessionDebriefFacts) -> str:
         for channel, reason in sorted(session.unmeasurable_channels.items()):
             lines.append(f"{channel}: {reason}")
 
-    lines += ["", "RULES FOR THE REPLY",
-              "- One real positive with a number, then the single biggest loss.",
-              "- At most three coaching points. One fix at a time.",
-              "- At most 120 words. Exactly one question back.",
-              "- Every number you state must appear above."]
+    lines += ["", "Every number you state must appear above."]
     return _clip("\n".join(lines) + "\n", GROUNDING_BUDGET_BYTES)
 
 
