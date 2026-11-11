@@ -1,0 +1,3 @@
+      * source: session_20260808T155443Z_weathertech-raceway-laguna-seca_lmu_practice.parquet
+
+37 reference laps checked, 0 failures.

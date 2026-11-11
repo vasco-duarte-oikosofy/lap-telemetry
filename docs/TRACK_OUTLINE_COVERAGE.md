@@ -48,6 +48,7 @@ kerb or far from the outside wall.
 | Michelin Raceway Road Atlanta | `michelin-raceway-road-atlanta` | Trajectory | Single lap (practice lap 15, 1:16.809, 2026-10-04; outline not regenerated after the race-lap reference refresh) | Constant 5m each side | ❌ No |
 | Monza Curva Grande Circuit | `monza-curva-grande-circuit` | Trajectory | Single lap (practice lap 12, 1:35.182, 2026-10-31) | Constant 5m each side | ❌ No |
 | Silverstone International Circuit | `silverstone-international-circuit` | Trajectory | Single lap (race lap 13, 1:02.909, 2026-10-31) | Constant 5m each side | ❌ No |
+| Silverstone National Circuit | `silverstone-national-circuit` | Trajectory | Ginetta P3 practice lap 20, 0:50.446, 2026-11-11; six official National turns (Copse, Maggots, Becketts, Brooklands, Luffield, Woodcote), two flat bends | Synthetic constant 5m each side | ❌ No |
 | Grand Prix of Long Beach | `grand-prix-of-long-beach` | Trajectory | Ferrari 499P practice lap 10, 1:15.889, 2026-11-01; all 11 official turns, flat T3/T7 preserved | Synthetic constant 5m each side (not street walls) | ❌ No |
 
 ---
@@ -106,6 +107,7 @@ kerb or far from the outside wall.
 | Paul Ricard - ELMS | ✅ The 5.8 km 1C layout (tight Verrerie `S` + Chicane Nord), distinct from 1A/1A-V2-Short/3A; trajectory only, real widths unmeasured |
 | Monza Curva Grande Circuit | ✅ Trajectory outline done; TUMFTM `Monza.csv` is the chicane layout, not this one. The trajectory tracks the TUMFTM Monza centreline within 5m everywhere except the missing Rettifilo chicane (~40m) |
 | Silverstone International Circuit | ✅ Trajectory outline done; TUMFTM `Silverstone.csv` is the GP layout. The short loop lies on GP tarmac (median 5.1m from the GP centreline) apart from one ~170m International-only link road (max 91m) |
+| Silverstone National Circuit | ✅ Trajectory outline done; TUMFTM `Silverstone.csv` is the GP layout. The National loop lies on GP tarmac within 9m everywhere except one ~90m National-only link (max 35m) between the Maggots flick and the Wellington Straight |
 
 ---
 

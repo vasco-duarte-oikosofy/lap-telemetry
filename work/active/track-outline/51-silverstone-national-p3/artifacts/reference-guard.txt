@@ -1,0 +1,9 @@
+Fastest lap in session(s): lap 20 @ 50.446s (session_20261111T173251Z_silverstone-national-circuit_lmu_practice.parquet, vehicle dkr-engineering-4-elms25)
+Not faster than existing reference 50.446s - reference stays; model will be checked against silverstone-national-circuit_dkr-engineering-4-elms25_time_00.50.446.parquet
+Corner check: model has 6, lap yields 4 (3 matched, 3 geometry preserved)
+  PRESERVED: Copse (copse) keeps reviewed geometry; no event claimed
+  PRESERVED: Maggots (maggots) keeps reviewed geometry; no event claimed
+  PRESERVED: Woodcote (woodcote) keeps reviewed geometry; no event claimed
+  INFO: new corner at apex=365m not in the model - ignored
+
+Coaching model already up to date (silverstone-national-circuit_dkr-engineering-4-elms25.json) - nothing written.

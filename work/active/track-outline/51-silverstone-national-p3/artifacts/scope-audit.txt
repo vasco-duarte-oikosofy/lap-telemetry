@@ -1,0 +1,36 @@
+git status --porcelain (lap-telemetry):
+ M dev/scripts/export_fastest_reference_laps.py
+ M dev/scripts/update_reference_and_coaching_model.py
+ M docs/TRACK_OUTLINE_COVERAGE.md
+ M package.json
+ M product/dist/compare.html
+ M product/web/js/trackOutlineManifest.js
+ M work/active/track-outline/PLAN.md
+?? coach-race.log
+?? dev/scripts/create_silverstone_national_p3_assets.py
+?? dev/scripts/test_silverstone_national_p3.js
+?? dev/scripts/test_silverstone_national_p3.py
+?? dev/scripts/test_silverstone_national_p3_tinypedal.js
+?? dev/scripts/test_silverstone_national_p3_ui.js
+?? product/data/reference-laps/silverstone-national-circuit_dkr-engineering-4-elms25_time_00.50.446.parquet
+?? product/data/track-coaching/silverstone-national-circuit_dkr-engineering-4-elms25.diagnostics.txt
+?? product/data/track-coaching/silverstone-national-circuit_dkr-engineering-4-elms25.json
+?? product/data/track-outlines/silverstone-national-circuit.json
+?? product/web/js/staticSilverstoneNationalCircuitOutlineData.js
+?? work/active/track-outline/51-silverstone-national-p3/
+
+Curated asset folder sizes:
+  reference-laps: 37 files
+  track-coaching: 75 files
+  track-outlines: 29 files
+Silverstone National files on disk:
+  product\data\reference-laps\silverstone-national-circuit_dkr-engineering-4-elms25_time_00.50.446.parquet 193636 bytes
+  product\data\track-coaching\silverstone-national-circuit_dkr-engineering-4-elms25.diagnostics.txt 577 bytes
+  product\data\track-coaching\silverstone-national-circuit_dkr-engineering-4-elms25.json 1778 bytes
+  product\data\track-outlines\silverstone-national-circuit.json 44591 bytes
+
+git status --porcelain (tinypedal sibling repo):
+?? .venv/
+?? "tinypedal/data/turn_labels/Silverstone National Circuit.turns.json"
+?? var/
+

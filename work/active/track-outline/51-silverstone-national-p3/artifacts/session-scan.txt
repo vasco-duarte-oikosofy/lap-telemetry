@@ -1,0 +1,42 @@
+=== session_20261111T172218Z_silverstone-national-circuit_lmu_practice.parquet
+  rows=31259 track=Silverstone National Circuit vehicle='DKR Engineering #4:ELMS25' in_progress=False ended=2026-11-11T17:32:49Z
+  seg  0 lap  0 rows= 4277 auth= 1228.739s dmin=    24.9 dmax=  2630.3 valid=4277/4277
+  seg  1 lap  1 rows= 2815 auth=   57.076s dmin=    38.3 dmax=  2631.3 valid=2815/2815
+  seg  2 lap  2 rows= 2714 auth=   54.438s dmin=     9.0 dmax=  2640.9 valid=2714/2714
+  seg  3 lap  3 rows= 2573 auth=   51.593s dmin=     6.9 dmax=  2637.7 valid=2573/2573
+  seg  4 lap  4 rows= 2597 auth=   52.095s dmin=     7.4 dmax=  2640.2 valid=2597/2597
+  seg  5 lap  5 rows= 2552 auth=   51.170s dmin=     1.3 dmax=  2631.1 valid=2552/2552
+  seg  6 lap  6 rows= 2559 auth=   51.336s dmin=     3.2 dmax=  2632.1 valid=2559/2559
+  seg  7 lap  7 rows= 2535 auth=   50.859s dmin=     7.3 dmax=  2639.1 valid=2535/2535
+  seg  8 lap  8 rows= 2536 auth=   50.892s dmin=     3.5 dmax=  2632.3 valid=2536/2536
+  seg  9 lap  9 rows= 2543 auth=   51.052s dmin=    -2.3 dmax=  2629.9 valid=2543/2543
+  seg 10 lap 10 rows= 2544 auth=   51.075s dmin=     7.1 dmax=  2631.1 valid=2544/2544
+  seg 11 lap 11 rows=  866 auth=   17.515s dmin=     2.3 dmax=  2632.0 valid=866/866
+  seg 12 lap 12 rows=  148 auth=    2.959s dmin=    31.1 dmax=    31.1 valid=148/148
+  complete laps (30s floor): [(1, 57.076, 2815), (2, 54.438, 2714), (3, 51.593, 2573), (4, 52.095, 2597), (5, 51.17, 2552), (6, 51.336, 2559), (7, 50.859, 2535), (8, 50.892, 2536), (9, 51.052, 2543), (10, 51.075, 2544)]
+
+=== session_20261111T173251Z_silverstone-national-circuit_lmu_practice.parquet
+  rows=48666 track=Silverstone National Circuit vehicle='DKR Engineering #4:ELMS25' in_progress=False ended=2026-11-11T17:49:09Z
+  seg  0 lap 12 rows=11199 auth=  230.858s dmin=    24.9 dmax=  2629.9 valid=11199/11199
+  seg  1 lap 13 rows= 2590 auth=   51.945s dmin=     4.0 dmax=  2631.4 valid=2590/2590
+  seg  2 lap 14 rows= 2523 auth=   50.577s dmin=     7.5 dmax=  2638.3 valid=2523/2523
+  seg  3 lap 15 rows= 2546 auth=   51.067s dmin=     8.9 dmax=  2641.7 valid=2546/2546
+  seg  4 lap 16 rows= 1334 auth=   26.798s dmin=     4.7 dmax=  2631.5 valid=1334/1334
+  seg  5 lap 17 rows= 4303 auth=   86.225s dmin=    24.9 dmax=  2630.0 valid=4303/4303
+  seg  6 lap 18 rows= 2637 auth=   52.967s dmin=     3.2 dmax=  2631.0 valid=2637/2637
+  seg  7 lap 19 rows= 2559 auth=   51.353s dmin=     5.4 dmax=  2631.3 valid=2559/2559
+  seg  8 lap 20 rows= 2512 auth=   50.446s dmin=     8.3 dmax=  2632.1 valid=2512/2512
+  seg  9 lap 21 rows= 2525 auth=   50.711s dmin=     5.4 dmax=  2631.2 valid=2525/2525
+  seg 10 lap 22 rows= 2562 auth=   51.448s dmin=    -1.6 dmax=  2630.0 valid=2562/2562
+  seg 11 lap 23 rows= 2567 auth=   51.561s dmin=     8.0 dmax=  2631.9 valid=2567/2567
+  seg 12 lap 24 rows= 2519 auth=   50.639s dmin=    -2.1 dmax=  2629.9 valid=2519/2519
+  seg 13 lap 25 rows= 2521 auth=   50.657s dmin=     8.1 dmax=  2630.9 valid=2521/2521
+  seg 14 lap 26 rows= 2542 auth=   51.125s dmin=     4.4 dmax=  2631.3 valid=2542/2542
+  seg 15 lap 28 rows= 1227 auth=    0.781s dmin=    31.1 dmax=  2271.3 valid=1227/1227
+  complete laps (30s floor): [(12, 230.858, 11199), (13, 51.945, 2590), (14, 50.577, 2523), (15, 51.067, 2546), (17, 86.225, 4303), (18, 52.967, 2637), (19, 51.353, 2559), (20, 50.446, 2512), (21, 50.711, 2525), (22, 51.448, 2562), (23, 51.561, 2567), (24, 50.639, 2519), (25, 50.657, 2521)]
+
+=== session_20261111T174910Z_silverstone-national-circuit_lmu_practice.parquet
+  rows=9599 track=Silverstone National Circuit vehicle='DKR Engineering #4:ELMS25' in_progress=False ended=2026-11-11T17:52:28Z
+  seg  0 lap 28 rows= 9599 auth=    0.781s dmin=    31.1 dmax=    31.1 valid=9599/9599
+  complete laps (30s floor): []
+

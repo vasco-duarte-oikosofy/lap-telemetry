@@ -1,0 +1,48 @@
+Per-lap detector output for every complete lap of this combo (apex, entry-exit, metres).
+Used to review the refresh guard: a boundary that wanders across laps is not a
+stable teaching boundary (Tamburello precedent, slice 44).
+
+  lap  1  57.076s  [apex  407  241- 417]  [apex 1063  843-1111]  [apex 1969 1747-2203]
+  lap  2  54.438s  [apex  388  250- 396]  [apex 1100  869-1107]  [apex 1922 1754-1960]  [apex 2086 2003-2202]
+  lap  3  51.593s  [apex  370  250- 376]  [apex 1084  856-1097]  [apex 1941 1745-1979]  [apex 2095 1995-2164]
+  lap  4  52.095s  [apex  470  262- 476]  [apex 1033  882-1104]  [apex 1924 1746-1962]  [apex 2104 2004-2170]
+  lap  5  51.170s  [apex  365  244- 367]  [apex 1063  865-1110]  [apex 1935 1753-1959]  [apex 2105 2005-2187]
+  lap  6  51.336s  [apex  361  241- 364]  [apex 1051  881-1085]  [apex 1916 1753-1943]  [apex 2105 1999-2176]
+  lap  7  50.859s  [apex  358  243- 428]  [apex 1045  863-1104]  [apex 1906 1747-1948]  [apex 2084 2002-2180]
+  lap  8  50.892s  [apex  360  249- 363]  [apex 1073  890-1086]  [apex 1910 1748-1969]  [apex 2093 2011-2195]
+  lap  9  51.052s  [apex  365  249- 366]  [apex 1056  873-1078]  [apex 2103 1744-2176]
+  lap 10  51.075s  [apex  366  234- 370]  [apex 1066  891-1084]  [apex 1925 1736-1948]  [apex 2108 2004-2136]
+  lap 13  51.945s  [apex  399  245- 400]  [apex 1061  889-1080]  [apex 1907 1742-1988]  [apex 2069 1989-2189]
+  lap 14  50.577s  [apex  369  235- 373]  [apex 1068  859-1078]  [apex 1900 1741-1972]  [apex 2096 2009-2167]
+  lap 15  51.067s  [apex  384  226- 392]  [apex 1063  890-1089]  [apex 1922 1745-1959]  [apex 2107 2009-2140]
+  lap 18  52.967s  [apex  381  229- 388]  [apex 1055  859-1100]  [apex 1965 1754-1984]  [apex 2089 1985-2191]
+  lap 19  51.353s  [apex  396  231- 400]  [apex 1066  854-1108]  [apex 1940 1747-1970]  [apex 2109 2007-2167]
+  lap 20  50.446s  [apex  365  217- 369]  [apex 1067  854-1091]  [apex 1924 1746-1960]  [apex 2105 2003-2168]
+  lap 21  50.711s  [apex  418  238- 422]  [apex 1059  877-1090]  [apex 1910 1753-1946]  [apex 2104 2006-2133]
+  lap 22  51.448s  [apex  415  240- 419]  [apex 1086  879-1106]  [apex 2121 1747-2168]
+  lap 23  51.561s  [apex  424  233- 426]  [apex 1066  887-1091]  [apex 1936 1748-1992]  [apex 2119 1997-2158]
+  lap 24  50.639s  [apex  432  238- 434]  [apex 1063  867-1085]  [apex 1920 1728-1993]  [apex 2099 2005-2148]
+  lap 25  50.657s  [apex  410  238- 414]  [apex 1063  855-1092]  [apex 1916 1735-1955]  [apex 2099 1956-2195]
+
+Spread across those laps (Brooklands/Luffield only from the laps where the detector
+separated them; on 3 of 21 clean laps the two merged into one event):
+  Copse      n=21  apex  358- 470 (spread 112)  entry  217- 262  exit  363- 476 (spread 113)
+  Becketts   n=21  apex 1033-1100 (spread  67)  entry  843- 891  exit 1078-1111 (spread  33)
+  Brooklands n=18  apex 1900-1965 (spread  65)  entry 1728-1754  exit 1943-1993 (spread  50)
+  Luffield   n=18  apex 2069-2119 (spread  50)  entry 1956-2011  exit 2133-2202 (spread  69)
+
+Decisions taken from this review (updater run in artifacts/reference-refresh.txt):
+  * Copse is PRESERVED. The old 0:50.859 lap braked hard (peak 0.73) and held partial
+    throttle (0.57-0.76) from 370 m; the new 0:50.446 lap brakes 40 m earlier but only
+    to 0.38 and is at full throttle from ~370 m, so the detector's exit collapses to
+    369 m - 4 m after the apex. A zone ending 4 m after the apex is throttle
+    modulation, not a corner exit, and Copse's exit spreads 113 m across clean laps.
+  * Maggots and Woodcote are PRESERVED: flat bends with no brake event, so nothing
+    can refresh them (same rule as the other tracks' curated flat corners).
+  * Maggots' curated exit was corrected 860 -> 850 m (runbook Step 6, "fix any zone
+    boundaries that the detector got wrong"): the refreshed Becketts entry is 854 m
+    and chained zones must not overlap. The reference lap still runs throttle 1.00
+    with zero brake through 851 m, so the flat contract holds.
+  * Becketts (+22 m apex), Brooklands (+18 m) and Luffield (+21 m) sit inside the 40 m
+    geometry guard and were refreshed. Their exits are stable (33 m / 17 m / 69 m
+    spread), unlike Copse's.

@@ -46,7 +46,7 @@ Tracks are ordered by data quality: TUMFTM first (real widths), then trajectory-
 | `26-paul-ricard-1av2-short` | Paul Ricard 1av2-short | No TUMFTM | Clean trajectory | 🔲 Not started |
 | `27-paul-ricard-3a` | Paul Ricard 3a | No TUMFTM | Clean trajectory | 🔲 Not started |
 | `28-silverstone-elms` | Silverstone (ELMS Pack 1) | TUMFTM `Silverstone.csv` | Real | 🔲 Not started |
-| `29-silverstone-national` | Silverstone National | No TUMFTM | Clean trajectory | 🔲 Not started |
+| `29-silverstone-national` | Silverstone National | No TUMFTM | Clean trajectory | ✅ Done as a full combo onboarding — see slice 51 |
 | `30-silverstone-international` | Silverstone International | No TUMFTM | Clean trajectory | ✅ Done (`264cf14`) |
 | `31-silverstone-gp-wec` | Silverstone GP (WEC) | No TUMFTM (verify vs base) | ? | 🔲 Not started |
 | `32-fuji-classic` | Fuji Classic Layout (No Chicane) | No TUMFTM | Clean trajectory | 🔲 Not started |
@@ -68,12 +68,15 @@ Tracks are ordered by data quality: TUMFTM first (real widths), then trajectory-
 | `48-fuji-p3-quali-refresh` | Fuji / Ginetta P3 quali lap (bug 29 live validation) | 14:18 quali lap 2, 1:36.544 | Ref 1:36.564 → 1:36.544; 9 corners refreshed, **Netz kept 3284/3310/3310 while Netz Hairpin took its own event** (old matcher moved Netz +129 m); outline + TinyPedal labels re-derived | ✅ `7ffa144` |
 | `49-imola-f296-quali-race` | Imola / Ferrari 296 GT3, 2026-11-09 quali + race | Race lap 14, 1:45.099 (quali best 1:45.186) | Ref 1:45.534 → 1:45.099; 7 corners refreshed (≤20 m), Tamburello preserved (exit 704–780 m across 21 laps) + 3 compound second halves kept; outline byte-identical | ✅ `78c0ede` |
 | `50-paul-ricard-elms` | Paul Ricard - ELMS / Ferrari 296 GT3 (new layout + new car) | 2026-11-10 practice, lap 8 | Ref 2:07.601 + new 16-zone coaching model (official names, Chicane Nord pair, two flat bends) + trajectory outline + TinyPedal labels; the recorded ELMS map started 165 m past the timing line and was re-started with the new alignment guard | ✅ `868dac4`+`f5780d7` |
+| `51-silverstone-national-p3` | Silverstone National Circuit / Ginetta P3 (new combo, full treatment) | 2026-11-11 practice (two stints), lap 20 | Ref 0:50.446 + new 6-zone coaching model (official National names, Maggots/Becketts flick, two flat bends) + trajectory outline + TinyPedal labels; refreshed again from the second stint with Copse/Maggots/Woodcote preserved | ✅ In this slice |
 
 **Feature tests (slice 38):** `bash scripts/test-summary.sh --feature long-beach-f499p`
 
 **Feature tests (Paul Ricard 1A):** `bash scripts/test-summary.sh --feature track-outline`
 
-**Completed:** Spa (base + endurance), Bahrain GP, Barcelona, Monza, Imola, Fuji International Speedway, Bahrain Outer, Daytona, Laguna Seca, Road Atlanta, Monza Curva Grande, Silverstone International, Long Beach, Paul Ricard 1A.
+**Feature tests (Silverstone National / Ginetta P3):** `bash scripts/test-summary.sh --feature track-outline`
+
+**Completed:** Spa (base + endurance), Bahrain GP, Barcelona, Monza, Imola, Fuji International Speedway, Bahrain Outer, Daytona, Laguna Seca, Road Atlanta, Monza Curva Grande, Silverstone International, Silverstone National, Long Beach, Paul Ricard 1A, Paul Ricard ELMS.
 **In progress:** None. Prior live visual confirmations remain pending.
 **Remaining:** 21 outlines needed (some may be aliases).
 

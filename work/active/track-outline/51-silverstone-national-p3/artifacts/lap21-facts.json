@@ -1,0 +1,105 @@
+{
+  "type": "lap_coaching_summary",
+  "track_id": "silverstone-national-circuit",
+  "lap_number": 21,
+  "lap_time_delta_s": 0.265,
+  "top_losses": [
+    {
+      "corner_id": "copse",
+      "corner_name": "Copse",
+      "apex_distance_m": 359.0,
+      "phase": "exit_brake",
+      "loss_s": 0.218,
+      "driver_value": 196.1,
+      "reference_value": 206.3,
+      "unit": "km/h",
+      "confidence": "medium",
+      "phase_distance_m": 413.0,
+      "gain_end_distance_m": 836.0,
+      "exit_distance_delta_m": -43.0,
+      "reference_phase_distance_m": 370.0
+    },
+    {
+      "corner_id": "copse",
+      "corner_name": "Copse",
+      "apex_distance_m": 359.0,
+      "phase": "minimum_speed",
+      "loss_s": 0.205,
+      "driver_value": 195.6,
+      "reference_value": 201.9,
+      "unit": "km/h",
+      "confidence": "high",
+      "driver_apex_distance_m": 418.0,
+      "reference_apex_distance_m": 365.0,
+      "apex_offset_m": -53.0,
+      "gain_end_distance_m": 836.0
+    },
+    {
+      "corner_id": "copse",
+      "corner_name": "Copse",
+      "apex_distance_m": 359.0,
+      "phase": "exit_throttle",
+      "loss_s": 0.198,
+      "driver_value": 195.9,
+      "reference_value": 206.9,
+      "unit": "km/h",
+      "confidence": "medium",
+      "phase_distance_m": 422.0,
+      "gain_end_distance_m": 836.0,
+      "exit_distance_delta_m": -52.0,
+      "reference_phase_distance_m": 370.0
+    }
+  ],
+  "top_gains": [
+    {
+      "corner_id": "brooklands",
+      "corner_name": "Brooklands",
+      "apex_distance_m": 1924.0,
+      "phase": "minimum_speed",
+      "loss_s": -0.135,
+      "driver_value": 111.3,
+      "reference_value": 108.9,
+      "unit": "km/h",
+      "confidence": "high",
+      "driver_apex_distance_m": 1910.0,
+      "reference_apex_distance_m": 1924.0,
+      "apex_offset_m": 14.0,
+      "gain_end_distance_m": 2007.0
+    },
+    {
+      "corner_id": "woodcote",
+      "corner_name": "Woodcote",
+      "apex_distance_m": 2469.0,
+      "phase": "minimum_speed",
+      "loss_s": -0.098,
+      "driver_value": 189.4,
+      "reference_value": 188.2,
+      "unit": "km/h",
+      "confidence": "medium",
+      "driver_apex_distance_m": 2361.0,
+      "reference_apex_distance_m": 2360.0,
+      "apex_offset_m": -1.0,
+      "gain_end_distance_m": 2631.0,
+      "target_throttle_pct": 100.0
+    },
+    {
+      "corner_id": "brooklands",
+      "corner_name": "Brooklands",
+      "apex_distance_m": 1924.0,
+      "phase": "exit",
+      "loss_s": -0.077,
+      "driver_value": 121.9,
+      "reference_value": 115.7,
+      "unit": "km/h",
+      "confidence": "medium",
+      "phase_distance_m": 1947.0,
+      "gain_end_distance_m": 2007.0,
+      "exit_distance_delta_m": 15.0,
+      "reference_phase_distance_m": 1962.0
+    }
+  ],
+  "constraints": {
+    "max_words": 35,
+    "style": "calm_concise_engineer"
+  }
+}

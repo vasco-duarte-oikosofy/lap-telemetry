@@ -1,0 +1,5 @@
+Track: silverstone-national-circuit  Vehicle: dkr-engineering-4-elms25  (1 sessions)
+  Fastest: lap 7 in session_20261111T172218Z_silverstone-national-circuit_lmu_practice.parquet -> 50.859s
+  Exported 2535 rows -> product\data\reference-laps\silverstone-national-circuit_dkr-engineering-4-elms25_time_00.50.859.parquet
+
+AUDIT: 1 reference lap changed (added: ['silverstone-national-circuit_dkr-engineering-4-elms25_time_00.50.859.parquet'], superseded: []). OK.

@@ -1,0 +1,5 @@
+session_20261111T180351Z_silverstone-national-circuit_lmu_race.json: in_progress
+16 closed snapshot shards, no canonical parquet yet (recorder still appending)
+concat rows 48547
+complete laps: [(1, 51.476, 2564), (2, 50.811, 2535), (3, 51.315, 2560), (4, 51.92, 2591), (5, 51.704, 2576), (6, 51.191, 2550), (7, 50.745, 2529), (8, 50.703, 2525), (9, 52.698, 2624), (10, 50.736, 2528), (11, 50.638, 2520), (12, 51.507, 2562), (13, 52.569, 2614), (14, 56.888, 2832), (15, 51.858, 2580)]
+fastest so far: lap 11 @ 50.638s - SLOWER than the 0:50.446 reference, so no update

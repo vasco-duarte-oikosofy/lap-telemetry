@@ -1,0 +1,30 @@
+Reference history for (silverstone-national-circuit, dkr-engineering-4-elms25)
+
+1) First onboarding export — artifacts/reference-export.txt
+   Track: silverstone-national-circuit  Vehicle: dkr-engineering-4-elms25  (1 sessions)
+     Fastest: lap 7 in session_20261111T172218Z_..._practice.parquet -> 50.859s
+     Exported 2535 rows -> ..._time_00.50.859.parquet
+   AUDIT: 1 reference lap changed (added [...00.50.859], superseded []). OK.
+   Command: py dev/scripts/export_fastest_reference_laps.py --min-lap-time-s 30 <session>
+   (the 60 s default floor rejects every lap of a 2.64 km National lap; the override
+   is the tested --min-lap-time-s flag added in this slice)
+
+2) Second stint refresh — artifacts/reference-refresh.txt
+   Track: silverstone-national-circuit  Vehicle: dkr-engineering-4-elms25  (2 sessions)
+     Fastest: lap 20 in session_20261111T173251Z_..._practice.parquet -> 50.446s
+     Exported 2512 rows -> ..._time_00.50.446.parquet
+     Removed superseded reference (50.859s): ..._time_00.50.859.parquet
+   AUDIT: 1 reference lap changed (added [...00.50.446], superseded [...00.50.859]). OK.
+   Command: py dev/scripts/update_reference_and_coaching_model.py \
+              --session <17:22 session> <17:32 session> \
+              --track-id silverstone-national-circuit \
+              --preserve-geometry copse maggots woodcote \
+              --max-geometry-delta-m 40 --min-lap-time-s 30
+   Review of the 66 m Copse exit flag: artifacts/signal-review.txt
+
+3) Guard against the later sessions — artifacts/reference-guard.txt
+   Practice (17:49, garage stint), quali (17:52) and both practice stints scanned:
+     Fastest lap in session(s): lap 20 @ 50.446s ... Not faster than existing
+     reference 50.446s - reference stays; model already up to date - nothing written.
+   In-progress race (18:03) has no canonical parquet yet; its 16 closed snapshot
+   shards top out at 50.638 s (lap 11), so no update is due: artifacts/in-progress-race-scan.txt
