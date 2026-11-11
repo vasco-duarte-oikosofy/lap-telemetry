@@ -183,7 +183,8 @@ def test_preservation_and_geometry_guards_precede_export() -> None:
             before = path.read_bytes()
             args = SimpleNamespace(ref=None, session=[Path('source.parquet')],
                                    track_id=model['track_id'], allow_unmatched=False,
-                                   preserve_geometry=sorted(ids), max_geometry_delta_m=25)
+                                   preserve_geometry=sorted(ids), max_geometry_delta_m=25,
+                                   min_lap_time_s=updater.MIN_LAP_TIME_S)
             output = io.StringIO()
             with contextlib.redirect_stdout(output), contextlib.redirect_stderr(output), \
                  patch.object(updater, 'parse_args', return_value=args), \
@@ -238,7 +239,8 @@ def test_curated_unicode_names_round_trip_through_the_updater() -> None:
         path.write_text(json.dumps(model, ensure_ascii=False), encoding='utf-8')
         args = SimpleNamespace(ref=None, session=[Path('source.parquet')],
                                track_id='autodromo-jose-carlos-pace', allow_unmatched=False,
-                               preserve_geometry=['t13'], max_geometry_delta_m=None)
+                               preserve_geometry=['t13'], max_geometry_delta_m=None,
+                               min_lap_time_s=updater.MIN_LAP_TIME_S)
         output = io.StringIO()
         with contextlib.redirect_stdout(output), contextlib.redirect_stderr(output),              patch.object(updater, 'parse_args', return_value=args),              patch.object(updater, 'COACHING_DIR', Path(folder)),              patch.object(updater, 'read_vehicle_name', return_value='DKR Engineering #4:ELMS25'),              patch.object(updater, 'existing_refs', return_value=[(Path('old.parquet'), 90.354)]),              patch.object(updater, 'find_complete_laps', return_value=[(10, 90.062, 0, 4)]),              patch.object(updater.pq, 'read_table', return_value=table),              patch.object(updater, 'detect_corners', return_value=(candidates, 'throttle_brake_v1')),              patch.object(updater.tempfile, 'gettempdir', return_value=folder),              patch.object(updater.subprocess, 'run') as export:
             export.return_value.returncode = 0

@@ -48,6 +48,7 @@ import pyarrow.parquet as pq
 from lap_telemetry.coach.lap_comparator import resample_column
 
 from export_fastest_reference_laps import (
+    MIN_LAP_TIME_S,
     existing_refs,
     find_complete_laps,
     parse_lap_time_from_name,
@@ -205,6 +206,11 @@ def parse_args() -> argparse.Namespace:
              "from braking-event matching; unknown IDs abort before any product write",
     )
     p.add_argument(
+        "--min-lap-time-s", type=float, default=MIN_LAP_TIME_S,
+        help="reject candidate laps at or below this many seconds (default 60); "
+             "lower it only for a short circuit whose real laps are shorter",
+    )
+    p.add_argument(
         "--max-geometry-delta-m", type=float, default=None,
         help="abort (no writes) if any matched corner's entry/apex/exit would "
              "move more than this many metres from the existing model, and print "
@@ -249,7 +255,9 @@ def main() -> int:
         best = None
         for s in args.session:
             table = pq.read_table(s)
-            for lap_num, lap_time, seg_start, seg_end in find_complete_laps(table):
+            for lap_num, lap_time, seg_start, seg_end in find_complete_laps(
+                table, args.min_lap_time_s
+            ):
                 if best is None or lap_time < best[1]:
                     best = (lap_num, lap_time, seg_start, seg_end, s, table)
         if best is None:
@@ -345,6 +353,8 @@ def main() -> int:
     # --- 4. Export the reference (delegated, guarded, audited) -------------
     if export_needed:
         cmd = [sys.executable, str(EXPORT_SCRIPT)] + [str(s) for s in args.session]
+        if args.min_lap_time_s != MIN_LAP_TIME_S:
+            cmd += ["--min-lap-time-s", str(args.min_lap_time_s)]
         print(f"\nExporting reference via export_fastest_reference_laps.py ...")
         result = subprocess.run(cmd, cwd=ROOT)
         if tmp_lap is not None:

@@ -32,6 +32,9 @@ from lap_telemetry.parquet_utils import authoritative_duration, build_segments
 
 OUTPUT_DIR = Path("product/data/reference-laps")
 
+# Historical floor: any "lap" shorter than this is a lag/bogus sample. Short
+# circuits (Silverstone National is ~51 s in LMP3) sit below it, so the floor is
+# an explicit CLI override (--min-lap-time-s) rather than a hard wall.
 MIN_LAP_TIME_S = 60.0
 MIN_LAP_POINTS = 100
 
@@ -116,7 +119,9 @@ def segment_wall_clock_span(table: pa.Table, seg_start: int, seg_end: int) -> fl
     return numeric[-1] - numeric[0]
 
 
-def find_complete_laps(table: pa.Table) -> list[tuple[int, float, int, int]]:
+def find_complete_laps(
+    table: pa.Table, min_lap_time_s: float = MIN_LAP_TIME_S
+) -> list[tuple[int, float, int, int]]:
     """Return (lap_number, lap_time_s, seg_start, seg_end) for every complete lap.
 
     Uses authoritative_duration, which prefers the telemetry lap-start ET
@@ -152,7 +157,7 @@ mLastLapTime (which lags a lap on some tracks) and over max(lap_time_s)
             next_seg[1] if next_seg else None,
             next_seg[2] if next_seg else None,
         )
-        if lap_time <= MIN_LAP_TIME_S:
+        if lap_time <= min_lap_time_s:
             continue
         span = segment_wall_clock_span(table, seg_start, seg_end)
         if span is not None and abs(span - lap_time) > max(3.0, 0.05 * lap_time):
@@ -233,7 +238,7 @@ def audit_single_lap_change(
     return violations
 
 
-def main():
+def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         description=(
             "Export the fastest complete lap of ONE (track, vehicle) combo as a "
@@ -253,6 +258,10 @@ def main():
             "  python dev/scripts/export_fastest_reference_laps.py \\\n"
             "      sessions/session_*_fuji-speedway_lmu*.parquet\n"
             "\n"
+            "  # short circuit: lower the 60 s bogus-lap floor explicitly\n"
+            "  python dev/scripts/export_fastest_reference_laps.py --min-lap-time-s 30 \\\n"
+            "      sessions/session_20261111T172218Z_silverstone-national-circuit_lmu_practice.parquet\n"
+            "\n"
             "An existing reference for the same (track, vehicle) is kept unless the\n"
             "new lap is faster by more than 1 ms; when replaced, the superseded file\n"
             "is deleted so at most one reference per (track, vehicle) exists."
@@ -266,8 +275,27 @@ def main():
             "must resolve to a single (track, vehicle) combo"
         ),
     )
-    args = parser.parse_args()
+    parser.add_argument(
+        "--min-lap-time-s", type=float, default=MIN_LAP_TIME_S,
+        help=(
+            "reject laps at or below this many seconds (default 60). Lower it ONLY "
+            "for a short circuit whose real laps are shorter, e.g. Silverstone "
+            "National (~51 s in LMP3): `--min-lap-time-s 30`."
+        ),
+    )
+    return parser
 
+
+def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
+    parser = build_parser()
+    args = parser.parse_args(argv)
+    if not (args.min_lap_time_s > 0):
+        parser.error("--min-lap-time-s must be positive")
+    return args
+
+
+def main():
+    args = parse_args()
     session_files = collect_session_files(args.targets)
     if not session_files:
         print("No session files found.")
@@ -306,7 +334,9 @@ def main():
 
     for p in paths:
         table = pq.read_table(p)
-        for lap_num, lap_time, seg_start, seg_end in find_complete_laps(table):
+        for lap_num, lap_time, seg_start, seg_end in find_complete_laps(
+            table, args.min_lap_time_s
+        ):
             if best_time is None or lap_time < best_time:
                 best_time = lap_time
                 best_lap_num = lap_num
