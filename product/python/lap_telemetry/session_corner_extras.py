@@ -443,8 +443,11 @@ def extract_all_corners(
     ]
 
 
-_SLIP_REASON = ("values wrap at ±180° and do not track turn rate or braking; "
-                "not a slip angle as recorded")
+_SLIP_REASON = (
+    "the sim value is atan2 of two contact-patch velocities in the car frame, so it "
+    "idles at ±180° on a straight and follows steering input (r=+0.52); a tyre slip "
+    "angle needs the wheel's own heading, and no wheel heading is recorded"
+)
 _REASONS: dict[str, str] = {
     "abs_active": "no usable samples in this recording",
     "tc_active": "no usable samples in this recording",
@@ -464,10 +467,14 @@ def unmeasurable_channels(table: pa.Table) -> dict[str, str]:
     - A flag that is false on every frame of every lap is either a dead channel
       or a car that never needed it, and we cannot tell which. "0% TC" would
       read as "your traction control never intervened".
-    - The slip columns wrap at ±180° and their magnitude is uncorrelated with
-      lateral demand (r=0.04 against turn rate, and *lower* under braking than
-      at constant throttle), so they are not slip angles as recorded. See
-      ``_slip_is_usable``.
+    - The slip columns are not slip angles: the recorder stores
+      ``atan2(mLateralPatchVel, mLongitudinalPatchVel)``, two velocities in the
+      car frame, so the value follows steering input (r=+0.52), idles at ±180°
+      on a straight (median +139° on the Barcelona straight where a real
+      sideslip angle is ~0°) and its rate of change is uncorrelated with a
+      position-derived yaw rate (|r| < 0.07). Recovering a tyre slip angle needs
+      the wheel's own heading (road-wheel angle or wheel ground velocity), which
+      this schema does not record. See ``_slip_is_usable``.
     """
     dead: dict[str, str] = {}
     for column in _FLAG_COLUMNS:
@@ -499,6 +506,12 @@ def _slip_is_usable(values: list[float]) -> bool:
     wrapped angle, and its magnitude tracks neither turn rate nor braking.
     Returning "maximum rear slip 179.9 deg" to a driver would be worse than
     returning nothing.
+
+    Measured on the 2026-11-13 Barcelona race: the value is dominated by
+    steering input (r=+0.52) and sits at ±180° on a straight, exactly as
+    ``atan2`` of two car-frame patch velocities must. Newer recordings also
+    carry ``grip_fraction_rl/rr`` and the rear wheels' ground velocities, which
+    is what a real slip angle (and a sliding/not-sliding answer) needs.
     """
     known = [abs(v) for v in values if v is not None]
     if not known:

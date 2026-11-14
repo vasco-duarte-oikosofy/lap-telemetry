@@ -81,6 +81,15 @@ class Frame:
     scoring_last_lap_time_s: Optional[float] = None
     scoring_time_into_lap_s: Optional[float] = None
     scoring_total_laps: Optional[int] = None
+    # Rear grip signal (slice 01, mission rear-grip-signal). None means "this
+    # sim did not publish it" — never 0.0, which would read as "not sliding".
+    grip_fraction_rl: Optional[float] = None
+    grip_fraction_rr: Optional[float] = None
+    wheel_ground_vel_lat_rl: Optional[float] = None
+    wheel_ground_vel_lon_rl: Optional[float] = None
+    wheel_ground_vel_lat_rr: Optional[float] = None
+    wheel_ground_vel_lon_rr: Optional[float] = None
+    yaw_rate_radps: Optional[float] = None
 
 
 class _BaseConnection:
@@ -221,6 +230,29 @@ def _wheel_surface(wheel) -> Optional[int]:
         return None
 
 
+def _wheel_float(wheel, attr: str) -> Optional[float]:
+    """Read a per-wheel float, or None when the sim build does not publish it."""
+    try:
+        value = float(getattr(wheel, attr))
+    except AttributeError:
+        return None
+    return value if math.isfinite(value) else None
+
+
+def _yaw_rate_radps(telemetry) -> Optional[float]:
+    """Car-frame yaw rate: rotation about the local up axis (mLocalRot.y).
+
+    rF2/LMU local axes are x = right, y = up, z = forward, so the y component of
+    the angular velocity is yaw. Used as the independent cross-check for the
+    rear slip angle (validation gate in slice 01's plan).
+    """
+    try:
+        value = float(telemetry.mLocalRot.y)
+    except AttributeError:
+        return None
+    return value if math.isfinite(value) else None
+
+
 def _wheel_terrain(wheel) -> Optional[str]:
     try:
         return _decode(bytes(wheel.mTerrainName))
@@ -335,6 +367,13 @@ class LMUConnection(_BaseConnection):
             scoring_last_lap_time_s=_positive_float(scor_v, "mLastLapTime"),
             scoring_time_into_lap_s=_optional_float(scor_v, "mTimeIntoLap"),
             scoring_total_laps=_optional_int(scor_v, "mTotalLaps"),
+            grip_fraction_rl=_wheel_float(tele_v.mWheels[2], "mGripFract"),
+            grip_fraction_rr=_wheel_float(tele_v.mWheels[3], "mGripFract"),
+            wheel_ground_vel_lat_rl=_wheel_float(tele_v.mWheels[2], "mLateralGroundVel"),
+            wheel_ground_vel_lon_rl=_wheel_float(tele_v.mWheels[2], "mLongitudinalGroundVel"),
+            wheel_ground_vel_lat_rr=_wheel_float(tele_v.mWheels[3], "mLateralGroundVel"),
+            wheel_ground_vel_lon_rr=_wheel_float(tele_v.mWheels[3], "mLongitudinalGroundVel"),
+            yaw_rate_radps=_yaw_rate_radps(tele_v),
         )
 
 
@@ -445,6 +484,13 @@ class RF2Connection(_BaseConnection):
             scoring_last_lap_time_s=_positive_float(scor_v, "mLastLapTime"),
             scoring_time_into_lap_s=_optional_float(scor_v, "mTimeIntoLap"),
             scoring_total_laps=_optional_int(scor_v, "mTotalLaps"),
+            grip_fraction_rl=_wheel_float(tele_v.mWheels[2], "mGripFract"),
+            grip_fraction_rr=_wheel_float(tele_v.mWheels[3], "mGripFract"),
+            wheel_ground_vel_lat_rl=_wheel_float(tele_v.mWheels[2], "mLateralGroundVel"),
+            wheel_ground_vel_lon_rl=_wheel_float(tele_v.mWheels[2], "mLongitudinalGroundVel"),
+            wheel_ground_vel_lat_rr=_wheel_float(tele_v.mWheels[3], "mLateralGroundVel"),
+            wheel_ground_vel_lon_rr=_wheel_float(tele_v.mWheels[3], "mLongitudinalGroundVel"),
+            yaw_rate_radps=_yaw_rate_radps(tele_v),
         )
 
 

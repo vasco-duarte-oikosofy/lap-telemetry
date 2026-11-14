@@ -60,6 +60,19 @@ _SCHEMA = pa.schema([
     pa.field("scoring_last_lap_time_s", pa.float32(), nullable=True),
     pa.field("scoring_time_into_lap_s", pa.float32(), nullable=True),
     pa.field("scoring_total_laps", pa.int32(), nullable=True),
+    # Rear grip signal (slice 01, mission rear-grip-signal). Nullable so every
+    # existing session and reference lap keeps loading unchanged, and so a sim
+    # that does not publish a field writes null instead of a fabricated 0.0.
+    # mGripFract is "fraction of the contact patch that is sliding"; the ground
+    # velocities give the rear slip angle (a rear wheel's heading is the car's
+    # heading); yaw rate is the independent cross-check for both.
+    pa.field("grip_fraction_rl", pa.float32(), nullable=True),
+    pa.field("grip_fraction_rr", pa.float32(), nullable=True),
+    pa.field("wheel_ground_vel_lat_rl", pa.float32(), nullable=True),
+    pa.field("wheel_ground_vel_lon_rl", pa.float32(), nullable=True),
+    pa.field("wheel_ground_vel_lat_rr", pa.float32(), nullable=True),
+    pa.field("wheel_ground_vel_lon_rr", pa.float32(), nullable=True),
+    pa.field("yaw_rate_radps", pa.float32(), nullable=True),
 ])
 
 
@@ -308,6 +321,13 @@ class SessionWriter:
         b["scoring_last_lap_time_s"].append(frame.scoring_last_lap_time_s)
         b["scoring_time_into_lap_s"].append(frame.scoring_time_into_lap_s)
         b["scoring_total_laps"].append(frame.scoring_total_laps)
+        b["grip_fraction_rl"].append(frame.grip_fraction_rl)
+        b["grip_fraction_rr"].append(frame.grip_fraction_rr)
+        b["wheel_ground_vel_lat_rl"].append(frame.wheel_ground_vel_lat_rl)
+        b["wheel_ground_vel_lon_rl"].append(frame.wheel_ground_vel_lon_rl)
+        b["wheel_ground_vel_lat_rr"].append(frame.wheel_ground_vel_lat_rr)
+        b["wheel_ground_vel_lon_rr"].append(frame.wheel_ground_vel_lon_rr)
+        b["yaw_rate_radps"].append(frame.yaw_rate_radps)
         self._lap_numbers.add(frame.lap_number)
         self._last_vehicle = frame.vehicle_name
 

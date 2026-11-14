@@ -149,7 +149,17 @@ Core columns:
 - `session_time_s`, `lap_number`, `lap_distance_m`, `lap_time_s`
 - `speed_kph`, `throttle_norm`, `brake_norm`, `steering_norm`, `gear`, `engine_rpm`
 - `pos_x_m`, `pos_y_m`, `pos_z_m` (for circuit map)
-- `slip_angle_fl_deg` … `rr_deg`
+- `slip_angle_fl_deg` … `rr_deg` — **not** tyre slip angles: they are `atan2`
+  of two contact-patch velocities in the car frame, so they follow steering
+  input and idle at ±180° on a straight. The debrief refuses them with that
+  measured reason instead of reporting a number.
+- `grip_fraction_rl`, `grip_fraction_rr`, `wheel_ground_vel_{lat,lon}_{rl,rr}`,
+  `yaw_rate_radps` (nullable) — the physics a real rear slip angle and a
+  sliding/not-sliding answer need: `mGripFract` is the fraction of the contact
+  patch that is sliding, ground velocity gives the rear slip angle, yaw rate is
+  the independent cross-check. Only recordings made after this column set
+  existed carry them; older sessions record null and the debrief says
+  unmeasurable rather than inventing a value.
 - `abs_active`, `tc_active` (LMU only; nullable)
 
 ### Sidecar: `.json`

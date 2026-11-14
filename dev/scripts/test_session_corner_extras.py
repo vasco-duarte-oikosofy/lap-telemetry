@@ -389,7 +389,8 @@ def test_real_session() -> None:
           "the slip channels are refused, with a reason",
           str(sorted(facts.session.unmeasurable_channels)))
     reasons = " ".join(facts.session.unmeasurable_channels.values())
-    check("wrap" in reasons, "the refusal names the reason, not just the channel", reasons[:60])
+    check("atan2" in reasons and "steering" in reasons,
+          "the refusal names the measured mechanism, not just the channel", reasons[:60])
 
 
 def test_payload() -> None:

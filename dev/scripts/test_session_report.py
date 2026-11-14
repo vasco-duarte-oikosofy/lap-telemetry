@@ -100,7 +100,7 @@ def test_refusals() -> None:
     report = render_session_report(_facts())
     check("rear slip" in report.lower(),
           "the unmeasurable slip channels are named")
-    check("wrap" in report.lower(), "with their reason")
+    check("atan2" in report.lower(), "with their reason")
     slip_lines = [line for line in report.splitlines()
                   if "rear slip" in line.lower()]
     check(all(not re.search(r"\d+\.\d+\s*°", line) for line in slip_lines),
