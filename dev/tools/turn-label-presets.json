@@ -59,26 +59,26 @@
     "font_px": 13,
     "zoom": 100,
     "version": 3,
-    "source": "driver placement from the editor",
+    "source": "driver placement from the editor, tuned at the 400 px widget preview",
     "labels": {
       "verrerie_1": {
-        "dx_m": -38.1,
-        "dy_m": 43.7
+        "dx_m": 149.2,
+        "dy_m": -47.1
       },
       "verrerie_2": {
-        "dx_m": -23.1,
-        "dy_m": -69.4
+        "dx_m": -139.5,
+        "dy_m": -41.8
       },
       "hotel_1": {
-        "dx_m": 76.3,
+        "dx_m": 139.4,
         "dy_m": -143.2
       },
       "hotel_2": {
-        "dx_m": -69.7,
-        "dy_m": -130.4
+        "dx_m": -52,
+        "dy_m": -96.9
       },
       "camp": {
-        "dx_m": -24.8,
+        "dx_m": -44.6,
         "dy_m": 13.8
       },
       "sainte_baume": {
@@ -98,16 +98,16 @@
         "dy_m": 30
       },
       "signes": {
-        "dx_m": 32.6,
-        "dy_m": 112.4
+        "dx_m": 30.6,
+        "dy_m": 140
       },
       "beausset_1": {
-        "dx_m": 74.3,
-        "dy_m": -53
+        "dx_m": 68.4,
+        "dy_m": -94.5
       },
       "beausset_2": {
-        "dx_m": -106,
-        "dy_m": 19
+        "dx_m": -107.9,
+        "dy_m": -12.5
       },
       "bendor": {
         "dx_m": -146.4,
@@ -118,8 +118,8 @@
         "dy_m": 117.6
       },
       "lac": {
-        "dx_m": -84.4,
-        "dy_m": 93.8
+        "dx_m": -106.1,
+        "dy_m": 107.6
       },
       "pont": {
         "dx_m": -162.8,

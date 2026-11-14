@@ -23,9 +23,10 @@ works over `file://` with no server and no build step at run time.
 - **Two tabs.** *Edit placement* is the working canvas (drag, nudge, zoom).
   *TinyPedal preview* renders the map the way the live widget will: TinyPedal's
   own recorded map SVG, its `display_orientation` rotation, its `scale_map` fit
-  and margin, its font rule and its label planner — with your placement applied
-  on top. Use it to judge rotation and label placement before touching the
-  widget.
+  and margin, its label font (**Consolas Bold + halo stroke**, not the page font)
+  and its label planner — with your placement applied on top. Use it to judge
+  rotation and label placement before touching the widget, and judge it at the
+  widget size you actually run (the 400 px default is the tight one).
 - Pick a track, drag a name to where it belongs, click one and nudge it with the
   arrow keys (Shift = 10×).
 - The rotation slider **is** TinyPedal's `display_orientation`, with the same sign

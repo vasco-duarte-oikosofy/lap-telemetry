@@ -13,6 +13,10 @@ const TP = {
   gapRatio: 0.75, alongCapFont: 2.4, normalCapMap: 0.04,
   nudgeSteps: [0, 1.2, -1.2, 2.4, -2.4], smallMap: 150,
   startLineLength: 8,
+  // The widget draws labels in wcfg["font_name"] (Consolas by default), bold, and
+  // reserves a 0.085 em self-stroke when measuring. Both change whether text fits:
+  // Consolas is wider than the UI font, and the stroke widens every glyph.
+  fontFamily: 'Consolas, "DejaVu Sans Mono", monospace', solidifyEm: 0.085,
 };
 
 /** TinyPedal rotation: its map coordinates are y-down, so this is a plain
@@ -165,8 +169,9 @@ function drawTinypedalPreview() {
   ctx.stroke();
 
   const fontPx = Math.min(tpFontSize(mapSize), Math.max(setting().fontSize, 5));
-  ctx.font = fontPx + "px system-ui, sans-serif";
-  const measure = (text) => [ctx.measureText(text).width, fontPx * 1.25];
+  const solidify = TP.solidifyEm * fontPx;
+  ctx.font = "bold " + fontPx + "px " + TP.fontFamily;
+  const measure = (text) => [ctx.measureText(text).width + solidify, fontPx * 1.25];
 
   // Anchors exactly like turn_labels.anchor_turns: s_frac on the raw polyline,
   // outward normal from the map centroid, then the map's rotate/scale/offset.
@@ -217,7 +222,7 @@ function drawTinypedalPreview() {
       ctx.fillStyle = "#7fd4a0";
       ctx.beginPath(); ctx.arc(anchor.x, anchor.y, 1.6, 0, Math.PI * 2); ctx.fill();
     }
-    ctx.font = fontPx + "px system-ui, sans-serif";
+    ctx.font = "bold " + fontPx + "px " + TP.fontFamily;
     ctx.textAlign = "left";
     ctx.textBaseline = "top";
     ctx.lineJoin = "round";
