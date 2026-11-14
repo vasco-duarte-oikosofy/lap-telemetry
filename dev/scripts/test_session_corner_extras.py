@@ -23,6 +23,7 @@ sys.path.insert(0, str(ROOT / "dev" / "scripts"))
 import pyarrow as pa  # noqa: E402
 
 from lap_telemetry.session_corner_extras import (  # noqa: E402
+    _trail_depth,
     corner_channels,
     extract_all_corners,
     phase_windows,
@@ -215,6 +216,50 @@ def test_synthetic_extraction() -> None:
           extras.window_source)
 
 
+def wrapped_table(start_m: float = 460.0) -> pa.Table:
+    """The synthetic lap with its rows rotated so row 0 sits at ``start_m``.
+
+    A lap's ``lap_distance_m`` starts at the sim's own axis value and wraps to 0
+    part-way through, so a real lap's first row can already sit past every
+    corner in the lap (bug 36). Rotating keeps the driving order intact; only
+    the row that happens to be first changes.
+    """
+    table = synthetic_table()
+    distances = table.column("lap_distance_m").to_pylist()
+    start = min(range(len(distances)), key=lambda i: abs(distances[i] - start_m))
+    order = list(range(start, len(distances))) + list(range(0, start))
+    return pa.table({name: table.column(name).take(pa.array(order)).to_pylist()
+                     for name in table.column_names})
+
+
+def test_wrapped_distance_axis() -> None:
+    table = wrapped_table()
+    first = table.column("lap_distance_m")[0].as_py()
+    check(first > CORNER["s_end_m"],
+          "the wrapped fixture starts past the corner, like a real lap",
+          f"row 0 at {first} m")
+    extras = extract_all_corners(
+        corner_channels(table), [FakeCorner(CORNER)], {"tX": WINDOWS}
+    )[0]
+    check(extras.trail_brake_depth_m is not None
+          and abs(extras.trail_brake_depth_m - 20.0) < 1e-6,
+          "a wrapped axis still finds the first release by distance, not by row",
+          f"{extras.trail_brake_depth_m}")
+
+
+def test_never_released_is_unmeasurable() -> None:
+    distances = [190.0, 200.0, 210.0, 220.0, 230.0]
+    pedal_down = [0.9, 0.8, 0.7, 0.5, 0.3]
+    check(_trail_depth(pedal_down, distances, 200.0, 300.0) is None,
+          "a brake still on at the bound is unmeasurable, not the window length",
+          str(_trail_depth(pedal_down, distances, 200.0, 300.0)))
+    released = [0.9, 0.8, 0.02, 0.0, 0.0]
+    check(abs((_trail_depth(released, distances, 200.0, 300.0) or 0) - 10.0) < 1e-6,
+          "the depth is the distance to the first release")
+    check(_trail_depth(released, [4652.0] + distances[1:], 200.0, 300.0) == 10.0,
+          "a row past the bound does not end the search")
+
+
 def test_missing_columns_degrade() -> None:
     table = synthetic_table(drop=("gear", "path_lateral_m", "slip_angle_rl_deg",
                                   "slip_angle_rr_deg", "tc_active", "abs_active"))
@@ -310,8 +355,8 @@ def test_real_session() -> None:
           "Signes needs almost no brake", f"{signes.brake_peak}")
 
     tour = reference["t8"]
-    check(tour.trail_brake_depth_m is not None and tour.trail_brake_depth_m > 20,
-          "the reference trails the brake deep into la Tour",
+    check(tour.trail_brake_depth_m is not None and tour.trail_brake_depth_m < 2,
+          "the reference is off the brake by la Tour's apex",
           f"{tour.trail_brake_depth_m} m past the apex")
 
     village = reference["t7"]
@@ -387,6 +432,8 @@ def test_cli() -> None:
 def main() -> int:
     print("Session corner extras")
     test_synthetic_extraction()
+    test_wrapped_distance_axis()
+    test_never_released_is_unmeasurable()
     test_missing_columns_degrade()
     test_unmeasurable_flag_channel()
     test_window_fallback()

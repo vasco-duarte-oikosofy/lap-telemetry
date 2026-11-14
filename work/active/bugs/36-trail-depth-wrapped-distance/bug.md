@@ -113,21 +113,35 @@ Separately, 6 of the 17 laps report `brake_peak = 0.0` at Repsol (laps 3, 5, 8,
 most likely the same family of row-order/detected-entry assumption, not
 investigated.
 
-## Fix (analysis side, not done)
+## Fix (analysis side)
 
-1. Make the scan order-independent: take the `(distance, brake)` pairs inside
-   `(apex, bound]`, sort by distance, return the first release. Same rule the
-   docstring already states ("the first release matters"), just indexed by
-   distance instead of row.
-2. Do not return `bound − apex` when no release is found — a never-released
-   brake is *unmeasurable*, not the whole window. Return `None`.
-3. Consider normalising the distance axis once at load (rotate at the wrap so a
-   lap runs 0 → lap_length), which would also protect every other future
-   row-order consumer.
-4. Regression test with a wrapped-axis fixture: reuse `artifacts/lap01_t4.csv`
-   (or the session) and assert the trail depth is < 2 m, not 59 m.
+Root cause confirmed 2026-11: the wrapped axis is **not** a recorder defect.
+The axis recorded is the sim's own `mLapDist` (the recorder also keeps it
+faithfully as `raw_lap_distance_m`), the wrap at the start/finish line is a
+documented property of exported laps (`docs/specs/MAP_TURN_NAMES.md`), every
+committed reference lap in `product/data/reference-laps/` has it, and 15 of the
+17 laps in the reported session have it. A recorder change could not retro-fix
+any of that, so the analysis has to be order-independent.
+
+`_trail_depth()` now:
+
+1. Scans `(distance, brake)` pairs inside `(apex, bound]` **sorted by distance**
+   instead of by row, so the row that happens to sit first cannot end the search.
+2. Returns `None` when no release is found inside the window — a brake still on
+   at the bound is unmeasurable, not `bound − apex`. `None` flows through
+   `session_priorities._clause_trail`, `session_brief` and the medians, so
+   nothing is coached about a depth we cannot see.
+
+Regression coverage in `dev/scripts/test_session_corner_extras.py`:
+`test_wrapped_distance_axis` (the synthetic lap rotated so row 0 sits past the
+corner — reported 80 m before, 20 m after), `test_never_released_is_unmeasurable`
+(including a row past the bound) and the real-session check on la Tour, which no
+longer asserts the fabricated `> 20 m` but the true trace: the reference is off
+the brake by the apex (0.01 m).
+
+Measured on the local Barcelona practice `20260510T063243Z`: t4 lap 1 went from
+51.0 m (window) to 6.8 m, lap 2 from 39.0 m to 0.73 m.
 
 ## Status
 
-🐛 Open. Filed 2026-11, not fixed. Artifacts attached; no production code
-touched.
+✅ Fixed in `session_corner_extras._trail_depth` — see "Fix (analysis side)".

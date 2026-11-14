@@ -311,6 +311,13 @@ def _trail_depth(brake: list[float] | None, distances: list[float],
     bound: a driver who releases at the apex and then brakes for the *next*
     corner must report 0 m, not the distance to that corner (which produced a
     220 m "trail-brake depth" at Village — la Tour's braking zone).
+
+    The search is by distance, not by row. ``lap_distance_m`` starts at the
+    sim's own axis value and wraps once per lap, so row 0 of a real lap can
+    already sit past the corner: reading rows in file order then ends the
+    search before it starts and reports the whole window as trail depth
+    (bug 36). A brake that is never released inside the window is
+    unmeasurable, not the window length.
     """
     if brake is None:
         return None
@@ -320,16 +327,16 @@ def _trail_depth(brake: list[float] | None, distances: list[float],
     )
     if not braked_before:
         return None
-    for distance, pressure in zip(distances, brake):
-        if distance <= apex_m or pressure is None:
-            continue
-        if distance > end_m:
-            break
+    window = sorted(
+        (distance, pressure) for distance, pressure in zip(distances, brake)
+        if pressure is not None and apex_m < distance <= end_m
+    )
+    for distance, pressure in window:
         if pressure <= BRAKE_ON:
             # Released (or never applied) past the apex: 0 m or a few metres.
             return max(0.0, distance - apex_m)
-    # Still on the brake at the bound: that is the depth, as far as we can see.
-    return max(0.0, end_m - apex_m)
+    # Still on the brake at the bound: we cannot see the release.
+    return None
 
 
 def extract_corner_extras(
