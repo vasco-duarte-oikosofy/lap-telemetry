@@ -1,0 +1,42 @@
+session : session_20261114T070413Z_silverstone-national-circuit_lmu_race
+track   : Silverstone National Circuit
+vehicle : Vista AF Corse 2026 #21:LM
+shards  : 1   rate: unknown rate   yardstick: 0:55.241
+
+ seg  lap  frames     duration  status      reason
+   0    0   10795     2:18.200  out-lap     first segment of a stint
+   1    1    2767     0:55.562  eligible    
+   2    2    2763     0:55.429  eligible    
+   3    3    2765     0:55.471  eligible    
+   4    4    2762     0:55.398  eligible    
+   5    5    2752     0:55.228  eligible    
+   6    6    2791     0:55.979  eligible    
+   7    7    2752     0:55.253  eligible    
+   8    8    2734     0:54.898  eligible    
+   9    9    2752     0:55.254  eligible    
+  10   10    2756     0:55.321  eligible    
+  11   11    2751     0:55.304  eligible    
+  12   12    2750     0:55.300  eligible    
+  13   13    2775     0:55.783  eligible    
+  14   14    2775     0:55.722  eligible    
+  15   15    2743     0:55.254  eligible    
+  16   16    2733     0:54.988  eligible    
+  17   17    2738     0:55.111  eligible    
+  18   18    2723     0:54.801  eligible    
+  19   19    2727     0:54.872  eligible    
+  20   20    2718     0:54.696  eligible    
+  21   21    2722     0:54.822  eligible    
+  22   22    2726     0:54.896  eligible    
+  23   23    2721     0:54.837  eligible    
+  24   24    2966     0:59.666  eligible    
+  25   25    2716     0:54.799  eligible    
+  26   26    2723     0:54.901  eligible    
+  27   27    2726     0:54.941  eligible    
+  28   28    2751     0:55.467  eligible    
+  29   29    2732     0:55.051  eligible    
+  30   30    2736     0:55.199  eligible    
+  31   31    2715     0:54.803  eligible    
+  32   32    2740     0:55.339  eligible    
+  33   33    1048     0:21.075  incomplete  final segment of the session
+
+32 of 34 segments eligible (31 clean).

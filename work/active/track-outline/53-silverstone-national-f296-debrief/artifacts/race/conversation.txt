@@ -1,0 +1,75 @@
+Commands: /corner <name>, /laps, /plan, /save, /help, /quit
+Coach: Fair stint to build on: 31 clean laps out of 32 and your best, 0:54.696, is only +0.401 off the reference — the consistency is there, standard deviation of 0.320 s over the run.
+
+The biggest recurring loss is Becketts. It costs you 0.223 s each lap, 25% of your gap, and it's also your least repeatable corner — 0.697 s of spread. The mechanism: you release the brakes too early and get back on power at 94.2 km/h where the reference carries 98.7, same gear, so you're bleeding exit speed every time.
+
+One fix for the next run: brake 29 m later into Becketts and hold the pedal 31 m longer before you release. Nothing else changes until that's routine.
+
+When you try holding it deeper there, where does the front start to give up on you?
+You:   Coach: Good news first: on your best lap of the stint, the 0:54.696, you took Becketts 0.069 under the reference — so the corner pays you when you get it right.
+
+The recurring loss is the exit: 0.223 a lap, 25% of your entire gap, the biggest single piece on the track. And your brake data actually clears the brakes of most blame — your peaks run 0.51 to 0.75, mostly around the reference's 0.67, and you trail 0 m just like the ref. So it's not how hard, it's when: you're starting the brake 29 m short of the reference point and letting off 31 m early, which drops you onto power at 94.2 km/h against 98.7 — same gear 2, so there's no drive excuse. It also explains the mess underneath: your min speed swings 15.4 km/h, 0.697 s of spread over 29 laps.
+
+One fix only: brake 29 m later and hold it 31 m longer at the same peak, every lap, until that exit speed climbs toward 98.7.
+
+Can you hit the same later marker three laps in
+You:   CORNER: Maggots (apex 828 m)
+priority #6: 0.025 s per lap, 3% of the gap, inconsistent
+fix: brake 6 m later and carry 3 km/h more minimum speed
+reference: gear 5, brake peak 0.00, trail n/a m, line 6.5 m
+you: gear 5, trail n/a m, line 5.3 m
+
+minimum speed spread: 5.4 km/h | minimum-speed loss spread: 0.058 s | median speed: 224.5 km/h
+
+Per-lap detail (clean laps):
+| seg | min speed km/h | ref km/h | gear | brake | trail m | loss s |
+|---|---:|---:|---:|---:|---:|---:|
+| 1 | 222.8 | 226.9 | 5 | 0.00 | n/a | +0.022 |
+| 2 | 222.2 | 226.9 | 5 | 0.00 | n/a | +0.022 |
+| 3 | 223.8 | 226.9 | 5 | 0.00 | n/a | -0.001 |
+| 4 | 224.5 | 226.9 | 5 | 0.00 | n/a | -0.006 |
+| 5 | 223.2 | 226.9 | 5 | 0.00 | n/a | +0.015 |
+| 6 | 221.0 | 226.9 | 5 | 0.00 | n/a | +0.048 |
+| 7 | 224.0 | 226.9 | 5 | 0.00 | n/a | +0.021 |
+| 8 | 224.3 | 226.9 | 5 | 0.00 | n/a | +0.005 |
+| 9 | 224.2 | 226.9 | 5 | 0.00 | n/a | +0.029 |
+| 10 | 225.1 | 226.9 | 5 | 0.00 | n/a | +0.002 |
+| 11 | 224.2 | 226.9 | 5 | 0.00 | n/a | +0.007 |
+| 12 | 226.4 | 226.9 | 5 | 0.00 | n/a | -0.001 |
+| 13 | 226.1 | 226.9 | 5 | 0.00 | n/a | -0.003 |
+| 14 | 221.8 | 226.9 | 5 | 0.00 | n/a | +0.002 |
+| 15 | 222.3 | 226.9 | 5 | 0.00 | n/a | +0.020 |
+| 16 | 224.6 | 226.9 | 5 | 0.00 | n/a | -0.006 |
+| 17 | 223.5 | 226.9 | 5 | 0.00 | n/a | +0.043 |
+| 18 | 224.5 | 226.9 | 5 | 0.00 | n/a | +0.020 |
+| 19 | 225.0 | 226.9 | 5 | 0.00 | n/a | +0.013 |
+| 20 | 224.7 | 226.9 | 5 | 0.00 | n/a | +0.008 |
+| 21 | 225.3 | 226.9 | 5 | 0.00 | n/a | +0.003 |
+… (truncated)
+
+Not much, honestly. Maggots is costing you 0.025 s a lap, 3% of the gap — a long way down the list from your top three. There's no braking in your data at that apex and you're in the same gear 5 as the reference, so it's purely a carry-speed corner: your median is 224.5 km/h against their 226.9, and on some laps you're actually level with or ahead of them. So the corner is within reach — just carry 3 km/h more minimum speed through there. One thing worth a look: your line is 5.3 m versus the reference's 6.5 m at the apex, so a slightly wider entry might let the speed stick. But don't spend brain-time here — your 0.888 s mean gap lives in Becketts, Luffield and Brooklands. Want to look at Becketts next, where the entry is costing 0.223 s a lap?
+You:   Coach: Good news first: 31 of your 32 laps were clean, and your best, the 0:54.696, was only +0.401 off the reference — the pace is there.
+
+On consistency, no softening: sd of 0.320 s and a spread of 1.282 s across the clean laps, with a mean gap of 0.888 s. Half your laps sat at or above 0:55.228, so your typical lap carried about +0.9, not +0.4. The worst clean one, the 0:55.979, cost you more than a second to your own best.
+
+The driver of that spread is Becketts: 0.697 s of spread over 29 laps, the least repeatable corner on the track, and also your top priority at 0.223 s a lap. The mechanism is an early brake release — you're exiting the braking phase at 94.2 km/h against the reference's 98.7. One fix: hold the pedal 31 m longer and brake 29 m later, same mark every lap.
+
+Do you feel your foot coming off early there, or is the car pushing you to release?
+You:   # Plan — Silverstone National Circuit
+
+Session best 0:54.696, 0.888 s off the reference on average, spread 1.282 s over 31 clean laps.
+
+1. **Becketts** — hold the brake 31 m longer and brake 29 m later.
+   Measured now: 0.223 s lost per lap, 25% of your gap.
+   Target: 98.7 km/h at the brake release, against 94.2 km/h today.
+
+2. **Luffield** — carry 2 km/h more minimum speed and brake 5 m later.
+   Measured now: 0.243 s lost per lap, 27% of your gap.
+   Target: 86.1 km/h at the apex, against 83.9 km/h today.
+
+3. **Brooklands** — hold the brake 34 m longer and brake 11 m later.
+   Measured now: 0.199 s lost per lap, 22% of your gap.
+   Target: 103.2 km/h at the brake release, against 96.0 km/h today.
+
+Written to C:\Users\duart\lap-telemetry\var\tmp\silverstone-national-f296-quali-race\session_20261114T070413Z_silverstone-national-circuit_lmu_race_plan.md
+You:   Saved: C:\Users\duart\lap-telemetry\var\tmp\silverstone-national-f296-quali-race\session_20261114T070413Z_silverstone-national-circuit_lmu_race_debrief.json

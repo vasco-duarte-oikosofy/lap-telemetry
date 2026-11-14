@@ -1,0 +1,59 @@
+Commands: /corner <name>, /laps, /plan, /save, /help, /quit
+Coach: Nice touch finding the pace — your best lap is 0:54.295, exactly the reference, dead on. The speed is in your hands.
+
+The loss is doing it once. Mean gap is 0.688s over nine clean laps and the spread runs to 2.115s, and Copse is where it leaks most: 0.216s a lap, 31% of the gap, and your most inconsistent corner at 0.559s. The mechanism is exit speed — you come out at 161.8 km/h against 166.4 km/h, same gear 4, so you're handing away the whole straight.
+
+So one fix: carry 6 km/h more speed through the exit onto the straight. Same entry, just hold the minimum in and let the car run. That corner alone is worth most of a repeatable lap.
+
+Where are you losing the exit — early on throttle, or does the rear start moving when you pick it up?
+You:   Coach: Your best lap was bang on the reference — 0:54.295, -0.000 — so the pace is in you and the car. The corner costing you most is Copse: 0.216 seconds a lap, 31% of the gap, and it shows up at the exit-brake phase — you're back on power at 161.8 km/h where the reference carries 166.4, in the same gear 4, so you bleed speed all the way down the straight. One fix: carry 6 km/h more speed onto the straight there. When you come off the brakes at Copse, are you easing them off early to keep the car settled?
+You:   CORNER: Copse (apex 368 m)
+priority #1: 0.216 s per lap, 31% of the gap, both
+fix: carry 6 km/h more speed onto the straight
+reference: gear 4, brake peak 0.38, trail 0 m, line 5.7 m
+you: gear 4, trail 0 m, line 5.4 m
+
+minimum speed spread: 9.6 km/h | minimum-speed loss spread: 0.559 s | median speed: 165.3 km/h
+
+Per-lap detail (clean laps):
+| seg | min speed km/h | ref km/h | gear | brake | trail m | loss s |
+|---|---:|---:|---:|---:|---:|---:|
+| 1 | 161.0 | 164.4 | 4 | 0.42 | n/a | +0.569 |
+| 2 | 163.4 | 164.4 | 4 | 0.44 | 0 | +0.154 |
+| 3 | 170.6 | 164.4 | 4 | 0.40 | n/a | +0.080 |
+| 4 | 169.0 | 164.4 | 4 | 0.50 | 1 | +0.072 |
+| 5 | 165.0 | 164.4 | 4 | 0.33 | n/a | +0.254 |
+| 6 | 167.4 | 164.4 | 4 | 0.30 | n/a | +0.010 |
+| 7 | 163.9 | 164.4 | 4 | 0.40 | n/a | +0.093 |
+| 10 | 165.6 | 164.4 | 4 | 0.41 | n/a | +0.090 |
+
+s one question.
+
+Word count check — keep tight, ~120 words.
+
+Also ensure I don
+You:   Coach: Nine clean from nine eligible, and you walked it down from +2.115 on lap 1 to 0:54.295 on lap 8 — that lap is the reference itself. On consistency: spread is 2.115 s and sd 0.659 s, but most of that is the opening lap; the median 0:54.764 means your typical lap was +0.469 off reference, and the mean gap lands at 0.688 s. So quick, but streaky across the stint.
+
+The single biggest recurring loss is Copse exit — 0.216 s per lap, 31% of your gap — and it's also your least consistent corner at 0.559 s over 8 laps. Mechanism: you release it at 161.8 km/h against 166.4 on the reference, in the same gear 4, so the variance and the time loss are the same root.
+
+One fix this run: carry 6 km/h more speed onto the straight at Copse.
+
+What did you do differently at Copse on lap 8 versus lap 7?
+You:   # Plan — Silverstone National Circuit
+
+Session best 0:54.295, 0.688 s off the reference on average, spread 2.115 s over 9 clean laps.
+
+1. **Copse** — carry 6 km/h more speed onto the straight.
+   Measured now: 0.216 s lost per lap, 31% of your gap.
+   Target: 166.4 km/h at the brake release, against 161.8 km/h today.
+
+2. **Luffield** — carry 3 km/h more minimum speed and brake 18 m later.
+   Measured now: 0.216 s lost per lap, 31% of your gap.
+   Target: 86.1 km/h at the apex, against 83.1 km/h today.
+
+3. **Becketts** — brake 36 m later and carry 5 km/h more minimum speed.
+   Measured now: 0.184 s lost per lap, 27% of your gap.
+   Target: 231.9 km/h at the braking point, against 229.4 km/h today.
+
+Written to C:\Users\duart\lap-telemetry\sessions\session_20261114T065241Z_silverstone-national-circuit_lmu_quali_plan.md
+You:   Saved: C:\Users\duart\lap-telemetry\sessions\session_20261114T065241Z_silverstone-national-circuit_lmu_quali_debrief.json

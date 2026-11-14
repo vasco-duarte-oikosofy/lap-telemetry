@@ -1,0 +1,5 @@
+Which corner is costing me the most in this quali, and why?
+/corner Copse
+How consistent was I across the clean laps?
+/plan
+/quit

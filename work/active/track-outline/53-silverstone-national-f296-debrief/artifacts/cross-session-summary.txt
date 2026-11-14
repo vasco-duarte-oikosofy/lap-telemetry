@@ -1,0 +1,30 @@
+--- quali: 9 clean laps, best 54.295, median 54.764, spread 2.115, sd 0.659, envelope 54.676, available 0.0, mean gap 0.688
+--- race: 31 clean laps, best 54.696, median 55.228, spread 1.282, sd 0.32, envelope 54.54, available 0.156, mean gap 0.888
+
+corner       quali rank  loss/lap  spread    race rank  loss/lap  spread   verdict
+Becketts              3     0.184   0.403            1     0.223   0.697   both: recurring + erratic
+Luffield              2     0.216   0.312            2     0.243   0.257   both: recurring + erratic
+Brooklands            5     0.057   0.179            3     0.199   0.335   inconsistent / both
+Copse                 1     0.216   0.559            4     0.142   0.315   both: recurring + erratic
+Woodcote              4     0.071   0.138            5     0.080   0.264   inconsistent / inconsistent
+Maggots               6     0.026   0.015            6     0.025   0.058   inconsistent / inconsistent
+
+Top recurring-loss phases (race):
+  Luffield    minimum_speed     0.243s on 23 laps
+  Becketts    exit_brake        0.223s on 10 laps
+  Luffield    exit              0.218s on 29 laps
+  Becketts    exit_throttle     0.211s on  5 laps
+  Brooklands  exit_brake        0.199s on  1 laps
+  Copse       minimum_speed     0.142s on 26 laps
+  Becketts    entry             0.141s on 23 laps
+  Copse       exit              0.140s on 20 laps
+
+Top recurring-loss phases (quali):
+  Copse       exit_brake        0.216s on  3 laps
+  Luffield    minimum_speed     0.216s on  8 laps
+  Copse       exit_throttle     0.197s on  3 laps
+  Becketts    entry             0.184s on  6 laps
+  Luffield    exit              0.177s on  6 laps
+  Copse       minimum_speed     0.165s on  7 laps
+  Becketts    exit_brake        0.132s on  2 laps
+  Copse       exit              0.097s on  4 laps

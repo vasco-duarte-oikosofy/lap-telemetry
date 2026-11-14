@@ -1,0 +1,20 @@
+session : session_20261114T065241Z_silverstone-national-circuit_lmu_quali
+track   : Silverstone National Circuit
+vehicle : Vista AF Corse 2026 #21:LM
+shards  : 1   rate: 50.0 Hz   yardstick: 0:54.780
+
+ seg  lap  frames     duration  status      reason
+   0    0    4387     1:31.248  out-lap     first segment of a stint
+   1    1    2815     0:56.410  eligible    
+   2    2    2776     0:55.657  eligible    
+   3    3    2761     0:55.376  eligible    
+   4    4    2734     0:54.796  eligible    
+   5    5    2726     0:54.657  eligible    
+   6    6    2708     0:54.354  eligible    
+   7    7    2720     0:54.535  eligible    
+   8    8    2703     0:54.295  eligible    
+   9    9    3343     1:07.069  pit-lap     duration 1.22x the session yardstick
+  10   10    2728     0:54.764  eligible    
+  11   11    2014     0:39.839  incomplete  final segment of the session
+
+9 of 12 segments eligible (9 clean).
