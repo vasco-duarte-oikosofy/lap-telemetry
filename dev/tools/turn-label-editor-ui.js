@@ -1,6 +1,22 @@
 /* Turn label editor — controls, import/export UI and boot. Loaded after
    `turn-label-editor.js`; plain classic scripts so the page works from `file://`. */
 "use strict";
+const view = { tab: "edit" };
+function render() {
+  if (view.tab === "preview") drawTinypedalPreview();
+  else draw();
+}
+function setTab(tab) {
+  view.tab = tab;
+  ui["tab-edit"].classList.toggle("active", tab === "edit");
+  ui["tab-preview"].classList.toggle("active", tab === "preview");
+  document.getElementById("preview-controls").classList.toggle("visible", tab === "preview");
+  render();
+}
+ui["tab-edit"].addEventListener("click", () => setTab("edit"));
+ui["tab-preview"].addEventListener("click", () => setTab("preview"));
+["tp-size", "tp-dots"].forEach((id) => ui[id].addEventListener("change", render));
+
 function syncControls() {
   const s = setting();
   ui.rotation.value = String(s.rotation);
@@ -15,7 +31,7 @@ function syncControls() {
 function setRotation(degrees) {
   setting().rotation = Math.max(-180, Math.min(180, Math.round(Number(degrees) || 0)));
   syncControls();
-  draw();
+  render();
   saveStore();
 }
 ui.track.addEventListener("change", () => {
@@ -23,7 +39,7 @@ ui.track.addEventListener("change", () => {
   state.selected = null;
   store.current = state.slug;
   syncControls();
-  draw();
+  render();
   saveStore();
 });
 ui.rotation.addEventListener("input", () => setRotation(ui.rotation.value));
@@ -31,33 +47,33 @@ ui["rotation-number"].addEventListener("change", () => setRotation(ui["rotation-
 ui.zoom.addEventListener("input", () => {
   setting().zoom = Number(ui.zoom.value);
   syncControls();
-  draw();
+  render();
   saveStore();
 });
 ui["label-mode"].addEventListener("change", () => {
   setting().mode = ui["label-mode"].value;
-  draw();
+  render();
   saveStore();
 });
 ui["font-size"].addEventListener("input", () => {
   setting().fontSize = Number(ui["font-size"].value);
   syncControls();
-  draw();
+  render();
   saveStore();
 });
-["leaders", "dots"].forEach((id) => ui[id].addEventListener("change", draw));
+["leaders", "dots"].forEach((id) => ui[id].addEventListener("change", render));
 ui["reset-track"].addEventListener("click", () => {
   store.tracks[state.slug] = presetFor(state.slug) || blankTrack();
   state.selected = null;
   syncControls();
-  draw();
+  render();
   saveStore();
 });
 ui["reset-all"].addEventListener("click", () => {
   Object.keys(store.tracks).forEach((slug) => { delete store.tracks[slug]; });
   state.selected = null;
   syncControls();
-  draw();
+  render();
   saveStore();
 });
 ui.copy.addEventListener("click", async () => {
@@ -85,7 +101,7 @@ function importPlacement(text) {
   store.current = payload.track;
   ui.track.value = payload.track;
   syncControls();
-  draw();
+  render();
   saveStore();
   return describeImport(null, payload, Object.keys(placement.offsets).length);
 }
@@ -129,10 +145,10 @@ state.slug = store.current && TRACKS.tracks[store.current] ? store.current : slu
 ui.track.value = state.slug;
 store.current = state.slug;
 syncControls();
-draw();
+render();
 saveStore();
 
 // Debug/automation hook: the tests drive the editor through this instead of
 // scraping the canvas.
 window.__turnLabelEditor = { state, store, setting, outline, exportPayload, draw, toScreen,
-  labelText, importPlacement, presetFor };
+  labelText, importPlacement, presetFor, view, setTab, render, drawTinypedalPreview };

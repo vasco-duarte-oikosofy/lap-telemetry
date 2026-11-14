@@ -66,7 +66,8 @@ function staticContract() {
   const slugs = Object.keys(source);
 
   check(html.startsWith('<!doctype html>'), 'it is a standalone HTML document');
-  check((html.match(/<script src="/g) || []).length === 3, 'three relative script tags (data, app, ui)');
+  check((html.match(/<script src="/g) || []).length === 4,
+    'four relative script tags (data, app, preview, ui)');
   check(!/https?:\/\//.test(html.replace(/xmlns="[^"]*"/g, '')), 'no network URLs in the page');
   check(!/\bfetch\s*\(/.test(html + fs.readFileSync(files.app, 'utf8')), 'no fetch() — must work from file://');
   check(!/type="module"/.test(html), 'classic scripts only (ES modules do not load from file://)');
@@ -136,7 +137,8 @@ async function browserContract() {
       return { rotation: editor.setting().rotation, labels: placed.length, overlaps,
                offsets: Object.keys(editor.setting().offsets).length };
     });
-    check(imola.rotation === -96, 'Imola opens at the driver\'s rotation (-96°)', String(imola.rotation));
+    check(imola.rotation === 96, 'Imola opens at the driver\'s rotation in TinyPedal\'s sign (+96°)',
+      String(imola.rotation));
     check(imola.labels === 11 && imola.offsets === 11, 'all 11 Imola names carry the placed offset',
       `${imola.offsets} offsets`);
     check(imola.overlaps === 0, 'the shipped Imola placement has no overlapping labels',
@@ -187,7 +189,8 @@ async function browserContract() {
       version: JSON.parse(document.getElementById('json').value).version }));
     check(rotated.rotation === 45 && rotated.orientation === 45,
       'rotation slider sets 45° and exports it as display_orientation', JSON.stringify(rotated));
-    check(rotated.version === 2, 'exports are version 2 (v1 had the Y-drag bug)', String(rotated.version));
+    check(rotated.version === 3, 'exports are version 3 (TinyPedal rotation convention)',
+      String(rotated.version));
 
     // --- import: v2 round trip and v1 repair ---
     const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'turn-label-'));
@@ -215,9 +218,56 @@ async function browserContract() {
     const rejected = await page.evaluate(() => document.getElementById('status').textContent);
     check(/import failed/.test(rejected), 'a foreign JSON is refused with a visible reason', rejected);
 
+    // --- TinyPedal preview tab ---
+    await page.selectOption('#track', 'autodromo-enzo-e-dino-ferrari');
+    const editorBearings = await page.evaluate(() => {
+      const editor = window.__turnLabelEditor;
+      editor.setTab('edit');
+      const out = {};
+      for (const label of editor.state.placed) {
+        const turn = editor.outline().turns.find((item) => item.id === label.id);
+        const [ax, ay] = editor.toScreen(turn.x, turn.y);
+        out[label.id] = Math.atan2(label.y + label.h / 2 - ay, label.x + label.w / 2 - ax) * 180 / Math.PI;
+      }
+      return out;
+    });
+    await page.locator('#tab-preview').click();
+    const preview = await page.evaluate(() => {
+      const editor = window.__turnLabelEditor;
+      const p = editor.state.preview;
+      const bearings = {};
+      for (const label of p.drawn) {
+        bearings[label.id] = Math.atan2(label.y - label.anchorY, label.x - label.anchorX) * 180 / Math.PI;
+      }
+      return { status: document.getElementById('status').textContent, angle: p.angle, source: p.source,
+               placed: p.placed, dropped: p.dropped, anchors: p.anchors, drawn: p.drawn.length,
+               bearings, rotation: editor.setting().rotation,
+               orientation: JSON.parse(document.getElementById('json').value).display_orientation };
+    });
+    check(/TinyPedal preview/.test(preview.status), 'the preview tab renders and reports itself',
+      preview.status.split(String.fromCharCode(10))[0]);
+    check(/Enzo e Dino Ferrari\.svg/.test(preview.source), "the preview uses the recorded TinyPedal map",
+      preview.source);
+    check(preview.angle === preview.rotation && preview.orientation === preview.rotation,
+      'the preview rotates by exactly the exported display_orientation',
+      `${preview.angle} / ${preview.orientation}`);
+    check(preview.drawn === 11 && preview.anchors === 11, 'all 11 corners are drawn in the preview',
+      `${preview.drawn}/${preview.anchors}`);
+    check(/from your placement: 11/.test(preview.status), 'every label comes from the placement, not the fallback',
+      preview.status.split(String.fromCharCode(10)).pop());
+    const angles = Object.keys(editorBearings).filter((id) => id in preview.bearings)
+      .map((id) => Math.abs(((preview.bearings[id] - editorBearings[id] + 540) % 360) - 180));
+    check(angles.length === 11 && Math.max(...angles) < 25,
+      'each label sits the same way round its corner in both tabs (rotation conventions agree)',
+      `worst ${Math.max(...angles).toFixed(0)}° over ${angles.length} corners`);
+    await page.locator('#tab-edit').click();
+    const backToEdit = await page.evaluate(() => window.__turnLabelEditor.view.tab);
+    check(backToEdit === 'edit', 'the edit tab comes back', backToEdit);
+
     // --- persistence + reset ---
     await page.reload();
     await page.waitForFunction(() => !!window.__turnLabelEditor);
+    await page.selectOption('#track', 'silverstone-national-circuit');
     const restored = await page.evaluate(() => {
       const editor = window.__turnLabelEditor;
       return { track: editor.state.slug, offset: editor.setting().offsets.copse };
@@ -237,7 +287,7 @@ async function browserContract() {
       const editor = window.__turnLabelEditor;
       return { rotation: editor.setting().rotation, offsets: Object.keys(editor.setting().offsets).length };
     });
-    check(presetReset.rotation === -96 && presetReset.offsets === 11,
+    check(presetReset.rotation === 96 && presetReset.offsets === 11,
       'Reset on a track WITH a shipped preset restores that preset, not a blank layout',
       JSON.stringify(presetReset));
 

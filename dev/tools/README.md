@@ -20,11 +20,18 @@ the app (`turn-label-editor.js` + `turn-label-editor-ui.js`) and the generated
 data (`turn-label-data.js`) sit side by side and load as plain scripts, so it
 works over `file://` with no server and no build step at run time.
 
+- **Two tabs.** *Edit placement* is the working canvas (drag, nudge, zoom).
+  *TinyPedal preview* renders the map the way the live widget will: TinyPedal's
+  own recorded map SVG, its `display_orientation` rotation, its `scale_map` fit
+  and margin, its font rule and its label planner — with your placement applied
+  on top. Use it to judge rotation and label placement before touching the
+  widget.
 - Pick a track, drag a name to where it belongs, click one and nudge it with the
   arrow keys (Shift = 10×).
-- The rotation slider is TinyPedal's `display_orientation`; use it to turn the
-  layout so it fits the LMU screen. Labels stay upright and stay attached to
-  their corner.
+- The rotation slider **is** TinyPedal's `display_orientation`, with the same sign
+  convention as the widget (positive = clockwise on screen), so the number can be
+  pasted into the widget config. Labels stay upright and stay attached to their
+  corner.
 - Placements are remembered per track in `localStorage`; **Copy JSON** /
   **Download JSON** give you `{tool, version: 2, track, display_orientation,
   labels: {id: {dx_m, dy_m}}}` — offsets are metres from each corner's anchor, so

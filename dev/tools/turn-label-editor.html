@@ -25,6 +25,14 @@
   .status { white-space: pre-wrap; color: #d5e7a6; font-size: 12px; margin: 9px 0 0; font-variant-numeric: tabular-nums; }
   textarea { width: 100%; height: 170px; margin-top: 8px; background: #080a0d; color: #d6f8ff; border: 1px solid #344051; border-radius: 4px; font: 11px/1.35 ui-monospace, monospace; }
   code { color: #9ad1ff; }
+  #tabs { position: absolute; inset: 0 0 auto 0; display: flex; gap: 6px; align-items: center; padding: 8px 10px; background: #0c1016; border-bottom: 1px solid #2d3340; z-index: 2; }
+  .tab { margin: 0; padding: 5px 10px; background: #161b23; border: 1px solid #33404f; border-radius: 4px; color: #b8c1cc; }
+  .tab.active { background: #2b4a6b; border-color: #4f7ba6; color: #fff; }
+  #preview-controls { margin-left: auto; display: none; gap: 6px; align-items: center; color: #b8c1cc; font-size: 12px; }
+  #preview-controls.visible { display: flex; }
+  #preview-controls select { width: auto; }
+  #canvas { padding-top: 0; }
+  main { padding-top: 0; }
 </style>
 </head>
 <body>
@@ -59,10 +67,27 @@
     <p class="status" id="status"></p>
     <textarea id="json" readonly spellcheck="false"></textarea>
   </aside>
-  <main><canvas id="canvas"></canvas></main>
+  <main>
+    <div id="tabs">
+      <button id="tab-edit" class="tab active" type="button">Edit placement</button>
+      <button id="tab-preview" class="tab" type="button">TinyPedal preview</button>
+      <span id="preview-controls">
+        <label for="tp-size">widget</label>
+        <select id="tp-size">
+          <option value="250">250 px</option>
+          <option value="400" selected>400 px</option>
+          <option value="600">600 px</option>
+          <option value="800">800 px</option>
+        </select>
+        <input id="tp-dots" type="checkbox" checked><label for="tp-dots">corner dots</label>
+      </span>
+    </div>
+    <canvas id="canvas"></canvas>
+  </main>
 </div>
 <script src="turn-label-data.js"></script>
 <script src="turn-label-editor.js"></script>
+<script src="turn-label-editor-preview.js"></script>
 <script src="turn-label-editor-ui.js"></script>
 </body>
 </html>

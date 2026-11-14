@@ -28,11 +28,41 @@ const path = require('path');
 const ROOT = path.resolve(__dirname, '../..');
 const OUTLINES = path.join(ROOT, 'product/data/track-outlines');
 const PRESETS = path.join(ROOT, 'dev/tools/turn-label-presets.json');
+// The sibling TinyPedal checkout: its recorded map SVG (the shape the live
+// widget actually draws) and the packaged turn labels (the s_frac it anchors on).
+const TINYPEDAL = path.resolve(ROOT, '..', 'tinypedal');
+const TP_MAPS = path.join(TINYPEDAL, 'trackmap');
+const TP_LABELS = path.join(TINYPEDAL, 'tinypedal/data/turn_labels');
 const TARGET = path.join(ROOT, 'dev/tools/turn-label-data.js');
 const CEILING = 437;
 
 const round1 = (value) => Math.round(Number(value) * 10) / 10;
 const round3 = (value) => Math.round(Number(value) * 1000) / 1000;
+
+function readTinypedal(trackName) {
+  if (!trackName) return null;
+  const svgPath = path.join(TP_MAPS, `${trackName}.svg`);
+  if (!fs.existsSync(svgPath)) return null;
+  const svg = fs.readFileSync(svgPath, 'utf8');
+  const points = /<polyline id="map"[^>]*points="([^"]+)"/.exec(svg);
+  if (!points) return null;
+  const map = points[1].trim().split(/\s+/).map((pair) => pair.split(',').map(Number))
+    .filter((pair) => pair.length === 2 && pair.every(Number.isFinite));
+  if (map.length < 2) return null;
+  let length = 0;
+  for (let i = 1; i < map.length; i += 1) {
+    length += Math.hypot(map[i][0] - map[i - 1][0], map[i][1] - map[i - 1][1]);
+  }
+  const labelPath = path.join(TP_LABELS, `${trackName}.turns.json`);
+  const packaged = fs.existsSync(labelPath) ? JSON.parse(fs.readFileSync(labelPath, 'utf8')) : null;
+  return {
+    map: map.map(([x, y]) => [round1(x), round1(y)]),
+    length: round1(length),
+    s_frac: packaged && Array.isArray(packaged.turns)
+      ? packaged.turns.map((turn) => Math.round(Number(turn.s_frac) * 1e6) / 1e6) : null,
+    source: path.basename(svgPath),
+  };
+}
 
 function buildTrack(outline) {
   const turns = (outline.turns || []).map((turn) => ({
@@ -47,13 +77,22 @@ function buildTrack(outline) {
     tangent: Array.isArray(turn.tangent) ? turn.tangent.map(round3) : null,
   }));
   if (!turns.length) return null;
-  return {
+  const track = {
     track_name: outline.track_name || '',
     layout: outline.layout_name || null,
     lap_length_m: round1(outline.lap_length_m || 0),
     centerline: (outline.centerline || []).map((point) => [round1(point.x), round1(point.y)]),
     turns,
   };
+  // Only when the packaged fractions line up with the outline's turn order.
+  const tinypedal = readTinypedal(track.track_name);
+  if (tinypedal && tinypedal.s_frac && tinypedal.s_frac.length === turns.length) {
+    track.tinypedal = tinypedal;
+  } else if (tinypedal) {
+    track.tinypedal = { map: tinypedal.map, length: tinypedal.length, s_frac: null,
+                        source: tinypedal.source };
+  }
+  return track;
 }
 
 function buildPayload() {

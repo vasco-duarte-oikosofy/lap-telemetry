@@ -9,7 +9,8 @@ const MIN_LABEL_GAP_FRACTION = 0.03;   // first placement: 3% of the layout diag
 const canvas = document.getElementById("canvas"), ctx = canvas.getContext("2d"), ui = {};
 for (const id of ["track", "rotation", "rotation-number", "rotation-value", "zoom", "zoom-value",
   "label-mode", "font-size", "font-size-value", "leaders", "dots", "status", "json",
-  "reset-track", "reset-all", "copy", "download"]) {
+  "reset-track", "reset-all", "copy", "download", "import-file", "tab-edit", "tab-preview",
+  "tp-size", "tp-dots"]) {
   ui[id] = document.getElementById(id);
 }
 
@@ -24,23 +25,32 @@ function presetFor(slug) {
 /**
  * v1 exports were produced while drag offsets were *drawn* with a flipped Y, so
  * the stored dy is what looked right on screen rather than the map-space truth.
- * Repair it: mirror the rotated vector's Y and rotate back.
+ * Repair it by mirroring Y in the OLD display frame and converting back. The old
+ * frame is spelled out here on purpose: it was y-up-then-flip, not the y-down
+ * frame this file uses now, and the repair must not follow the new convention.
  */
 function repairLegacyOffset(dx, dy, rotation) {
-  const [rx, ry] = rotate(dx, dy, rotation);
-  return rotate(rx, -ry, -rotation);
+  const rad = (rotation * Math.PI) / 180, c = Math.cos(rad), s = Math.sin(rad);
+  const rx = dx * c - dy * s, ry = dx * s + dy * c;         // old y-up rotation
+  // What the user saw is (rx, +ry) relative to the corner; the fixed renderer
+  // needs (rx, -ry), so store the offset that produces it.
+  const ty = -ry;
+  return [rx * c + ty * s, -rx * s + ty * c];
 }
 function placementFromPayload(payload) {
-  const legacy = (Number(payload.version) || 1) < 2;
-  const rotation = Math.round(Number(payload.display_orientation) || 0);
+  const version = Number(payload.version) || 1;
+  const stored = Math.round(Number(payload.display_orientation) || 0);
+  // Before version 3 the editor rotated the map the other way round; the same
+  // picture therefore needs the negated angle in TinyPedal's convention.
+  const rotation = version < 3 ? -stored : stored;
   const offsets = {};
   for (const [id, offset] of Object.entries(payload.labels || {})) {
     if (!offset || !Number.isFinite(offset.dx_m) || !Number.isFinite(offset.dy_m)) continue;
-    offsets[id] = legacy ? repairLegacyOffset(offset.dx_m, offset.dy_m, rotation)
-                         : [offset.dx_m, offset.dy_m];
+    offsets[id] = version < 2 ? repairLegacyOffset(offset.dx_m, offset.dy_m, stored)
+                              : [offset.dx_m, offset.dy_m];
   }
   return {
-    rotation: Math.round(Number(payload.display_orientation) || 0),
+    rotation,
     zoom: Number(payload.zoom) || 100,
     mode: ["number-name", "name", "number"].includes(payload.label_text) ? payload.label_text : "number-name",
     fontSize: Number(payload.font_px) || 13,
@@ -60,10 +70,18 @@ const setting = () => store.tracks[state.slug] ||
   (store.tracks[state.slug] = presetFor(state.slug) || blankTrack());
 const outline = () => TRACKS.tracks[state.slug];
 
+/**
+ * Rotation in *display* space, matching TinyPedal's `rotate_coordinate`: its map
+ * coordinates are y-down, so a positive angle turns the map clockwise on screen.
+ * Sim coordinates are y-up, so every conversion to display negates Y first. That
+ * keeps the editor and the TinyPedal preview rotating identically and makes the
+ * exported `display_orientation` usable by the widget verbatim.
+ */
 function rotate(x, y, degrees) {
   const rad = (degrees * Math.PI) / 180, c = Math.cos(rad), s = Math.sin(rad);
   return [x * c - y * s, x * s + y * c];
 }
+const toDisplay = (x, y) => [x, -y];
 function bounds(points) {
   let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
   for (const [x, y] of points) {
@@ -74,11 +92,11 @@ function bounds(points) {
 }
 function buildView() {
   const rot = setting().rotation, zoom = setting().zoom / 100;
-  const rotated = outline().centerline.map(([x, y]) => rotate(x, y, rot));
+  const rotated = outline().centerline.map(([x, y]) => rotate(...toDisplay(x, y), rot));
   const { minX, maxX, minY, maxY } = bounds(rotated);
   // Placement spacing uses the UNROTATED bounds, so a label's default offset in
   // metres cannot drift when the map is rotated.
-  const base = bounds(outline().centerline);
+  const base = bounds(outline().centerline.map(([x, y]) => toDisplay(x, y)));
   const width = canvas.clientWidth || 800, height = canvas.clientHeight || 600;
   const margin = Math.max(28, Math.min(width, height) * 0.06);
   const spanX = Math.max(maxX - minX, 1e-6), spanY = Math.max(maxY - minY, 1e-6);
@@ -91,14 +109,14 @@ function buildView() {
 }
 function toScreen(x, y) {
   const view = state.view;
-  const [rx, ry] = rotate(x, y, view.rot);
-  // sim Y is up, canvas Y is down
-  return [view.width / 2 + (rx - view.cx) * view.scale, view.height / 2 - (ry - view.cy) * view.scale];
+  const [rx, ry] = rotate(...toDisplay(x, y), view.rot);
+  return [view.width / 2 + (rx - view.cx) * view.scale, view.height / 2 + (ry - view.cy) * view.scale];
 }
 /** Screen-space delta -> map-space delta: undo the Y flip, then undo the rotation. */
 function screenToMapDelta(dxPixels, dyPixels) {
   const view = state.view;
-  return rotate(dxPixels / view.scale, -dyPixels / view.scale, -view.rot);
+  const [dx, dy] = rotate(dxPixels / view.scale, dyPixels / view.scale, -view.rot);
+  return [dx, -dy];
 }
 let autoLayout = { key: null, offsets: {} };
 function unrotatedView() {
@@ -125,7 +143,7 @@ function computeAutoLayout() {
     // An outline without a baked tangent still gets along-track candidates.
     const tangent = turn.tangent || [-outward[1], outward[0]];
     const ax = view.width / 2 + (turn.x - view.cx) * view.scale;
-    const ay = view.height / 2 - (turn.y - view.cy) * view.scale;
+    const ay = view.height / 2 + (-turn.y - view.cy) * view.scale;
     let fallback = null, hit = null;
     // One "row" away from the corner is a label height; one step along the track
     // is a label width, so stacking works the same on a 1.6 km and a 13 km layout.
@@ -136,7 +154,7 @@ function computeAutoLayout() {
       for (const side of [1, -1])
         for (const slide of [0, 1, -1, 2, -2, 3, -3, 4, -4]) {
           const dx = outward[0] * side * distance * stepOut + tangent[0] * slide * stepAlong;
-          const dy = outward[1] * side * distance * stepOut + tangent[1] * slide * stepAlong;
+          const dy = -(outward[1] * side * distance * stepOut + tangent[1] * slide * stepAlong);
           const box = { x: ax + dx * view.scale - w / 2, y: ay - dy * view.scale - h / 2, w, h };
           const candidate = { dx, dy, box };
           if (!fallback) fallback = candidate;
@@ -201,8 +219,8 @@ function draw() {
   state.placed = [];
   for (const turn of track.turns) {
     const [ax, ay] = toScreen(turn.x, turn.y);
-    const [ox, oy] = rotate(offsetOf(turn)[0], offsetOf(turn)[1], state.view.rot);
-    const lx = ax + ox * state.view.scale, ly = ay - oy * state.view.scale;
+    const [ox, oy] = rotate(offsetOf(turn)[0], -offsetOf(turn)[1], state.view.rot);
+    const lx = ax + ox * state.view.scale, ly = ay + oy * state.view.scale;
     if (ui.dots.checked) {
       ctx.fillStyle = "#7fd4a0";
       ctx.beginPath(); ctx.arc(ax, ay, 2.5, 0, Math.PI * 2); ctx.fill();
@@ -294,7 +312,7 @@ function exportPayload() {
     labels[turn.id] = { dx_m: Math.round(dx * 10) / 10, dy_m: Math.round(dy * 10) / 10 };
   }
   return {
-    tool: "turn-label-editor", version: 2,
+    tool: "turn-label-editor", version: 3,
     track: state.slug, track_name: track.track_name, layout: track.layout,
     lap_length_m: track.lap_length_m, display_orientation: setting().rotation,
     label_text: setting().mode, font_px: setting().fontSize, labels,
