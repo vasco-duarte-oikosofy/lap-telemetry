@@ -28,7 +28,13 @@ included, per `AGENTS.md`.
 
 | Slice | Status | Vertical outcome |
 |---|---|---|
-| `01-true-slip-angle` | 🔲 Not started | The existing `slip_angle_*` channel is either replaced by a verified real slip angle (new columns where needed, new fact where available) or the refusal is upgraded to a measured, specific reason. One session, one corner, one honest answer about whether the rear slid. |
+| `01-true-slip-angle` | 📝 Planned — see [`01-true-slip-angle/plan.md`](01-true-slip-angle/plan.md) | The existing `slip_angle_*` channel is either replaced by a verified real slip angle (new columns where needed, new fact where available) or the refusal is upgraded to a measured, specific reason. One session, one corner, one honest answer about whether the rear slid. |
+
+**Where it is developed:** on the recording machine. The planning spike (`plan.md`
+phase A) can run anywhere, but the outcome is a recorder slice — the shippable
+number needs `mGripFract` / ground-velocity columns that only a new recording can
+carry, so the validation gates need a session recorded there. Do not start the
+product-side work from a workstation that cannot record.
 
 ---
 
