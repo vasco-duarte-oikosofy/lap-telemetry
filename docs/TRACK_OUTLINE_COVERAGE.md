@@ -44,7 +44,7 @@ kerb or far from the outside wall.
 | WeatherTech Raceway Laguna Seca | `weathertech-raceway-laguna-seca` | Trajectory | Single lap (lap 4, 1:27.905, 2026-08-08) | Constant 5m each side | ❌ No |
 | Paul Ricard - 1A | `paul-ricard---1a` | Trajectory | Ginetta P3 race lap 10, 1:46.834, 2026-11-01; four full flat bends, 14 reviewed coaching zones | Synthetic constant 5m each side | ❌ No |
 | Paul Ricard - 1A-V2-Short | `paul-ricard---1a-v2-short` | Trajectory | Single lap (lap 4, 1:38.774, 2026-09-19) | Constant 5m each side | ❌ No |
-| Paul Ricard - ELMS | `paul-ricard---elms` | Trajectory | Ferrari 296 GT3 practice lap 8, 2:07.601, 2026-11-10; 5.8 km 1C layout (Verrerie chicane + Chicane Nord), 16 reviewed coaching zones, two flat bends | Synthetic constant 5m each side | ❌ No |
+| Paul Ricard - ELMS | `paul-ricard---elms` | Trajectory | Ferrari 296 GT3 race lap 10, 2:06.440, 2026-11-14; 5.8 km 1C layout (Verrerie chicane + Chicane Nord), 16 reviewed coaching zones, two flat bends | Synthetic constant 5m each side | ❌ No |
 | Michelin Raceway Road Atlanta | `michelin-raceway-road-atlanta` | Trajectory | Single lap (practice lap 15, 1:16.809, 2026-10-04; outline not regenerated after the race-lap reference refresh) | Constant 5m each side | ❌ No |
 | Monza Curva Grande Circuit | `monza-curva-grande-circuit` | Trajectory | Single lap (practice lap 12, 1:35.182, 2026-10-31) | Constant 5m each side | ❌ No |
 | Silverstone International Circuit | `silverstone-international-circuit` | Trajectory | Single lap (race lap 13, 1:02.909, 2026-10-31) | Constant 5m each side | ❌ No |

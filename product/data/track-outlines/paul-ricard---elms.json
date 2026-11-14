@@ -21,8 +21,8 @@
   "alignment": {
     "method": "trajectory_trace",
     "width_per_side": 5.0,
-    "reference_lap": "product/data/reference-laps/paul-ricard---elms_vista-af-corse-2026-21-lm_time_02.07.601.parquet",
-    "notes": "Guarded practice lap 8; 5.8 km 1C layout: Verrerie chicane + Chicane Nord."
+    "reference_lap": "product/data/reference-laps/paul-ricard---elms_vista-af-corse-2026-21-lm_time_02.06.440.parquet",
+    "notes": "Guarded race lap 10 (2:06.440) of the 2026-11-14 race; 5.8 km 1C layout: Verrerie chicane + Chicane Nord."
   },
   "visual_qa": {
     "status": "pending",
@@ -342,21 +342,21 @@
     {"x":123.161,"y":-92.037}, {"x":111.933,"y":-83.969}, {"x":100.694,"y":-75.896}, {"x":89.339,"y":-67.65}, {"x":78.677,"y":-58.538}
   ],
   "turns": [
-    {"id":"verrerie_1","number":1,"name":"S de la Verrerie 1","short_name":"Verrerie 1","apex_s_m":621.0,"x":-416.302,"y":292.086,"outward":[-0.1125,-0.9936],"tangent":[-0.9936,0.1125]},
-    {"id":"verrerie_2","number":2,"name":"S de la Verrerie 2","short_name":"Verrerie 2","apex_s_m":739.0,"x":-518.503,"y":253.742,"outward":[0.2257,-0.9742],"tangent":[-0.9742,-0.2257]},
-    {"id":"hotel_1","number":3,"name":"Virage de l'Hôtel 1","short_name":"Hôtel 1","apex_s_m":1307.0,"x":-1002.693,"y":524.415,"outward":[-0.8865,-0.4627],"tangent":[-0.4627,0.8865]},
-    {"id":"hotel_2","number":4,"name":"Virage de l'Hôtel 2","short_name":"Hôtel 2","apex_s_m":1411.0,"x":-1036.28,"y":613.102,"outward":[-0.508,-0.8613],"tangent":[-0.8613,0.508]},
-    {"id":"camp","number":5,"name":"Virage du Camp","short_name":"Camp","apex_s_m":1521.0,"x":-1135.528,"y":630.898,"outward":[-0.8779,-0.4788],"tangent":[-0.4788,0.8779]},
-    {"id":"sainte_baume","number":6,"name":"Virage de la Sainte-Baume","short_name":"Ste-Baume","apex_s_m":1663.0,"x":-1068.728,"y":729.64,"outward":[-0.0348,0.9994],"tangent":[0.9994,0.0348]},
-    {"id":"mistral","number":7,"name":"Ligne Droite du Mistral","short_name":"Mistral","apex_s_m":1886.0,"x":-921.28,"y":575.689,"outward":[0.6489,0.7608],"tangent":[0.7608,-0.6489]},
-    {"id":"chicane_nord_1","number":8,"name":"Chicane Nord 1","short_name":"Chicane 1","apex_s_m":2960.0,"x":90.675,"y":239.778,"outward":[-0.3818,0.9242],"tangent":[0.9242,0.3818]},
-    {"id":"chicane_nord_2","number":9,"name":"Chicane Nord 2","short_name":"Chicane 2","apex_s_m":3044.0,"x":159.328,"y":272.839,"outward":[0.1552,0.9879],"tangent":[0.9879,-0.1552]},
-    {"id":"signes","number":10,"name":"Courbe de Signes","short_name":"Signes","apex_s_m":3954.0,"x":949.43,"y":-122.908,"outward":[0.9043,0.4268],"tangent":[0.4268,-0.9043]},
-    {"id":"beausset_1","number":11,"name":"Double Droite du Beausset 1","short_name":"Beausset 1","apex_s_m":4390.0,"x":866.427,"y":-497.345,"outward":[-0.0596,-0.9982],"tangent":[-0.9982,0.0596]},
-    {"id":"beausset_2","number":12,"name":"Double Droite du Beausset 2","short_name":"Beausset 2","apex_s_m":4482.0,"x":793.702,"y":-446.409,"outward":[-0.9238,-0.3829],"tangent":[-0.3829,0.9238]},
-    {"id":"bendor","number":13,"name":"Virage de Bendor","short_name":"Bendor","apex_s_m":4831.0,"x":861.035,"y":-148.807,"outward":[-0.2595,-0.9657],"tangent":[-0.9657,0.2595]},
-    {"id":"garlaban","number":14,"name":"Courbe du Garlaban","short_name":"Garlaban","apex_s_m":4949.0,"x":752.667,"y":-182.306,"outward":[0.312,-0.9501],"tangent":[-0.9501,-0.312]},
-    {"id":"lac","number":15,"name":"Virage du Lac","short_name":"Lac","apex_s_m":5380.0,"x":373.326,"y":-138.255,"outward":[0.9287,-0.3708],"tangent":[-0.3708,-0.9287]},
-    {"id":"pont","number":16,"name":"Virage du Pont","short_name":"Pont","apex_s_m":5470.0,"x":364.49,"y":-225.245,"outward":[0.7154,-0.6988],"tangent":[-0.6988,-0.7154]}
+    {"id":"verrerie_1","number":1,"name":"S de la Verrerie 1","short_name":"Verrerie 1","apex_s_m":623.0,"x":-419.009,"y":292.513,"outward":[-0.036,-0.9994],"tangent":[-0.9994,0.036]},
+    {"id":"verrerie_2","number":2,"name":"S de la Verrerie 2","short_name":"Verrerie 2","apex_s_m":747.0,"x":-525.55,"y":251.972,"outward":[0.1417,-0.9899],"tangent":[-0.9899,-0.1417]},
+    {"id":"hotel_1","number":3,"name":"Virage de l'Hôtel 1","short_name":"Hôtel 1","apex_s_m":1307.0,"x":-1002.53,"y":524.028,"outward":[-0.8691,-0.4946],"tangent":[-0.4946,0.8691]},
+    {"id":"hotel_2","number":4,"name":"Virage de l'Hôtel 2","short_name":"Hôtel 2","apex_s_m":1411.0,"x":-1037.725,"y":611.215,"outward":[-0.4669,-0.8843],"tangent":[-0.8843,0.4669]},
+    {"id":"camp","number":5,"name":"Virage du Camp","short_name":"Camp","apex_s_m":1521.0,"x":-1133.513,"y":632.135,"outward":[-0.9207,-0.3904],"tangent":[-0.3904,0.9207]},
+    {"id":"sainte_baume","number":6,"name":"Virage de la Sainte-Baume","short_name":"Ste-Baume","apex_s_m":1661.0,"x":-1070.32,"y":730.04,"outward":[-0.0587,0.9983],"tangent":[0.9983,0.0587]},
+    {"id":"mistral","number":7,"name":"Ligne Droite du Mistral","short_name":"Mistral","apex_s_m":1886.0,"x":-921.01,"y":576.069,"outward":[0.6401,0.7683],"tangent":[0.7683,-0.6401]},
+    {"id":"chicane_nord_1","number":8,"name":"Chicane Nord 1","short_name":"Chicane 1","apex_s_m":2962.0,"x":92.71,"y":239.585,"outward":[-0.3932,0.9194],"tangent":[0.9194,0.3932]},
+    {"id":"chicane_nord_2","number":9,"name":"Chicane Nord 2","short_name":"Chicane 2","apex_s_m":3048.0,"x":163.135,"y":272.364,"outward":[0.2289,0.9735],"tangent":[0.9735,-0.2289]},
+    {"id":"signes","number":10,"name":"Courbe de Signes","short_name":"Signes","apex_s_m":3948.0,"x":945.435,"y":-118.541,"outward":[0.9023,0.4311],"tangent":[0.4311,-0.9023]},
+    {"id":"beausset_1","number":11,"name":"Double Droite du Beausset 1","short_name":"Beausset 1","apex_s_m":4390.0,"x":866.221,"y":-496.77,"outward":[-0.0623,-0.9981],"tangent":[-0.9981,0.0623]},
+    {"id":"beausset_2","number":12,"name":"Double Droite du Beausset 2","short_name":"Beausset 2","apex_s_m":4482.0,"x":793.651,"y":-445.659,"outward":[-0.9241,-0.3822],"tangent":[-0.3822,0.9241]},
+    {"id":"bendor","number":13,"name":"Virage de Bendor","short_name":"Bendor","apex_s_m":4831.0,"x":860.552,"y":-149.779,"outward":[-0.249,-0.9685],"tangent":[-0.9685,0.249]},
+    {"id":"garlaban","number":14,"name":"Courbe du Garlaban","short_name":"Garlaban","apex_s_m":4949.0,"x":751.966,"y":-182.965,"outward":[0.3606,-0.9327],"tangent":[-0.9327,-0.3606]},
+    {"id":"lac","number":15,"name":"Virage du Lac","short_name":"Lac","apex_s_m":5380.0,"x":373.61,"y":-139.097,"outward":[0.9199,-0.3922],"tangent":[-0.3922,-0.9199]},
+    {"id":"pont","number":16,"name":"Virage du Pont","short_name":"Pont","apex_s_m":5470.0,"x":365.193,"y":-225.788,"outward":[0.7393,-0.6734],"tangent":[-0.6734,-0.7393]}
   ]
 }
