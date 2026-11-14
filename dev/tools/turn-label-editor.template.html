@@ -1,0 +1,436 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Turn label editor — LMU tracks</title>
+<style>
+  :root { color-scheme: dark; }
+  body { margin: 0; font: 13px/1.4 system-ui, sans-serif; background: #101217; color: #e8ecf2; }
+  #app { display: grid; grid-template-columns: 320px 1fr; height: 100vh; }
+  aside { padding: 12px 14px 18px; overflow: auto; border-right: 1px solid #2d3340; }
+  main { position: relative; overflow: hidden; }
+  canvas { display: block; width: 100%; height: 100%; background: #080a0d; touch-action: none; }
+  h1 { font-size: 15px; margin: 0 0 4px; }
+  h2 { font-size: 11px; text-transform: uppercase; letter-spacing: .07em; color: #8ea0b6; margin: 16px 0 4px; }
+  label.field { display: block; margin: 9px 0 3px; color: #b8c1cc; }
+  select, input[type="range"], input[type="number"] { width: 100%; box-sizing: border-box; }
+  select, input[type="number"] { background: #161b23; color: #e8ecf2; border: 1px solid #33404f; border-radius: 4px; padding: 4px 5px; }
+  .value { float: right; color: #9ad1ff; font-variant-numeric: tabular-nums; }
+  .row { display: grid; grid-template-columns: 1fr 68px; gap: 6px; align-items: center; }
+  .check { display: flex; gap: 8px; align-items: center; margin-top: 8px; color: #b8c1cc; }
+  button { margin: 8px 6px 0 0; padding: 6px 9px; background: #263448; color: #fff; border: 1px solid #4a5b72; border-radius: 4px; cursor: pointer; font: inherit; }
+  button:hover { background: #314159; }
+  .hint { color: #97a6b8; font-size: 12px; margin: 9px 0 0; }
+  .status { white-space: pre-wrap; color: #d5e7a6; font-size: 12px; margin: 9px 0 0; font-variant-numeric: tabular-nums; }
+  textarea { width: 100%; height: 170px; margin-top: 8px; background: #080a0d; color: #d6f8ff; border: 1px solid #344051; border-radius: 4px; font: 11px/1.35 ui-monospace, monospace; }
+  code { color: #9ad1ff; }
+</style>
+</head>
+<body>
+<div id="app">
+  <aside>
+    <h1>Turn label editor</h1>
+    <p class="hint">Place corner names by eye and pick the map rotation. Rotation is TinyPedal's
+      <code>display_orientation</code>; offsets are metres from each corner's anchor.</p>
+    <label class="field" for="track">Track</label>
+    <select id="track"></select>
+    <h2>Map</h2>
+    <label class="field" for="rotation">Rotation <span class="value" id="rotation-value">0°</span></label>
+    <div class="row"><input id="rotation" type="range" min="-180" max="180" step="1" value="0">
+      <input id="rotation-number" type="number" min="-180" max="180" step="1" value="0" aria-label="Rotation degrees"></div>
+    <label class="field" for="zoom">Zoom <span class="value" id="zoom-value">100%</span></label>
+    <input id="zoom" type="range" min="50" max="200" step="5" value="100">
+    <h2>Labels</h2>
+    <label class="field" for="label-mode">Text</label>
+    <select id="label-mode"><option value="number-name">Number + name</option>
+      <option value="name">Name</option><option value="number">Number</option></select>
+    <label class="field" for="font-size">Font size <span class="value" id="font-size-value">13 px</span></label>
+    <input id="font-size" type="range" min="9" max="26" step="1" value="13">
+    <div class="check"><input id="leaders" type="checkbox" checked><label for="leaders">Leader lines</label>
+      <input id="dots" type="checkbox" checked><label for="dots">Corner dots</label></div>
+    <h2>Placement</h2>
+    <button id="reset-track">Reset this track</button><button id="reset-all">Reset all</button>
+    <button id="copy">Copy JSON</button><button id="download">Download JSON</button>
+    <p class="hint">Drag a name to move it. Click one to select it, then nudge with the arrow keys
+      (Shift = 10×).</p>
+    <p class="status" id="status"></p>
+    <textarea id="json" readonly spellcheck="false"></textarea>
+  </aside>
+  <main><canvas id="canvas"></canvas></main>
+</div>
+<script>
+"use strict";
+const TRACKS = /*__TRACK_DATA__*/;
+const STORAGE_KEY = "turnLabelEditor.v1";
+const MIN_LABEL_GAP_FRACTION = 0.03;   // first placement: 3% of the layout diagonal
+const canvas = document.getElementById("canvas"), ctx = canvas.getContext("2d");
+const ui = {};
+for (const id of ["track", "rotation", "rotation-number", "rotation-value", "zoom", "zoom-value",
+  "label-mode", "font-size", "font-size-value", "leaders", "dots", "status", "json",
+  "reset-track", "reset-all", "copy", "download"]) {
+  ui[id] = document.getElementById(id);
+}
+
+const blankTrack = () => ({ rotation: 0, zoom: 100, mode: "number-name", fontSize: 13, offsets: {} });
+function loadStore() {
+  try { return JSON.parse(localStorage.getItem(STORAGE_KEY)) || { current: null, tracks: {} }; }
+  catch (error) { return { current: null, tracks: {} }; }
+}
+const store = loadStore();
+const state = { slug: null, view: null, selected: null, drag: null, placed: [] };
+function saveStore() {
+  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(store)); } catch (error) { /* file:// may refuse */ }
+}
+const setting = () => store.tracks[state.slug] || (store.tracks[state.slug] = blankTrack());
+const outline = () => TRACKS.tracks[state.slug];
+
+function rotate(x, y, degrees) {
+  const rad = (degrees * Math.PI) / 180, c = Math.cos(rad), s = Math.sin(rad);
+  return [x * c - y * s, x * s + y * c];
+}
+function bounds(points) {
+  let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
+  for (const [x, y] of points) {
+    minX = Math.min(minX, x); maxX = Math.max(maxX, x);
+    minY = Math.min(minY, y); maxY = Math.max(maxY, y);
+  }
+  return { minX, maxX, minY, maxY };
+}
+function buildView() {
+  const rot = setting().rotation, zoom = setting().zoom / 100;
+  const rotated = outline().centerline.map(([x, y]) => rotate(x, y, rot));
+  const { minX, maxX, minY, maxY } = bounds(rotated);
+  // Placement spacing uses the UNROTATED bounds, so a label's default offset in
+  // metres cannot drift when the map is rotated.
+  const base = bounds(outline().centerline);
+  const width = canvas.clientWidth || 800, height = canvas.clientHeight || 600;
+  const margin = Math.max(28, Math.min(width, height) * 0.06);
+  const spanX = Math.max(maxX - minX, 1e-6), spanY = Math.max(maxY - minY, 1e-6);
+  state.view = {
+    rot, width, height,
+    scale: Math.min((width - margin * 2) / spanX, (height - margin * 2) / spanY) * zoom,
+    cx: (minX + maxX) / 2, cy: (minY + maxY) / 2,
+    diagonal: Math.hypot(base.maxX - base.minX, base.maxY - base.minY),
+  };
+}
+function toScreen(x, y) {
+  const view = state.view;
+  const [rx, ry] = rotate(x, y, view.rot);
+  // sim Y is up, canvas Y is down
+  return [view.width / 2 + (rx - view.cx) * view.scale, view.height / 2 - (ry - view.cy) * view.scale];
+}
+/** Screen-space delta -> map-space delta: undo the Y flip, then undo the rotation. */
+function screenToMapDelta(dxPixels, dyPixels) {
+  const view = state.view;
+  return rotate(dxPixels / view.scale, -dyPixels / view.scale, -view.rot);
+}
+let autoLayout = { key: null, offsets: {} };
+function unrotatedView() {
+  const box = bounds(outline().centerline);
+  const width = canvas.clientWidth || 800, height = canvas.clientHeight || 600;
+  const margin = Math.max(28, Math.min(width, height) * 0.06);
+  const spanX = Math.max(box.maxX - box.minX, 1e-6), spanY = Math.max(box.maxY - box.minY, 1e-6);
+  const scale = Math.min((width - margin * 2) / spanX, (height - margin * 2) / spanY) * (setting().zoom / 100);
+  return { width, height, scale, diagonal: Math.hypot(spanX, spanY),
+           cx: (box.minX + box.maxX) / 2, cy: (box.minY + box.maxY) / 2 };
+}
+/** Auto-place a label the user has not moved: first candidate that collides with nothing. */
+function computeAutoLayout() {
+  const key = [state.slug, setting().mode, setting().fontSize, setting().zoom,
+               Math.round(state.view.width), Math.round(state.view.height)].join("|");
+  if (autoLayout.key === key) return autoLayout.offsets;
+  const view = unrotatedView();
+  const fontPx = setting().fontSize, previousFont = ctx.font;
+  ctx.font = fontPx + "px system-ui, sans-serif";
+  const boxes = [], offsets = {};
+  for (const turn of outline().turns) {
+    const w = ctx.measureText(labelText(turn)).width + 8, h = fontPx + 6;
+    const outward = turn.outward || [0, 0];
+    // An outline without a baked tangent still gets along-track candidates.
+    const tangent = turn.tangent || [-outward[1], outward[0]];
+    const ax = view.width / 2 + (turn.x - view.cx) * view.scale;
+    const ay = view.height / 2 - (turn.y - view.cy) * view.scale;
+    let fallback = null, hit = null;
+    // One "row" away from the corner is a label height; one step along the track
+    // is a label width, so stacking works the same on a 1.6 km and a 13 km layout.
+    const stepOut = Math.max((h * 1.15) / view.scale, MIN_LABEL_GAP_FRACTION * view.diagonal);
+    const stepAlong = (w + 6) / view.scale;
+    candidates:
+    for (const distance of [1, 2, 3, 4, 5, 6, 8, 10])
+      for (const side of [1, -1])
+        for (const slide of [0, 1, -1, 2, -2, 3, -3, 4, -4]) {
+          const dx = outward[0] * side * distance * stepOut + tangent[0] * slide * stepAlong;
+          const dy = outward[1] * side * distance * stepOut + tangent[1] * slide * stepAlong;
+          const box = { x: ax + dx * view.scale - w / 2, y: ay - dy * view.scale - h / 2, w, h };
+          const candidate = { dx, dy, box };
+          if (!fallback) fallback = candidate;
+          // Off-canvas counts as a collision: a label the user cannot see is worse
+          // than one that sits a row further out.
+          const hits = box.x < 0 || box.y < 0 || box.x + box.w > view.width ||
+                       box.y + box.h > view.height ||
+                       boxes.some((o) => box.x < o.x + o.w && o.x < box.x + box.w &&
+                                         box.y < o.y + o.h && o.y < box.y + box.h);
+          if (!hits) { hit = candidate; break candidates; }
+        }
+    const chosen = hit || fallback;
+    offsets[turn.id] = [chosen.dx, chosen.dy];
+    boxes.push(chosen.box);
+  }
+  ctx.font = previousFont;
+  autoLayout = { key, offsets };
+  return offsets;
+}
+function offsetOf(turn) {
+  const stored = setting().offsets[turn.id];
+  return Array.isArray(stored) && stored.length === 2 ? [stored[0], stored[1]]
+                                                     : (computeAutoLayout()[turn.id] || [0, 0]);
+}
+
+function labelText(turn) {
+  const name = turn.short_name || turn.name;
+  return setting().mode === "number" ? String(turn.number)
+    : setting().mode === "name" ? name : turn.number + " " + name;
+}
+
+function draw() {
+  const track = outline();
+  if (!track) return;
+  buildView();
+  const dpr = window.devicePixelRatio || 1, { width, height } = state.view;
+  canvas.width = Math.round(width * dpr);
+  canvas.height = Math.round(height * dpr);
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  ctx.fillStyle = "#080a0d";
+  ctx.fillRect(0, 0, width, height);
+  ctx.strokeStyle = "#3f6f9e";
+  ctx.lineWidth = 2;
+  ctx.lineJoin = "round";
+  ctx.beginPath();
+  track.centerline.forEach(([x, y], index) => {
+    const [sx, sy] = toScreen(x, y);
+    if (index === 0) ctx.moveTo(sx, sy); else ctx.lineTo(sx, sy);
+  });
+  ctx.stroke();
+
+  const [fx, fy] = toScreen(track.centerline[0][0], track.centerline[0][1]);
+  ctx.fillStyle = "#f3f7ff";
+  ctx.beginPath(); ctx.arc(fx, fy, 4, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = "#6b7f96";
+  ctx.font = "11px system-ui, sans-serif";
+  ctx.textAlign = "left"; ctx.textBaseline = "middle";
+  ctx.fillText("start", fx + 7, fy);
+
+  const fontPx = setting().fontSize;
+  ctx.font = fontPx + "px system-ui, sans-serif";
+  state.placed = [];
+  for (const turn of track.turns) {
+    const [ax, ay] = toScreen(turn.x, turn.y);
+    const [ox, oy] = rotate(offsetOf(turn)[0], offsetOf(turn)[1], state.view.rot);
+    const lx = ax + ox * state.view.scale, ly = ay + oy * state.view.scale;
+    if (ui.dots.checked) {
+      ctx.fillStyle = "#7fd4a0";
+      ctx.beginPath(); ctx.arc(ax, ay, 2.5, 0, Math.PI * 2); ctx.fill();
+    }
+    const text = labelText(turn);
+    const boxWidth = ctx.measureText(text).width + 8, boxHeight = fontPx + 6;
+    const [tx, ty] = [lx - boxWidth / 2, ly - boxHeight / 2];
+    if (ui.leaders.checked) {
+      ctx.strokeStyle = "rgba(160, 190, 220, 0.35)";
+      ctx.lineWidth = 1;
+      ctx.beginPath(); ctx.moveTo(ax, ay); ctx.lineTo(lx, ly); ctx.stroke();
+    }
+    const selected = state.selected === turn.id;
+    ctx.fillStyle = selected ? "rgba(90, 150, 220, 0.85)" : "rgba(16, 22, 30, 0.72)";
+    ctx.strokeStyle = selected ? "#cfe3ff" : "rgba(120, 150, 185, 0.55)";
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.rect(tx, ty, boxWidth, boxHeight);
+    ctx.fill();
+    ctx.stroke();
+    ctx.fillStyle = selected ? "#ffffff" : "#e8ecf2";
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.fillText(text, lx, ly + 0.5);
+    state.placed.push({ id: turn.id, x: tx, y: ty, w: boxWidth, h: boxHeight });
+  }
+  updateStatus();
+  ui.json.value = JSON.stringify(exportPayload(), null, 2);
+}
+
+function hitTest(sx, sy) {
+  for (let index = state.placed.length - 1; index >= 0; index -= 1) {
+    const l = state.placed[index];
+    if (sx >= l.x && sx <= l.x + l.w && sy >= l.y && sy <= l.y + l.h) return l;
+  }
+  return null;
+}
+const pointerPosition = (event) => {
+  const rect = canvas.getBoundingClientRect();
+  return [event.clientX - rect.left, event.clientY - rect.top];
+};
+canvas.addEventListener("pointerdown", (event) => {
+  const [sx, sy] = pointerPosition(event);
+  const label = hitTest(sx, sy);
+  if (!label) return;
+  const turn = outline().turns.find((item) => item.id === label.id);
+  state.selected = label.id;
+  state.drag = { id: label.id, startX: sx, startY: sy, base: offsetOf(turn) };
+  canvas.setPointerCapture(event.pointerId);
+  canvas.style.cursor = "grabbing";
+  draw();
+});
+canvas.addEventListener("pointermove", (event) => {
+  const [sx, sy] = pointerPosition(event);
+  if (!state.drag) {
+    canvas.style.cursor = hitTest(sx, sy) ? "grab" : "default";
+    return;
+  }
+  const [dmx, dmy] = screenToMapDelta(sx - state.drag.startX, sy - state.drag.startY);
+  setting().offsets[state.drag.id] = [state.drag.base[0] + dmx, state.drag.base[1] + dmy];
+  draw();
+});
+function endDrag() {
+  if (!state.drag) return;
+  state.drag = null;
+  canvas.style.cursor = "default";
+  saveStore();
+}
+canvas.addEventListener("pointerup", endDrag);
+canvas.addEventListener("pointercancel", endDrag);
+window.addEventListener("keydown", (event) => {
+  const keys = ["ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown"];
+  if (!state.selected || !keys.includes(event.key)) return;
+  event.preventDefault();
+  const step = event.shiftKey ? 10 : 1;
+  const base = offsetOf(outline().turns.find((item) => item.id === state.selected));
+  const [dmx, dmy] = screenToMapDelta(
+    (event.key === "ArrowRight" ? step : 0) - (event.key === "ArrowLeft" ? step : 0),
+    (event.key === "ArrowDown" ? step : 0) - (event.key === "ArrowUp" ? step : 0));
+  setting().offsets[state.selected] = [base[0] + dmx, base[1] + dmy];
+  draw();
+  saveStore();
+});
+
+function syncControls() {
+  const s = setting();
+  ui.rotation.value = String(s.rotation);
+  ui["rotation-number"].value = String(s.rotation);
+  ui.zoom.value = String(s.zoom);
+  ui["label-mode"].value = s.mode;
+  ui["font-size"].value = String(s.fontSize);
+  ui["rotation-value"].textContent = s.rotation + "°";
+  ui["zoom-value"].textContent = s.zoom + "%";
+  ui["font-size-value"].textContent = s.fontSize + " px";
+}
+function setRotation(degrees) {
+  setting().rotation = Math.max(-180, Math.min(180, Math.round(Number(degrees) || 0)));
+  syncControls();
+  draw();
+  saveStore();
+}
+ui.track.addEventListener("change", () => {
+  state.slug = ui.track.value;
+  state.selected = null;
+  store.current = state.slug;
+  syncControls();
+  draw();
+  saveStore();
+});
+ui.rotation.addEventListener("input", () => setRotation(ui.rotation.value));
+ui["rotation-number"].addEventListener("change", () => setRotation(ui["rotation-number"].value));
+ui.zoom.addEventListener("input", () => {
+  setting().zoom = Number(ui.zoom.value);
+  syncControls();
+  draw();
+  saveStore();
+});
+ui["label-mode"].addEventListener("change", () => {
+  setting().mode = ui["label-mode"].value;
+  draw();
+  saveStore();
+});
+ui["font-size"].addEventListener("input", () => {
+  setting().fontSize = Number(ui["font-size"].value);
+  syncControls();
+  draw();
+  saveStore();
+});
+["leaders", "dots"].forEach((id) => ui[id].addEventListener("change", draw));
+ui["reset-track"].addEventListener("click", () => {
+  store.tracks[state.slug] = blankTrack();
+  state.selected = null;
+  syncControls();
+  draw();
+  saveStore();
+});
+ui["reset-all"].addEventListener("click", () => {
+  Object.keys(store.tracks).forEach((slug) => { delete store.tracks[slug]; });
+  state.selected = null;
+  syncControls();
+  draw();
+  saveStore();
+});
+ui.copy.addEventListener("click", async () => {
+  try {
+    await navigator.clipboard.writeText(JSON.stringify(exportPayload(), null, 2));
+    ui.status.textContent = "Copied the placement JSON to the clipboard.";
+  } catch (error) {
+    ui.json.select();
+    ui.status.textContent = "Clipboard blocked — the JSON is selected, press Ctrl+C.";
+  }
+});
+ui.download.addEventListener("click", () => {
+  const blob = new Blob([JSON.stringify(exportPayload(), null, 2)], { type: "application/json" });
+  const link = document.createElement("a");
+  link.href = URL.createObjectURL(blob);
+  link.download = "turn-labels-" + state.slug + ".json";
+  link.click();
+  URL.revokeObjectURL(link.href);
+});
+
+function exportPayload() {
+  const track = outline(), labels = {};
+  for (const turn of track.turns) {
+    const [dx, dy] = offsetOf(turn);
+    labels[turn.id] = { dx_m: Math.round(dx * 10) / 10, dy_m: Math.round(dy * 10) / 10 };
+  }
+  return {
+    tool: "turn-label-editor", version: 1,
+    track: state.slug, track_name: track.track_name, layout: track.layout,
+    lap_length_m: track.lap_length_m, display_orientation: setting().rotation,
+    label_text: setting().mode, font_px: setting().fontSize, labels,
+  };
+}
+function updateStatus() {
+  const track = outline();
+  const selected = track.turns.find((item) => item.id === state.selected);
+  const lines = [track.track_name + (track.layout ? " (" + track.layout + ")" : "") + " · " +
+                 track.turns.length + " corners · " + track.lap_length_m + " m"];
+  if (selected) {
+    const [dx, dy] = offsetOf(selected);
+    lines.push("selected: " + labelText(selected) + " — " + dx.toFixed(1) + " / " + dy.toFixed(1) + " m");
+  } else lines.push("drag a name, or click one and use the arrow keys");
+  ui.status.textContent = lines.join("\n");
+}
+new ResizeObserver(draw).observe(canvas.parentElement);
+
+const slugs = Object.keys(TRACKS.tracks);
+ui.track.innerHTML = slugs.map((slug) => {
+  const track = TRACKS.tracks[slug];
+  const label = track.track_name + (track.layout ? " — " + track.layout : "");
+  return '<option value="' + slug + '">' + label.replace(/&/g, "&amp;").replace(/</g, "&lt;") + "</option>";
+}).join("");
+state.slug = store.current && TRACKS.tracks[store.current] ? store.current : slugs[0];
+ui.track.value = state.slug;
+store.current = state.slug;
+syncControls();
+draw();
+saveStore();
+
+// Debug/automation hook: the tests drive the editor through this instead of
+// scraping the canvas.
+window.__turnLabelEditor = { state, store, setting, outline, exportPayload, draw, toScreen, labelText };
+</script>
+</body>
+</html>
