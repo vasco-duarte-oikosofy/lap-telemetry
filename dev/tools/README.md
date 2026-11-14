@@ -15,9 +15,10 @@ See [`README-REFERENCE-LAPS.md`](README-REFERENCE-LAPS.md) for how to regenerate
 ## Turn label editor (corner names on the map)
 
 [`turn-label-editor.html`](turn-label-editor.html) places the corner-name labels
-that TinyPedal draws on its track map. Open it with a double click — it is a
-single file with every outline inlined, so it works over `file://` with no
-server and no build step at run time.
+that TinyPedal draws on its track map. Open it with a double click — the markup,
+the app (`turn-label-editor.js` + `turn-label-editor-ui.js`) and the generated
+data (`turn-label-data.js`) sit side by side and load as plain scripts, so it
+works over `file://` with no server and no build step at run time.
 
 - Pick a track, drag a name to where it belongs, click one and nudge it with the
   arrow keys (Shift = 10×).
@@ -25,21 +26,28 @@ server and no build step at run time.
   layout so it fits the LMU screen. Labels stay upright and stay attached to
   their corner.
 - Placements are remembered per track in `localStorage`; **Copy JSON** /
-  **Download JSON** give you `{track, display_orientation, labels: {id: {dx_m,
-  dy_m}}}` — offsets are metres from each corner's anchor, so they do not depend
-  on canvas size, zoom or rotation.
-- **Reset this track** / **Reset all** clear the overrides.
+  **Download JSON** give you `{tool, version: 2, track, display_orientation,
+  labels: {id: {dx_m, dy_m}}}` — offsets are metres from each corner's anchor, so
+  they do not depend on canvas size, zoom or rotation.
+- **Import JSON…** (or drop the file anywhere on the page) loads a placement
+  back, switch to its track included. Placement files written before the Y-drag
+  fix are `version: 1` and are repaired on import.
+- **Reset this track** / **Reset all** restore the shipped placement for that
+  track (see below), or a blank layout where none is shipped.
+- Shipped placements live in [`turn-label-presets.json`](turn-label-presets.json)
+  and are picked up by the generator, so a track can open already placed for
+  every browser/machine. Today: Imola at ‑96° with all 11 names placed.
 
 It is generated from `turn-label-editor.template.html` plus
 `product/data/track-outlines/*.json`:
 
 ```bash
-node dev/scripts/build_turn_label_editor.js          # regenerate after an outline change
-node dev/scripts/build_turn_label_editor.js --check  # verify the committed file is current
+node dev/scripts/build_turn_label_editor.js          # regenerate turn-label-data.js
+node dev/scripts/build_turn_label_editor.js --check  # verify the committed data is current
 ```
 
-`test_turn_label_editor.js` fails if the committed HTML is stale, so run the
-generator after re-baking any outline's turns.
+`test_turn_label_editor.js` fails if the committed data file is stale, so run the
+generator after re-baking any outline's turns or editing the presets.
 
 Note: this slice only produces the placement. Feeding the offsets back into
 `dev/scripts/export_turn_labels_for_tinypedal.py` and the widget is not wired

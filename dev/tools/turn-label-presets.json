@@ -1,0 +1,56 @@
+{
+  "autodromo-enzo-e-dino-ferrari": {
+    "display_orientation": -96,
+    "label_text": "number-name",
+    "font_px": 13,
+    "zoom": 100,
+    "version": 1,
+    "source": "driver placement from the editor, exported before the Y-drag fix",
+    "labels": {
+      "t1": {
+        "dx_m": 16.1,
+        "dy_m": 107.2
+      },
+      "t2": {
+        "dx_m": 7.5,
+        "dy_m": 185
+      },
+      "t3": {
+        "dx_m": -26.8,
+        "dy_m": -92.8
+      },
+      "t4": {
+        "dx_m": 39,
+        "dy_m": -91.2
+      },
+      "t5": {
+        "dx_m": -48.9,
+        "dy_m": -51.6
+      },
+      "t6": {
+        "dx_m": 67.1,
+        "dy_m": 73.6
+      },
+      "t7": {
+        "dx_m": -0.9,
+        "dy_m": -102.8
+      },
+      "t8": {
+        "dx_m": 53.9,
+        "dy_m": -82.3
+      },
+      "t9": {
+        "dx_m": -30.7,
+        "dy_m": 76.9
+      },
+      "t10": {
+        "dx_m": 7.4,
+        "dy_m": -141.9
+      },
+      "t11": {
+        "dx_m": 17.4,
+        "dy_m": 125.6
+      }
+    }
+  }
+}

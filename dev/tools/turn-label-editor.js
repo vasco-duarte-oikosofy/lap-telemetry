@@ -1,71 +1,12 @@
-<!doctype html>
-<html lang="en">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Turn label editor — LMU tracks</title>
-<style>
-  :root { color-scheme: dark; }
-  body { margin: 0; font: 13px/1.4 system-ui, sans-serif; background: #101217; color: #e8ecf2; }
-  #app { display: grid; grid-template-columns: 320px 1fr; height: 100vh; }
-  aside { padding: 12px 14px 18px; overflow: auto; border-right: 1px solid #2d3340; }
-  main { position: relative; overflow: hidden; }
-  canvas { display: block; width: 100%; height: 100%; background: #080a0d; touch-action: none; }
-  h1 { font-size: 15px; margin: 0 0 4px; }
-  h2 { font-size: 11px; text-transform: uppercase; letter-spacing: .07em; color: #8ea0b6; margin: 16px 0 4px; }
-  label.field { display: block; margin: 9px 0 3px; color: #b8c1cc; }
-  select, input[type="range"], input[type="number"] { width: 100%; box-sizing: border-box; }
-  select, input[type="number"] { background: #161b23; color: #e8ecf2; border: 1px solid #33404f; border-radius: 4px; padding: 4px 5px; }
-  .value { float: right; color: #9ad1ff; font-variant-numeric: tabular-nums; }
-  .row { display: grid; grid-template-columns: 1fr 68px; gap: 6px; align-items: center; }
-  .check { display: flex; gap: 8px; align-items: center; margin-top: 8px; color: #b8c1cc; }
-  button { margin: 8px 6px 0 0; padding: 6px 9px; background: #263448; color: #fff; border: 1px solid #4a5b72; border-radius: 4px; cursor: pointer; font: inherit; }
-  button:hover { background: #314159; }
-  .hint { color: #97a6b8; font-size: 12px; margin: 9px 0 0; }
-  .status { white-space: pre-wrap; color: #d5e7a6; font-size: 12px; margin: 9px 0 0; font-variant-numeric: tabular-nums; }
-  textarea { width: 100%; height: 170px; margin-top: 8px; background: #080a0d; color: #d6f8ff; border: 1px solid #344051; border-radius: 4px; font: 11px/1.35 ui-monospace, monospace; }
-  code { color: #9ad1ff; }
-</style>
-</head>
-<body>
-<div id="app">
-  <aside>
-    <h1>Turn label editor</h1>
-    <p class="hint">Place corner names by eye and pick the map rotation. Rotation is TinyPedal's
-      <code>display_orientation</code>; offsets are metres from each corner's anchor.</p>
-    <label class="field" for="track">Track</label>
-    <select id="track"></select>
-    <h2>Map</h2>
-    <label class="field" for="rotation">Rotation <span class="value" id="rotation-value">0°</span></label>
-    <div class="row"><input id="rotation" type="range" min="-180" max="180" step="1" value="0">
-      <input id="rotation-number" type="number" min="-180" max="180" step="1" value="0" aria-label="Rotation degrees"></div>
-    <label class="field" for="zoom">Zoom <span class="value" id="zoom-value">100%</span></label>
-    <input id="zoom" type="range" min="50" max="200" step="5" value="100">
-    <h2>Labels</h2>
-    <label class="field" for="label-mode">Text</label>
-    <select id="label-mode"><option value="number-name">Number + name</option>
-      <option value="name">Name</option><option value="number">Number</option></select>
-    <label class="field" for="font-size">Font size <span class="value" id="font-size-value">13 px</span></label>
-    <input id="font-size" type="range" min="9" max="26" step="1" value="13">
-    <div class="check"><input id="leaders" type="checkbox" checked><label for="leaders">Leader lines</label>
-      <input id="dots" type="checkbox" checked><label for="dots">Corner dots</label></div>
-    <h2>Placement</h2>
-    <button id="reset-track">Reset this track</button><button id="reset-all">Reset all</button>
-    <button id="copy">Copy JSON</button><button id="download">Download JSON</button>
-    <p class="hint">Drag a name to move it. Click one to select it, then nudge with the arrow keys
-      (Shift = 10×).</p>
-    <p class="status" id="status"></p>
-    <textarea id="json" readonly spellcheck="false"></textarea>
-  </aside>
-  <main><canvas id="canvas"></canvas></main>
-</div>
-<script>
+/* Turn label editor — app code. Loaded after `turn-label-data.js` (generated) from
+   `turn-label-editor.html`. Both are classic scripts so the page works from a
+   double-clicked `file://` URL; a file:// page cannot fetch, hence the inlining. */
 "use strict";
-const TRACKS = /*__TRACK_DATA__*/;
+const TRACKS = window.TURN_LABEL_DATA;
+const PRESETS = window.TURN_LABEL_PRESETS || {};
 const STORAGE_KEY = "turnLabelEditor.v1";
 const MIN_LABEL_GAP_FRACTION = 0.03;   // first placement: 3% of the layout diagonal
-const canvas = document.getElementById("canvas"), ctx = canvas.getContext("2d");
-const ui = {};
+const canvas = document.getElementById("canvas"), ctx = canvas.getContext("2d"), ui = {};
 for (const id of ["track", "rotation", "rotation-number", "rotation-value", "zoom", "zoom-value",
   "label-mode", "font-size", "font-size-value", "leaders", "dots", "status", "json",
   "reset-track", "reset-all", "copy", "download"]) {
@@ -73,6 +14,39 @@ for (const id of ["track", "rotation", "rotation-number", "rotation-value", "zoo
 }
 
 const blankTrack = () => ({ rotation: 0, zoom: 100, mode: "number-name", fontSize: 13, offsets: {} });
+/** Shipped placement for a track (dev/tools/turn-label-presets.json), or null. */
+function presetFor(slug) {
+  const preset = PRESETS[slug];
+  if (!preset) return null;
+  return placementFromPayload({ display_orientation: preset.display_orientation, zoom: preset.zoom,
+    label_text: preset.label_text, font_px: preset.font_px, labels: preset.labels });
+}
+/**
+ * v1 exports were produced while drag offsets were *drawn* with a flipped Y, so
+ * the stored dy is what looked right on screen rather than the map-space truth.
+ * Repair it: mirror the rotated vector's Y and rotate back.
+ */
+function repairLegacyOffset(dx, dy, rotation) {
+  const [rx, ry] = rotate(dx, dy, rotation);
+  return rotate(rx, -ry, -rotation);
+}
+function placementFromPayload(payload) {
+  const legacy = (Number(payload.version) || 1) < 2;
+  const rotation = Math.round(Number(payload.display_orientation) || 0);
+  const offsets = {};
+  for (const [id, offset] of Object.entries(payload.labels || {})) {
+    if (!offset || !Number.isFinite(offset.dx_m) || !Number.isFinite(offset.dy_m)) continue;
+    offsets[id] = legacy ? repairLegacyOffset(offset.dx_m, offset.dy_m, rotation)
+                         : [offset.dx_m, offset.dy_m];
+  }
+  return {
+    rotation: Math.round(Number(payload.display_orientation) || 0),
+    zoom: Number(payload.zoom) || 100,
+    mode: ["number-name", "name", "number"].includes(payload.label_text) ? payload.label_text : "number-name",
+    fontSize: Number(payload.font_px) || 13,
+    offsets,
+  };
+}
 function loadStore() {
   try { return JSON.parse(localStorage.getItem(STORAGE_KEY)) || { current: null, tracks: {} }; }
   catch (error) { return { current: null, tracks: {} }; }
@@ -82,7 +56,8 @@ const state = { slug: null, view: null, selected: null, drag: null, placed: [] }
 function saveStore() {
   try { localStorage.setItem(STORAGE_KEY, JSON.stringify(store)); } catch (error) { /* file:// may refuse */ }
 }
-const setting = () => store.tracks[state.slug] || (store.tracks[state.slug] = blankTrack());
+const setting = () => store.tracks[state.slug] ||
+  (store.tracks[state.slug] = presetFor(state.slug) || blankTrack());
 const outline = () => TRACKS.tracks[state.slug];
 
 function rotate(x, y, degrees) {
@@ -227,7 +202,7 @@ function draw() {
   for (const turn of track.turns) {
     const [ax, ay] = toScreen(turn.x, turn.y);
     const [ox, oy] = rotate(offsetOf(turn)[0], offsetOf(turn)[1], state.view.rot);
-    const lx = ax + ox * state.view.scale, ly = ay + oy * state.view.scale;
+    const lx = ax + ox * state.view.scale, ly = ay - oy * state.view.scale;
     if (ui.dots.checked) {
       ctx.fillStyle = "#7fd4a0";
       ctx.beginPath(); ctx.arc(ax, ay, 2.5, 0, Math.PI * 2); ctx.fill();
@@ -312,83 +287,6 @@ window.addEventListener("keydown", (event) => {
   saveStore();
 });
 
-function syncControls() {
-  const s = setting();
-  ui.rotation.value = String(s.rotation);
-  ui["rotation-number"].value = String(s.rotation);
-  ui.zoom.value = String(s.zoom);
-  ui["label-mode"].value = s.mode;
-  ui["font-size"].value = String(s.fontSize);
-  ui["rotation-value"].textContent = s.rotation + "°";
-  ui["zoom-value"].textContent = s.zoom + "%";
-  ui["font-size-value"].textContent = s.fontSize + " px";
-}
-function setRotation(degrees) {
-  setting().rotation = Math.max(-180, Math.min(180, Math.round(Number(degrees) || 0)));
-  syncControls();
-  draw();
-  saveStore();
-}
-ui.track.addEventListener("change", () => {
-  state.slug = ui.track.value;
-  state.selected = null;
-  store.current = state.slug;
-  syncControls();
-  draw();
-  saveStore();
-});
-ui.rotation.addEventListener("input", () => setRotation(ui.rotation.value));
-ui["rotation-number"].addEventListener("change", () => setRotation(ui["rotation-number"].value));
-ui.zoom.addEventListener("input", () => {
-  setting().zoom = Number(ui.zoom.value);
-  syncControls();
-  draw();
-  saveStore();
-});
-ui["label-mode"].addEventListener("change", () => {
-  setting().mode = ui["label-mode"].value;
-  draw();
-  saveStore();
-});
-ui["font-size"].addEventListener("input", () => {
-  setting().fontSize = Number(ui["font-size"].value);
-  syncControls();
-  draw();
-  saveStore();
-});
-["leaders", "dots"].forEach((id) => ui[id].addEventListener("change", draw));
-ui["reset-track"].addEventListener("click", () => {
-  store.tracks[state.slug] = blankTrack();
-  state.selected = null;
-  syncControls();
-  draw();
-  saveStore();
-});
-ui["reset-all"].addEventListener("click", () => {
-  Object.keys(store.tracks).forEach((slug) => { delete store.tracks[slug]; });
-  state.selected = null;
-  syncControls();
-  draw();
-  saveStore();
-});
-ui.copy.addEventListener("click", async () => {
-  try {
-    await navigator.clipboard.writeText(JSON.stringify(exportPayload(), null, 2));
-    ui.status.textContent = "Copied the placement JSON to the clipboard.";
-  } catch (error) {
-    ui.json.select();
-    ui.status.textContent = "Clipboard blocked — the JSON is selected, press Ctrl+C.";
-  }
-});
-ui.download.addEventListener("click", () => {
-  const blob = new Blob([JSON.stringify(exportPayload(), null, 2)], { type: "application/json" });
-  const link = document.createElement("a");
-  link.href = URL.createObjectURL(blob);
-  link.download = "turn-labels-" + state.slug + ".json";
-  link.click();
-  URL.revokeObjectURL(link.href);
-});
-
 function exportPayload() {
   const track = outline(), labels = {};
   for (const turn of track.turns) {
@@ -396,7 +294,7 @@ function exportPayload() {
     labels[turn.id] = { dx_m: Math.round(dx * 10) / 10, dy_m: Math.round(dy * 10) / 10 };
   }
   return {
-    tool: "turn-label-editor", version: 1,
+    tool: "turn-label-editor", version: 2,
     track: state.slug, track_name: track.track_name, layout: track.layout,
     lap_length_m: track.lap_length_m, display_orientation: setting().rotation,
     label_text: setting().mode, font_px: setting().fontSize, labels,
@@ -413,24 +311,3 @@ function updateStatus() {
   } else lines.push("drag a name, or click one and use the arrow keys");
   ui.status.textContent = lines.join("\n");
 }
-new ResizeObserver(draw).observe(canvas.parentElement);
-
-const slugs = Object.keys(TRACKS.tracks);
-ui.track.innerHTML = slugs.map((slug) => {
-  const track = TRACKS.tracks[slug];
-  const label = track.track_name + (track.layout ? " — " + track.layout : "");
-  return '<option value="' + slug + '">' + label.replace(/&/g, "&amp;").replace(/</g, "&lt;") + "</option>";
-}).join("");
-state.slug = store.current && TRACKS.tracks[store.current] ? store.current : slugs[0];
-ui.track.value = state.slug;
-store.current = state.slug;
-syncControls();
-draw();
-saveStore();
-
-// Debug/automation hook: the tests drive the editor through this instead of
-// scraping the canvas.
-window.__turnLabelEditor = { state, store, setting, outline, exportPayload, draw, toScreen, labelText };
-</script>
-</body>
-</html>
