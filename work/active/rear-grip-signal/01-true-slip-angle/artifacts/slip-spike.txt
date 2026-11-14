@@ -1,0 +1,40 @@
+
+=== barcelona race 2026-11-13 (the trigger session) ===
+    rows 102070, columns 43
+    slip_angle_fl_deg: median   101.8  |x|>90 on 94.9%  wrap jumps  1885  corr(steer) +0.550
+        fit k = +486.61 deg per unit steering -> corr(residual, steer) +0.000, residual p5/p50/p95 -177/+0/+173 deg, spread 1255 deg
+    slip_angle_rl_deg: median   127.1  |x|>90 on 83.7%  wrap jumps  1404  corr(steer) +0.523
+        fit k = +369.36 deg per unit steering -> corr(residual, steer) +0.000, residual p5/p50/p95 -144/+67/+177 deg, spread 1068 deg
+    slip_angle_rr_deg: median  -107.6  |x|>90 on 70.4%  wrap jumps  1256  corr(steer) +0.576
+        fit k = +436.59 deg per unit steering -> corr(residual, steer) +0.000, residual p5/p50/p95 -175/-51/+134 deg, spread 1201 deg
+    straight 1600-1800 m (123 kph): slip_angle_rl_deg median +138.6 deg, |x| p95 170.9 deg
+    straight 1600-1800 m (123 kph): slip_angle_rr_deg median +109.0 deg, |x| p95 177.7 deg
+    independent yaw rate from pos (deg/s): corr with d(slip_rl)/dt = -0.009; yaw p5/p95 -16.1/+15.3
+
+=== silverstone national practice 2026-11-11 ===
+    rows 49626, columns 43
+    slip_angle_fl_deg: median   118.6  |x|>90 on 91.1%  wrap jumps   587  corr(steer) +0.461
+        fit k = +437.42 deg per unit steering -> corr(residual, steer) +0.000, residual p5/p50/p95 -177/+41/+176 deg, spread 582 deg
+    slip_angle_rl_deg: median   144.9  |x|>90 on 82.0%  wrap jumps   247  corr(steer) +0.404
+        fit k = +301.95 deg per unit steering -> corr(residual, steer) +0.000, residual p5/p50/p95 -144/+111/+176 deg, spread 573 deg
+    slip_angle_rr_deg: median    20.7  |x|>90 on 71.2%  wrap jumps   350  corr(steer) +0.517
+        fit k = +470.64 deg per unit steering -> corr(residual, steer) -0.000, residual p5/p50/p95 -178/-35/+149 deg, spread 712 deg
+    straight 1150-1650 m (203 kph): slip_angle_rl_deg median +170.6 deg, |x| p95 175.4 deg
+    straight 1150-1650 m (203 kph): slip_angle_rr_deg median -168.3 deg, |x| p95 174.4 deg
+    independent yaw rate from pos (deg/s): corr with d(slip_rl)/dt = -0.006; yaw p5/p95 -12.5/+16.9
+
+=== imola 2026-05-17 (older recording) ===
+    rows 4906, columns 34
+    slip_angle_fl_deg: median     0.0  |x|>90 on 47.7%  wrap jumps   184  corr(steer) +0.441
+        fit k = +343.56 deg per unit steering -> corr(residual, steer) -0.000, residual p5/p50/p95 -178/+0/+162 deg, spread 465 deg
+    slip_angle_rl_deg: median     0.0  |x|>90 on 34.7%  wrap jumps   115  corr(steer) +0.393
+        fit k = +246.12 deg per unit steering -> corr(residual, steer) +0.000, residual p5/p50/p95 -94/+0/+175 deg, spread 378 deg
+    slip_angle_rr_deg: median     0.0  |x|>90 on 34.7%  wrap jumps   109  corr(steer) +0.466
+        fit k = +279.00 deg per unit steering -> corr(residual, steer) +0.000, residual p5/p50/p95 -172/+0/+51 deg, spread 564 deg
+    independent yaw rate from pos (deg/s): corr with d(slip_rl)/dt = -0.067; yaw p5/p95 -13.4/+28.7
+
+=== straight-line reading of the recorded channel (a real sideslip angle is ~0 deg here) ===
+  Silverstone National, Wellington Straight [1150-1650 m] @ 203 kph: slip_angle_rl_deg median +170.6 deg, 70% within 20 deg of +-180, sample-to-sample |delta|>90 on 1%
+  Silverstone National, Wellington Straight [1150-1650 m] @ 203 kph: slip_angle_rr_deg median -168.3 deg, 68% within 20 deg of +-180, sample-to-sample |delta|>90 on 1%
+  Barcelona, straight before Repsol [1600-1800 m] @ 123 kph: slip_angle_rl_deg median +138.6 deg, 19% within 20 deg of +-180, sample-to-sample |delta|>90 on 0%
+  Barcelona, straight before Repsol [1600-1800 m] @ 123 kph: slip_angle_rr_deg median +109.0 deg, 21% within 20 deg of +-180, sample-to-sample |delta|>90 on 1%

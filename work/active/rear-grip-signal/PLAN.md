@@ -17,10 +17,10 @@ in the debrief where the tool goes quiet on the question that matters most.
 **Spec:** none yet. This mission is specced by its slice prompts; if the work
 grows past two slices, write `docs/specs/rear-grip-signal.md` first.
 
-**Feature tests:** `rear-grip-signal` is **not yet** registered in
-`package.json` (`testFeatures`). Add it when slice 01 starts implementing, with
-`dev/scripts/test_runner_self_test.js` + `dev/scripts/test_protocol_enforcement.js`
-included, per `AGENTS.md`.
+**Feature tests:** `bash scripts/test-summary.sh --feature rear-grip-signal`
+(registered in `package.json` `testFeatures` at `8a1011d`, 8 scripts / 283
+assertions, including the `test_runner_self_test.js` +
+`test_protocol_enforcement.js` infrastructure guards).
 
 ---
 
@@ -28,7 +28,7 @@ included, per `AGENTS.md`.
 
 | Slice | Status | Vertical outcome |
 |---|---|---|
-| `01-true-slip-angle` | 📝 Planned — see [`01-true-slip-angle/plan.md`](01-true-slip-angle/plan.md) | The existing `slip_angle_*` channel is either replaced by a verified real slip angle (new columns where needed, new fact where available) or the refusal is upgraded to a measured, specific reason. One session, one corner, one honest answer about whether the rear slid. |
+| `01-true-slip-angle` | 🔧 In progress `8a1011d` — phases A + B4 shipped, B5–6 + C blocked on one calibration recording | The recorded slip channel is proved to be `atan2` of two car-frame patch velocities (follows steering r=+0.52, idles at ±180° on a straight, no yaw information), so `_SLIP_REASON` now states that measured mechanism; the recorder ships 7 nullable columns (`grip_fraction_rl/rr`, rear `wheel_ground_vel_{lat,lon}`, `yaw_rate_radps`) that a real slip angle and a sliding/not-sliding answer need. Next: a Barcelona stint with a deliberate Repsol slide, then the gates in `plan.md` B6, then phase C (the `CornerExtras` rear-grip fact) |
 
 **Where it is developed:** on the recording machine. The planning spike (`plan.md`
 phase A) can run anywhere, but the outcome is a recorder slice — the shippable
