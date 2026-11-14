@@ -226,9 +226,10 @@ function drawTinypedalPreview() {
     ctx.strokeText(label.text, label.x, label.y);
     ctx.fillStyle = "#ffffff";
     ctx.fillText(label.text, label.x, label.y);
-    drawn.push({ id: anchor.id, text: label.text, x: label.x + originX + label.width / 2,
-                 y: label.y + originY + label.height / 2, anchorX: anchor.x + originX,
-                 anchorY: anchor.y + originY, placed: overridden > 0 && Array.isArray(offset) });
+    drawn.push({ id: anchor.id, text: label.text, x: label.x + originX, y: label.y + originY,
+                 width: label.width, height: label.height,
+                 anchorX: anchor.x + originX, anchorY: anchor.y + originY,
+                 fromPlacement: Array.isArray(offset) });
   }
   ctx.restore();
   // Exposed for the tests (and for anyone poking at the console).

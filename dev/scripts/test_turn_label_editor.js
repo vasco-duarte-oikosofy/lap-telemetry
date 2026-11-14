@@ -137,7 +137,7 @@ async function browserContract() {
       return { rotation: editor.setting().rotation, labels: placed.length, overlaps,
                offsets: Object.keys(editor.setting().offsets).length };
     });
-    check(imola.rotation === 96, 'Imola opens at the driver\'s rotation in TinyPedal\'s sign (+96°)',
+    check(imola.rotation === -89, 'Imola opens at the driver\'s rotation (-89°)',
       String(imola.rotation));
     check(imola.labels === 11 && imola.offsets === 11, 'all 11 Imola names carry the placed offset',
       `${imola.offsets} offsets`);
@@ -201,6 +201,8 @@ async function browserContract() {
       labels: { copse: { dx_m: 10, dy_m: 50 } },
     }));
     await page.locator('#import-file').setInputFiles(legacy);
+    await page.waitForFunction(() => /^imported|^import failed/.test(
+      document.getElementById('status').textContent), { timeout: 5000 });
     const imported = await page.evaluate(() => {
       const editor = window.__turnLabelEditor;
       return { track: editor.state.slug, offset: editor.setting().offsets.copse,
@@ -215,6 +217,8 @@ async function browserContract() {
     const bad = path.join(dir, 'bad.json');
     fs.writeFileSync(bad, JSON.stringify({ tool: 'something-else', labels: {} }));
     await page.locator('#import-file').setInputFiles(bad);
+    await page.waitForFunction(() => /^import failed/.test(
+      document.getElementById('status').textContent), { timeout: 5000 });
     const rejected = await page.evaluate(() => document.getElementById('status').textContent);
     check(/import failed/.test(rejected), 'a foreign JSON is refused with a visible reason', rejected);
 
@@ -236,8 +240,9 @@ async function browserContract() {
       const editor = window.__turnLabelEditor;
       const p = editor.state.preview;
       const bearings = {};
-      for (const label of p.drawn) {
-        bearings[label.id] = Math.atan2(label.y - label.anchorY, label.x - label.anchorX) * 180 / Math.PI;
+      for (const label of p.drawn) {   // x/y are the box corner, the label sits at its centre
+        bearings[label.id] = Math.atan2(label.y + label.height / 2 - label.anchorY,
+                                        label.x + label.width / 2 - label.anchorX) * 180 / Math.PI;
       }
       return { status: document.getElementById('status').textContent, angle: p.angle, source: p.source,
                placed: p.placed, dropped: p.dropped, anchors: p.anchors, drawn: p.drawn.length,
@@ -274,6 +279,8 @@ async function browserContract() {
     });
     check(restored.track === 'silverstone-national-circuit' && Array.isArray(restored.offset),
       'the imported placement survives a reload', JSON.stringify(restored));
+    // A track with no shipped placement: reset means "blank".
+    await page.selectOption('#track', 'circuit-de-barcelona');
     await page.locator('#reset-track').click();
     const reset = await page.evaluate(() => {
       const editor = window.__turnLabelEditor;
@@ -287,7 +294,7 @@ async function browserContract() {
       const editor = window.__turnLabelEditor;
       return { rotation: editor.setting().rotation, offsets: Object.keys(editor.setting().offsets).length };
     });
-    check(presetReset.rotation === 96 && presetReset.offsets === 11,
+    check(presetReset.rotation === -89 && presetReset.offsets === 11,
       'Reset on a track WITH a shipped preset restores that preset, not a blank layout',
       JSON.stringify(presetReset));
 

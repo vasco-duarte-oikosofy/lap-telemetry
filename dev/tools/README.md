@@ -43,7 +43,13 @@ works over `file://` with no server and no build step at run time.
   track (see below), or a blank layout where none is shipped.
 - Shipped placements live in [`turn-label-presets.json`](turn-label-presets.json)
   and are picked up by the generator, so a track can open already placed for
-  every browser/machine. Today: Imola at ‑96° with all 11 names placed.
+  every browser/machine. Today: Imola (‑89°), Paul Ricard ELMS (0°), Silverstone
+  National (35°) and Monza Curva Grande (0°).
+- Those same placements are published into TinyPedal by
+  `dev/scripts/export_turn_labels_for_tinypedal.py` (`label_offset_m` per turn +
+  `display_orientation` per file), and the widget uses them before its own
+  placement rule. Re-export after changing a preset:
+  `py dev/scripts/export_turn_labels_for_tinypedal.py && py dev/scripts/export_turn_labels_for_tinypedal.py --check`
 
 It is generated from `turn-label-editor.template.html` plus
 `product/data/track-outlines/*.json`:

@@ -39,7 +39,9 @@ OUTLINE_DIR = ROOT / "product" / "data" / "track-outlines"
 # map folder (which its .gitignore excludes).
 DEFAULT_OUT = ROOT.parent / "tinypedal" / "tinypedal" / "data" / "turn_labels"
 
-SCHEMA_VERSION = 1
+SCHEMA_VERSION = 2
+# Driver placements produced by the turn label editor (dev/tools/turn-label-editor.html).
+PRESETS = ROOT / "dev" / "tools" / "turn-label-presets.json"
 
 
 def normalize_name(name: str) -> str:
@@ -67,8 +69,22 @@ def turn_fraction(apex_s_m: float, lap_length_m: float) -> float:
     return min(max(apex_s_m / lap_length_m, 0.0), 1.0)
 
 
-def build_payload(outline: dict, tiny_track_name: str) -> dict:
-    """TinyPedal turn-label payload for one outline."""
+def load_placement(slug: str) -> dict | None:
+    """Driver placement for a track slug, if the editor has one shipped."""
+    if not PRESETS.exists():
+        return None
+    presets = json.loads(PRESETS.read_text(encoding="utf-8"))
+    return presets.get(slug)
+
+
+def build_payload(outline: dict, tiny_track_name: str, placement: dict | None = None) -> dict:
+    """TinyPedal turn-label payload for one outline.
+
+    A placement from the turn label editor, when there is one, is merged in as
+    `label_offset_m` per turn (metres from the corner, sim Y up) plus the
+    `display_orientation` it was drawn for. The widget applies it before its own
+    placement rule, so the driver's layout ships with the package.
+    """
     # Apex distances use the simulator's lap-distance axis, not necessarily the
     # noisy/densified geometric trace length. Keep legacy exports byte-identical
     # unless an outline explicitly supplies that authoritative distance axis.
@@ -77,16 +93,21 @@ def build_payload(outline: dict, tiny_track_name: str) -> dict:
     if (isinstance(lap_length_m, bool) or not isinstance(lap_length_m, (int, float))
             or not math.isfinite(lap_length_m) or lap_length_m <= 0):
         raise ValueError("lap_length_m must be a finite positive number")
+    placements = (placement or {}).get("labels") or {}
     turns = []
     for turn in outline["turns"]:
-        turns.append({
+        entry = {
             "number": int(turn["number"]),
             "name": turn.get("name"),
             "short_name": turn.get("short_name"),
             "apex_s_m": round(float(turn["apex_s_m"]), 3),
             "s_frac": round(turn_fraction(float(turn["apex_s_m"]), lap_length_m), 6),
-        })
-    return {
+        }
+        offset = placements.get(turn["id"])
+        if isinstance(offset, dict) and "dx_m" in offset and "dy_m" in offset:
+            entry["label_offset_m"] = [round(float(offset["dx_m"]), 1), round(float(offset["dy_m"]), 1)]
+        turns.append(entry)
+    payload = {
         "schema_version": SCHEMA_VERSION,
         "track_name": tiny_track_name,
         "lap_length_m": round(lap_length_m, 3),
@@ -97,6 +118,14 @@ def build_payload(outline: dict, tiny_track_name: str) -> dict:
         ),
         "turns": turns,
     }
+    if placement and any("label_offset_m" in turn for turn in turns):
+        payload["display_orientation"] = int(placement.get("display_orientation") or 0)
+        payload["note"] += (
+            " label_offset_m is the driver's own placement in metres from the corner"
+            " (sim Y up), drawn for display_orientation; the widget uses it before its"
+            " own placement rule, and falls back to that rule if it would collide."
+        )
+    return payload
 
 
 def load_outlines() -> list[dict]:
@@ -137,7 +166,7 @@ def collect(trackmap_dir: Path, out_dir: Path, track: str | None = None
         if track_name is None:
             skipped.append((outline["track_name"], "no TinyPedal track map"))
             continue
-        payload = build_payload(outline, track_name)
+        payload = build_payload(outline, track_name, load_placement(outline["_path"].stem))
         writes.append((out_dir / f"{track_name}.turns.json", payload))
     return writes, skipped
 

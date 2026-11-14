@@ -1,55 +1,213 @@
 {
   "autodromo-enzo-e-dino-ferrari": {
-    "display_orientation": -96,
+    "display_orientation": -89,
     "label_text": "number-name",
     "font_px": 13,
     "zoom": 100,
-    "version": 1,
-    "source": "driver placement from the editor, exported before the Y-drag fix",
+    "version": 3,
+    "source": "driver placement from the editor",
     "labels": {
       "t1": {
-        "dx_m": 16.1,
-        "dy_m": 107.2
+        "dx_m": 3.9,
+        "dy_m": 248.1
       },
       "t2": {
-        "dx_m": 7.5,
-        "dy_m": 185
+        "dx_m": 82.4,
+        "dy_m": 133.6
       },
       "t3": {
-        "dx_m": -26.8,
-        "dy_m": -92.8
+        "dx_m": -98.9,
+        "dy_m": 1
       },
       "t4": {
-        "dx_m": 39,
-        "dy_m": -91.2
+        "dx_m": -58.6,
+        "dy_m": -58.8
       },
       "t5": {
-        "dx_m": -48.9,
-        "dy_m": -51.6
+        "dx_m": 68.5,
+        "dy_m": -133.1
       },
       "t6": {
-        "dx_m": 67.1,
-        "dy_m": 73.6
+        "dx_m": -92.7,
+        "dy_m": -73.2
       },
       "t7": {
-        "dx_m": -0.9,
-        "dy_m": -102.8
+        "dx_m": 76.8,
+        "dy_m": 201.6
       },
       "t8": {
-        "dx_m": 53.9,
-        "dy_m": -82.3
+        "dx_m": -66.7,
+        "dy_m": -141.3
       },
       "t9": {
-        "dx_m": -30.7,
-        "dy_m": 76.9
+        "dx_m": 106.4,
+        "dy_m": -163.9
       },
       "t10": {
-        "dx_m": 7.4,
-        "dy_m": -141.9
+        "dx_m": -9.9,
+        "dy_m": -234.8
       },
       "t11": {
-        "dx_m": 17.4,
-        "dy_m": 125.6
+        "dx_m": 16.1,
+        "dy_m": 211.8
+      }
+    }
+  },
+  "paul-ricard---elms": {
+    "display_orientation": 0,
+    "label_text": "number-name",
+    "font_px": 13,
+    "zoom": 100,
+    "version": 3,
+    "source": "driver placement from the editor",
+    "labels": {
+      "verrerie_1": {
+        "dx_m": -38.1,
+        "dy_m": 43.7
+      },
+      "verrerie_2": {
+        "dx_m": -23.1,
+        "dy_m": -69.4
+      },
+      "hotel_1": {
+        "dx_m": 76.3,
+        "dy_m": -143.2
+      },
+      "hotel_2": {
+        "dx_m": -69.7,
+        "dy_m": -130.4
+      },
+      "camp": {
+        "dx_m": -24.8,
+        "dy_m": 13.8
+      },
+      "sainte_baume": {
+        "dx_m": 36.5,
+        "dy_m": 86.3
+      },
+      "mistral": {
+        "dx_m": 194.8,
+        "dy_m": 44.3
+      },
+      "chicane_nord_1": {
+        "dx_m": -74.2,
+        "dy_m": 96.3
+      },
+      "chicane_nord_2": {
+        "dx_m": 321.2,
+        "dy_m": 30
+      },
+      "signes": {
+        "dx_m": 32.6,
+        "dy_m": 112.4
+      },
+      "beausset_1": {
+        "dx_m": 74.3,
+        "dy_m": -53
+      },
+      "beausset_2": {
+        "dx_m": -106,
+        "dy_m": 19
+      },
+      "bendor": {
+        "dx_m": -146.4,
+        "dy_m": -118.4
+      },
+      "garlaban": {
+        "dx_m": -114.4,
+        "dy_m": 117.6
+      },
+      "lac": {
+        "dx_m": -84.4,
+        "dy_m": 93.8
+      },
+      "pont": {
+        "dx_m": -162.8,
+        "dy_m": -9.8
+      }
+    }
+  },
+  "silverstone-national-circuit": {
+    "display_orientation": 35,
+    "label_text": "number-name",
+    "font_px": 13,
+    "zoom": 100,
+    "version": 3,
+    "source": "driver placement from the editor",
+    "labels": {
+      "copse": {
+        "dx_m": 63.2,
+        "dy_m": 58.5
+      },
+      "maggots": {
+        "dx_m": 115.2,
+        "dy_m": 78.2
+      },
+      "becketts": {
+        "dx_m": -109.4,
+        "dy_m": -88.9
+      },
+      "brooklands": {
+        "dx_m": 108,
+        "dy_m": 56.6
+      },
+      "luffield": {
+        "dx_m": -110.2,
+        "dy_m": -45.2
+      },
+      "woodcote": {
+        "dx_m": 36,
+        "dy_m": -38.4
+      }
+    }
+  },
+  "monza-curva-grande-circuit": {
+    "display_orientation": 0,
+    "label_text": "number-name",
+    "font_px": 13,
+    "zoom": 100,
+    "version": 3,
+    "source": "driver placement from the editor",
+    "labels": {
+      "t1": {
+        "dx_m": -327.3,
+        "dy_m": 69.7
+      },
+      "t2": {
+        "dx_m": -292.4,
+        "dy_m": 39.3
+      },
+      "t3": {
+        "dx_m": 33.8,
+        "dy_m": -143.9
+      },
+      "t4": {
+        "dx_m": 241.7,
+        "dy_m": -18.2
+      },
+      "t5": {
+        "dx_m": 237.8,
+        "dy_m": -64.8
+      },
+      "t6": {
+        "dx_m": 176.8,
+        "dy_m": -98.2
+      },
+      "t7": {
+        "dx_m": 300,
+        "dy_m": 40.9
+      },
+      "t8": {
+        "dx_m": -242.1,
+        "dy_m": 37.9
+      },
+      "t9": {
+        "dx_m": 262.6,
+        "dy_m": -41.7
+      },
+      "t10": {
+        "dx_m": -443.6,
+        "dy_m": -21.8
       }
     }
   }

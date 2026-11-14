@@ -77,11 +77,14 @@ function buildTrack(outline) {
     tangent: Array.isArray(turn.tangent) ? turn.tangent.map(round3) : null,
   }));
   if (!turns.length) return null;
+  const centerline = (outline.centerline || []).map((point) => [round1(point.x), round1(point.y)]);
   const track = {
     track_name: outline.track_name || '',
     layout: outline.layout_name || null,
-    lap_length_m: round1(outline.lap_length_m || 0),
-    centerline: (outline.centerline || []).map((point) => [round1(point.x), round1(point.y)]),
+    // Imola's outline predates `lap_length_m`; fall back to the trace length, the
+    // same axis the TinyPedal export uses, so placement offsets convert alike.
+    lap_length_m: round1(outline.lap_length_m || polylineLength(centerline)),
+    centerline,
     turns,
   };
   // Only when the packaged fractions line up with the outline's turn order.
@@ -93,6 +96,14 @@ function buildTrack(outline) {
                         source: tinypedal.source };
   }
   return track;
+}
+
+function polylineLength(points) {
+  let total = 0;
+  for (let i = 1; i < points.length; i += 1) {
+    total += Math.hypot(points[i][0] - points[i - 1][0], points[i][1] - points[i - 1][1]);
+  }
+  return total;
 }
 
 function buildPayload() {

@@ -20,7 +20,8 @@ function presetFor(slug) {
   const preset = PRESETS[slug];
   if (!preset) return null;
   return placementFromPayload({ display_orientation: preset.display_orientation, zoom: preset.zoom,
-    label_text: preset.label_text, font_px: preset.font_px, labels: preset.labels });
+    label_text: preset.label_text, font_px: preset.font_px, version: preset.version,
+    labels: preset.labels });
 }
 /**
  * v1 exports were produced while drag offsets were *drawn* with a flipped Y, so
