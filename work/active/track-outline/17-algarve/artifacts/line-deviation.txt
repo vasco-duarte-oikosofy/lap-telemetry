@@ -1,0 +1,27 @@
+Algarve — how far a second driver's line sits from the generated centreline
+============================================================================
+centreline   product/data/track-outlines/algarve-international-circuit.json
+             traced from the committed DKR reference lap (Ginetta LMP3,
+             1:40.706, 5 023 rows, lap_length_m 4633.1)
+compare lap  Vista AF Corse LMP2 reference (1:46.279, 5 320 rows), resampled to
+             500 points in distance order, nearest-vertex distance to the
+             centreline
+
+  mean    3.28 m
+  median  3.48 m
+  p95     5.46 m
+  max     6.43 m
+
+Interpretation: the two committed references agree to ~3 m on average, which is
+inside the synthetic +/-5 m shell. At the widest points (p95/max) the LMP2 line
+falls a metre or two outside it, so the shell slightly under-states how much the
+two cars' lines differ. It is still a visual-context outline, not a track-limit
+measurement (see caveats in the JSON).
+
+Other numbers from the same run:
+  centreline extent   x -274.0 .. 404.6   y -604.5 .. 538.5  (sim units)
+  closure gap         11.65 m between the first and last of the 500 points
+                      (the reference lap is cut at the timing line and the
+                      distance axis wraps there, so ~12 m of the loop is not
+                      sampled; existing outlines carry 0-10 m gaps too)
+  reference coverage  lap_distance_m 1.0 .. 4633.1, single lap_number

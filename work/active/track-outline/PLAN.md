@@ -24,7 +24,7 @@ Tracks are ordered by data quality: TUMFTM first (real widths), then trajectory-
 | `04-barcelona` | Circuit de Barcelona-Catalunya | Trajectory | Clean trajectory | ✅ Done |
 | `05-monza` | Monza (with chicanes) | TUMFTM `Monza.csv` | Real | ✅ Done |
 | `06-interlagos` | Autódromo José Carlos Pace | TUMFTM `SaoPaulo.csv` | Real | ✅ Done |
-| `07-cota-gp` | Circuit of the Americas (GP) | TUMFTM `Austin.csv` | Real | 🔲 Not started |
+| `07-cota-gp` | Circuit of the Americas (GP) | Trajectory (no TUMFTM CSV in repo) | Clean trajectory | ✅ Done earlier — `circuit-of-the-americas.json` (median of 2 laps) is wired in the manifest; PLAN row was stale |
 | `08-imola` | Autodromo Enzo e Dino Ferrari | No TUMFTM | Clean trajectory | ✅ Done (trajectory) |
 | `09-fuji` | Fuji International Speedway | No TUMFTM | Clean trajectory | ✅ Done |
 | `10-bahrain-endurance` | Bahrain International Endurance Circuit | No TUMFTM | Clean trajectory | 🔲 Not started |
@@ -32,13 +32,13 @@ Tracks are ordered by data quality: TUMFTM first (real widths), then trajectory-
 | `12-bahrain-paddock` | Bahrain International Paddock Circuit | No TUMFTM | Clean trajectory | 🔲 Not started |
 | `13-monza-curva-grande` | Monza Curva Grande Layout | No TUMFTM | Clean trajectory | ✅ Done (`b9d057a`; ref+model in `bf3b0ac`) |
 | `14-cota-national` | COTA National | No TUMFTM | Clean trajectory | 🔲 Not started |
-| `15-le-mans` | Circuit de la Sarthe | No TUMFTM | Clean trajectory | 🔲 Not started |
+| `15-le-mans` | Circuit de la Sarthe | No TUMFTM | Clean trajectory | ✅ Done earlier — `circuit-de-la-sarthe.json` is wired; PLAN row was stale |
 | `16-le-mans-no-chicanes` | Circuit de la Sarthe Mulsanne No Chicanes | No TUMFTM | Clean trajectory | 🔲 Not started |
-| `17-algarve` | Algarve International Circuit (Portimão) | No TUMFTM | Clean trajectory | 🔲 Not started |
+| `17-algarve` | Algarve International Circuit (Portimão) | No TUMFTM | Clean trajectory | ✅ In this slice — 500-pt centreline from the committed 1:40.706 P3 reference, ±5 m shell, `lap_length_m` 4633.1; cross-checked against the 1:46.279 LMP2 reference (p95 5.5 m); no turn anchors (models are un-curated) |
 | `18-algarve-elms` | Algarve International Circuit ELMS | Verify alias of Algarve base | ? | 🔲 Not started |
-| `19-lusail` | Lusail International Circuit | No TUMFTM | Clean trajectory | 🔲 Not started |
+| `19-lusail` | Lusail International Circuit | No TUMFTM | Clean trajectory | ✅ Done earlier — `lusail-international-circuit.json` is wired; PLAN row was stale |
 | `20-lusail-short` | Lusail International Circuit Short | No TUMFTM | Clean trajectory | 🔲 Not started |
-| `21-sebring` | Sebring International Raceway | No TUMFTM | Clean trajectory | 🔲 Not started |
+| `21-sebring` | Sebring International Raceway | No TUMFTM | Clean trajectory | ✅ Done earlier — `sebring-international-raceway.json` is wired; PLAN row was stale |
 | `22-sebring-school` | Sebring School Circuit | No TUMFTM | Clean trajectory | 🔲 Not started |
 | `23-paul-ricard` | Circuit Paul Ricard (ELMS) | No TUMFTM | Clean trajectory | 🔲 Not started |
 | `24-paul-ricard-1a` | Paul Ricard 1A / Ginetta P3 | Latest race trajectory | New ref + official/flat corners + distinct layout | ✅ `3ef2ef9`; TinyPedal `e4b9ae06` (automated render + widget QA passed; user live confirmation pending) |
@@ -76,9 +76,9 @@ Tracks are ordered by data quality: TUMFTM first (real widths), then trajectory-
 
 **Feature tests (Silverstone National / Ginetta P3):** `bash scripts/test-summary.sh --feature track-outline`
 
-**Completed:** Spa (base + endurance), Bahrain GP, Barcelona, Monza, Imola, Fuji International Speedway, Bahrain Outer, Daytona, Laguna Seca, Road Atlanta, Monza Curva Grande, Silverstone International, Silverstone National, Long Beach, Paul Ricard 1A, Paul Ricard ELMS.
+**Completed:** Spa (base + endurance), Bahrain GP, Barcelona, Monza, Imola, Fuji International Speedway, Bahrain Outer, Daytona, Laguna Seca, Road Atlanta, Monza Curva Grande, Silverstone International, Silverstone National, Long Beach, Paul Ricard 1A, Paul Ricard ELMS, Algarve. Also confirmed already wired (stale rows corrected): COTA GP, Le Mans, Lusail, Sebring.
 **In progress:** None. Prior live visual confirmations remain pending.
-**Remaining:** 21 outlines needed (some may be aliases).
+**Remaining:** rows with no dedicated outline file at all — Bahrain Endurance (10), Bahrain Paddock (12), COTA National (14), Le Mans no-chicanes (16), Algarve ELMS (18, alias to verify — see `17-algarve/handoff.md`), Lusail Short (20), Sebring School (22), Paul Ricard base (23) and 1A-V2 (25). Rows 28 and 31 both point at `silverstone-grand-prix-circuit---elms`, row 32 at `fuji-speedway-classic`, row 33 at `autodromo-enzo-e-dino-ferrari` — verify the LMU track string from a real session before closing them. Every row above needs a session that is not on this workstation.
 
 ### Barcelona note
 

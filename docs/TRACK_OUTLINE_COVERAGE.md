@@ -49,6 +49,7 @@ kerb or far from the outside wall.
 | Monza Curva Grande Circuit | `monza-curva-grande-circuit` | Trajectory | Single lap (practice lap 12, 1:35.182, 2026-10-31) | Constant 5m each side | ❌ No |
 | Silverstone International Circuit | `silverstone-international-circuit` | Trajectory | Single lap (race lap 13, 1:02.909, 2026-10-31) | Constant 5m each side | ❌ No |
 | Silverstone National Circuit | `silverstone-national-circuit` | Trajectory | Ginetta P3 practice lap 16, 0:50.392, 2026-11-11; six official National turns (Copse, Maggots, Becketts, Brooklands, Luffield, Woodcote), two flat bends | Synthetic constant 5m each side | ❌ No |
+| Algarve International Circuit | `algarve-international-circuit` | Trajectory | Single lap (Ginetta LMP3 reference, 1:40.706); cross-checked against the LMP2 reference 1:46.279 (mean 3.3 m, p95 5.5 m apart); no turn anchors — the coaching models still use auto-generated names | Synthetic constant 5m each side | ❌ No |
 | Grand Prix of Long Beach | `grand-prix-of-long-beach` | Trajectory | Ferrari 499P practice lap 10, 1:15.889, 2026-11-01; all 11 official turns, flat T3/T7 preserved | Synthetic constant 5m each side (not street walls) | ❌ No |
 
 ---

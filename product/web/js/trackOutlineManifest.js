@@ -34,6 +34,7 @@ import { GRAND_PRIX_OF_LONG_BEACH_STATIC_OUTLINE } from './staticGrandPrixOfLong
 import { PAUL_RICARD___1A_STATIC_OUTLINE } from './staticPaulRicard1aOutlineData.js';
 import { PAUL_RICARD___ELMS_STATIC_OUTLINE } from './staticPaulRicardElmsOutlineData.js';
 import { SILVERSTONE_NATIONAL_CIRCUIT_STATIC_OUTLINE } from './staticSilverstoneNationalCircuitOutlineData.js';
+import { ALGARVE_INTERNATIONAL_CIRCUIT_STATIC_OUTLINE } from './staticAlgarveInternationalCircuitOutlineData.js';
 
 // slug normalization: lowercase, collapse whitespace to single dash,
 // transliterate accents via NFKD (ó→o, é→e), strip non-alnum/dash.
@@ -108,6 +109,8 @@ const OUTLINES = new Map([
   ['paul-ricard-elms', PAUL_RICARD___ELMS_STATIC_OUTLINE],
   // Silverstone National Circuit
   ['silverstone-national-circuit', SILVERSTONE_NATIONAL_CIRCUIT_STATIC_OUTLINE],
+  // Algarve International Circuit
+  ['algarve-international-circuit', ALGARVE_INTERNATIONAL_CIRCUIT_STATIC_OUTLINE],
 ]);
 
 /**
