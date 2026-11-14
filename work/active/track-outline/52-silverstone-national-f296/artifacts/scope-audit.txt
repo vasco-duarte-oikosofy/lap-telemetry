@@ -1,0 +1,18 @@
+=== Slice 52 changed files (commits dbbc402..f2688fc) ===
+ dev/scripts/test_silverstone_national_f296.js      |  31 ++++
+ dev/scripts/test_silverstone_national_f296.py      | 160 +++++++++++++++++++++
+ package.json                                       |   3 +-
+ ...ista-af-corse-2026-21-lm_time_00.54.295.parquet | Bin 0 -> 206162 bytes
+ ...rcuit_vista-af-corse-2026-21-lm.diagnostics.txt |   5 +
+ ...national-circuit_vista-af-corse-2026-21-lm.json |  71 +++++++++
+ 6 files changed, 269 insertions(+), 1 deletion(-)
+
+=== Untracked after slice (expected: slice folder + live coach log) ===
+?? coach-race.log
+?? work/active/track-outline/52-silverstone-national-f296/
+
+=== Other curated assets unchanged ===
+reference laps: 38 (37 before + 1 new = 38)
+coaching models: 39 files
+outlines: 27 files
+  (empty above = outline, web and bundle untouched)

@@ -1,0 +1,5 @@
+corners: 6 seeded / 6 now
+header: {'schema_version': '1', 'track_id': 'silverstone-national-circuit', 'layout_id': 'national', 'lap_length_m': 2639.1}
+reference_lap: {'path': 'product/data/reference-laps/silverstone-national-circuit_vista-af-corse-2026-21-lm_time_00.54.295.parquet', 'car_id': 'vista-af-corse-2026-21-lm', 'lap_time_s': 54.295, 'detection_method': 'throttle_brake_v1'}
+flat markers (target_throttle_pct 100): ['Maggots', 'Woodcote']
+CURATION PRESERVED

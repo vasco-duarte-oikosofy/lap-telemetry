@@ -1,0 +1,16 @@
+Mode: --ref  (silverstone-national-circuit_vista-af-corse-2026-21-lm_time_00.54.295.parquet, 54.295s, vehicle vista-af-corse-2026-21-lm)
+Corner check: model has 6, lap yields 4 (4 matched, 2 geometry preserved)
+  PRESERVED: Maggots (maggots) keeps reviewed geometry; no event claimed
+  PRESERVED: Woodcote (woodcote) keeps reviewed geometry; no event claimed
+
+Updated coaching model -> C:\Users\duart\lap-telemetry\product\data\track-coaching\silverstone-national-circuit_vista-af-corse-2026-21-lm.json
+Updated diagnostics -> C:\Users\duart\lap-telemetry\product\data\track-coaching\silverstone-national-circuit_vista-af-corse-2026-21-lm.diagnostics.txt
+
+Corner geometry changes:
+  Turn                         Entry     Apex     Exit  (was Entry/Apex/Exit)
+  Copse                        206.0    368.0    372.0  (was 242.0 / 359.0 / 435.0)
+  Maggots                      790.0    828.0    833.0  (was 790.0 / 828.0 / 833.0)
+  Becketts                     884.0   1046.0   1086.0  (was 834.0 / 1068.0 / 1089.0)
+  Brooklands                  1746.0   1925.0   1957.0  (was 1740.0 / 1921.0 / 1960.0)
+  Luffield                    2003.0   2092.0   2103.0  (was 2003.0 / 2102.0 / 2153.0)
+  Woodcote                    2360.0   2469.0   2580.0  (was 2360.0 / 2469.0 / 2580.0)

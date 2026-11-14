@@ -1,0 +1,5 @@
+Track: silverstone-national-circuit  Vehicle: vista-af-corse-2026-21-lm  (2 sessions)
+  Fastest: lap 8 in session_20261114T065241Z_silverstone-national-circuit_lmu_quali.parquet -> 54.295s
+  Exported 2703 rows -> product\data\reference-laps\silverstone-national-circuit_vista-af-corse-2026-21-lm_time_00.54.295.parquet
+
+AUDIT: 1 reference lap changed (added: ['silverstone-national-circuit_vista-af-corse-2026-21-lm_time_00.54.295.parquet'], superseded: []). OK.

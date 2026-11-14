@@ -1,0 +1,6 @@
+
+ABORTED - curated corners not reproduced on this lap: Maggots, Woodcote
+No files were changed. Re-run with --allow-unmatched to keep their old
+geometry, or leave the reference and model as they are.
+Mode: --ref  (silverstone-national-circuit_vista-af-corse-2026-21-lm_time_00.54.295.parquet, 54.295s, vehicle vista-af-corse-2026-21-lm)
+Corner check: model has 6, lap yields 4 (4 matched, 0 geometry preserved)
