@@ -85,6 +85,15 @@ Two open questions the recording answers for free:
 - Writing a `Frame` without the new fields produces **nulls, not 0.0**
   (asserted), and NaN readings are mapped to null rather than poisoning a
   column (asserted).
+- **"Will it record?" is answered by test, not by hope:** the shipped test feeds
+  the real `LMUConnection.read_frame()` a synthetic `LMUObjectOut` (the genuine
+  ctypes image) with `mGripFract`, the rear ground velocities and `mLocalRot.y`
+  set, and asserts the values survive SHM → `Frame` → parquet. The same test
+  asserts the vendored LMU *and* rF2 ctypes mappings expose every field name the
+  readers touch, so a vendored-header bump fails here instead of mid-session.
+  The only thing left unproven is the sim itself (does LMU populate
+  `mGripFract`, is `mLocalRot.y` the yaw axis) — that is gate one of the
+  calibration stint.
 
 ## Deferred
 

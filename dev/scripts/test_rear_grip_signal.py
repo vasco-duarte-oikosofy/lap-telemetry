@@ -225,6 +225,96 @@ def main():
     ok(_yaw_rate_radps(_Telemetry()) == 0.35, 'yaw rate is read from mLocalRot.y')
     ok(_yaw_rate_radps(_NoRot()) is None, 'a sim without mLocalRot yields None')
 
+    # --- 4. the real ctypes mapping carries those field names ------------
+    # The risk this covers: `_wheel_float` / `_yaw_rate_radps` are only correct
+    # if the vendored shared-memory mapping exposes the names they read. A
+    # vendored header bump that renames a field would otherwise surface as an
+    # AttributeError in the middle of a recording session.
+    from pyLMUSharedMemory import lmu_data
+
+    tele = lmu_data.LMUVehicleTelemetry()
+    tele.mWheels[2].mGripFract = 0.42
+    tele.mWheels[2].mLateralGroundVel = 1.5
+    tele.mWheels[2].mLongitudinalGroundVel = 30.0
+    tele.mWheels[3].mGripFract = 0.30
+    tele.mLocalRot.y = 0.35
+    ok(_wheel_float(tele.mWheels[2], 'mGripFract') == 0.42,
+       'vendored LMU mapping exposes mGripFract')
+    ok(_wheel_float(tele.mWheels[2], 'mLateralGroundVel') == 1.5,
+       'vendored LMU mapping exposes mLateralGroundVel')
+    ok(_wheel_float(tele.mWheels[2], 'mLongitudinalGroundVel') == 30.0,
+       'vendored LMU mapping exposes mLongitudinalGroundVel')
+    ok(_yaw_rate_radps(tele) == 0.35, 'vendored LMU mapping exposes mLocalRot')
+
+    from pyRfactor2SharedMemory import rF2data
+
+    rf_tele = rF2data.rF2VehicleTelemetry()
+    rf_tele.mWheels[3].mGripFract = 0.55
+    rf_tele.mWheels[3].mLongitudinalGroundVel = 25.0
+    rf_tele.mLocalRot.y = -0.2
+    ok(_wheel_float(rf_tele.mWheels[3], 'mGripFract') == 0.55,
+       'vendored rF2 mapping exposes mGripFract')
+    ok(_wheel_float(rf_tele.mWheels[3], 'mLongitudinalGroundVel') == 25.0,
+       'vendored rF2 mapping exposes mLongitudinalGroundVel')
+    ok(_yaw_rate_radps(rf_tele) == -0.2, 'vendored rF2 mapping exposes mLocalRot')
+
+    # --- 5. end to end: synthetic SHM image -> read_frame -> parquet ------
+    # This is the "will it record?" check: the real LMU reader builds a Frame
+    # from an LMUObjectOut, and the writer persists the new columns.
+    import types as _types
+
+    from lap_telemetry.recorder.connect import LMUConnection
+
+    conn = LMUConnection.__new__(LMUConnection)
+    LMUConnection.__mro__[1].__init__(conn)
+    image = lmu_data.LMUObjectOut()
+    image.generic.gameVersion = 3
+    image.scoring.scoringInfo.mNumVehicles = 1
+    image.scoring.scoringInfo.mCurrentET = 100.0
+    image.scoring.vehScoringInfo[0].mIsPlayer = True
+    image.scoring.vehScoringInfo[0].mID = 7
+    image.scoring.vehScoringInfo[0].mLapDist = 1000.0
+    image.scoring.vehScoringInfo[0].mPathLateral = 0.5
+    image.scoring.vehScoringInfo[0].mTrackEdge = 6.0
+    telemetry = image.telemetry.telemInfo[0]
+    telemetry.mID = 7
+    telemetry.mLapNumber = 14
+    telemetry.mLapStartET = 45.0
+    telemetry.mLocalVel.z = 55.0
+    telemetry.mUnfilteredThrottle = 1.0
+    telemetry.mGear = 4
+    telemetry.mLocalRot.y = 0.42
+    for index, grip in ((2, 0.37), (3, 0.41)):
+        telemetry.mWheels[index].mGripFract = grip
+        telemetry.mWheels[index].mLateralGroundVel = 2.4
+        telemetry.mWheels[index].mLongitudinalGroundVel = 54.0
+    conn._mmap = _types.SimpleNamespace(data=image, update=lambda: None, close=lambda: None)
+    conn._tele_indexes = {7: 0}
+    recorded = conn.read_frame()
+    ok(recorded is not None, 'the LMU reader builds a frame from a live-shaped SHM image')
+    if recorded is None:
+        return
+    ok(recorded.grip_fraction_rl == 0.37 and recorded.grip_fraction_rr == 0.41,
+       'grip fraction is read per rear wheel')
+    ok(recorded.wheel_ground_vel_lat_rl == 2.4 and recorded.wheel_ground_vel_lon_rl == 54.0,
+       'rear-left ground velocity is read')
+    ok(recorded.wheel_ground_vel_lat_rr == 2.4 and recorded.wheel_ground_vel_lon_rr == 54.0,
+       'rear-right ground velocity is read')
+    ok(recorded.yaw_rate_radps == 0.42, 'yaw rate is read')
+
+    with tempfile.TemporaryDirectory() as tmpdir:
+        writer = SessionWriter(Path(tmpdir), sim='lmu', track='silverstone-national-circuit', rate_hz=50.0)
+        writer.append(recorded)
+        path, _ = writer.close()
+        persisted = pq.read_table(path)
+    row = {c: persisted.column(c).to_pylist()[0] for c in NEW_COLUMNS}
+    ok(abs(row['grip_fraction_rl'] - 0.37) < 1e-6 and abs(row['grip_fraction_rr'] - 0.41) < 1e-6,
+       'grip fraction survives SHM -> frame -> parquet')
+    ok(abs(row['wheel_ground_vel_lon_rl'] - 54.0) < 1e-6 and
+       abs(row['wheel_ground_vel_lat_rl'] - 2.4) < 1e-6,
+       'rear left ground velocity survives SHM -> frame -> parquet')
+    ok(abs(row['yaw_rate_radps'] - 0.42) < 1e-6, 'yaw rate survives SHM -> frame -> parquet')
+
 
 if __name__ == '__main__':
     main()
