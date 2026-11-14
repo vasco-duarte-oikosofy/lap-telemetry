@@ -1,0 +1,6 @@
+--- race lap 10 (2:06.440) ---
+  Ligne Droite du Mistral  1815-1920 m: min throttle 1.00, max brake 0.00
+  Courbe du Garlaban       4900-5170 m: min throttle 1.00, max brake 0.00
+--- old reference (2:07.601) ---
+  Ligne Droite du Mistral  1815-1920 m: min throttle 1.00, max brake 0.00
+  Courbe du Garlaban       4900-5170 m: min throttle 1.00, max brake 0.00

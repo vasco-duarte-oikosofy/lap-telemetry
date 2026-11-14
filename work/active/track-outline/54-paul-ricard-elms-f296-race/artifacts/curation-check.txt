@@ -1,0 +1,11 @@
+corners 16 -> 16
+flat markers: ['Ligne Droite du Mistral', 'Courbe du Garlaban']
+zones non-overlapping: True
+refreshed: 6
+  S de la Verrerie 1              484->481        621->623        690->651    
+  S de la Verrerie 2              699->711        739->747        790->766    
+  Virage de la Sainte-Baume      1610->1597      1663->1661      1690->1663   
+  Chicane Nord 1                 2805->2787      2960->2962      2992->2965   
+  Chicane Nord 2                 2994->2970      3044->3048      3072->3063   
+  Courbe de Signes               3780->3776      3954->3948      3995->3950   
+CURATION PRESERVED

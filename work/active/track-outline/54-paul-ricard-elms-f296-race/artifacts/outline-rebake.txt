@@ -1,0 +1,2 @@
+wrote product\data\track-outlines\paul-ricard---elms.json (362 lines), 1 anchors moved
+  bendor              4809.0 ->   4831.0  (+22.0 m)

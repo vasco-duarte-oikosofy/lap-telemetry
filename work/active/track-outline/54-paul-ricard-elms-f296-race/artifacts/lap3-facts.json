@@ -1,0 +1,104 @@
+{
+  "type": "lap_coaching_summary",
+  "track_id": "paul-ricard---elms",
+  "lap_number": 3,
+  "lap_time_delta_s": 1.041,
+  "top_losses": [
+    {
+      "corner_id": "hotel_1",
+      "corner_name": "H\u00f4tel 1",
+      "apex_distance_m": 1307.0,
+      "phase": "entry",
+      "loss_s": 0.283,
+      "driver_value": 218.9,
+      "reference_value": 220.3,
+      "unit": "km/h",
+      "confidence": "medium",
+      "phase_distance_m": 1171.0,
+      "gain_end_distance_m": 1307.0,
+      "entry_distance_delta_m": 16.0,
+      "reference_phase_distance_m": 1187.0
+    },
+    {
+      "corner_id": "camp",
+      "corner_name": "Camp",
+      "apex_distance_m": 1521.0,
+      "phase": "minimum_speed",
+      "loss_s": 0.25,
+      "driver_value": 69.0,
+      "reference_value": 71.0,
+      "unit": "km/h",
+      "confidence": "medium",
+      "driver_apex_distance_m": 1522.0,
+      "reference_apex_distance_m": 1507.0,
+      "apex_offset_m": -15.0,
+      "gain_end_distance_m": 1593.0
+    },
+    {
+      "corner_id": "bendor",
+      "corner_name": "Bendor",
+      "apex_distance_m": 4831.0,
+      "phase": "entry",
+      "loss_s": 0.219,
+      "driver_value": 173.6,
+      "reference_value": 175.1,
+      "unit": "km/h",
+      "confidence": "medium",
+      "phase_distance_m": 4680.0,
+      "gain_end_distance_m": 4831.0,
+      "entry_distance_delta_m": -4.0,
+      "reference_phase_distance_m": 4676.0
+    }
+  ],
+  "top_gains": [
+    {
+      "corner_id": "pont",
+      "corner_name": "Pont",
+      "apex_distance_m": 5470.0,
+      "phase": "entry",
+      "loss_s": -0.111,
+      "driver_value": 118.5,
+      "reference_value": 122.1,
+      "unit": "km/h",
+      "confidence": "medium",
+      "phase_distance_m": 5421.0,
+      "gain_end_distance_m": 5470.0,
+      "entry_distance_delta_m": -1.0,
+      "reference_phase_distance_m": 5420.0
+    },
+    {
+      "corner_id": "camp",
+      "corner_name": "Camp",
+      "apex_distance_m": 1521.0,
+      "phase": "entry",
+      "loss_s": -0.108,
+      "driver_value": 116.5,
+      "reference_value": 109.0,
+      "unit": "km/h",
+      "confidence": "medium",
+      "phase_distance_m": 1461.0,
+      "gain_end_distance_m": 1521.0,
+      "entry_distance_delta_m": -4.0,
+      "reference_phase_distance_m": 1457.0
+    },
+    {
+      "corner_id": "sainte_baume",
+      "corner_name": "Sainte-Baume",
+      "apex_distance_m": 1661.0,
+      "phase": "exit",
+      "loss_s": -0.1,
+      "driver_value": 111.8,
+      "reference_value": 110.6,
+      "unit": "km/h",
+      "confidence": "medium",
+      "phase_distance_m": 1663.0,
+      "gain_end_distance_m": 1886.0,
+      "exit_distance_delta_m": 0.0,
+      "reference_phase_distance_m": 1663.0
+    }
+  ],
+  "constraints": {
+    "max_words": 35,
+    "style": "calm_concise_engineer"
+  }
+}

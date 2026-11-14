@@ -1,0 +1,177 @@
+{
+  "schema_version": "1",
+  "track_id": "paul-ricard---elms",
+  "layout_id": "elms",
+  "reference_lap": {
+    "path": "product/data/reference-laps/paul-ricard---elms_vista-af-corse-2026-21-lm_time_02.07.601.parquet",
+    "car_id": "vista-af-corse-2026-21-lm",
+    "lap_time_s": 127.601,
+    "detection_method": "throttle_brake_v1"
+  },
+  "lap_length_m": 5805.3,
+  "corners": [
+    {
+      "id": "verrerie_1",
+      "name": "S de la Verrerie 1",
+      "short_name": "Verrerie 1",
+      "s_start_m": 484.0,
+      "apex_s_m": 621.0,
+      "s_end_m": 690.0,
+      "apex_side": "left",
+      "apex_side_source": "manual"
+    },
+    {
+      "id": "verrerie_2",
+      "name": "S de la Verrerie 2",
+      "short_name": "Verrerie 2",
+      "s_start_m": 699.0,
+      "apex_s_m": 739.0,
+      "s_end_m": 790.0,
+      "apex_side": "right",
+      "apex_side_source": "manual"
+    },
+    {
+      "id": "hotel_1",
+      "name": "Virage de l'Hôtel 1",
+      "short_name": "Hôtel 1",
+      "s_start_m": 1187.0,
+      "apex_s_m": 1307.0,
+      "s_end_m": 1340.0,
+      "apex_side": "right",
+      "apex_side_source": "manual"
+    },
+    {
+      "id": "hotel_2",
+      "name": "Virage de l'Hôtel 2",
+      "short_name": "Hôtel 2",
+      "s_start_m": 1346.0,
+      "apex_s_m": 1411.0,
+      "s_end_m": 1449.0,
+      "apex_side": "left",
+      "apex_side_source": "manual"
+    },
+    {
+      "id": "camp",
+      "name": "Virage du Camp",
+      "short_name": "Camp",
+      "s_start_m": 1462.0,
+      "apex_s_m": 1521.0,
+      "s_end_m": 1550.0,
+      "apex_side": "right",
+      "apex_side_source": "manual"
+    },
+    {
+      "id": "sainte_baume",
+      "name": "Virage de la Sainte-Baume",
+      "short_name": "Sainte-Baume",
+      "s_start_m": 1610.0,
+      "apex_s_m": 1663.0,
+      "s_end_m": 1690.0,
+      "apex_side": "right",
+      "apex_side_source": "manual"
+    },
+    {
+      "id": "mistral",
+      "name": "Ligne Droite du Mistral",
+      "short_name": "Mistral",
+      "s_start_m": 1815.0,
+      "apex_s_m": 1886.0,
+      "s_end_m": 1920.0,
+      "apex_side": "left",
+      "apex_side_source": "manual",
+      "target_throttle_pct": 100
+    },
+    {
+      "id": "chicane_nord_1",
+      "name": "Chicane Nord 1",
+      "short_name": "Chicane 1",
+      "s_start_m": 2805.0,
+      "apex_s_m": 2960.0,
+      "s_end_m": 2992.0,
+      "apex_side": "left",
+      "apex_side_source": "manual"
+    },
+    {
+      "id": "chicane_nord_2",
+      "name": "Chicane Nord 2",
+      "short_name": "Chicane 2",
+      "s_start_m": 2994.0,
+      "apex_s_m": 3044.0,
+      "s_end_m": 3072.0,
+      "apex_side": "right",
+      "apex_side_source": "manual"
+    },
+    {
+      "id": "signes",
+      "name": "Courbe de Signes",
+      "short_name": "Signes",
+      "s_start_m": 3780.0,
+      "apex_s_m": 3954.0,
+      "s_end_m": 3995.0,
+      "apex_side": "right",
+      "apex_side_source": "manual"
+    },
+    {
+      "id": "beausset_1",
+      "name": "Double Droite du Beausset 1",
+      "short_name": "Beausset 1",
+      "s_start_m": 4178.0,
+      "apex_s_m": 4390.0,
+      "s_end_m": 4442.0,
+      "apex_side": "right",
+      "apex_side_source": "manual"
+    },
+    {
+      "id": "beausset_2",
+      "name": "Double Droite du Beausset 2",
+      "short_name": "Beausset 2",
+      "s_start_m": 4442.0,
+      "apex_s_m": 4482.0,
+      "s_end_m": 4530.0,
+      "apex_side": "right",
+      "apex_side_source": "manual"
+    },
+    {
+      "id": "bendor",
+      "name": "Virage de Bendor",
+      "short_name": "Bendor",
+      "s_start_m": 4688.0,
+      "apex_s_m": 4831.0,
+      "s_end_m": 4895.0,
+      "apex_side": "left",
+      "apex_side_source": "manual"
+    },
+    {
+      "id": "garlaban",
+      "name": "Courbe du Garlaban",
+      "short_name": "Garlaban",
+      "s_start_m": 4900.0,
+      "apex_s_m": 4949.0,
+      "s_end_m": 5170.0,
+      "apex_side": "right",
+      "apex_side_source": "manual",
+      "target_throttle_pct": 100
+    },
+    {
+      "id": "lac",
+      "name": "Virage du Lac",
+      "short_name": "Lac",
+      "s_start_m": 5198.0,
+      "apex_s_m": 5380.0,
+      "s_end_m": 5415.0,
+      "apex_side": "left",
+      "apex_side_source": "manual"
+    },
+    {
+      "id": "pont",
+      "name": "Virage du Pont",
+      "short_name": "Pont",
+      "s_start_m": 5415.0,
+      "apex_s_m": 5470.0,
+      "s_end_m": 5500.0,
+      "apex_side": "right",
+      "apex_side_source": "manual"
+    }
+  ],
+  "straight_zones": []
+}

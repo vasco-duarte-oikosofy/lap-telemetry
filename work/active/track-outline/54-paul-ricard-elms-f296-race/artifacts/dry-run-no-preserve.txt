@@ -1,0 +1,7 @@
+
+ABORTED - curated corners not reproduced on this lap: Virage de l'Hôtel 1, Virage de l'Hôtel 2, Ligne Droite du Mistral, Double Droite du Beausset 2, Courbe du Garlaban, Virage du Lac
+No files were changed. Re-run with --allow-unmatched to keep their old
+geometry, or leave the reference and model as they are.
+Fastest lap in session(s): lap 10 @ 126.440s (session_20261114T112528Z_paul-ricard---elms_lmu_race.parquet, vehicle vista-af-corse-2026-21-lm)
+Faster than existing reference - will export after corner check
+Corner check: model has 16, lap yields 10 (10 matched, 0 geometry preserved)

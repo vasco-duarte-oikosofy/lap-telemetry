@@ -1,0 +1,20 @@
+Fastest lap in session(s): lap 10 @ 126.440s (session_20261114T112528Z_paul-ricard---elms_lmu_race.parquet, vehicle vista-af-corse-2026-21-lm)
+Not faster than existing reference 126.440s - reference stays; model will be checked against paul-ricard---elms_vista-af-corse-2026-21-lm_time_02.06.440.parquet
+Corner check: model has 16, lap yields 10 (6 matched, 10 geometry preserved)
+  PRESERVED: Virage de l'Hôtel 1 (hotel_1) keeps reviewed geometry; no event claimed
+  PRESERVED: Virage de l'Hôtel 2 (hotel_2) keeps reviewed geometry; no event claimed
+  PRESERVED: Virage du Camp (camp) keeps reviewed geometry; no event claimed
+  PRESERVED: Ligne Droite du Mistral (mistral) keeps reviewed geometry; no event claimed
+  PRESERVED: Double Droite du Beausset 1 (beausset_1) keeps reviewed geometry; no event claimed
+  PRESERVED: Double Droite du Beausset 2 (beausset_2) keeps reviewed geometry; no event claimed
+  PRESERVED: Virage de Bendor (bendor) keeps reviewed geometry; no event claimed
+  PRESERVED: Courbe du Garlaban (garlaban) keeps reviewed geometry; no event claimed
+  PRESERVED: Virage du Lac (lac) keeps reviewed geometry; no event claimed
+  PRESERVED: Virage du Pont (pont) keeps reviewed geometry; no event claimed
+  INFO: new corner at apex=1507m not in the model - ignored
+  INFO: new corner at apex=4379m not in the model - ignored
+  INFO: new corner at apex=4809m not in the model - ignored
+  INFO: new corner at apex=5473m not in the model - ignored
+Geometry guard: all matched corners within 80 m - OK
+
+Coaching model already up to date (paul-ricard---elms_vista-af-corse-2026-21-lm.json) - nothing written.

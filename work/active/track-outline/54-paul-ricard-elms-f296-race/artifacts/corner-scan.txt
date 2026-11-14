@@ -1,0 +1,31 @@
+complete laps: 14; best segment lap 10 @ 126.440s rows 6297
+
+detected 10 events (throttle_brake_v1):
+  apex   623.0  start   481.0  end   651.0
+  apex   747.0  start   711.0  end   766.0
+  apex  1507.0  start  1184.0  end  1539.0
+  apex  1661.0  start  1597.0  end  1663.0
+  apex  2962.0  start  2787.0  end  2965.0
+  apex  3048.0  start  2970.0  end  3063.0
+  apex  3948.0  start  3776.0  end  3950.0
+  apex  4379.0  start  4178.0  end  4512.0
+  apex  4809.0  start  4675.0  end  4847.0
+  apex  5473.0  start  5182.0  end  5492.0
+
+curated corner -> nearest detected event:
+  S de la Verrerie 1             621.0  nearest   623.0  delta    +2.0  
+  S de la Verrerie 2             739.0  nearest   747.0  delta    +8.0  
+  Virage de l'Hôtel 1          1307.0  nearest  1507.0  delta  +200.0  
+  Virage de l'Hôtel 2          1411.0  nearest  1507.0  delta   +96.0  
+  Virage du Camp                1521.0  nearest  1507.0  delta   -14.0  
+  Virage de la Sainte-Baume     1663.0  nearest  1661.0  delta    -2.0  
+  Ligne Droite du Mistral       1886.0  nearest  1661.0  delta  -225.0  FLAT
+  Chicane Nord 1                2960.0  nearest  2962.0  delta    +2.0  
+  Chicane Nord 2                3044.0  nearest  3048.0  delta    +4.0  
+  Courbe de Signes              3954.0  nearest  3948.0  delta    -6.0  
+  Double Droite du Beausset 1   4390.0  nearest  4379.0  delta   -11.0  
+  Double Droite du Beausset 2   4482.0  nearest  4379.0  delta  -103.0  
+  Virage de Bendor              4831.0  nearest  4809.0  delta   -22.0  
+  Courbe du Garlaban            4949.0  nearest  4809.0  delta  -140.0  FLAT
+  Virage du Lac                 5380.0  nearest  5473.0  delta   +93.0  
+  Virage du Pont                5470.0  nearest  5473.0  delta    +3.0  
