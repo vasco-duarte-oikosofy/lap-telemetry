@@ -50,6 +50,14 @@ Investigation ruled out the obvious causes:
 - `product/web/js/trackHeatmapMap.js` — calls `findOutlineByTrackName` + `drawStaticTrackOutline`
 - `product/web/css/styles.css` — `.static-track-boundary` / `.static-track-centerline` styles
 
+## Root cause (confirmed)
+
+Outline files were named `_lmu_<type>` and that filename did not satisfy the
+track-name inference regex, so `trackName` came back null and no outline was
+drawn. Fixed in `c396279` / `b903909`. Live-confirmed by the user 2026-11 —
+outlines now render for the affected tracks.
+
 ## Status
 
-🐛 Open — root cause not yet determined.
+✅ Fixed in `c396279` / `b903909`, live-confirmed → moved to
+`work/completed/bugs/`.
