@@ -34,7 +34,7 @@ Tracks are ordered by data quality: TUMFTM first (real widths), then trajectory-
 | `14-cota-national` | COTA National | No TUMFTM | Clean trajectory | 🔲 Not started |
 | `15-le-mans` | Circuit de la Sarthe | No TUMFTM | Clean trajectory | ✅ Done earlier — `circuit-de-la-sarthe.json` is wired; PLAN row was stale |
 | `16-le-mans-no-chicanes` | Circuit de la Sarthe Mulsanne No Chicanes | No TUMFTM | Clean trajectory | 🔲 Not started |
-| `17-algarve` | Algarve International Circuit (Portimão) | No TUMFTM | Clean trajectory | ✅ In this slice — 500-pt centreline from the committed 1:40.706 P3 reference, ±5 m shell, `lap_length_m` 4633.1; cross-checked against the 1:46.279 LMP2 reference (p95 5.5 m); no turn anchors (models are un-curated) |
+| `17-algarve` | Algarve International Circuit (Portimão) | No TUMFTM | Clean trajectory | ✅ `3d42f09` — 500-pt centreline from the committed 1:40.706 P3 reference, ±5 m shell, `lap_length_m` 4633.1; cross-checked against the 1:46.279 LMP2 reference (p95 5.5 m); no turn anchors (models are un-curated) |
 | `18-algarve-elms` | Algarve International Circuit ELMS | Verify alias of Algarve base | ? | 🔲 Not started |
 | `19-lusail` | Lusail International Circuit | No TUMFTM | Clean trajectory | ✅ Done earlier — `lusail-international-circuit.json` is wired; PLAN row was stale |
 | `20-lusail-short` | Lusail International Circuit Short | No TUMFTM | Clean trajectory | 🔲 Not started |
