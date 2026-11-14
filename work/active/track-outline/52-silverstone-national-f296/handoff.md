@@ -12,7 +12,7 @@ for the first time. Reference lap and coaching model only — **no outline work*
 | Model | `product/data/track-coaching/silverstone-national-circuit_vista-af-corse-2026-21-lm.json` |
 | Diagnostics | `product/data/track-coaching/…_vista-af-corse-2026-21-lm.diagnostics.txt` |
 
-Commits: `dbbc402` (ref) → `2d8a305` (model) → `f2688fc` (tests) → this one (docs).
+Commits: `edc3930` (ref) → `9c19ee2` (model) → `0915a70` (tests) → this one (docs).
 
 ## The lap
 

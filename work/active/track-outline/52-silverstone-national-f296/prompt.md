@@ -1,6 +1,6 @@
 # Slice 52 — Silverstone National Circuit / Ferrari 296 GT3 (new car, existing track)
 
-Status: ✅ Complete — reference 0:54.295 + 6-zone model; curated P3 content preserved, outline untouched (`dbbc402`+`2d8a305`+`f2688fc`)
+Status: ✅ Complete — reference 0:54.295 + 6-zone model; curated P3 content preserved, outline untouched (`edc3930`+`9c19ee2`+`0915a70`)
 Trigger: *"rebase from remote, then pickup the F296/silverstone quali and race
 sessions, and derive the reference lap and coaching model for that combo. We
 already have the outline, no need for outline now"*
