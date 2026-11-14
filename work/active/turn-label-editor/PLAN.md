@@ -21,4 +21,4 @@ canvas, a drag handle and a rotation slider, not a diff.
 
 | Slice | Status | Vertical outcome |
 |---|---|---|
-| `01-visual-editor` | ✅ PENDING | `dev/tools/turn-label-editor.html` — single file, opens via `file://`, 19 tracks with baked turns, per-label drag + arrow nudge, `-180…+180°` rotation slider (= TinyPedal `display_orientation`), zoom/font/text mode, localStorage persistence, JSON copy/download. Generated from a template + the outlines (`--check` guards staleness); Playwright test drives the real page |
+| `01-visual-editor` | ✅ `6358258` | `dev/tools/turn-label-editor.html` — single file, opens via `file://`, 19 tracks with baked turns, per-label drag + arrow nudge, `-180…+180°` rotation slider (= TinyPedal `display_orientation`), zoom/font/text mode, localStorage persistence, JSON copy/download. Generated from a template + the outlines (`--check` guards staleness); Playwright test drives the real page |
