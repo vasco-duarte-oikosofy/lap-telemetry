@@ -1,6 +1,7 @@
 # Slice 06 — Barcelona placement and TinyPedal update runbook
 
-Status: 🔧 In progress
+Status: ✅ Complete — lap-telemetry `6236b3e`, TinyPedal `a5cf854e`.
+Automated QA passed; live-driver confirmation pending.
 
 ## Goal
 

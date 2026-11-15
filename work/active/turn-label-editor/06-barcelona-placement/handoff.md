@@ -1,5 +1,7 @@
 # Handoff — Barcelona placement and TinyPedal-only test rule
 
+Implementation commits: lap-telemetry main `6236b3e`; TinyPedal master `a5cf854e`.
+
 ## Delivered
 
 - Archived the exact driver's v3 input in `artifacts/driver-placement.json`.
