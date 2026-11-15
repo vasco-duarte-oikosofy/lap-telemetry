@@ -1,0 +1,23 @@
+FAILED — 3051 passed, 3 of 101 scripts failed in 123.4
+
+=== FAIL: dev/scripts/test_delta_time_gains.js (5 failures) ===
+  [FAIL] t7 entry gain -0.0616 < heuristic -0.0968 (delta-t is larger gain)
+  [FAIL] t9 entry gain -0.0220 < heuristic -0.0411 (delta-t is larger gain)
+  [FAIL] t11 entry gain -0.0144 < heuristic -0.1118 (delta-t is larger gain)
+  [FAIL] t1 entry gain approx -156 ms, got -220.3 ms
+  [FAIL] test_delta_time_gains.py exited 0
+
+=== FAIL: dev/scripts/test_js_pipeline_contract.js (5 failures) ===
+  [FAIL] delta_t[2158] = 776.9 ms, expected ~436 ms (web UI confirmed)
+  [FAIL] delta_t[2439] = 766.3 ms, expected ~331 ms (web UI confirmed)
+  [FAIL] delta_t[-1] = 1334.3 ms, expected ~1155 ms (lap_time_delta = 1.155 s)
+  [FAIL] ref_speed[2158] = 93.7, expected ~91 kph
+  [FAIL] test_js_pipeline_contract.py exited 0
+
+=== FAIL: dev/scripts/test_generate_track_coaching_model_from_reference.js (1 failure) ===
+  [FAIL] Barcelona candidate near 941m — nearest=849.0
+
+To re-run a failing test:
+  bash scripts/test-summary.sh dev/scripts/test_delta_time_gains.js
+  bash scripts/test-summary.sh dev/scripts/test_js_pipeline_contract.js
+  bash scripts/test-summary.sh dev/scripts/test_generate_track_coaching_model_from_reference.js

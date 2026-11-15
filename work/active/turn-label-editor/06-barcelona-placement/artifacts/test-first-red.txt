@@ -1,0 +1,23 @@
+Re-running: dev/scripts/test_shipped_turn_label_placements.js
+FAIL — dev/scripts/test_shipped_turn_label_placements.js (21 failures)
+[FAIL] Barcelona preset preserves every driver offset exactly
+[FAIL] Barcelona preset preserves the driver rotation
+[FAIL] Barcelona packaged rotation matches the driver input
+[FAIL] Barcelona t1: packaged offset matches the driver input
+[FAIL] Barcelona t2: packaged offset matches the driver input
+[FAIL] Barcelona t3: packaged offset matches the driver input
+[FAIL] Barcelona t4: packaged offset matches the driver input
+[FAIL] Barcelona t5: packaged offset matches the driver input
+[FAIL] Barcelona t6: packaged offset matches the driver input
+[FAIL] Barcelona t7: packaged offset matches the driver input
+[FAIL] Barcelona t8: packaged offset matches the driver input
+[FAIL] Barcelona t9: packaged offset matches the driver input
+[FAIL] Barcelona t10: packaged offset matches the driver input
+[FAIL] Barcelona t11: packaged offset matches the driver input
+[FAIL] Barcelona t12: packaged offset matches the driver input
+[FAIL] Barcelona t13: packaged offset matches the driver input
+[FAIL] Barcelona t14: packaged offset matches the driver input
+  [FAIL] Circuit de Barcelona: carries driver placements — 0/14 turns
+  [FAIL] Circuit de Barcelona: packages a display_orientation — None
+  [FAIL] Circuit de Barcelona: widget adopts the packaged orientation — 0 vs None
+[FAIL] shipped turn-label placements reach the TinyPedal widget

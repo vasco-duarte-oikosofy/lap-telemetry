@@ -1,0 +1,7 @@
+{
+  "changed": [
+    "../tinypedal/tinypedal/data/turn_labels/Circuit de Barcelona.turns.json"
+  ],
+  "expectedOnly": "../tinypedal/tinypedal/data/turn_labels/Circuit de Barcelona.turns.json",
+  "otherAssetsUnchanged": true
+}

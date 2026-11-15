@@ -52,7 +52,7 @@ slice's `prompt.md`, you are breaking this rule. Stop and reconfirm.
 
 You are not done until all of these exist:
 
-1. `bash scripts/test-summary.sh --feature <feature>` exits 0 (feature tests pass). Full suite must also pass at feature completion and every 3rd slice.
+1. Applicable tests pass: normally `bash scripts/test-summary.sh --feature <feature>`, plus the full suite at completion/milestones. **TinyPedal updates run ONLY TinyPedal tests**, as specified below; no other tests.
 2. `npm run build` succeeds and `dist/compare.html` is current (no stale bundle).
 3. The current mission slice has `learnings.md` — what surprised you, anything
    the next agent needs to know that is not in the spec.
@@ -117,6 +117,26 @@ directory. Python regression tests may be `.py` files in `dev/scripts/`, but
 they must be invoked from the main suite through a Node `.js` wrapper that
 prints the required `[PASS]`/`[FAIL]` protocol lines.
 
+### TinyPedal updates — ONLY TinyPedal tests
+
+When updating TinyPedal (including map rotation, label placements, presets,
+exported payloads and related documentation), **run ONLY TinyPedal tests**.
+Do not run lap-telemetry feature suites, the full suite, unrelated Playwright
+checks or infrastructure guards for a TinyPedal update. This exception overrides
+all general feature/full-suite and milestone test requirements in these
+instructions and linked workflow documents.
+
+Use focused TinyPedal wrappers, for example:
+
+```bash
+bash scripts/test-summary.sh dev/scripts/test_shipped_turn_label_placements.js
+bash scripts/test-summary.sh dev/scripts/test_tinypedal_turn_label_export.js
+```
+
+Run additional sibling TinyPedal widget/render tests only when relevant to the
+update. Do not fix unrelated lap-telemetry test failures as part of this work.
+Build and generated-data freshness checks still apply; they are not test suites.
+
 ### Running tests
 
 Always use `bash scripts/test-summary.sh` to run the test suite. It runs every
@@ -139,7 +159,7 @@ the full suite including Playwright tests.
 Do **not** use raw `npm test` — its voluminous output pollutes context and
 makes it hard to spot failures.
 
-**Run the full suite (with `--pw`) before completing every slice.** This
+**Except for TinyPedal updates, run the full suite (with `--pw`) before completing every slice.** This
 catches cross-layer regressions that feature-specific runs miss.
 
 ### Test cadence: feature-specific during development, full suite at milestones
@@ -292,6 +312,14 @@ The processes and where they are documented:
 For sessions recorded as many `.part*.parquet` shards, see the **Multi-shard
 sessions** pitfall in `EXTRACT_AND_STORE_REFERENCE_LAP.md` — merge shards to a
 single file first.
+
+## Updating TinyPedal map rotation and turn labels
+
+Follow [`docs/HOW_TO_UPDATE_TINYPEDAL_MAP.md`](docs/HOW_TO_UPDATE_TINYPEDAL_MAP.md)
+for importing driver placements, track-only export, real-widget QA, configuration
+precedence and reload. Placements live in `dev/tools/turn-label-presets.json`;
+never hand-edit generated TinyPedal label payloads or alter a coaching reference
+just to change the map display.
 
 ## Generating a track outline
 

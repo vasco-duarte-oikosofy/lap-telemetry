@@ -14,6 +14,8 @@ See [`README-REFERENCE-LAPS.md`](README-REFERENCE-LAPS.md) for how to regenerate
 
 ## Turn label editor (corner names on the map)
 
+**Update runbook:** [TinyPedal map rotation and turn-label placement](../../docs/HOW_TO_UPDATE_TINYPEDAL_MAP.md).
+
 [`turn-label-editor.html`](turn-label-editor.html) places the corner-name labels
 that TinyPedal draws on its track map. Open it with a double click — the markup,
 the app (`turn-label-editor.js` + `turn-label-editor-ui.js`) and the generated
@@ -34,23 +36,24 @@ works over `file://` with no server and no build step at run time.
   pasted into the widget config. Labels stay upright and stay attached to their
   corner.
 - Placements are remembered per track in `localStorage`; **Copy JSON** /
-  **Download JSON** give you `{tool, version: 2, track, display_orientation,
+  **Download JSON** give you `{tool, version: 3, track, display_orientation,
   labels: {id: {dx_m, dy_m}}}` — offsets are metres from each corner's anchor, so
   they do not depend on canvas size, zoom or rotation.
 - **Import JSON…** (or drop the file anywhere on the page) loads a placement
-  back, switch to its track included. Placement files written before the Y-drag
-  fix are `version: 1` and are repaired on import.
+  back, switch to its track included. Version 1 repairs the legacy Y mirror;
+  version < 3 also migrates the old rotation sign on import.
 - **Reset this track** / **Reset all** restore the shipped placement for that
   track (see below), or a blank layout where none is shipped.
 - Shipped placements live in [`turn-label-presets.json`](turn-label-presets.json)
   and are picked up by the generator, so a track can open already placed for
   every browser/machine. Today: Imola (‑89°), Paul Ricard ELMS (0°), Silverstone
-  National (35°) and Monza Curva Grande (0°).
+  National (35°), Monza Curva Grande (0°) and Barcelona (0°).
 - Those same placements are published into TinyPedal by
   `dev/scripts/export_turn_labels_for_tinypedal.py` (`label_offset_m` per turn +
   `display_orientation` per file), and the widget uses them before its own
   placement rule. Re-export after changing a preset:
-  `py dev/scripts/export_turn_labels_for_tinypedal.py && py dev/scripts/export_turn_labels_for_tinypedal.py --check`
+  `py -X utf8 dev/scripts/export_turn_labels_for_tinypedal.py --track "Circuit de Barcelona"`
+  then repeat with `--check` (substitute the requested TinyPedal track name).
 
 It is generated from `turn-label-editor.template.html` plus
 `product/data/track-outlines/*.json`:
@@ -63,6 +66,6 @@ node dev/scripts/build_turn_label_editor.js --check  # verify the committed data
 `test_turn_label_editor.js` fails if the committed data file is stale, so run the
 generator after re-baking any outline's turns or editing the presets.
 
-Note: this slice only produces the placement. Feeding the offsets back into
-`dev/scripts/export_turn_labels_for_tinypedal.py` and the widget is not wired
-yet — the label-offset schema has to be agreed with TinyPedal first.
+Publishing is wired: the exporter packages the preset offsets and rotation;
+TinyPedal uses them after a restart/widget reload. The runbook above covers
+widget overrides and the required two-repository verification.

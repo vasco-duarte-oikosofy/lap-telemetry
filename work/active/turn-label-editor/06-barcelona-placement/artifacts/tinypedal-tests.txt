@@ -1,0 +1,13 @@
+Final verification after the user's TinyPedal-only policy update:
+
+$ bash scripts/test-summary.sh dev/scripts/test_shipped_turn_label_placements.js
+PASS — 92 assertions in 1.8s (dev/scripts/test_shipped_turn_label_placements.js)
+
+$ bash scripts/test-summary.sh dev/scripts/test_tinypedal_turn_label_export.js
+PASS — 23 assertions in 0.5s (dev/scripts/test_tinypedal_turn_label_export.js)
+
+$ py dev/scripts/export_turn_labels_for_tinypedal.py --track "Circuit de Barcelona" --check
+up to date: 1 turn-label files
+
+$ node dev/scripts/build_turn_label_editor.js --check
+ok dev/tools/turn-label-data.js: 19 tracks, 5 preset(s)

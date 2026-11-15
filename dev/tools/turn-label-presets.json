@@ -210,5 +210,71 @@
         "dy_m": -21.8
       }
     }
+  },
+  "circuit-de-barcelona": {
+    "display_orientation": 0,
+    "label_text": "number-name",
+    "font_px": 13,
+    "zoom": 100,
+    "version": 3,
+    "source": "driver placement: turn-labels-circuit-de-barcelona (1).json",
+    "labels": {
+      "t1": {
+        "dx_m": 129.5,
+        "dy_m": 16.1
+      },
+      "t2": {
+        "dx_m": -24.1,
+        "dy_m": -42.2
+      },
+      "t3": {
+        "dx_m": -91.2,
+        "dy_m": -30.4
+      },
+      "t4": {
+        "dx_m": -120,
+        "dy_m": 0.1
+      },
+      "t5": {
+        "dx_m": -176.1,
+        "dy_m": -13.8
+      },
+      "t6": {
+        "dx_m": 21.8,
+        "dy_m": 33.5
+      },
+      "t7": {
+        "dx_m": -98.3,
+        "dy_m": 8.5
+      },
+      "t8": {
+        "dx_m": 76.6,
+        "dy_m": 32
+      },
+      "t9": {
+        "dx_m": -108.8,
+        "dy_m": 103.3
+      },
+      "t10": {
+        "dx_m": -59.2,
+        "dy_m": -30.3
+      },
+      "t11": {
+        "dx_m": 1.9,
+        "dy_m": 48.8
+      },
+      "t12": {
+        "dx_m": -161.9,
+        "dy_m": -18.1
+      },
+      "t13": {
+        "dx_m": -144.2,
+        "dy_m": -25.3
+      },
+      "t14": {
+        "dx_m": 117.4,
+        "dy_m": -25.7
+      }
+    }
   }
 }

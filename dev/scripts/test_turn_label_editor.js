@@ -279,8 +279,21 @@ async function browserContract() {
     });
     check(restored.track === 'silverstone-national-circuit' && Array.isArray(restored.offset),
       'the imported placement survives a reload', JSON.stringify(restored));
-    // A track with no shipped placement: reset means "blank".
+    // Barcelona now ships the driver's placement; reset restores it exactly.
     await page.selectOption('#track', 'circuit-de-barcelona');
+    await page.locator('#reset-track').click();
+    const barcelona = await page.evaluate(() =>
+      JSON.parse(document.getElementById('json').value));
+    const driver = JSON.parse(fs.readFileSync(path.join(ROOT,
+      'work/active/turn-label-editor/06-barcelona-placement/artifacts/driver-placement.json'), 'utf8'));
+    check(barcelona.display_orientation === driver.display_orientation &&
+      JSON.stringify(barcelona.labels) === JSON.stringify(driver.labels),
+      'Barcelona reset/export preserves the driver rotation and all 14 offsets');
+
+    // Select an actually unplaced track, rather than assuming Barcelona is one.
+    const unplaced = await page.evaluate(() => Object.keys(window.TURN_LABEL_DATA.tracks)
+      .find((slug) => !window.TURN_LABEL_PRESETS[slug]));
+    await page.selectOption('#track', unplaced);
     await page.locator('#reset-track').click();
     const reset = await page.evaluate(() => {
       const editor = window.__turnLabelEditor;
