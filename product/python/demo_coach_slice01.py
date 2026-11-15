@@ -54,7 +54,7 @@ PRESETS = {
     },
     "barcelona": {
         "reference_lap": ROOT / "product" / "data" / "reference-laps" /
-            "circuit-de-barcelona_dkr-engineering-4-elms25_time_01.36.456.parquet",
+            "circuit-de-barcelona_dkr-engineering-4-elms25_time_01.36.040.parquet",
         "track_model": ROOT / "product" / "data" / "track-coaching" /
             "circuit-de-barcelona_dkr-engineering-4-elms25.json",
         "current_lap": ROOT / "dev" / "fixtures" / "coach" /

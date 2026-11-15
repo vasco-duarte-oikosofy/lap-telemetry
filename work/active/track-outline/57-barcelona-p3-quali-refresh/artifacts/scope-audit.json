@@ -1,0 +1,14 @@
+{
+  "changed_existing_assets": [
+    "product/data/reference-laps/circuit-de-barcelona_dkr-engineering-4-elms25_time_01.36.319.parquet",
+    "product/data/track-coaching/circuit-de-barcelona_dkr-engineering-4-elms25.diagnostics.txt",
+    "product/data/track-coaching/circuit-de-barcelona_dkr-engineering-4-elms25.json"
+  ],
+  "added_assets": [
+    "product/data/reference-laps/circuit-de-barcelona_dkr-engineering-4-elms25_time_01.36.040.parquet"
+  ],
+  "all_other_curated_data_maps_labels_and_source_unchanged": true,
+  "eleven_complete_corner_objects_preserved": true,
+  "renault_non_geometry_metadata_preserved": true,
+  "source_sha256": "16e95d33c7edeb5158af778484c5b8a4a4e289138520fcf4257f870ed8d29fed"
+}

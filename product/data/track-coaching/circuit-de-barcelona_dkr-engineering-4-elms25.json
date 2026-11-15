@@ -3,16 +3,16 @@
   "track_id": "circuit-de-barcelona",
   "layout_id": "lmu-default",
   "reference_lap": {
-    "path": "product\\data\\reference-laps\\circuit-de-barcelona_dkr-engineering-4-elms25_time_01.36.456.parquet",
+    "path": "product/data/reference-laps/circuit-de-barcelona_dkr-engineering-4-elms25_time_01.36.040.parquet",
     "car_id": "dkr-engineering-4-elms25",
-    "lap_time_s": 96.456,
+    "lap_time_s": 96.04,
     "detection_method": "throttle_brake_v1"
   },
   "lap_length_m": 4654.4,
   "corners": [
     {
       "id": "t1",
-      "name": "Turn 1 \u2014 Elf",
+      "name": "Turn 1 — Elf",
       "short_name": "Elf",
       "s_start_m": 820.0,
       "apex_s_m": 842.0,
@@ -32,17 +32,17 @@
     },
     {
       "id": "t3",
-      "name": "Turn 3 \u2014 Renault",
+      "name": "Turn 3 — Renault",
       "short_name": "Renault",
-      "s_start_m": 1068.0,
-      "apex_s_m": 1161.0,
-      "s_end_m": 1163.0,
+      "s_start_m": 1073.0,
+      "apex_s_m": 1167.0,
+      "s_end_m": 1172.0,
       "apex_side": "right",
       "apex_side_source": "default_cli_option"
     },
     {
       "id": "t4",
-      "name": "Turn 4 \u2014 Repsol",
+      "name": "Turn 4 — Repsol",
       "short_name": "Repsol",
       "s_start_m": 1708.0,
       "apex_s_m": 1731.0,
@@ -52,7 +52,7 @@
     },
     {
       "id": "t5",
-      "name": "Turn 5 \u2014 Seat",
+      "name": "Turn 5 — Seat",
       "short_name": "Seat",
       "s_start_m": 2093.0,
       "apex_s_m": 2143.0,
@@ -82,7 +82,7 @@
     },
     {
       "id": "t8",
-      "name": "Turn 9 \u2014 Campsa",
+      "name": "Turn 9 — Campsa",
       "short_name": "Campsa",
       "s_start_m": 2851.0,
       "apex_s_m": 2923.0,
@@ -92,7 +92,7 @@
     },
     {
       "id": "t9",
-      "name": "Turn 10 \u2014 La Caixa",
+      "name": "Turn 10 — La Caixa",
       "short_name": "La Caixa",
       "s_start_m": 3496.0,
       "apex_s_m": 3508.0,

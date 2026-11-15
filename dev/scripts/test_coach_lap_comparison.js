@@ -95,7 +95,7 @@ def test_invalid_track_model():
 
 def test_lap_comparison():
     current_lap = r'${path.join(ROOT, 'dev', 'fixtures', 'coach', 'barcelona_lap15_current.parquet')}'
-    reference_lap = r'${path.join(ROOT, 'product', 'data', 'reference-laps', 'circuit-de-barcelona_dkr-engineering-4-elms25_time_01.36.456.parquet')}'
+    reference_lap = r'${path.join(ROOT, 'product', 'data', 'reference-laps', 'circuit-de-barcelona_dkr-engineering-4-elms25_time_01.36.040.parquet')}'
     track_model = r'${path.join(ROOT, 'product', 'data', 'track-coaching', 'circuit-de-barcelona.json')}'
     if not Path(current_lap).exists():
         print(f'  lap_comparison: SKIP (fixture not found)')
@@ -118,7 +118,7 @@ def test_lap_comparison():
 def test_cli_command():
     import subprocess
     current_lap = r'${path.join(ROOT, 'dev', 'fixtures', 'coach', 'barcelona_lap15_current.parquet')}'
-    reference_lap = r'${path.join(ROOT, 'product', 'data', 'reference-laps', 'circuit-de-barcelona_dkr-engineering-4-elms25_time_01.36.456.parquet')}'
+    reference_lap = r'${path.join(ROOT, 'product', 'data', 'reference-laps', 'circuit-de-barcelona_dkr-engineering-4-elms25_time_01.36.040.parquet')}'
     track_model = r'${path.join(ROOT, 'product', 'data', 'track-coaching', 'circuit-de-barcelona.json')}'
     if not Path(current_lap).exists():
         print(f'  cli_command: SKIP (fixture not found)')

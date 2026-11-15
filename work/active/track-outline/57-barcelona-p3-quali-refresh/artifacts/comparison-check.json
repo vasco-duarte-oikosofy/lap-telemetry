@@ -1,0 +1,118 @@
+{
+  "self": {
+    "type": "lap_coaching_summary",
+    "track_id": "circuit-de-barcelona",
+    "lap_number": 4,
+    "lap_time_delta_s": 0.0,
+    "top_losses": [],
+    "top_gains": [],
+    "constraints": {
+      "max_words": 35,
+      "style": "calm_concise_engineer"
+    }
+  },
+  "slower_lap3": {
+    "type": "lap_coaching_summary",
+    "track_id": "circuit-de-barcelona",
+    "lap_number": 3,
+    "lap_time_delta_s": 0.734,
+    "top_losses": [
+      {
+        "corner_id": "t10",
+        "corner_name": "Twelve",
+        "apex_distance_m": 3785.0,
+        "phase": "minimum_speed",
+        "loss_s": 0.137,
+        "driver_value": 90.3,
+        "reference_value": 106.1,
+        "unit": "km/h",
+        "confidence": "high",
+        "driver_apex_distance_m": 3782.0,
+        "reference_apex_distance_m": 3782.0,
+        "apex_offset_m": 0.0,
+        "gain_end_distance_m": 4010.0
+      },
+      {
+        "corner_id": "t12",
+        "corner_name": "Fourteen",
+        "apex_distance_m": 4343.0,
+        "phase": "minimum_speed",
+        "loss_s": 0.108,
+        "driver_value": 176.0,
+        "reference_value": 180.8,
+        "unit": "km/h",
+        "confidence": "high",
+        "driver_apex_distance_m": 4343.0,
+        "reference_apex_distance_m": 4343.0,
+        "apex_offset_m": 0.0,
+        "gain_end_distance_m": 4651.0
+      },
+      {
+        "corner_id": "t12",
+        "corner_name": "Fourteen",
+        "apex_distance_m": 4343.0,
+        "phase": "exit",
+        "loss_s": 0.108,
+        "driver_value": 176.0,
+        "reference_value": 181.0,
+        "unit": "km/h",
+        "confidence": "medium",
+        "phase_distance_m": 4358.0,
+        "gain_end_distance_m": 4651.0,
+        "exit_distance_delta_m": 21.0,
+        "reference_phase_distance_m": 4379.0
+      }
+    ],
+    "top_gains": [
+      {
+        "corner_id": "t1",
+        "corner_name": "Elf",
+        "apex_distance_m": 842.0,
+        "phase": "entry",
+        "loss_s": -0.065,
+        "driver_value": 271.8,
+        "reference_value": 270.5,
+        "unit": "km/h",
+        "confidence": "medium",
+        "phase_distance_m": 669.0,
+        "gain_end_distance_m": 842.0,
+        "entry_distance_delta_m": -15.0,
+        "reference_phase_distance_m": 654.0
+      },
+      {
+        "corner_id": "t12",
+        "corner_name": "Fourteen",
+        "apex_distance_m": 4343.0,
+        "phase": "entry",
+        "loss_s": -0.056,
+        "driver_value": 213.9,
+        "reference_value": 211.1,
+        "unit": "km/h",
+        "confidence": "medium",
+        "phase_distance_m": 4230.0,
+        "gain_end_distance_m": 4343.0,
+        "entry_distance_delta_m": -2.0,
+        "reference_phase_distance_m": 4228.0
+      },
+      {
+        "corner_id": "t4",
+        "corner_name": "Repsol",
+        "apex_distance_m": 1731.0,
+        "phase": "entry",
+        "loss_s": -0.029,
+        "driver_value": 230.6,
+        "reference_value": 231.8,
+        "unit": "km/h",
+        "confidence": "medium",
+        "phase_distance_m": 1585.0,
+        "gain_end_distance_m": 1731.0,
+        "entry_distance_delta_m": 9.0,
+        "reference_phase_distance_m": 1594.0
+      }
+    ],
+    "constraints": {
+      "max_words": 35,
+      "style": "calm_concise_engineer"
+    }
+  }
+}

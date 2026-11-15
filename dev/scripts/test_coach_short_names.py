@@ -33,7 +33,7 @@ BARCELONA_MODEL = (ROOT / "product" / "data" / "track-coaching"
                    / "circuit-de-barcelona_dkr-engineering-4-elms25.json")
 BARCELONA_CURRENT = ROOT / "dev" / "fixtures" / "coach" / "barcelona_lap15_current.parquet"
 BARCELONA_REF = (ROOT / "product" / "data" / "reference-laps"
-                 / "circuit-de-barcelona_dkr-engineering-4-elms25_time_01.36.456.parquet")
+                 / "circuit-de-barcelona_dkr-engineering-4-elms25_time_01.36.040.parquet")
 
 
 pass_count = 0

@@ -44,7 +44,7 @@ def main():
     parser.add_argument(
         "--reference-lap",
         type=Path,
-        default=SCRIPT_DIR.parent / "data" / "reference-laps" / "circuit-de-barcelona_dkr-engineering-4-elms25_time_01.36.456.parquet",
+        default=SCRIPT_DIR.parent / "data" / "reference-laps" / "circuit-de-barcelona_dkr-engineering-4-elms25_time_01.36.040.parquet",
     )
     parser.add_argument(
         "--track-model",

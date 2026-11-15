@@ -1,13 +1,11 @@
 detection_method=throttle_brake_v1
-t1 apex=842m start=820m end=869m min=119.6kph entry=124.3kph exit=123.7kph drop=61.6kph recovery=24.2kph prominence=24.2kph accepted
-t2 apex=940m start=909m end=972m min=140.2kph entry=143.1kph exit=147.7kph drop=3.5kph recovery=24.1kph prominence=3.5kph accepted
-t3 apex=1161m start=1068m end=1163m min=165.6kph entry=175.2kph exit=165.8kph drop=10.3kph recovery=13.0kph prominence=10.3kph accepted
-t4 apex=1731m start=1708m end=1775m min=106.6kph entry=116.7kph exit=121.2kph drop=66.7kph recovery=32.4kph prominence=32.4kph accepted
-t5 apex=2143m start=2093m end=2166m min=85.0kph entry=96.0kph exit=96.6kph drop=36.7kph recovery=53.3kph prominence=36.7kph accepted
-t6 apex=2568m start=2518m end=2575m min=118.4kph entry=128.5kph exit=120.0kph drop=38.6kph recovery=34.3kph prominence=34.3kph accepted
-t7 apex=2850m start=2832m end=2850m min=181.2kph entry=191.6kph exit=181.2kph drop=12.1kph recovery=-1.2kph prominence=-1.2kph accepted
-t8 apex=2923m start=2851m end=2925m min=164.3kph entry=180.0kph exit=164.5kph drop=20.8kph recovery=18.5kph prominence=18.5kph accepted
-t9 apex=3508m start=3496m end=3525m min=81.1kph entry=85.8kph exit=87.7kph drop=69.2kph recovery=48.0kph prominence=48.0kph accepted
-t10 apex=3785m start=3782m end=3846m min=104.2kph entry=104.6kph exit=121.0kph drop=39.3kph recovery=26.2kph prominence=26.2kph accepted
-t11 apex=4033m start=3989m end=4034m min=176.3kph entry=178.2kph exit=176.3kph drop=4.6kph recovery=11.1kph prominence=4.6kph accepted
-t12 apex=4343m start=4337m end=4343m min=175.0kph entry=176.6kph exit=175.0kph drop=21.4kph recovery=13.8kph prominence=13.8kph accepted
+t1 apex=845m start=653m end=872m min=113.0kph entry=271.2kph exit=120.6kph drop=70.5kph recovery=30.0kph prominence=30.0kph accepted
+t2 apex=1167m start=1073m end=1172m min=168.0kph entry=175.9kph exit=168.3kph drop=7.9kph recovery=12.3kph prominence=7.9kph accepted
+t3 apex=1729m start=1593m end=1784m min=101.1kph entry=232.3kph exit=126.6kph drop=80.6kph recovery=36.8kph prominence=36.8kph accepted
+t4 apex=2137m start=1988m end=2169m min=82.8kph entry=193.8kph exit=99.7kph drop=50.6kph recovery=52.8kph prominence=50.6kph accepted
+t5 apex=2555m start=2436m end=2595m min=118.8kph entry=205.8kph exit=128.9kph drop=60.5kph recovery=27.8kph prominence=27.8kph accepted
+t6 apex=2920m start=2821m end=2927m min=164.7kph entry=193.4kph exit=165.4kph drop=25.5kph recovery=18.5kph prominence=18.5kph accepted
+t7 apex=3514m start=3332m end=3544m min=81.8kph entry=237.3kph exit=95.7kph drop=62.0kph recovery=48.2kph prominence=48.2kph accepted
+t8 apex=3769m start=3675m end=3867m min=102.6kph entry=162.4kph exit=128.0kph drop=55.5kph recovery=19.4kph prominence=19.4kph accepted
+t9 apex=4080m start=4021m end=4087m min=184.9kph entry=185.0kph exit=185.4kph drop=2.5kph recovery=10.9kph prominence=2.5kph accepted
+t10 apex=4350m start=4226m end=4378m min=180.5kph entry=210.9kph exit=183.4kph drop=12.2kph recovery=11.8kph prominence=11.8kph accepted

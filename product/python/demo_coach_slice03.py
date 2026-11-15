@@ -44,7 +44,7 @@ from lap_telemetry.coach.lap_comparator import compare_laps
 
 
 DEFAULT_CURRENT_LAP = SCRIPT_DIR.parent.parent / "dev" / "fixtures" / "coach" / "barcelona_lap15_current.parquet"
-DEFAULT_REFERENCE_LAP = SCRIPT_DIR.parent / "data" / "reference-laps" / "circuit-de-barcelona_dkr-engineering-4-elms25_time_01.36.456.parquet"
+DEFAULT_REFERENCE_LAP = SCRIPT_DIR.parent / "data" / "reference-laps" / "circuit-de-barcelona_dkr-engineering-4-elms25_time_01.36.040.parquet"
 DEFAULT_TRACK_MODEL = SCRIPT_DIR.parent / "data" / "track-coaching" / "circuit-de-barcelona_dkr-engineering-4-elms25.json"
 
 

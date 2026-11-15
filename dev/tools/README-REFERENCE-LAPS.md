@@ -65,13 +65,16 @@ Track: autdromo-jos-carlos-pace  Vehicle: dkr-engineering-4-elms25  (1 sessions)
 AUDIT: 1 reference lap changed (added: [...], superseded: []). OK.
 ```
 
-After exporting, validate the whole folder before committing:
+After exporting, validate **only the changed reference against the selected
+source session**: one valid complete contiguous lap, exact winning source rows,
+authoritative duration matching the filename/model, correct track/car, and
+unchanged unrelated assets. Run the combo-specific regression where available
+(e.g. `bash scripts/test-summary.sh dev/scripts/test_barcelona_p3_reference.js`).
 
-```bash
-python dev/scripts/validate_reference_laps.py
-```
-
-This checks every reference lap for internal consistency (single contiguous lap, duration matches the filename) and provenance (a source session exists for the same track, in the same car, with a matching lap time).
+Do not scan all sessions or every reference for a single-combo update. The
+archive-wide `validate_reference_laps.py` audit is optional and only run when
+explicitly requested, not a prerequisite for committing. See
+[the coaching-model runbook, step 3](../../docs/HOW_TO_CREATE_A_COACHING_MODEL.md#step-3--validate-only-the-changed-reference-and-its-selected-source).
 
 ---
 
@@ -126,7 +129,7 @@ In `product/dist/compare.html`, use the file picker to load any file from `produ
 
 - `dev/scripts/export_fastest_reference_laps.py` — the automated export script
 - `dev/scripts/update_reference_and_coaching_model.py` — guarded ref+model update for tracks with a coaching model
-- `dev/scripts/validate_reference_laps.py` — post-export folder validation
+- `dev/scripts/validate_reference_laps.py` — optional archive-wide audit (explicit request only)
 - `dev/scripts/EXTRACT_AND_STORE_REFERENCE_LAP.md` — workflow doc + manual fallback procedure
 - `product/data/reference-laps/` — output directory
 - `work/completed/bugs/22-export-overwrites-all-reference-laps/bug.md` — why these guards exist

@@ -1,0 +1,11 @@
+Re-running: dev/scripts/test_barcelona_p3_reference.js
+FAIL — dev/scripts/test_barcelona_p3_reference.js (9 failures)
+[FAIL] qualifying reference is 1:36.040
+[FAIL] model points to the new reference with a portable path
+[FAIL] model authoritative time updated
+[FAIL] export metadata stores authoritative 96.040 seconds
+[FAIL] exact selected segment contains 4790 rows
+[FAIL] qualifying lap 4 selected
+[FAIL] t3: reviewed geometry retained/refreshed
+[FAIL] exported reference is the exact winning contiguous source slice
+[FAIL] Barcelona/P3 reference and curation contracts

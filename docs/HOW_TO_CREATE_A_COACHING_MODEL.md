@@ -94,20 +94,27 @@ A run is only valid if it ends with an `AUDIT:` line reporting 0 or 1 changed la
 product/data/reference-laps/<track-slug>_<car-id>_time_<MM>.<SS>.<mmm>.parquet
 ```
 
-### Step 3 — Validate the reference-lap folder
+### Step 3 — Validate only the changed reference and its selected source
 
-```powershell
-python dev/scripts/validate_reference_laps.py
+Check the exported reference against the **specific source session used in this
+run**, using the combo's focused regression/segment-aware helpers:
+
+- Exactly one contiguous, valid, complete lap; expected row count and coverage.
+- Authoritative duration agrees with the filename and model reference time.
+- Track and car match the selected source; exported rows equal the winning
+  contiguous source slice (ignoring added schema metadata).
+- The model resolves to this reference for the same (track, car), and the export
+  audit confirms no other combo changed.
+
+For Barcelona/P3, the focused command is:
+
+```bash
+bash scripts/test-summary.sh dev/scripts/test_barcelona_p3_reference.js
 ```
 
-```
-OK    circuit-de-la-sarthe_dkr-engineering-4-elms25_time_03.54.917.parquet
-      * source: session_20260528T153431Z_circuit-de-la-sarthe_lmu.parquet
-...
-15 reference laps checked, 0 failures.
-```
-
-Every reference must be a single contiguous lap whose duration matches its filename, traced to a source session on the same track in the same car. Fix any `FAIL` before continuing.
+**Do not scan all sessions or validate every reference as part of a single-combo
+update.** `validate_reference_laps.py` is an optional archive-wide audit, only
+when explicitly requested; it is not a pre-commit requirement.
 
 ### Step 4 — Generate the coaching model
 
@@ -300,7 +307,9 @@ python dev/scripts/update_reference_and_coaching_model.py `
 
 The updater is idempotent: re-running it when nothing changed prints `Coaching model already up to date - nothing written.`
 
-After any update, re-run `python dev/scripts/validate_reference_laps.py` (step 3) before committing.
+After an update, validate only the changed reference against its selected source
+session as described in step 3. No archive-wide session/reference scan is required
+before committing.
 
 ---
 

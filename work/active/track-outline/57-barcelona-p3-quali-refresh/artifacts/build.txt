@@ -1,0 +1,9 @@
+
+> build
+> node dev/scripts/bundle.js
+
+✓ Inlined CSS from web/css/styles.css
+✓ Found web/js/main.js — will bundle
+✓ Bundled web/js/main.js with esbuild
+✓ Wrote C:\Users\duart\lap-telemetry\product\dist\compare.html
+✓ Build complete

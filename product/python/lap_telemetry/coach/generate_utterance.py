@@ -8,7 +8,7 @@ Usage:
 Or with live fact generation:
     python3 -m lap_telemetry.coach.generate_utterance \\
         --lap --current-lap dev/fixtures/coach/barcelona_lap15_current.parquet \\
-        --reference-lap product/data/reference-laps/circuit-de-barcelona_dkr-engineering-4-elms25_time_01.36.456.parquet \\
+        --reference-lap product/data/reference-laps/circuit-de-barcelona_dkr-engineering-4-elms25_time_01.36.040.parquet \\
         --track-config product/data/track-coaching/circuit-de-barcelona_dkr-engineering-4-elms25.json
 """
 from __future__ import annotations

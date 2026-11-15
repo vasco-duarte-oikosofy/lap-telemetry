@@ -279,7 +279,7 @@ def test_apex_offset_driver_late() -> None:
 def test_apex_offset_fixture() -> None:
     """Barcelona fixture: minimum_speed phases include driver/reference apex distances."""
     current_lap = ROOT / "dev" / "fixtures" / "coach" / "barcelona_lap15_current.parquet"
-    reference_lap = ROOT / "product" / "data" / "reference-laps" / "circuit-de-barcelona_dkr-engineering-4-elms25_time_01.36.456.parquet"
+    reference_lap = ROOT / "product" / "data" / "reference-laps" / "circuit-de-barcelona_dkr-engineering-4-elms25_time_01.36.040.parquet"
     track_model = ROOT / "product" / "data" / "track-coaching" / "circuit-de-barcelona_dkr-engineering-4-elms25.json"
 
     if not current_lap.exists():
@@ -314,7 +314,7 @@ def test_apex_offset_fixture() -> None:
 def test_comparison_with_fixture() -> None:
     """Full comparison with Barcelona fixture produces valid output."""
     current_lap = ROOT / "dev" / "fixtures" / "coach" / "barcelona_lap15_current.parquet"
-    reference_lap = ROOT / "product" / "data" / "reference-laps" / "circuit-de-barcelona_dkr-engineering-4-elms25_time_01.36.456.parquet"
+    reference_lap = ROOT / "product" / "data" / "reference-laps" / "circuit-de-barcelona_dkr-engineering-4-elms25_time_01.36.040.parquet"
     track_model = ROOT / "product" / "data" / "track-coaching" / "circuit-de-barcelona_dkr-engineering-4-elms25.json"
 
     if not current_lap.exists():
