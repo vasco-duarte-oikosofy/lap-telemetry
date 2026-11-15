@@ -31,14 +31,9 @@ def ok(condition: bool, label: str) -> None:
 def _load_fixture():
     """Load Barcelona fixture; return facts or None if files missing."""
     current_lap = ROOT / "dev" / "fixtures" / "coach" / "barcelona_lap15_current.parquet"
-    reference_lap = (
-        ROOT / "product" / "data" / "reference-laps"
-        / "circuit-de-barcelona_dkr-engineering-4-elms25_time_01.36.456.parquet"
-    )
-    track_model = (
-        ROOT / "product" / "data" / "track-coaching"
-        / "circuit-de-barcelona_dkr-engineering-4-elms25.json"
-    )
+    # The t3/t5 distance-sign examples describe this fixed historical pair.
+    reference_lap = ROOT / "dev/fixtures/coach/barcelona_reference_time_01.36.456.parquet"
+    track_model = ROOT / "dev/fixtures/coach/barcelona_reference_model.json"
     if not current_lap.exists():
         return None
     from lap_telemetry.coach.track_model import load_track_coaching_model
