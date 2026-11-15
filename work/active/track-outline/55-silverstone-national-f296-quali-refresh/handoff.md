@@ -3,7 +3,7 @@
 ## Result
 
 ✅ Complete. Latest qualifying lap 10 replaces **0:54.295 → 0:54.106**
-(0.189 s faster). The implementation commit is recorded in the mission PLAN.
+(0.189 s faster). Implementation commit: **`d0a5a8e`** (also in the mission PLAN).
 
 - Source: `sessions/session_20261115T095239Z_silverstone-national-circuit_lmu_quali.parquet`
   (finalised, 2026-11-15 09:52 UTC, Vista AF Corse 2026 #21:LM).
