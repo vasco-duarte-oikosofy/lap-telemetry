@@ -123,7 +123,8 @@ def run_unit_tests():
 def run_barcelona_generation_test():
     import pyarrow.parquet as pq
 
-    reference_lap = ROOT / 'product' / 'data' / 'reference-laps' / 'circuit-de-barcelona_dkr-engineering-4-elms25_time_01.36.456.parquet'
+    # The expected speed minima belong to this historical lap, not future PBs.
+    reference_lap = ROOT / 'dev/fixtures/coach/barcelona_reference_time_01.36.456.parquet'
     table = pq.read_table(reference_lap)
     distances, speeds = gen.finite_pairs(table.column('lap_distance_m').to_pylist(), table.column('speed_kph').to_pylist())
     resampled_speed = resample_column(distances, speeds, int(max(distances)))

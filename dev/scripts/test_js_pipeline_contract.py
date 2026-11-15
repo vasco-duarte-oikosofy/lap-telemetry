@@ -29,7 +29,8 @@ def ok(condition: bool, label: str) -> None:
 
 def _load_fixture_tables():
     current_lap = ROOT / "dev" / "fixtures" / "coach" / "barcelona_lap15_current.parquet"
-    reference_lap = ROOT / "product" / "data" / "reference-laps" / "circuit-de-barcelona_dkr-engineering-4-elms25_time_01.36.456.parquet"
+    # Fixed input for user-confirmed numerical values; not the evolving live ref.
+    reference_lap = ROOT / "dev/fixtures/coach/barcelona_reference_time_01.36.456.parquet"
     if not current_lap.exists():
         return None, None
     return pq.read_table(current_lap), pq.read_table(reference_lap)

@@ -262,8 +262,8 @@ def test_entry_loss_unchanged() -> None:
 def test_apex_offset_in_comparison() -> None:
     """Full comparison includes apex_offset_m on minimum_speed phases."""
     current_lap = ROOT / "dev" / "fixtures" / "coach" / "barcelona_lap15_current.parquet"
-    reference_lap = ROOT / "product" / "data" / "reference-laps" / "circuit-de-barcelona_dkr-engineering-4-elms25_time_01.36.456.parquet"
-    track_model = ROOT / "product" / "data" / "track-coaching" / "circuit-de-barcelona_dkr-engineering-4-elms25.json"
+    reference_lap = ROOT / "dev/fixtures/coach/barcelona_reference_time_01.36.456.parquet"
+    track_model = ROOT / "dev/fixtures/coach/barcelona_reference_model.json"
 
     if not current_lap.exists():
         print("  SKIP: apex offset comparison (fixture not found)")
@@ -290,8 +290,8 @@ def test_apex_offset_in_comparison() -> None:
 def test_minimum_speed_gain_negative_loss_s() -> None:
     """Minimum speed gains have negative loss_s (real integrated time)."""
     current_lap = ROOT / "dev" / "fixtures" / "coach" / "barcelona_lap15_current.parquet"
-    reference_lap = ROOT / "product" / "data" / "reference-laps" / "circuit-de-barcelona_dkr-engineering-4-elms25_time_01.36.456.parquet"
-    track_model = ROOT / "product" / "data" / "track-coaching" / "circuit-de-barcelona_dkr-engineering-4-elms25.json"
+    reference_lap = ROOT / "dev/fixtures/coach/barcelona_reference_time_01.36.456.parquet"
+    track_model = ROOT / "dev/fixtures/coach/barcelona_reference_model.json"
 
     if not current_lap.exists():
         print("  SKIP: gain negative loss_s (fixture not found)")
@@ -309,10 +309,13 @@ def test_minimum_speed_gain_negative_loss_s() -> None:
 
 
 def test_entry_gain_swap_barcelona() -> None:
-    """Entry gains on swapped Barcelona use delta_t entry->apex, not heuristic."""
+    """Entry gains on swapped Barcelona use delta_t entry->apex, not heuristic.
+
+    Pin both inputs: the numerical -156 ms contract predates later live refs.
+    """
     current_lap = ROOT / "dev" / "fixtures" / "coach" / "barcelona_lap15_current.parquet"
-    reference_lap = ROOT / "product" / "data" / "reference-laps" / "circuit-de-barcelona_dkr-engineering-4-elms25_time_01.36.456.parquet"
-    track_model = ROOT / "product" / "data" / "track-coaching" / "circuit-de-barcelona_dkr-engineering-4-elms25.json"
+    reference_lap = ROOT / "dev/fixtures/coach/barcelona_reference_time_01.36.456.parquet"
+    track_model = ROOT / "dev/fixtures/coach/barcelona_reference_model.json"
 
     if not current_lap.exists():
         print("  SKIP: entry gain swap (fixture not found)")
