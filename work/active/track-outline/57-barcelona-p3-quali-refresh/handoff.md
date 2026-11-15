@@ -1,5 +1,7 @@
 # Handoff — Barcelona/P3 qualifying reference refresh
 
+Data/runbook delivery: `672a12c` on main. Test refactors: `a862a2f`, `053bf01`.
+
 ## Delivered state
 
 - Exact input: `sessions/session_20261115T183239Z_circuit-de-barcelona_lmu_quali.parquet`

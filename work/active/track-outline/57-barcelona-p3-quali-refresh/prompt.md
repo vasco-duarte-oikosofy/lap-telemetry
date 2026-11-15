@@ -1,6 +1,6 @@
 # Slice 57 — Barcelona / Ginetta P3 qualifying reference refresh
 
-Status: 🔧 In progress
+Status: ✅ Complete — `672a12c` (data/runbooks); test-only refactors `a862a2f`, `053bf01`.
 
 ## Confirmed task
 
