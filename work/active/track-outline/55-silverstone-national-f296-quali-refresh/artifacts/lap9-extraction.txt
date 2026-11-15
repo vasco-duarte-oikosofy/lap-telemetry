@@ -1,0 +1,19 @@
+Session: sessions\session_20261115T095239Z_silverstone-national-circuit_lmu_quali.parquet
+Total segments: 13
+  Segment 1: lap_number=0, frames=5446, duration=1:52.035  [valid]
+  Segment 2: lap_number=1, frames=1996, duration=0:40.009  [valid]
+  Segment 3: lap_number=2, frames=3580, duration=1:11.834  [valid]
+  Segment 4: lap_number=3, frames=2763, duration=0:55.399  [valid]
+  Segment 5: lap_number=4, frames=2747, duration=0:55.141  [valid]
+  Segment 6: lap_number=5, frames=2746, duration=0:55.089  [valid]
+  Segment 7: lap_number=6, frames=2714, duration=0:54.560  [valid]
+  Segment 8: lap_number=7, frames=2700, duration=0:54.223  [valid]
+  Segment 9: lap_number=8, frames=2722, duration=0:54.670  [valid]
+  Segment 10: lap_number=9, frames=2703, duration=0:54.286  [valid]
+  Segment 11: lap_number=10, frames=2694, duration=0:54.106  [valid]
+  Segment 12: lap_number=11, frames=1673, duration=0:33.294  [valid]
+  Segment 13: lap_number=12, frames=68, duration=0:00.000  [valid]
+Using segment 10 for lap_number=9 (2703 rows, 0:54.286)
+
+Extracted segment 10 (lap_number=9, 2703 rows) -> var\tmp\silverstone-national-f296-quali-refresh\lap9.parquet
+Lap time: 0:54.286

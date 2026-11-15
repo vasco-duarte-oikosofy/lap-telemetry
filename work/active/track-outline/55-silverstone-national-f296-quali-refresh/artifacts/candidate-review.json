@@ -1,0 +1,152 @@
+{
+  "session": "sessions\\session_20261115T095239Z_silverstone-national-circuit_lmu_quali.parquet",
+  "laps": [
+    {
+      "lap": 3,
+      "time_s": 55.39946,
+      "start": 11022,
+      "end": 13785,
+      "rows": 2763,
+      "valid": true,
+      "wall_clock_s": 55.39999999999998
+    },
+    {
+      "lap": 4,
+      "time_s": 55.141174,
+      "start": 13785,
+      "end": 16532,
+      "rows": 2747,
+      "valid": true,
+      "wall_clock_s": 55.200000000000045
+    },
+    {
+      "lap": 5,
+      "time_s": 55.088959,
+      "start": 16532,
+      "end": 19278,
+      "rows": 2746,
+      "valid": true,
+      "wall_clock_s": 55.0
+    },
+    {
+      "lap": 6,
+      "time_s": 54.56012,
+      "start": 19278,
+      "end": 21992,
+      "rows": 2714,
+      "valid": true,
+      "wall_clock_s": 54.599999999999966
+    },
+    {
+      "lap": 7,
+      "time_s": 54.223419,
+      "start": 21992,
+      "end": 24692,
+      "rows": 2700,
+      "valid": true,
+      "wall_clock_s": 54.19999999999999
+    },
+    {
+      "lap": 8,
+      "time_s": 54.669861,
+      "start": 24692,
+      "end": 27414,
+      "rows": 2722,
+      "valid": true,
+      "wall_clock_s": 54.60000000000008
+    },
+    {
+      "lap": 9,
+      "time_s": 54.286133,
+      "start": 27414,
+      "end": 30117,
+      "rows": 2703,
+      "valid": true,
+      "wall_clock_s": 54.39999999999998
+    },
+    {
+      "lap": 10,
+      "time_s": 54.106018,
+      "start": 30117,
+      "end": 32811,
+      "rows": 2694,
+      "valid": true,
+      "wall_clock_s": 54.0
+    }
+  ],
+  "fastest_lap": 10,
+  "fastest_time_s": 54.10601806640625,
+  "geometry": [
+    {
+      "id": "copse",
+      "old": [
+        206.0,
+        368.0,
+        372.0
+      ],
+      "new": [
+        221.0,
+        363,
+        364.0
+      ]
+    },
+    {
+      "id": "maggots",
+      "old": [
+        790.0,
+        828.0,
+        833.0
+      ],
+      "new": null
+    },
+    {
+      "id": "becketts",
+      "old": [
+        884.0,
+        1046.0,
+        1086.0
+      ],
+      "new": [
+        894.0,
+        1059,
+        1076.0
+      ]
+    },
+    {
+      "id": "brooklands",
+      "old": [
+        1746.0,
+        1925.0,
+        1957.0
+      ],
+      "new": [
+        1748.0,
+        1921,
+        1944.0
+      ]
+    },
+    {
+      "id": "luffield",
+      "old": [
+        2003.0,
+        2092.0,
+        2103.0
+      ],
+      "new": [
+        2009.0,
+        2107,
+        2129.0
+      ]
+    },
+    {
+      "id": "woodcote",
+      "old": [
+        2360.0,
+        2469.0,
+        2580.0
+      ],
+      "new": null
+    }
+  ],
+  "detection_method": "throttle_brake_v1"
+}

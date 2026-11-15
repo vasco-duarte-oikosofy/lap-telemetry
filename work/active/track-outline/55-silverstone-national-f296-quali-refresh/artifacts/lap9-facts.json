@@ -1,0 +1,105 @@
+{
+  "type": "lap_coaching_summary",
+  "track_id": "silverstone-national-circuit",
+  "lap_number": 9,
+  "lap_time_delta_s": 0.18,
+  "top_losses": [
+    {
+      "corner_id": "woodcote",
+      "corner_name": "Woodcote",
+      "apex_distance_m": 2469.0,
+      "phase": "minimum_speed",
+      "loss_s": 0.09,
+      "driver_value": 179.9,
+      "reference_value": 178.9,
+      "unit": "km/h",
+      "confidence": "medium",
+      "driver_apex_distance_m": 2360.0,
+      "reference_apex_distance_m": 2360.0,
+      "apex_offset_m": 0.0,
+      "gain_end_distance_m": 2631.0,
+      "target_throttle_pct": 100.0
+    },
+    {
+      "corner_id": "luffield",
+      "corner_name": "Luffield",
+      "apex_distance_m": 2107.0,
+      "phase": "entry",
+      "loss_s": 0.081,
+      "driver_value": 135.6,
+      "reference_value": 137.4,
+      "unit": "km/h",
+      "confidence": "medium",
+      "phase_distance_m": 2003.0,
+      "gain_end_distance_m": 2107.0,
+      "entry_distance_delta_m": 8.0,
+      "reference_phase_distance_m": 2011.0
+    },
+    {
+      "corner_id": "brooklands",
+      "corner_name": "Brooklands",
+      "apex_distance_m": 1921.0,
+      "phase": "minimum_speed",
+      "loss_s": 0.037,
+      "driver_value": 103.6,
+      "reference_value": 99.3,
+      "unit": "km/h",
+      "confidence": "high",
+      "driver_apex_distance_m": 1937.0,
+      "reference_apex_distance_m": 1921.0,
+      "apex_offset_m": -16.0,
+      "gain_end_distance_m": 2003.0
+    }
+  ],
+  "top_gains": [
+    {
+      "corner_id": "becketts",
+      "corner_name": "Becketts",
+      "apex_distance_m": 1059.0,
+      "phase": "minimum_speed",
+      "loss_s": -0.088,
+      "driver_value": 97.1,
+      "reference_value": 88.9,
+      "unit": "km/h",
+      "confidence": "high",
+      "driver_apex_distance_m": 1062.0,
+      "reference_apex_distance_m": 1059.0,
+      "apex_offset_m": -3.0,
+      "gain_end_distance_m": 1732.0
+    },
+    {
+      "corner_id": "becketts",
+      "corner_name": "Becketts",
+      "apex_distance_m": 1059.0,
+      "phase": "exit",
+      "loss_s": -0.051,
+      "driver_value": 104.0,
+      "reference_value": 99.6,
+      "unit": "km/h",
+      "confidence": "medium",
+      "phase_distance_m": 1080.0,
+      "gain_end_distance_m": 1732.0,
+      "exit_distance_delta_m": -3.0,
+      "reference_phase_distance_m": 1077.0
+    },
+    {
+      "corner_id": "luffield",
+      "corner_name": "Luffield",
+      "apex_distance_m": 2107.0,
+      "phase": "exit_throttle",
+      "loss_s": -0.042,
+      "driver_value": 95.6,
+      "reference_value": 97.2,
+      "unit": "km/h",
+      "confidence": "medium",
+      "phase_distance_m": 2139.0,
+      "gain_end_distance_m": 2469.0,
+      "exit_distance_delta_m": -10.0,
+      "reference_phase_distance_m": 2129.0
+    }
+  ],
+  "constraints": {
+    "max_words": 35,
+    "style": "calm_concise_engineer"
+  }
+}

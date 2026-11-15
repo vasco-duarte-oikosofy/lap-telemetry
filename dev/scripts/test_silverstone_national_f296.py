@@ -1,4 +1,4 @@
-"""Slice 52: Silverstone National Circuit / Ferrari 296 GT3 — new car, existing track.
+"""Slices 52/55: Silverstone National / Ferrari 296 GT3 onboarding and refresh.
 
 The track already carries curated assets for the Ginetta LMP3 (slice 51). The
 live coach resolves by (track, canonical car) — bug 27 — so the 296 GT3 needed
@@ -6,8 +6,8 @@ its own reference lap and coaching model or it resolved to nothing.
 
 What this pins:
 
-- the guarded export of the fastest complete lap (0:54.295, lap 8 of the
-  2026-11-14 quali) and the frozen race session it was scanned against;
+- the guarded refresh to the fastest complete lap (0:54.106, lap 10 of the
+  2026-11-15 quali), superseding the original 0:54.295 reference;
 - the six official Silverstone National zones, seeded from the curated P3 model
   so names/IDs/apex sides and the two flat-bend `target_throttle_pct: 100`
   markers (`Maggots`, `Woodcote`) are byte-identical across both car models;
@@ -33,11 +33,18 @@ CAR = 'vista-af-corse-2026-21-lm'
 VEHICLE = 'Vista AF Corse 2026 #21:LM'
 P3_CAR = 'dkr-engineering-4-elms25'
 P3_VEHICLE = 'DKR Engineering #4:ELMS25'
-SESSION = ROOT / 'sessions/session_20261114T065241Z_silverstone-national-circuit_lmu_quali.parquet'
+SESSION = ROOT / 'sessions/session_20261115T095239Z_silverstone-national-circuit_lmu_quali.parquet'
 MODEL = ROOT / f'product/data/track-coaching/{TRACK}_{CAR}.json'
 P3_MODEL = ROOT / f'product/data/track-coaching/{TRACK}_{P3_CAR}.json'
 OUTLINE = ROOT / f'product/data/track-outlines/{TRACK}.json'
-REF_NAME = f'{TRACK}_{CAR}_time_00.54.295.parquet'
+REF_NAME = f'{TRACK}_{CAR}_time_00.54.106.parquet'
+# Entry/apex/exit reviewed against the new qualifying lap's four brake events.
+REFRESHED_GEOMETRY = {
+    'copse': (221.0, 363.0, 364.0),
+    'becketts': (894.0, 1059.0, 1076.0),
+    'brooklands': (1748.0, 1921.0, 1944.0),
+    'luffield': (2009.0, 2107.0, 2129.0),
+}
 # Official Silverstone National corner list, in lap order.
 ZONES = [
     ('copse', 'Copse', 'right'),
@@ -80,10 +87,14 @@ def main():
     t = pq.read_table(ref)
     duration = float(t.schema.metadata[b'authoritative_lap_time_s'])
     ok(len(build_segments(t['lap_number'].to_pylist())) == 1, 'reference is a contiguous segment')
-    ok(set(t['lap_number'].to_pylist()) == {8}, 'quali lap 8 selected, not a lap_number filter')
+    ok(set(t['lap_number'].to_pylist()) == {10}, 'quali lap 10 selected, not a lap_number filter')
     ok(all(t['lap_valid'].to_pylist()), 'reference is valid in every frame')
-    ok(t.num_rows == 2703, 'reference contains exactly the selected 2703 source rows')
-    ok(abs(duration - 54.295) < 0.001, 'authoritative quali time 0:54.295')
+    ok(t.num_rows == 2694, 'reference contains exactly the selected 2694 source rows')
+    ok(abs(duration - 54.106) < 0.001, 'authoritative quali time 0:54.106')
+    if SESSION.exists():
+        source = pq.read_table(SESSION).slice(30117, 2694)
+        ok(t.equals(source, check_metadata=False),
+           'reference rows exactly match the reviewed contiguous source segment')
     ok(abs(raw['reference_lap']['lap_time_s'] - duration) < 0.001,
        'model and reference authoritative times agree')
     ok(raw['reference_lap']['car_id'] == CAR, 'reference is attributed to the F296 car id')
@@ -123,14 +134,16 @@ def main():
             ok(c.apex_s_m == p3_by_id[c.id].apex_s_m,
                f'{c.id}: flat bend keeps the reviewed geometry verbatim')
         else:
-            ok(abs(c.apex_s_m - p3_by_id[c.id].apex_s_m) > 0.5,
-               f'{c.id}: braked corner geometry refreshed from the F296 lap')
+            ok((c.s_start_m, c.apex_s_m, c.s_end_m) == REFRESHED_GEOMETRY[c.id],
+               f'{c.id}: reviewed entry/apex/exit refreshed from the F296 quali lap')
 
     # Curated content is byte-identical across both car models.
     p3_raw = json.loads(P3_MODEL.read_text(encoding='utf-8'))
     raw_corners = {c['id']: c for c in raw['corners']}
     for a in p3_raw['corners']:
         b = raw_corners[a['id']]
+        if a['id'] in FLAT:
+            ok(a == b, f"{b['name']}: complete curated flat-corner object preserved")
         for field in CURATION_FIELDS:
             ok(a.get(field) == b.get(field), f"{b['name']}: curated {field} preserved ({b.get(field)!r})")
 

@@ -1,0 +1,8 @@
+Fastest lap in session(s): lap 10 @ 54.106s (session_20261115T095239Z_silverstone-national-circuit_lmu_quali.parquet, vehicle vista-af-corse-2026-21-lm)
+Not faster than existing reference 54.106s - reference stays; model will be checked against silverstone-national-circuit_vista-af-corse-2026-21-lm_time_00.54.106.parquet
+Corner check: model has 6, lap yields 4 (4 matched, 2 geometry preserved)
+  PRESERVED: Maggots (maggots) keeps reviewed geometry; no event claimed
+  PRESERVED: Woodcote (woodcote) keeps reviewed geometry; no event claimed
+Geometry guard: all matched corners within 30 m - OK
+
+Coaching model already up to date (silverstone-national-circuit_vista-af-corse-2026-21-lm.json) - nothing written.

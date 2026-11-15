@@ -1,0 +1,42 @@
+{
+  "added": [
+    "product/data/reference-laps/silverstone-national-circuit_vista-af-corse-2026-21-lm_time_00.54.106.parquet"
+  ],
+  "removed": [
+    "product/data/reference-laps/silverstone-national-circuit_vista-af-corse-2026-21-lm_time_00.54.295.parquet"
+  ],
+  "modified": [
+    "product/data/track-coaching/silverstone-national-circuit_vista-af-corse-2026-21-lm.diagnostics.txt",
+    "product/data/track-coaching/silverstone-national-circuit_vista-af-corse-2026-21-lm.json"
+  ],
+  "unchanged": 183,
+  "corners": {
+    "copse": {
+      "curation_preserved": true,
+      "complete_object_preserved": false
+    },
+    "maggots": {
+      "curation_preserved": true,
+      "complete_object_preserved": true
+    },
+    "becketts": {
+      "curation_preserved": true,
+      "complete_object_preserved": false
+    },
+    "brooklands": {
+      "curation_preserved": true,
+      "complete_object_preserved": false
+    },
+    "luffield": {
+      "curation_preserved": true,
+      "complete_object_preserved": false
+    },
+    "woodcote": {
+      "curation_preserved": true,
+      "complete_object_preserved": true
+    }
+  },
+  "bundle_unchanged": true,
+  "lap9_delta_s": 0.18,
+  "self_delta_s": 0
+}

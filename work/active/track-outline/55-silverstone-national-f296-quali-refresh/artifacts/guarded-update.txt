@@ -1,0 +1,26 @@
+Track: silverstone-national-circuit  Vehicle: vista-af-corse-2026-21-lm  (1 sessions)
+  Fastest: lap 10 in session_20261115T095239Z_silverstone-national-circuit_lmu_quali.parquet -> 54.106s
+  Exported 2694 rows -> product\data\reference-laps\silverstone-national-circuit_vista-af-corse-2026-21-lm_time_00.54.106.parquet
+  Removed superseded reference (54.295s): silverstone-national-circuit_vista-af-corse-2026-21-lm_time_00.54.295.parquet
+
+AUDIT: 1 reference lap changed (added: ['silverstone-national-circuit_vista-af-corse-2026-21-lm_time_00.54.106.parquet'], superseded: ['silverstone-national-circuit_vista-af-corse-2026-21-lm_time_00.54.295.parquet']). OK.
+Fastest lap in session(s): lap 10 @ 54.106s (session_20261115T095239Z_silverstone-national-circuit_lmu_quali.parquet, vehicle vista-af-corse-2026-21-lm)
+Faster than existing reference - will export after corner check
+Corner check: model has 6, lap yields 4 (4 matched, 2 geometry preserved)
+  PRESERVED: Maggots (maggots) keeps reviewed geometry; no event claimed
+  PRESERVED: Woodcote (woodcote) keeps reviewed geometry; no event claimed
+Geometry guard: all matched corners within 30 m - OK
+
+Exporting reference via export_fastest_reference_laps.py ...
+
+Updated coaching model -> C:\Users\duart\lap-telemetry\product\data\track-coaching\silverstone-national-circuit_vista-af-corse-2026-21-lm.json
+Updated diagnostics -> C:\Users\duart\lap-telemetry\product\data\track-coaching\silverstone-national-circuit_vista-af-corse-2026-21-lm.diagnostics.txt
+
+Corner geometry changes:
+  Turn                         Entry     Apex     Exit  (was Entry/Apex/Exit)
+  Copse                        221.0    363.0    364.0  (was 206.0 / 368.0 / 372.0)
+  Maggots                      790.0    828.0    833.0  (was 790.0 / 828.0 / 833.0)
+  Becketts                     894.0   1059.0   1076.0  (was 884.0 / 1046.0 / 1086.0)
+  Brooklands                  1748.0   1921.0   1944.0  (was 1746.0 / 1925.0 / 1957.0)
+  Luffield                    2009.0   2107.0   2129.0  (was 2003.0 / 2092.0 / 2103.0)
+  Woodcote                    2360.0   2469.0   2580.0  (was 2360.0 / 2469.0 / 2580.0)

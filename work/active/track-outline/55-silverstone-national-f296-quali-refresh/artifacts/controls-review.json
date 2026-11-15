@@ -1,0 +1,80 @@
+[
+  {
+    "id": "copse",
+    "zone": [
+      221.0,
+      363,
+      364.0
+    ],
+    "samples": 128,
+    "throttle_min": 0.0,
+    "brake_max": 0.4326137900352478,
+    "speed_min_kph": 168.57200622558594,
+    "apex_steering_mean": 0.2220112308859825
+  },
+  {
+    "id": "maggots",
+    "zone": [
+      790.0,
+      828.0,
+      833.0
+    ],
+    "samples": 33,
+    "throttle_min": 1.0,
+    "brake_max": 0.0,
+    "speed_min_kph": 226.58663940429688,
+    "apex_steering_mean": -0.051723696291446686
+  },
+  {
+    "id": "becketts",
+    "zone": [
+      894.0,
+      1059,
+      1076.0
+    ],
+    "samples": 223,
+    "throttle_min": 0.0,
+    "brake_max": 0.7294394969940186,
+    "speed_min_kph": 88.81591796875,
+    "apex_steering_mean": 0.33762354210571005
+  },
+  {
+    "id": "brooklands",
+    "zone": [
+      1748.0,
+      1921,
+      1944.0
+    ],
+    "samples": 235,
+    "throttle_min": 0.0,
+    "brake_max": 0.77945876121521,
+    "speed_min_kph": 99.28450775146484,
+    "apex_steering_mean": -0.3112283807992935
+  },
+  {
+    "id": "luffield",
+    "zone": [
+      2009.0,
+      2107,
+      2129.0
+    ],
+    "samples": 188,
+    "throttle_min": 0.0,
+    "brake_max": 0.32483845949172974,
+    "speed_min_kph": 84.09957885742188,
+    "apex_steering_mean": 0.35369580388069155
+  },
+  {
+    "id": "woodcote",
+    "zone": [
+      2360.0,
+      2469.0,
+      2580.0
+    ],
+    "samples": 197,
+    "throttle_min": 1.0,
+    "brake_max": 0.0,
+    "speed_min_kph": 179.0070037841797,
+    "apex_steering_mean": 0.07161652722529002
+  }
+]

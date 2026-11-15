@@ -1,0 +1,71 @@
+{
+  "schema_version": "1",
+  "track_id": "silverstone-national-circuit",
+  "layout_id": "national",
+  "reference_lap": {
+    "path": "product/data/reference-laps/silverstone-national-circuit_vista-af-corse-2026-21-lm_time_00.54.295.parquet",
+    "car_id": "vista-af-corse-2026-21-lm",
+    "lap_time_s": 54.295,
+    "detection_method": "throttle_brake_v1"
+  },
+  "lap_length_m": 2639.1,
+  "corners": [
+    {
+      "id": "copse",
+      "name": "Copse",
+      "s_start_m": 206.0,
+      "apex_s_m": 368.0,
+      "s_end_m": 372.0,
+      "apex_side": "right",
+      "apex_side_source": "manual"
+    },
+    {
+      "id": "maggots",
+      "name": "Maggots",
+      "s_start_m": 790.0,
+      "apex_s_m": 828.0,
+      "s_end_m": 833.0,
+      "apex_side": "left",
+      "apex_side_source": "manual",
+      "target_throttle_pct": 100
+    },
+    {
+      "id": "becketts",
+      "name": "Becketts",
+      "s_start_m": 884.0,
+      "apex_s_m": 1046.0,
+      "s_end_m": 1086.0,
+      "apex_side": "right",
+      "apex_side_source": "manual"
+    },
+    {
+      "id": "brooklands",
+      "name": "Brooklands",
+      "s_start_m": 1746.0,
+      "apex_s_m": 1925.0,
+      "s_end_m": 1957.0,
+      "apex_side": "left",
+      "apex_side_source": "manual"
+    },
+    {
+      "id": "luffield",
+      "name": "Luffield",
+      "s_start_m": 2003.0,
+      "apex_s_m": 2092.0,
+      "s_end_m": 2103.0,
+      "apex_side": "right",
+      "apex_side_source": "manual"
+    },
+    {
+      "id": "woodcote",
+      "name": "Woodcote",
+      "s_start_m": 2360.0,
+      "apex_s_m": 2469.0,
+      "s_end_m": 2580.0,
+      "apex_side": "right",
+      "apex_side_source": "manual",
+      "target_throttle_pct": 100
+    }
+  ],
+  "straight_zones": []
+}
