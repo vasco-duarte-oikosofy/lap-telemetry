@@ -1,0 +1,20 @@
+recordings carrying all seven new columns: 61
+  of those, grip_fraction_rl is a constant 0.0 in 61
+  verdict: mGripFract is a dead channel in LMU, not a sliding metric
+
+session_20261115T124448Z_circuit-de-barcelona_lmu_race.parquet
+  straight (|steer|<0.05, |yaw|<0.05, >80 kph): n=22414 median |slip| 0.03 deg
+  rotating (|yaw|>0.15 rad/s): n=58199 sign(slip)==sign(yaw) 99.9%
+  ay<0.3 g  : n=25034 median |slip| 0.03 deg
+  0.8-1.3 g : n=14839 median |slip| 0.66 deg
+  ay>1.3 g  : n=40525 median |slip| 1.46 deg
+  channels refused: ['grip_fraction_rl', 'grip_fraction_rr']
+
+session_20261114T190410Z_silverstone-national-circuit_lmu_race.parquet
+  straight (|steer|<0.05, |yaw|<0.05, >80 kph): n=23385 median |slip| 0.04 deg
+  rotating (|yaw|>0.15 rad/s): n=47362 sign(slip)==sign(yaw) 99.9%
+  ay<0.3 g  : n=24566 median |slip| 0.03 deg
+  0.8-1.3 g : n=16408 median |slip| 0.59 deg
+  ay>1.3 g  : n=30500 median |slip| 1.48 deg
+  channels refused: ['grip_fraction_rl', 'grip_fraction_rr']
+

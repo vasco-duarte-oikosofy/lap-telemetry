@@ -17,6 +17,7 @@ from .coach.facts import CornerLoss, PartialLapError, corner_loss_to_dict
 from .coach.lap_comparator import compare_lap_tables
 from .coach.lap_table import slice_segment
 from .lap_signals import yardstick_seconds
+from .rear_slip import attach_corners, column_reasons
 from .session_corner_extras import (
     CornerChannels,
     CornerExtras,
@@ -214,6 +215,7 @@ def _analyse_lap(
         corner_channels(lap_table, unmeasurable=unmeasurable),
         inputs.track_model.corners, windows, reference=reference_channels,
     )
+    attach_corners(lap_table, extras, inputs.track_model.corners, windows)
     return LapFacts(
         segment_index=record.segment_index,
         lap_number=record.lap_number,
@@ -234,6 +236,9 @@ def build_session_facts(
     eligible = [r for r in records if r.status == LapStatus.ELIGIBLE]
 
     unmeasurable = unmeasurable_channels(session.table)
+    # The dead grip channel and the ground-velocity channels are judged by the
+    # module that owns the rear slip angle, so one place decides what is usable.
+    unmeasurable.update(column_reasons(session.table))
     reference_channels = corner_channels(
         inputs.reference_table, unmeasurable=unmeasurable)
 
@@ -262,11 +267,15 @@ def build_session_facts(
         else:
             unanalysable.append(result)
 
+    reference_windows_by_corner = reference_windows(
+        inputs.track_model.corners, [lap.phases for lap in laps])
     reference_corners = extract_all_corners(
         reference_channels,
         inputs.track_model.corners,
-        reference_windows(inputs.track_model.corners, [lap.phases for lap in laps]),
+        reference_windows_by_corner,
     )
+    attach_corners(inputs.reference_table, reference_corners,
+                   inputs.track_model.corners, reference_windows_by_corner)
 
     clean_records = [r for r in eligible if r.clean]
     envelope_s, _uncovered, _used = speed_envelope_optimal(

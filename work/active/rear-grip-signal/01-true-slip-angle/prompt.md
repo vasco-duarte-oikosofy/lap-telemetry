@@ -1,5 +1,26 @@
 # Slice 01 — True slip angle (or a verified refusal)
 
+## Status: ✅ closed — the number exists, and the dead channel stays refused
+
+Phase C shipped. The calibration gates were answered from the recordings that
+were already on disk, so no new driving stint was needed after all:
+
+| gate | result |
+|---|---|
+| straight, constant speed | median rear \|slip\| **0.03–0.04°** where a real sideslip is ~0 |
+| lateral-acceleration response | **0.03°** below 0.3 g → **0.66°** at 0.8–1.3 g → **1.46–1.48°** above 1.3 g |
+| yaw cross-check | sign(slip) == sign(`yaw_rate_radps`) on **99.9%** of rotating samples |
+| single-lap outlier | Repsol on the 2026-11-15 18:44 race: **6.51°** apex slip against 1.73–2.04° on every other lap, with the brake still applied at the apex |
+| `mGripFract` | **dead in LMU**: constant `0.0` in all **61** recordings that carry the column |
+
+So the slip angle is derived from the rear wheels' ground velocities (already
+recorded since phase B4 — no schema change was needed), `mGripFract` is refused
+as a dead channel, and `CornerExtras` carries `rear_slip_apex_deg`,
+`rear_slip_braking_deg`, `rear_slip_peak_deg` and `rear_slip_coverage` for the
+drill-down. Evidence: `artifacts/channel-validation.txt`,
+`artifacts/repsol-slide.txt`, pinned by
+`dev/scripts/test_rear_slip_facts.py`.
+
 ## Trigger
 
 Barcelona race debrief, Ginetta LMP3
@@ -98,17 +119,21 @@ Concretely, all three must be true at the end of the slice:
 
 ## Acceptance
 
-- [ ] Repsol / lap 15 of `20261113T184458Z` debrief output either states a rear
+- [x] Repsol / lap 15 of `20261113T184458Z` debrief output either states a rear
       slip number for the corner or states, in the driver-facing report, the
       verified reason it cannot.
-- [ ] The driver's account ("rear steps with the brake held through the apex") is
+      — the 2026-11-13 session predates the columns and still refuses; the
+      2026-11-15 18:44 Barcelona race, recorded after phase B4, produces
+      **6.51°** at Repsol (`artifacts/repsol-slide.txt`).
+- [x] The driver's account ("rear steps with the brake held through the apex") is
       answered with a number or an explicit "not measurable", in
       `handoff.md`.
-- [ ] No fabricated value: for old sessions without the needed columns, the
+      — answered with a number: 6.51° apex slip, 4.87° with the brake applied.
+- [x] No fabricated value: for old sessions without the needed columns, the
       report still says unmeasurable.
-- [ ] `bash scripts/test-summary.sh --feature rear-grip-signal` exits 0;
+- [x] `bash scripts/test-summary.sh --feature rear-grip-signal` exits 0;
       `npm run build` still succeeds (no `dist/` change expected).
-- [ ] `learnings.md` + `handoff.md` written; `PLAN.md` row updated.
+- [x] `learnings.md` + `handoff.md` written; `PLAN.md` row updated.
 
 ## Non-goals
 

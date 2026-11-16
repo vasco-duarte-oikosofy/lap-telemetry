@@ -28,13 +28,12 @@ assertions, including the `test_runner_self_test.js` +
 
 | Slice | Status | Vertical outcome |
 |---|---|---|
-| `01-true-slip-angle` | 🔧 In progress `8a1011d` — phases A + B4 shipped, B5–6 + C blocked on one calibration recording | The recorded slip channel is proved to be `atan2` of two car-frame patch velocities (follows steering r=+0.52, idles at ±180° on a straight, no yaw information), so `_SLIP_REASON` now states that measured mechanism; the recorder ships 7 nullable columns (`grip_fraction_rl/rr`, rear `wheel_ground_vel_{lat,lon}`, `yaw_rate_radps`) that a real slip angle and a sliding/not-sliding answer need. Next: a Barcelona stint with a deliberate Repsol slide, then the gates in `plan.md` B6, then phase C (the `CornerExtras` rear-grip fact) |
+| `01-true-slip-angle` | ✅ Closed — phases A, B, C shipped | The recorded slip channel is proved to be `atan2` of two car-frame patch velocities (follows steering r=+0.52, idles at ±180° on a straight, no yaw information). The calibration gates were answered from recordings already on disk: rear slip from the wheels' ground velocities is **0.03° on a straight**, rises with lateral acceleration (0.03 → 0.66 → 1.46°), matches the yaw-rate sign on **99.9%** of rotating samples, and flags one real single-lap slide (Repsol **6.51°** against a 1.73° baseline, brake still on). `mGripFract` is **dead in LMU** — constant 0.0 in all 61 recordings that carry it — so it is refused, never read as "no slip". `CornerExtras` carries the rear-slip fact and the corner drill-down cites it |
+| [`02-rear-slip-aware-debrief`](02-rear-slip-aware-debrief/prompt.md) | 📋 Planned — implementation blocked on slice 01's validated facts or verified refusal | Make deterministic advice, model grounding, no-LLM answers, report and plan rear-slip aware without changing loss ranking; distinguish measured instability from unknown, qualify braking advice and preserve lap-level evidence. Planning audit finds the latest Silverstone P3 recording has all seven new channels, but both grip fractions are constant zero; see `artifacts/input-audit.md` in the slice folder. |
 
-**Where it is developed:** on the recording machine. The planning spike (`plan.md`
-phase A) can run anywhere, but the outcome is a recorder slice — the shippable
-number needs `mGripFract` / ground-velocity columns that only a new recording can
-carry, so the validation gates need a session recorded there. Do not start the
-product-side work from a workstation that cannot record.
+**Where it is developed:** the recorder columns shipped in phase B4, so the
+remaining work happened on this workstation against sessions already on disk.
+A new driving stint is only needed to re-validate a future channel change.
 
 ---
 

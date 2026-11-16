@@ -30,6 +30,12 @@ _CHANNEL_TEXT = {
     "tc_active": "traction control activity",
     "slip_angle_rl_deg": "rear slip angle (left)",
     "slip_angle_rr_deg": "rear slip angle (right)",
+    "grip_fraction_rl": "rear grip fraction (left)",
+    "grip_fraction_rr": "rear grip fraction (right)",
+    "wheel_ground_vel_lat_rl": "rear-left ground velocity (lateral)",
+    "wheel_ground_vel_lon_rl": "rear-left ground velocity (longitudinal)",
+    "wheel_ground_vel_lat_rr": "rear-right ground velocity (lateral)",
+    "wheel_ground_vel_lon_rr": "rear-right ground velocity (longitudinal)",
 }
 
 _PHASE_TEXT = {

@@ -97,3 +97,87 @@ the honest answer.
 
 `mGripFract` may be dead (some builds report 0.0 always); that is gate one, and
 the slice degrades to slip angle only if so.
+
+---
+
+# Closure learnings (phase B5–6 + C)
+
+## `mGripFract` is dead in LMU — across every recording, not just one build
+
+The plan listed "does LMU publish `mGripFract`?" as an open question with a
+straight-line test as the answer. The answer is in the recordings that were
+already on disk: **61 of 61 sessions that carry the column record a constant
+`0.0`**. It is not a calibration problem and there is nothing to fix in the
+reader — the field exists in the shared-memory struct, it is just never
+populated. Recorded, refused, done.
+
+The lesson generalises: **the plan's "record a stint to answer question X"
+is often already answerable from the sessions on disk.** Look at the newest
+recordings before scheduling driving time. Here the "blocked on the user"
+status cost a full slice of delay for a question the data answered in minutes.
+
+## A rear slip angle is `atan2` of the ground velocities, and the gates prove it
+
+The plan's fallback ("if `mGripFract` is dead, rest the slice on the slip angle
+alone") is the one that worked, with no schema change: the phase-B4 columns
+already carried everything needed. Four independent checks, all green:
+
+- **straight ≈ 0**: median 0.03–0.04° where the legacy channel idled at ±139°.
+  This is the check that kills a wrong frame hypothesis.
+- **grows with lateral acceleration**, not with steering input: 0.03° / 0.66° /
+  1.46° for < 0.3 g / 0.8–1.3 g / > 1.3 g.
+- **sign matches the yaw rate** on 99.9% of rotating samples — an independent
+  channel agreeing, which the legacy channel could not do (r ≈ 0).
+- **a single-lap outlier exists and is the one the driver reported**: 6.51°
+  against a 1.7–2.0° envelope, with the brake applied at the apex.
+
+A rear wheel's heading is the car's heading, so `atan2(lat, |lon|)` needs no
+`mToe` term: measured straight-line residual is 0.03°, an order of magnitude
+below the toe it would correct. **YAGNI: do not add the column.**
+
+## The `braking` window must be a percentile, not a median
+
+First implementation measured `braking_deg` as the *median* slip from entry to
+apex while `brake_norm > 0.05`. On the lap that actually slid that returned
+2.75° — below the instability threshold — because 70 m of ordinary brake zone
+dilutes ten metres of slide. The fact was true and the answer was wrong.
+
+Fixed by taking the **95th percentile over the whole corner zone while the brake
+is on** (4.87° on that lap). Rule: a window that contains "before anything
+happened" and "when it happened" must be summarised by its tail, not its middle.
+
+## Thresholds have to be relative to the car's own envelope
+
+An absolute "3° is sliding" would fire on a car with more rear slip everywhere
+and stay silent on this one at 2.6°. The rule that survived contact with the
+data is:
+
+    instability if apex_slip >= max(3.0, 1.5 * median clean-lap apex slip)
+
+with the session's own clean-lap median as the baseline. That flags the 6.51°
+lap in a 1.73° session and stays quiet on the 2.05° laps of a 1.76° session.
+
+## `state` names matter more than numbers here
+
+The three states are deliberately not "sliding / gripping / unknown":
+
+- `measured_instability` — a lap above the envelope, cited with segment and lap;
+- `no_detected_instability` — valid samples, nothing above the envelope, **and
+  the text says it is not a claim that the car is universally stable**;
+- `unknown` — and the reason is one of: channel absent, dead ground velocity,
+  no sample passing validity, or (importantly) *coverage*: two valid laps out of
+  six is unknown, not "no slip". A corner with no clean-lap measurement is
+  unknown even if a non-clean lap was measured — with the non-clean observation
+  still reported separately.
+
+## Small mechanics
+
+- `session_corner_extras.py` is already past the 437-line ceiling, so the new
+  measurement lives in `rear_slip.py` and the oversized file only gained four
+  dataclass fields. Do not add logic to it.
+- `pyarrow` per-sample Python loops over 148k rows cost ~2 s per session; one
+  test that builds full facts on the biggest race fixture is acceptable, but
+  keep the physics test to column reads.
+- The drill-down block budget is 1500 bytes and Silverstone's corners sit at
+  1481–1510 — the rear-stability line must be appended *before* the per-lap
+  table or it will be the first thing `_clip` throws away.

@@ -154,12 +154,15 @@ Core columns:
   input and idle at ±180° on a straight. The debrief refuses them with that
   measured reason instead of reporting a number.
 - `grip_fraction_rl`, `grip_fraction_rr`, `wheel_ground_vel_{lat,lon}_{rl,rr}`,
-  `yaw_rate_radps` (nullable) — the physics a real rear slip angle and a
-  sliding/not-sliding answer need: `mGripFract` is the fraction of the contact
-  patch that is sliding, ground velocity gives the rear slip angle, yaw rate is
-  the independent cross-check. Only recordings made after this column set
-  existed carry them; older sessions record null and the debrief says
-  unmeasurable rather than inventing a value.
+  `yaw_rate_radps` (nullable) — the physics a real rear slip angle needs. The
+  ground velocities give it (`atan2(lat, |lon|)`: a rear wheel's heading is the
+  car's heading), and yaw rate is the independent cross-check. **`mGripFract`
+  turned out to be dead in LMU**: every sample of every session on disk records
+  `0.0`, so the debrief refuses `grip_fraction_*` as unmeasurable instead of
+  reading it as "no slip". Only recordings made after this column set existed
+  carry them; older sessions record null and the debrief says unmeasurable
+  rather than inventing a value. `rear_slip` is the only module that turns
+  these columns into a number.
 - `abs_active`, `tc_active` (LMU only; nullable)
 
 ### Sidecar: `.json`

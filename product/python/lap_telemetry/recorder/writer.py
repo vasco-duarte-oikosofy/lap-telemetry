@@ -63,9 +63,10 @@ _SCHEMA = pa.schema([
     # Rear grip signal (slice 01, mission rear-grip-signal). Nullable so every
     # existing session and reference lap keeps loading unchanged, and so a sim
     # that does not publish a field writes null instead of a fabricated 0.0.
-    # mGripFract is "fraction of the contact patch that is sliding"; the ground
-    # velocities give the rear slip angle (a rear wheel's heading is the car's
-    # heading); yaw rate is the independent cross-check for both.
+    # The ground velocities give the rear slip angle (a rear wheel's heading is
+    # the car's heading) and yaw rate is the independent cross-check.
+    # mGripFract is recorded for completeness only: LMU publishes a constant
+    # 0.0 in every sample, so no product surface may read it as "no slip".
     pa.field("grip_fraction_rl", pa.float32(), nullable=True),
     pa.field("grip_fraction_rr", pa.float32(), nullable=True),
     pa.field("wheel_ground_vel_lat_rl", pa.float32(), nullable=True),

@@ -10,6 +10,7 @@ the facts.
 """
 from __future__ import annotations
 
+from .rear_stability import assess_corner, describe as describe_stability
 from .session_corner_extras import aggregate_corners, median_of
 from .session_facts import SessionDebriefFacts
 from .session_report import corner_label, format_lap_time
@@ -148,6 +149,11 @@ def corner_block(facts: SessionDebriefFacts, corner_id: str) -> str:
                      f"{f'{mine.trail_brake_depth_m:.0f}' if mine.trail_brake_depth_m is not None else 'n/a'} m, "
                      f"line "
                      f"{f'{mine.lateral_at_apex_m:.1f}' if mine.lateral_at_apex_m is not None else 'n/a'} m")
+
+    stability = assess_corner(
+        facts.laps, corner_id,
+        unmeasurable=getattr(facts.session, "unmeasurable_channels", {}) or {})
+    lines.append(f"rear stability: {describe_stability(stability)}")
 
     speeds: list[float] = []
     losses: list[float] = []

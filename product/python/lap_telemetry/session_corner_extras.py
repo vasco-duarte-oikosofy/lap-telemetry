@@ -69,6 +69,12 @@ class CornerExtras:
     steering_rate_std: float | None = None
     rear_slip_max_deg: float | None = None
     rear_slip_exit_deg: float | None = None
+    # Rear slip angle from the wheels' ground velocities (``rear_slip`` module).
+    # None when the recording does not carry those channels: never 0.0.
+    rear_slip_apex_deg: float | None = None
+    rear_slip_braking_deg: float | None = None
+    rear_slip_peak_deg: float | None = None
+    rear_slip_coverage: float | None = None
     tc_duty: float | None = None
     abs_duty: float | None = None
     lateral_at_apex_m: float | None = None
@@ -87,6 +93,8 @@ class CornerExtras:
                 data[name] = int(value)
         for name in ("brake_peak", "brake_area", "trail_brake_depth_m",
                      "steering_rate_std", "rear_slip_max_deg", "rear_slip_exit_deg",
+                     "rear_slip_apex_deg", "rear_slip_braking_deg",
+                     "rear_slip_peak_deg", "rear_slip_coverage",
                      "tc_duty", "abs_duty", "lateral_at_apex_m", "lateral_offset_m"):
             value = getattr(self, name)
             if value is not None:
