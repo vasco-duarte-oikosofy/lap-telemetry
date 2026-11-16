@@ -76,3 +76,34 @@ feature suite can see — worth remembering when a milestone "passes".
 - Synthetic slip injection on a real facts object (`_inject_slip` in the tests)
   is the cheapest way to test the measured path: the physics stays real, only the
   numbers are made up.
+
+## A second flagged lap breaks assumptions two at a time
+
+The first real debrief on a session with **two** measured slides (Silverstone
+2026-11-16: Becketts 13.37° on a clean lap, Luffield 14.59° on an excluded one)
+broke two things that a single-slide session could not:
+
+1. **`flagged[0]` vs the cited value.** The prose took the first flagged lap
+   while `value_deg` took the highest, so on a two-slide session the sentence
+   could name one lap and quote another's number. Fix: one `worst` accessor used
+   by both.
+2. **The clean/non-clean label lived only in `describe()`.** The report sentence
+   said "a lap excluded as not clean"; the suggestion, the grounding block and
+   the plan did not. The model papered over it by reading the LAPS table itself —
+   which is exactly the kind of thing that works in a demo and fails silently
+   later.
+
+Lesson: when one object feeds five surfaces, the *derived* strings have to be
+built once and passed around, not re-derived per surface. Every place that
+hand-formatted "segment N (lap M)" was a place that could drift.
+
+Testing note: the cheap fixture for this is one fake lap with `clean=False`
+carrying the highest value — plus the mirror assertion that a *clean* slide is
+not hedged ("not clean" absent), because the failure mode of a caveat fix is
+adding noise everywhere.
+
+## Watch the grounding budget on long sessions
+
+33 clean laps + two slide lines put the grounding at 4059/4096 bytes. Order
+saved us (the constraint block is before the lap table), but the margin is gone.
+Do not add another section to the grounding without moving something out of it.

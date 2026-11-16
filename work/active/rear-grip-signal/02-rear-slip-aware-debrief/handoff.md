@@ -97,3 +97,37 @@ entry; no behaviour change. Flagged here because it is not slice scope.
 - `grip_fraction_*` stays recorded and refused. If LMU ever populates
   `mGripFract`, `column_reasons` stops refusing it automatically — but nothing
   reads it until a validation gate proves it, and no such gate exists yet.
+
+---
+
+## Follow-up fix after the first real debrief (`fdcbbe8`)
+
+Running the coach on the 2026-11-16 Silverstone/P3 race (35 eligible laps, 33
+clean, best 0:50.392) exposed a gap the tests had not covered: that session has
+**two** measured slides, and one of them (Luffield, **14.59°**, segment 32) is on
+a lap the session inventory had already excluded as not clean. Only the report
+labelled it; the suggestion, the grounding block and the plan target did not —
+so the model got it right only by cross-referencing the LAPS table by itself.
+
+Now one phrase builder (`rear_stability.lap_phrase`) and one accessor
+(`RearStability.worst`) feed all five surfaces, and the prose cites the same lap
+whose number it quotes (it used to cite `flagged[0]` while quoting the highest
+value — they can differ when two laps are flagged). Tests: non-clean cases in the
+priorities, brief and conversation suites, plus the mirror assertion that a
+clean-lap slide is *not* hedged.
+
+Re-run on the same session after the fix — every surface now says it:
+
+- grounding: `Luffield on segment 32 (lap 32), a lap excluded as not clean: measured instability: 14.59 deg …`
+- suggestion: `the rear was measured sliding under braking on segment 32 (lap 32), a lap excluded as not clean: …`
+- plan caveat: `the rear was measured sliding here on segment 32 (lap 32), a lap excluded as not clean, with the brake applied: …`
+- report: unchanged (it already said it)
+- LLM answer: *"So no — don't hold the brake longer. The rear was measured stepping at the apex with the brake still on: 14.59 degrees against a 1.68 clean baseline, on the lap that was excluded …"*
+
+Second observation from that session, **not** fixed: the grounding reached
+**4059 of 4096 bytes** with 33 laps and two slides. The constraint block sits
+before the lap table so the caveat survives truncation, but the tail (excluded
+segments, not-measurable channels) is where it will start to bite. Next time the
+budget is touched, move the rear-stability block *and* the not-measurable block
+ahead of the lap table, or raise `GROUNDING_BUDGET_BYTES` with a measured
+justification.
