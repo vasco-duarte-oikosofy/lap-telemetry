@@ -19,6 +19,10 @@ function pass(message) {
 }
 
 const allowedRootDirs = new Set([
+  // Agent skill definitions are tracked (`.agents/skills/<name>`), added by the
+  // `/update_coach` skill: they are documentation of a workflow, not a code
+  // layer, and they have to live where the agent harness looks for them.
+  '.agents',
   'dev',
   'docs',
   'product',
