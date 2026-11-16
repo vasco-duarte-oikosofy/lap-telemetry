@@ -1,0 +1,342 @@
+{
+  "session": "var\\tmp\\barcelona-p3-race-refresh\\session_20261115T124448Z_circuit-de-barcelona_lmu_race.parquet",
+  "laps": [
+    {
+      "lap": 1,
+      "time_s": 98.18811,
+      "start": 12249,
+      "end": 17141,
+      "rows": 4892,
+      "valid": true,
+      "wall_clock_s": 98.20000000000002
+    },
+    {
+      "lap": 2,
+      "time_s": 98.283234,
+      "start": 17141,
+      "end": 22041,
+      "rows": 4900,
+      "valid": true,
+      "wall_clock_s": 98.39999999999998
+    },
+    {
+      "lap": 3,
+      "time_s": 97.813354,
+      "start": 22041,
+      "end": 26913,
+      "rows": 4872,
+      "valid": true,
+      "wall_clock_s": 97.80000000000001
+    },
+    {
+      "lap": 4,
+      "time_s": 97.83374,
+      "start": 26913,
+      "end": 31786,
+      "rows": 4873,
+      "valid": true,
+      "wall_clock_s": 97.79999999999995
+    },
+    {
+      "lap": 5,
+      "time_s": 98.727173,
+      "start": 31786,
+      "end": 36704,
+      "rows": 4918,
+      "valid": true,
+      "wall_clock_s": 98.60000000000002
+    },
+    {
+      "lap": 6,
+      "time_s": 97.902771,
+      "start": 36704,
+      "end": 41583,
+      "rows": 4879,
+      "valid": true,
+      "wall_clock_s": 97.79999999999995
+    },
+    {
+      "lap": 7,
+      "time_s": 97.625488,
+      "start": 41583,
+      "end": 46447,
+      "rows": 4864,
+      "valid": true,
+      "wall_clock_s": 97.60000000000002
+    },
+    {
+      "lap": 8,
+      "time_s": 96.617249,
+      "start": 46447,
+      "end": 51257,
+      "rows": 4810,
+      "valid": true,
+      "wall_clock_s": 96.60000000000002
+    },
+    {
+      "lap": 9,
+      "time_s": 96.804321,
+      "start": 51257,
+      "end": 56080,
+      "rows": 4823,
+      "valid": true,
+      "wall_clock_s": 96.79999999999995
+    },
+    {
+      "lap": 10,
+      "time_s": 96.636597,
+      "start": 56080,
+      "end": 60891,
+      "rows": 4811,
+      "valid": true,
+      "wall_clock_s": 96.60000000000014
+    },
+    {
+      "lap": 11,
+      "time_s": 98.134521,
+      "start": 60891,
+      "end": 65775,
+      "rows": 4884,
+      "valid": true,
+      "wall_clock_s": 98.19999999999982
+    },
+    {
+      "lap": 12,
+      "time_s": 97.57959,
+      "start": 65775,
+      "end": 70633,
+      "rows": 4858,
+      "valid": true,
+      "wall_clock_s": 97.60000000000014
+    },
+    {
+      "lap": 13,
+      "time_s": 97.751465,
+      "start": 70633,
+      "end": 75493,
+      "rows": 4860,
+      "valid": true,
+      "wall_clock_s": 97.79999999999995
+    },
+    {
+      "lap": 14,
+      "time_s": 97.473022,
+      "start": 75493,
+      "end": 80344,
+      "rows": 4851,
+      "valid": true,
+      "wall_clock_s": 97.40000000000009
+    },
+    {
+      "lap": 15,
+      "time_s": 96.605103,
+      "start": 80344,
+      "end": 85147,
+      "rows": 4803,
+      "valid": true,
+      "wall_clock_s": 96.59999999999991
+    },
+    {
+      "lap": 16,
+      "time_s": 96.319214,
+      "start": 85147,
+      "end": 89938,
+      "rows": 4791,
+      "valid": true,
+      "wall_clock_s": 96.40000000000009
+    },
+    {
+      "lap": 17,
+      "time_s": 96.835938,
+      "start": 89938,
+      "end": 94753,
+      "rows": 4815,
+      "valid": true,
+      "wall_clock_s": 96.79999999999995
+    },
+    {
+      "lap": 18,
+      "time_s": 96.689819,
+      "start": 94753,
+      "end": 99559,
+      "rows": 4806,
+      "valid": true,
+      "wall_clock_s": 96.59999999999991
+    },
+    {
+      "lap": 19,
+      "time_s": 108.18103,
+      "start": 99559,
+      "end": 104935,
+      "rows": 5376,
+      "valid": true,
+      "wall_clock_s": 108.19999999999982
+    }
+  ],
+  "fastest_lap": 16,
+  "fastest_time_s": 96.3192138671875,
+  "fastest_rows": 4791,
+  "geometry": [
+    {
+      "id": "t1",
+      "name": "Turn 1 — Elf",
+      "old": [
+        820.0,
+        842.0,
+        869.0
+      ],
+      "new": [
+        661.0,
+        848,
+        875.0
+      ]
+    },
+    {
+      "id": "t2",
+      "name": "Turn 2",
+      "old": [
+        909.0,
+        940.0,
+        972.0
+      ],
+      "new": null
+    },
+    {
+      "id": "t3",
+      "name": "Turn 3 — Renault",
+      "old": [
+        1068.0,
+        1161.0,
+        1163.0
+      ],
+      "new": [
+        1081.0,
+        1163,
+        1167.0
+      ]
+    },
+    {
+      "id": "t4",
+      "name": "Turn 4 — Repsol",
+      "old": [
+        1708.0,
+        1731.0,
+        1775.0
+      ],
+      "new": [
+        1578.0,
+        1740,
+        1810.0
+      ]
+    },
+    {
+      "id": "t5",
+      "name": "Turn 5 — Seat",
+      "old": [
+        2093.0,
+        2143.0,
+        2166.0
+      ],
+      "new": [
+        1997.0,
+        2144,
+        2160.0
+      ]
+    },
+    {
+      "id": "t6",
+      "name": "Turn 7",
+      "old": [
+        2518.0,
+        2568.0,
+        2575.0
+      ],
+      "new": [
+        2429.0,
+        2556,
+        2584.0
+      ]
+    },
+    {
+      "id": "t7",
+      "name": "Turn 8",
+      "old": [
+        2832.0,
+        2850.0,
+        2850.0
+      ],
+      "new": null
+    },
+    {
+      "id": "t8",
+      "name": "Turn 9 — Campsa",
+      "old": [
+        2851.0,
+        2923.0,
+        2925.0
+      ],
+      "new": [
+        2816.0,
+        2925,
+        2929.0
+      ]
+    },
+    {
+      "id": "t9",
+      "name": "Turn 10 — La Caixa",
+      "old": [
+        3496.0,
+        3508.0,
+        3525.0
+      ],
+      "new": [
+        3339.0,
+        3510,
+        3541.0
+      ]
+    },
+    {
+      "id": "t10",
+      "name": "Turn 12",
+      "old": [
+        3782.0,
+        3785.0,
+        3846.0
+      ],
+      "new": [
+        3674.0,
+        3788,
+        3845.0
+      ]
+    },
+    {
+      "id": "t11",
+      "name": "Turn 13",
+      "old": [
+        3989.0,
+        4033.0,
+        4034.0
+      ],
+      "new": [
+        4021.0,
+        4084,
+        4087.0
+      ]
+    },
+    {
+      "id": "t12",
+      "name": "Turn 14",
+      "old": [
+        4337.0,
+        4343.0,
+        4343.0
+      ],
+      "new": [
+        4230.0,
+        4355,
+        4357.0
+      ]
+    }
+  ],
+  "detection_method": "throttle_brake_v1"
+}

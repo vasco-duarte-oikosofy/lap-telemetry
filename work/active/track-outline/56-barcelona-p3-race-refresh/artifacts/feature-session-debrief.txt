@@ -1,0 +1,5 @@
+Feature: session-debrief (26 scripts)
+
+Skipping 1 Playwright test(s) — use --pw to include them
+
+ALL PASS — 812 assertions across 25 test scripts in 79.4

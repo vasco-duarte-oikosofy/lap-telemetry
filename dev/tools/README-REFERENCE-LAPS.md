@@ -29,7 +29,7 @@ Each output file is named:
 
 Example:
 ```
-circuit-de-barcelona_dkr-engineering-4-elms25_time_01.36.456.parquet
+circuit-de-barcelona_dkr-engineering-4-elms25_time_01.36.040.parquet
 ```
 
 The vehicle slug is derived from the sidecar JSON's `vehicle_name` field so users know which car produced the reference lap.

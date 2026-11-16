@@ -1,0 +1,25 @@
+# Closure audit - slice 56 (re-run at closure; slice 57 had already superseded the race reference)
+
+## Working tree: no production asset changes from this slice
+$ git status --short product/ dist/ web/
+(empty output = nothing changed)
+
+## References on disk for this track
+$ ls product/data/reference-laps | grep circuit-de-barcelona
+circuit-de-barcelona_dkr-engineering-4-elms25_time_01.36.040.parquet
+circuit-de-barcelona_ferrari-af-corse-2026-50-lm_time_01.40.065.parquet
+
+## Model pointer
+path       : product/data/reference-laps/circuit-de-barcelona_dkr-engineering-4-elms25_time_01.36.040.parquet
+lap_time_s : 96.04
+car_id     : dkr-engineering-4-elms25
+corners    : 12 ['t1', 't2', 't3', 't4', 't5', 't6', 't7', 't8', 't9', 't10', 't11', 't12']
+names      : ['Turn 1 ? Elf', 'Turn 2', 'Turn 3 ? Renault', 'Turn 4 ? Repsol', 'Turn 5 ? Seat', 'Turn 7', 'Turn 8', 'Turn 9 ? Campsa', 'Turn 10 ? La Caixa', 'Turn 12', 'Turn 13', 'Turn 14']
+
+## Resolution by (track, car) - bug 27 catalog lookup
+DKR Engineering #4:ELMS25 -> circuit-de-barcelona_dkr-engineering-4-elms25_time_01.36.040.parquet
+Ferrari AF Corse 2026 #50 LM -> circuit-de-barcelona_ferrari-af-corse-2026-50-lm_time_01.40.065.parquet
+
+## Reference validator (whole folder)
+
+38 reference laps checked, 0 failures.

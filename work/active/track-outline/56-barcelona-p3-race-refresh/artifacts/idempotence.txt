@@ -1,0 +1,26 @@
+Fastest lap in session(s): lap 16 @ 96.319s (session_20261115T124448Z_circuit-de-barcelona_lmu_race.parquet, vehicle dkr-engineering-4-elms25)
+Not faster than existing reference 96.319s - reference stays; model will be checked against circuit-de-barcelona_dkr-engineering-4-elms25_time_01.36.319.parquet
+Corner check: model has 12, lap yields 10 (1 matched, 11 geometry preserved)
+  PRESERVED: Turn 1 — Elf (t1) keeps reviewed geometry; no event claimed
+  PRESERVED: Turn 2 (t2) keeps reviewed geometry; no event claimed
+  PRESERVED: Turn 4 — Repsol (t4) keeps reviewed geometry; no event claimed
+  PRESERVED: Turn 5 — Seat (t5) keeps reviewed geometry; no event claimed
+  PRESERVED: Turn 7 (t6) keeps reviewed geometry; no event claimed
+  PRESERVED: Turn 8 (t7) keeps reviewed geometry; no event claimed
+  PRESERVED: Turn 9 — Campsa (t8) keeps reviewed geometry; no event claimed
+  PRESERVED: Turn 10 — La Caixa (t9) keeps reviewed geometry; no event claimed
+  PRESERVED: Turn 12 (t10) keeps reviewed geometry; no event claimed
+  PRESERVED: Turn 13 (t11) keeps reviewed geometry; no event claimed
+  PRESERVED: Turn 14 (t12) keeps reviewed geometry; no event claimed
+  INFO: new corner at apex=848m not in the model - ignored
+  INFO: new corner at apex=1740m not in the model - ignored
+  INFO: new corner at apex=2144m not in the model - ignored
+  INFO: new corner at apex=2556m not in the model - ignored
+  INFO: new corner at apex=2925m not in the model - ignored
+  INFO: new corner at apex=3510m not in the model - ignored
+  INFO: new corner at apex=3788m not in the model - ignored
+  INFO: new corner at apex=4084m not in the model - ignored
+  INFO: new corner at apex=4355m not in the model - ignored
+Geometry guard: all matched corners within 40 m - OK
+
+Coaching model already up to date (circuit-de-barcelona_dkr-engineering-4-elms25.json) - nothing written.

@@ -1,0 +1,10 @@
+Re-running: dev/scripts/test_barcelona_p3_reference.js
+FAIL — dev/scripts/test_barcelona_p3_reference.js (8 failures)
+[FAIL] new race reference is 1:36.319
+[FAIL] model points to the new reference with a portable path
+[FAIL] model authoritative time updated
+[FAIL] export metadata stores authoritative 96.319 seconds
+[FAIL] exact selected segment contains 4791 rows
+[FAIL] race lap 16 selected
+[FAIL] t3: reviewed geometry retained/refreshed
+[FAIL] Barcelona/P3 reference and curation contracts

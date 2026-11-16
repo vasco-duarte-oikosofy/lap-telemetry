@@ -1,0 +1,50 @@
+Track: circuit-de-barcelona  Vehicle: dkr-engineering-4-elms25  (1 sessions)
+  Fastest: lap 16 in session_20261115T124448Z_circuit-de-barcelona_lmu_race.parquet -> 96.319s
+  Exported 4791 rows -> product\data\reference-laps\circuit-de-barcelona_dkr-engineering-4-elms25_time_01.36.319.parquet
+  Removed superseded reference (96.456s): circuit-de-barcelona_dkr-engineering-4-elms25_time_01.36.456.parquet
+
+AUDIT: 1 reference lap changed (added: ['circuit-de-barcelona_dkr-engineering-4-elms25_time_01.36.319.parquet'], superseded: ['circuit-de-barcelona_dkr-engineering-4-elms25_time_01.36.456.parquet']). OK.
+Fastest lap in session(s): lap 16 @ 96.319s (session_20261115T124448Z_circuit-de-barcelona_lmu_race.parquet, vehicle dkr-engineering-4-elms25)
+Faster than existing reference - will export after corner check
+Corner check: model has 12, lap yields 10 (1 matched, 11 geometry preserved)
+  PRESERVED: Turn 1 — Elf (t1) keeps reviewed geometry; no event claimed
+  PRESERVED: Turn 2 (t2) keeps reviewed geometry; no event claimed
+  PRESERVED: Turn 4 — Repsol (t4) keeps reviewed geometry; no event claimed
+  PRESERVED: Turn 5 — Seat (t5) keeps reviewed geometry; no event claimed
+  PRESERVED: Turn 7 (t6) keeps reviewed geometry; no event claimed
+  PRESERVED: Turn 8 (t7) keeps reviewed geometry; no event claimed
+  PRESERVED: Turn 9 — Campsa (t8) keeps reviewed geometry; no event claimed
+  PRESERVED: Turn 10 — La Caixa (t9) keeps reviewed geometry; no event claimed
+  PRESERVED: Turn 12 (t10) keeps reviewed geometry; no event claimed
+  PRESERVED: Turn 13 (t11) keeps reviewed geometry; no event claimed
+  PRESERVED: Turn 14 (t12) keeps reviewed geometry; no event claimed
+  INFO: new corner at apex=848m not in the model - ignored
+  INFO: new corner at apex=1740m not in the model - ignored
+  INFO: new corner at apex=2144m not in the model - ignored
+  INFO: new corner at apex=2556m not in the model - ignored
+  INFO: new corner at apex=2925m not in the model - ignored
+  INFO: new corner at apex=3510m not in the model - ignored
+  INFO: new corner at apex=3788m not in the model - ignored
+  INFO: new corner at apex=4084m not in the model - ignored
+  INFO: new corner at apex=4355m not in the model - ignored
+Geometry guard: all matched corners within 40 m - OK
+
+Exporting reference via export_fastest_reference_laps.py ...
+
+Updated coaching model -> C:\Users\duart\lap-telemetry\product\data\track-coaching\circuit-de-barcelona_dkr-engineering-4-elms25.json
+Updated diagnostics -> C:\Users\duart\lap-telemetry\product\data\track-coaching\circuit-de-barcelona_dkr-engineering-4-elms25.diagnostics.txt
+
+Corner geometry changes:
+  Turn                         Entry     Apex     Exit  (was Entry/Apex/Exit)
+  Turn 1 — Elf                 820.0    842.0    869.0  (was 820.0 / 842.0 / 869.0)
+  Turn 2                       909.0    940.0    972.0  (was 909.0 / 940.0 / 972.0)
+  Turn 3 — Renault            1081.0   1163.0   1167.0  (was 1068.0 / 1161.0 / 1163.0)
+  Turn 4 — Repsol             1708.0   1731.0   1775.0  (was 1708.0 / 1731.0 / 1775.0)
+  Turn 5 — Seat               2093.0   2143.0   2166.0  (was 2093.0 / 2143.0 / 2166.0)
+  Turn 7                      2518.0   2568.0   2575.0  (was 2518.0 / 2568.0 / 2575.0)
+  Turn 8                      2832.0   2850.0   2850.0  (was 2832.0 / 2850.0 / 2850.0)
+  Turn 9 — Campsa             2851.0   2923.0   2925.0  (was 2851.0 / 2923.0 / 2925.0)
+  Turn 10 — La Caixa          3496.0   3508.0   3525.0  (was 3496.0 / 3508.0 / 3525.0)
+  Turn 12                     3782.0   3785.0   3846.0  (was 3782.0 / 3785.0 / 3846.0)
+  Turn 13                     3989.0   4033.0   4034.0  (was 3989.0 / 4033.0 / 4034.0)
+  Turn 14                     4337.0   4343.0   4343.0  (was 4337.0 / 4343.0 / 4343.0)

@@ -1,0 +1,360 @@
+[
+  {
+    "id": "t1",
+    "name": "Turn 1 — Elf",
+    "windows": [
+      {
+        "window": "curated",
+        "geometry": [
+          820.0,
+          842.0,
+          869.0
+        ],
+        "rows": 70,
+        "min_speed": 110.1417007446289,
+        "min_throttle": 0.0,
+        "max_brake": 0.28840434551239014,
+        "mean_apex_steering": 0.3014604770220243
+      },
+      {
+        "window": "detected",
+        "geometry": [
+          661.0,
+          848,
+          875.0
+        ],
+        "rows": 226,
+        "min_speed": 110.1417007446289,
+        "min_throttle": 0.0,
+        "max_brake": 0.9324601888656616,
+        "mean_apex_steering": 0.2989116589228312
+      }
+    ]
+  },
+  {
+    "id": "t2",
+    "name": "Turn 2",
+    "windows": [
+      {
+        "window": "curated",
+        "geometry": [
+          909.0,
+          940.0,
+          972.0
+        ],
+        "rows": 75,
+        "min_speed": 138.31338500976562,
+        "min_throttle": 0.4547045826911926,
+        "max_brake": 0.0,
+        "mean_apex_steering": -0.18466872893846953
+      }
+    ]
+  },
+  {
+    "id": "t3",
+    "name": "Turn 3 — Renault",
+    "windows": [
+      {
+        "window": "curated",
+        "geometry": [
+          1068.0,
+          1161.0,
+          1163.0
+        ],
+        "rows": 95,
+        "min_speed": 170.52572631835938,
+        "min_throttle": 0.23320364952087402,
+        "max_brake": 0.0,
+        "mean_apex_steering": 0.2576519482665592
+      },
+      {
+        "window": "detected",
+        "geometry": [
+          1081.0,
+          1163,
+          1167.0
+        ],
+        "rows": 85,
+        "min_speed": 170.52572631835938,
+        "min_throttle": 0.23320364952087402,
+        "max_brake": 0.0,
+        "mean_apex_steering": 0.25737920105457307
+      }
+    ]
+  },
+  {
+    "id": "t4",
+    "name": "Turn 4 — Repsol",
+    "windows": [
+      {
+        "window": "curated",
+        "geometry": [
+          1708.0,
+          1731.0,
+          1775.0
+        ],
+        "rows": 98,
+        "min_speed": 114.48763275146484,
+        "min_throttle": 0.00927746295928955,
+        "max_brake": 0.11775738000869751,
+        "mean_apex_steering": 0.28354544242223106
+      },
+      {
+        "window": "detected",
+        "geometry": [
+          1578.0,
+          1740,
+          1810.0
+        ],
+        "rows": 281,
+        "min_speed": 114.48763275146484,
+        "min_throttle": 0.0,
+        "max_brake": 0.8629434704780579,
+        "mean_apex_steering": 0.28343622013926506
+      }
+    ]
+  },
+  {
+    "id": "t5",
+    "name": "Turn 5 — Seat",
+    "windows": [
+      {
+        "window": "curated",
+        "geometry": [
+          2093.0,
+          2143.0,
+          2166.0
+        ],
+        "rows": 129,
+        "min_speed": 87.75626373291016,
+        "min_throttle": 0.0,
+        "max_brake": 0.11267870664596558,
+        "mean_apex_steering": -0.459873898824056
+      },
+      {
+        "window": "detected",
+        "geometry": [
+          1997.0,
+          2144,
+          2160.0
+        ],
+        "rows": 236,
+        "min_speed": 87.75626373291016,
+        "min_throttle": 0.0,
+        "max_brake": 0.8579994440078735,
+        "mean_apex_steering": -0.45773693743874044
+      }
+    ]
+  },
+  {
+    "id": "t6",
+    "name": "Turn 7",
+    "windows": [
+      {
+        "window": "curated",
+        "geometry": [
+          2518.0,
+          2568.0,
+          2575.0
+        ],
+        "rows": 78,
+        "min_speed": 121.30917358398438,
+        "min_throttle": 0.0,
+        "max_brake": 0.14665710926055908,
+        "mean_apex_steering": -0.21924568286963872
+      },
+      {
+        "window": "detected",
+        "geometry": [
+          2429.0,
+          2556,
+          2584.0
+        ],
+        "rows": 188,
+        "min_speed": 121.30917358398438,
+        "min_throttle": 0.0,
+        "max_brake": 0.7028342485427856,
+        "mean_apex_steering": -0.253782698741326
+      }
+    ]
+  },
+  {
+    "id": "t7",
+    "name": "Turn 8",
+    "windows": [
+      {
+        "window": "curated",
+        "geometry": [
+          2832.0,
+          2850.0,
+          2850.0
+        ],
+        "rows": 17,
+        "min_speed": 189.67994689941406,
+        "min_throttle": 0.0,
+        "max_brake": 0.08299380540847778,
+        "mean_apex_steering": 0.14926089346408844
+      }
+    ]
+  },
+  {
+    "id": "t8",
+    "name": "Turn 9 — Campsa",
+    "windows": [
+      {
+        "window": "curated",
+        "geometry": [
+          2851.0,
+          2923.0,
+          2925.0
+        ],
+        "rows": 74,
+        "min_speed": 164.14431762695312,
+        "min_throttle": 0.0,
+        "max_brake": 0.18257123231887817,
+        "mean_apex_steering": 0.24466382644393228
+      },
+      {
+        "window": "detected",
+        "geometry": [
+          2816.0,
+          2925,
+          2929.0
+        ],
+        "rows": 111,
+        "min_speed": 164.11468505859375,
+        "min_throttle": 0.0,
+        "max_brake": 0.18257123231887817,
+        "mean_apex_steering": 0.24261264232071963
+      }
+    ]
+  },
+  {
+    "id": "t9",
+    "name": "Turn 10 — La Caixa",
+    "windows": [
+      {
+        "window": "curated",
+        "geometry": [
+          3496.0,
+          3508.0,
+          3525.0
+        ],
+        "rows": 49,
+        "min_speed": 85.84654235839844,
+        "min_throttle": 0.0,
+        "max_brake": 0.13448667526245117,
+        "mean_apex_steering": -0.45164029064931366
+      },
+      {
+        "window": "detected",
+        "geometry": [
+          3339.0,
+          3510,
+          3541.0
+        ],
+        "rows": 268,
+        "min_speed": 85.84654235839844,
+        "min_throttle": 0.0,
+        "max_brake": 1.0,
+        "mean_apex_steering": -0.4514506787061691
+      }
+    ]
+  },
+  {
+    "id": "t10",
+    "name": "Turn 12",
+    "windows": [
+      {
+        "window": "curated",
+        "geometry": [
+          3782.0,
+          3785.0,
+          3846.0
+        ],
+        "rows": 100,
+        "min_speed": 102.10002899169922,
+        "min_throttle": 0.03640788793563843,
+        "max_brake": 0.0172579288482666,
+        "mean_apex_steering": 0.28934990833787355
+      },
+      {
+        "window": "detected",
+        "geometry": [
+          3674.0,
+          3788,
+          3845.0
+        ],
+        "rows": 247,
+        "min_speed": 102.10002899169922,
+        "min_throttle": 0.0,
+        "max_brake": 0.5769432187080383,
+        "mean_apex_steering": 0.2837023174061495
+      }
+    ]
+  },
+  {
+    "id": "t11",
+    "name": "Turn 13",
+    "windows": [
+      {
+        "window": "curated",
+        "geometry": [
+          3989.0,
+          4033.0,
+          4034.0
+        ],
+        "rows": 45,
+        "min_speed": 177.18475341796875,
+        "min_throttle": 0.0993090271949768,
+        "max_brake": 0.0,
+        "mean_apex_steering": 0.2790159285068512
+      },
+      {
+        "window": "detected",
+        "geometry": [
+          4021.0,
+          4084,
+          4087.0
+        ],
+        "rows": 62,
+        "min_speed": 178.4861602783203,
+        "min_throttle": 0.08245974779129028,
+        "max_brake": 0.0,
+        "mean_apex_steering": 0.2964792847633362
+      }
+    ]
+  },
+  {
+    "id": "t12",
+    "name": "Turn 14",
+    "windows": [
+      {
+        "window": "curated",
+        "geometry": [
+          4337.0,
+          4343.0,
+          4343.0
+        ],
+        "rows": 5,
+        "min_speed": 180.2036590576172,
+        "min_throttle": 0.0,
+        "max_brake": 0.0,
+        "mean_apex_steering": 0.2803048855728573
+      },
+      {
+        "window": "detected",
+        "geometry": [
+          4230.0,
+          4355,
+          4357.0
+        ],
+        "rows": 118,
+        "min_speed": 178.23622131347656,
+        "min_throttle": 0.0,
+        "max_brake": 0.3961005210876465,
+        "mean_apex_steering": 0.2793086379766464
+      }
+    ]
+  }
+]

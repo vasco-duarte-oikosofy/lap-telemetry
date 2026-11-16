@@ -1,0 +1,18 @@
+
+ABORTED - no files were changed (reference not exported, model not overwritten).
+Fastest lap in session(s): lap 16 @ 96.319s (session_20261115T124448Z_circuit-de-barcelona_lmu_race.parquet, vehicle dkr-engineering-4-elms25)
+Faster than existing reference - will export after corner check
+Corner check: model has 12, lap yields 10 (10 matched, 2 geometry preserved)
+  PRESERVED: Turn 2 (t2) keeps reviewed geometry; no event claimed
+  PRESERVED: Turn 8 (t7) keeps reviewed geometry; no event claimed
+
+FLAGGED - 8 corner(s) would move > 40 m (entry/apex/exit). Model NOT overwritten; review manually.
+  Turn                        dEntry    dApex    dExit  -> new Entry/Apex/Exit (was ...)
+  Turn 1 — Elf                 159.0      6.0      6.0  -> 661.0/848.0/875.0 (was 820.0/842.0/869.0)
+  Turn 4 — Repsol              130.0      9.0     35.0  -> 1578.0/1740.0/1810.0 (was 1708.0/1731.0/1775.0)
+  Turn 5 — Seat                 96.0      1.0      6.0  -> 1997.0/2144.0/2160.0 (was 2093.0/2143.0/2166.0)
+  Turn 7                        89.0     12.0      9.0  -> 2429.0/2556.0/2584.0 (was 2518.0/2568.0/2575.0)
+  Turn 10 — La Caixa           157.0      2.0     16.0  -> 3339.0/3510.0/3541.0 (was 3496.0/3508.0/3525.0)
+  Turn 12                      108.0      3.0      1.0  -> 3674.0/3788.0/3845.0 (was 3782.0/3785.0/3846.0)
+  Turn 13                       32.0     51.0     53.0  -> 4021.0/4084.0/4087.0 (was 3989.0/4033.0/4034.0)
+  Turn 14                      107.0     12.0     14.0  -> 4230.0/4355.0/4357.0 (was 4337.0/4343.0/4343.0)
