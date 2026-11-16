@@ -289,12 +289,76 @@ def test_payload() -> None:
     check(json.dumps(payload) and True, "the payload serializes to JSON")
 
 
+def rear_extra(corner: str, name: str, apex, braking, *, gear=3, trail=0.0) -> CornerExtras:
+    return CornerExtras(corner_id=corner, corner_name=name, apex_distance_m=1000.0,
+                        gear_at_apex=gear, trail_brake_depth_m=trail,
+                        rear_slip_apex_deg=apex, rear_slip_braking_deg=braking)
+
+
+def rear_scenario(apex_of_lap, braking_of_lap) -> list:
+    """Six clean laps on one corner that keeps losing 0.6 s, with injected slip."""
+    laps = []
+    for index in range(6):
+        phases = [phase("slow", "Slow Corner", "minimum_speed", 0.60 + 0.02 * index,
+                        78.0, 82.0, apex=1000.0)]
+        laps.append(FakeLap(index, 1.5, phases,
+                            [rear_extra("slow", "Slow Corner",
+                                        apex_of_lap(index), braking_of_lap(index))]))
+    return laps
+
+
+def test_rear_slip_qualifies_advice() -> None:
+    reference = [rear_extra("slow", "Slow Corner", None, None, gear=3, trail=8.0)]
+
+    baseline = rear_scenario(lambda i: 1.7, lambda i: 1.6)
+    control = build_priorities(baseline, reference, total_gap_s=1.5, unmeasurable={})[0]
+
+    sliding = rear_scenario(lambda i: 5.0 if i == 3 else 1.7,
+                            lambda i: 4.8 if i == 3 else 1.6)
+    priority = build_priorities(sliding, reference, total_gap_s=1.5, unmeasurable={})[0]
+    check("sliding under braking" in priority.suggestion,
+          "a measured slide under braking replaces the brake-later advice",
+          priority.suggestion[:90])
+    check("hold the brake" not in priority.suggestion
+          and "brake " not in priority.suggestion.split("sliding")[0],
+          "the demand to brake later is suppressed, not softened",
+          priority.suggestion[:90])
+    check(priority.rank == control.rank
+          and abs(priority.score - control.score) < 1e-9
+          and abs(priority.recurring_loss_s - control.recurring_loss_s) < 1e-9,
+          "the ranking, loss and score are unchanged by rear-slip evidence")
+    check(priority.evidence["rear_stability"]["state"] == "measured_instability",
+          "the structured evidence carries the state, not just the prose",
+          str(priority.evidence["rear_stability"].get("state")))
+    check(priority.evidence["rear_stability"]["brake_overlap"] is True,
+          "the evidence says the slide overlapped the brake")
+
+    apex_only = rear_scenario(lambda i: 5.0 if i == 3 else 1.7, lambda i: None)
+    other = build_priorities(apex_only, reference, total_gap_s=1.5, unmeasurable={})[0]
+    check("sliding under braking" not in other.suggestion,
+          "apex-only slip cannot produce a brake-induced claim")
+    check("not evidence of brake-induced oversteer" in other.suggestion,
+          "it says what the data does not show instead of implying it",
+          other.suggestion[:120])
+    check(other.evidence["rear_stability"]["brake_overlap"] is False,
+          "the structured evidence agrees with the prose")
+
+    unknown = build_priorities(rear_scenario(lambda i: None, lambda i: None),
+                               reference, total_gap_s=1.5, unmeasurable={})[0]
+    check(unknown.suggestion == control.suggestion,
+          "missing rear data changes nothing in the deterministic advice",
+          unknown.suggestion[:80])
+    check(unknown.evidence["rear_stability"]["state"] == "unknown",
+          "and it is recorded as unknown, never as stable")
+
+
 def main() -> int:
     print("Improvement priorities")
     test_ranking_and_dedup()
     test_share_of_gap()
     test_suggestions()
     test_clean_laps_only()
+    test_rear_slip_qualifies_advice()
     test_real_session()
     test_payload()
     total = _passed + _failed

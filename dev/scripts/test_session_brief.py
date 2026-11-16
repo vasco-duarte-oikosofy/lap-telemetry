@@ -59,6 +59,29 @@ def _facts():
     return build_session_facts(session, records, resolve_debrief_inputs(session))
 
 
+def _inject_slip(facts, corner_id: str, apices: dict[int, float],
+                 braking: dict[int, float] | None = None):
+    """Put synthetic rear-slip values on a corner, then rebuild the priorities.
+
+    The measured numbers are synthetic; the plumbing under test is real.
+    """
+    from lap_telemetry.session_priorities import build_priorities
+
+    braking = braking or {}
+    for lap in facts.laps:
+        for extra in lap.corners:
+            if extra.corner_id != corner_id:
+                continue
+            extra.rear_slip_apex_deg = apices.get(lap.segment_index, 1.7)
+            extra.rear_slip_braking_deg = braking.get(lap.segment_index)
+    facts.priorities = build_priorities(
+        facts.laps, facts.reference_corners,
+        total_gap_s=(facts.consistency.pace.mean_gap_s
+                     if facts.consistency.pace else None),
+        unmeasurable=facts.session.unmeasurable_channels)
+    return facts
+
+
 class FakeModel:
     """Records what it was asked and replies with whatever the test wants."""
 
@@ -119,6 +142,49 @@ def test_corner_block() -> None:
     check(not re.search(r"\.\d{6,}", block),
           "floats are rounded for a human, not dumped raw",
           (re.search(r"\.\d{6,}", block) or [""])[0])
+
+
+def test_rear_stability_grounding() -> None:
+    plain = _facts()
+    grounding = build_grounding(plain)
+    check("REAR STABILITY" in grounding,
+          "the grounding carries a rear-stability block even when it is unknown")
+    unknown_at = grounding.index("REAR STABILITY")
+    laps_at = grounding.index("LAPS (seg")
+    check(unknown_at < laps_at,
+          "the constraint comes before the lap table, so truncation cannot hide it")
+    check("conditional test" in grounding or "unknown" in grounding,
+          "an unmeasured session says so instead of implying grip")
+
+    facts = _facts()
+    corner = facts.priorities[0].corner_id
+    _inject_slip(facts, corner, {5: 5.2}, {5: 4.9})
+    grounding = build_grounding(facts)
+    check("measured instability" in grounding,
+          "a measured slide appears in the grounding", grounding[grounding.index("REAR STABILITY"):][:160])
+    check("brake still on" in grounding,
+          "the grounding says the slide overlapped the brake")
+    check(len(grounding.encode("utf-8")) <= GROUNDING_BUDGET_BYTES,
+          "the grounding still fits its budget",
+          f"{len(grounding.encode('utf-8'))} / {GROUNDING_BUDGET_BYTES}")
+
+    model = FakeModel("The rear was measured sliding there. Get it settled first. "
+                      "What did the car feel like?")
+    answer = DebriefCoach(model=model).ask("what am I losing?", facts)
+    check("REAR STABILITY" in model.messages[0]["content"],
+          "the model is actually given the constraint")
+    check(bool(answer.text), "the answer still comes back")
+
+    long_utf8 = _facts()
+    for reference in long_utf8.reference_corners:
+        reference.corner_name = "Virage de la Sainte-Baume — édition longue Ünïcode " * 2
+    _inject_slip(long_utf8, long_utf8.priorities[0].corner_id, {5: 5.2}, {5: 4.9})
+    long_grounding = build_grounding(long_utf8)
+    check(len(long_grounding.encode("utf-8")) <= GROUNDING_BUDGET_BYTES,
+          "a long UTF-8 corner name cannot push the grounding over budget",
+          f"{len(long_grounding.encode('utf-8'))} bytes")
+    check("REAR STABILITY" in long_grounding,
+          "and the rear-slip caveat survives the truncation")
 
 
 def test_messages() -> None:
@@ -262,6 +328,38 @@ def test_template_adapter() -> None:
     check("Bretelle" in drilled.text, "a corner question is answered about that corner")
     check(not drilled.warnings, "the drill-down answer stays grounded",
           str(drilled.warnings))
+    check("not measurable" in drilled.text or "could not" in drilled.text,
+          "without rear-slip data the no-LLM answer says so",
+          drilled.text[-160:])
+    check("brake later" not in drilled.text.lower()
+          or "not measurable" in drilled.text,
+          "it does not prescribe a braking change as if nothing were unknown")
+
+
+def test_no_llm_answer_respects_rear_instability() -> None:
+    check("REAR STABILITY" in SYSTEM_PROMPT,
+          "the model contract names the rear-stability block")
+    check("never say the rear is not sliding" in SYSTEM_PROMPT.lower()
+          or "unknown, not stable" in SYSTEM_PROMPT.lower(),
+          "the contract forbids reading a dead channel as stable")
+
+    facts = _facts()
+    corner = facts.priorities[0].corner_id
+    _inject_slip(facts, corner, {5: 5.2}, {5: 4.9})
+    coach = DebriefCoach(model=None)
+    answer = coach.ask("where am I losing the most time?", facts)
+    check("measured sliding" in answer.text or "get the car settled" in answer.text,
+          "the no-LLM opening qualifies a measured slide", answer.text[:200])
+    top_name = facts.priorities[0].corner_name
+    spoken = f"corner {top_name}" if top_name.isdigit() else top_name
+    corner_answer = coach.ask(f"what about {spoken}?", facts)
+    check("settled" in corner_answer.text and "brake later" not in
+          corner_answer.text.lower(),
+          "the no-LLM corner answer stops the brake-later demand",
+          corner_answer.text[:200])
+    check(not answer.warnings and not corner_answer.warnings,
+          "every number in those answers is still grounded",
+          str(answer.warnings + corner_answer.warnings))
 
 
 def test_cli() -> None:
@@ -282,12 +380,14 @@ def main() -> int:
     test_grounding()
     test_find_corner()
     test_corner_block()
+    test_rear_stability_grounding()
     test_messages()
     test_validation()
     test_drilldown_numbers_are_grounded()
     test_provider_failure_is_explained()
     test_provider_errors_are_wrapped()
     test_template_adapter()
+    test_no_llm_answer_respects_rear_instability()
     test_cli()
     total = _passed + _failed
     print(f"\n  {_passed}/{total} assertions passed")

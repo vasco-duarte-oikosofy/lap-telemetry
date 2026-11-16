@@ -9,6 +9,7 @@ tests can assert on whole sections.
 """
 from __future__ import annotations
 
+from .rear_stability import assess_session, describe as describe_stability
 from .session_corner_extras import aggregate_corners
 from .session_facts import SessionDebriefFacts
 
@@ -183,6 +184,19 @@ def _priorities(facts: SessionDebriefFacts) -> list[str]:
                    if evidence.get("driver_gear")
                    and evidence["driver_gear"] != evidence.get("reference_gear") else "")
             )
+        rear = evidence.get("rear_stability") or {}
+        if rear.get("state") == "measured_instability":
+            lines.append(
+                f"  \n   rear stability: **measured instability** — "
+                f"{rear.get('value_deg', 0):.2f} deg at the apex against a "
+                f"{rear.get('baseline_deg', 0):.2f} deg clean-lap baseline"
+                + (", with the brake still applied" if rear.get("brake_overlap")
+                   else ", with the brake already released")
+            )
+        elif rear.get("state") == "unknown":
+            lines.append(
+                f"  \n   rear stability: **not measurable here** — "
+                f"{rear.get('reason') or 'no valid rear-slip sample'}")
     rest = len(facts.priorities) - 3
     if rest > 0:
         lines.append(f"\nThe other {rest} corners are in the appendix below.")
@@ -256,6 +270,32 @@ def _not_measurable(facts: SessionDebriefFacts) -> list[str]:
     return lines
 
 
+def _rear_stability(facts: SessionDebriefFacts) -> list[str]:
+    """Every corner's rear-slip state, in the three states the contract allows."""
+    stability = assess_session(facts)
+    if not stability:
+        return ["No corner geometry was available to check rear stability."]
+    lines: list[str] = []
+    measured = [s for s in stability.values() if s.measured]
+    unknown = [s for s in stability.values() if s.unknown]
+    calm = [s for s in stability.values() if s.state == "no_detected_instability"]
+    for entry in measured:
+        lines.append(f"- **{corner_label(entry.corner_name)}** — "
+                     f"{describe_stability(entry)}.")
+    if calm:
+        lines.append("- **No instability detected** at "
+                     + ", ".join(corner_label(e.corner_name) for e in calm[:6])
+                     + ". Valid measurements inside the measured window, not a "
+                     "claim that the car is stable everywhere.")
+    if unknown:
+        reason = unknown[0].reason
+        lines.append(f"- **Not measurable** at "
+                     + ", ".join(corner_label(e.corner_name) for e in unknown[:6])
+                     + f" — {reason}. Any braking or speed change there is a "
+                     "conditional test, not a confirmed fix.")
+    return lines
+
+
 def _how_to_read(facts: SessionDebriefFacts) -> list[str]:
     return [
         f"- **Reference lap** ({format_lap_time(facts.session.reference_lap_s)}) "
@@ -290,6 +330,7 @@ def render_session_report(facts: SessionDebriefFacts) -> str:
     parts += ["## Lap by lap", ""] + _lap_table(facts) + [""]
     parts += ["## Consistency", ""] + _consistency(facts) + [""]
     parts += ["## What to change", ""] + _priorities(facts) + [""]
+    parts += ["## Rear stability", ""] + _rear_stability(facts) + [""]
     parts += ["## Corners", ""] + _corner_table(facts) + [""]
     parts += ["## Excluded laps", ""] + _excluded(facts) + [""]
     parts += ["## Not measurable", ""] + _not_measurable(facts) + [""]

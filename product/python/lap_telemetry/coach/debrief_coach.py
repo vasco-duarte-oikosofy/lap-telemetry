@@ -20,6 +20,7 @@ import re
 from dataclasses import dataclass, field
 from typing import Any, Callable
 
+from ..rear_stability import assess_corner, describe as describe_stability
 from ..session_brief import build_grounding, corner_block, find_corner
 from ..session_facts import SessionDebriefFacts
 from ..session_report import corner_label, format_lap_time
@@ -48,6 +49,13 @@ WHAT YOU MUST NOT DO
 - Never number, index, annotate or count your own words, and never show your
   reasoning or your working. Plain prose only.
 - No preamble, no bullet lists, no motivational filler, no emoji.
+- Never tell a driver to brake later, hold the brake longer or carry more speed
+  into a corner whose REAR STABILITY line says the rear was measured sliding
+  with the brake on. Say what was measured and ask them to get the car settled
+  first. If that line says unknown, say rear stability could not be assessed and
+  frame the change as a test, not a fix.
+- Never say the rear is not sliding because a channel is missing: a dead or
+  absent channel means unknown, not stable.
 
 The driver's facts follow. Answer only from them.
 """
@@ -139,6 +147,17 @@ def _template_answer(
         priority = next((p for p in facts.priorities if p.corner_id == corner_id), None)
         name = corner_label(next((c.corner_name for c in facts.reference_corners
                                   if c.corner_id == corner_id), corner_id))
+        stability = assess_corner(
+            facts.laps, corner_id,
+            unmeasurable=getattr(facts.session, "unmeasurable_channels", {}) or {})
+        rear = ""
+        already_said = priority is not None and "rear" in priority.suggestion.lower()
+        if stability.measured and not already_said:
+            rear = (f" One thing to respect: {describe_stability(stability)} — so do "
+                    f"not just brake later here.")
+        elif stability.unknown and not already_said:
+            rear = (f" I could not assess the rear there ({stability.reason}), so any "
+                    f"change is a test rather than a confirmed fix.")
         if priority:
             text = (f"{name} is a real one: {priority.recurring_loss_s:.3f} seconds a lap, "
                     f"{priority.share_of_gap * 100:.0f} percent of your gap. "
@@ -148,7 +167,7 @@ def _template_answer(
                     f"The loss you felt was probably traffic or a mistake.")
         else:
             text = f"{name} was not in your top three losses this session."
-        return f"{text} {_TEMPLATE_QUESTIONS[1]}"
+        return f"{text}{rear} {_TEMPLATE_QUESTIONS[1]}"
 
     if not facts.priorities or not pace:
         return ("I need five clean laps before I can coach you properly. "
@@ -158,9 +177,18 @@ def _template_answer(
     positive = (f"Your best lap was {format_lap_time(pace.best_lap_s)}, "
                 f"{abs(gap):.3f} seconds {'under' if gap < 0 else 'off'} "
                 f"the reference, so the pace is there.")
+    rear = ""
+    rear_state = (top.evidence.get("rear_stability") or {})
+    if rear_state.get("state") == "measured_instability":
+        rear = (f" The rear was measured sliding there "
+                f"({float(rear_state.get('value_deg') or 0):.2f} deg at the apex), so "
+                f"get the car settled before asking more of it.")
+    elif rear_state.get("state") == "unknown":
+        rear = (" Rear stability could not be measured in this recording, so treat "
+                "the change as a test.")
     text = (f"{positive} The repeatable loss is "
             f"{corner_label(top.corner_name)} at {top.recurring_loss_s:.3f} seconds "
-            f"a lap: {top.suggestion}. {_TEMPLATE_QUESTIONS[0]}")
+            f"a lap: {top.suggestion}.{rear} {_TEMPLATE_QUESTIONS[0]}")
     return text
 
 

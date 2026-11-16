@@ -251,7 +251,12 @@
       "dev/scripts/test_rear_slip_facts.js",
       "dev/scripts/test_session_corner_extras.js",
       "dev/scripts/test_session_debrief_facts.js",
-      "dev/scripts/test_bug_python_regressions.js"
+      "dev/scripts/test_bug_python_regressions.js",
+      "dev/scripts/test_session_consistency.js",
+      "dev/scripts/test_session_priorities.js",
+      "dev/scripts/test_session_brief.js",
+      "dev/scripts/test_session_report.js",
+      "dev/scripts/test_session_conversation.js"
     ],
     "turn-label-editor": [
       "dev/scripts/test_turn_label_editor.js",

@@ -10,10 +10,46 @@ the facts.
 """
 from __future__ import annotations
 
-from .rear_stability import assess_corner, describe as describe_stability
+from .rear_stability import assess_corner, assess_session, describe as describe_stability
 from .session_corner_extras import aggregate_corners, median_of
 from .session_facts import SessionDebriefFacts
 from .session_report import corner_label, format_lap_time
+
+# States that must appear in the grounding: they either suppress or qualifY a
+# recommendation, so the model must read them before the advice.
+
+def rear_stability_lines(facts: SessionDebriefFacts) -> list[str]:
+    """The rear-slip constraint the advice must respect.
+
+    Every measured instability is listed, wherever it ranks — a slide on the
+    fourth priority still constrains what the coach may say about braking. Only
+    the *unknown* state is limited to the corners being coached, because that is
+    where an unanswered question would otherwise be read as a clean bill.
+    """
+    stability = assess_session(facts)
+    coached = {priority.corner_id for priority in facts.priorities[:3]}
+    lines: list[str] = []
+    for corner in facts.reference_corners:
+        entry = stability.get(corner.corner_id)
+        if entry is None:
+            continue
+        if entry.measured:
+            verdict = (f"measured instability: {entry.value_deg:.2f} deg at the apex"
+                       f"{' (brake still on)' if entry.brake_overlap else ' (brake already released)'}"
+                       f" against a {entry.baseline_deg:.2f} deg clean-lap baseline")
+            lines.append(f"{corner_label(entry.corner_name)}: {verdict}")
+        elif entry.unknown and corner.corner_id in coached:
+            lines.append(f"{corner_label(entry.corner_name)}: unknown — {entry.reason}")
+    if not lines:
+        # Nothing measured and nothing missing: say which corners *were* checked,
+        # so silence cannot be read as "all clear".
+        checked = [corner_label(corner.corner_name) for corner in facts.reference_corners
+                   if stability.get(corner.corner_id) is not None
+                   and stability[corner.corner_id].state == "no_detected_instability"]
+        if checked:
+            lines.append("no rear instability detected at: " + ", ".join(checked[:4])
+                         + " — that is not a claim that the car is stable elsewhere")
+    return lines
 
 GROUNDING_BUDGET_BYTES = 4096
 CORNER_BUDGET_BYTES = 1500
@@ -34,7 +70,11 @@ def _clip(text: str, budget: int) -> str:
 
 
 def build_grounding(facts: SessionDebriefFacts) -> str:
-    """The compact, complete-enough block the model reasons from."""
+    """The compact, complete-enough block the model reasons from.
+
+    The rear-stability constraint comes *before* the lap table on purpose: a
+    caveat that the byte budget truncates is not awareness.
+    """
     session = facts.session
     pace = facts.consistency.pace
     lines: list[str] = []
@@ -57,6 +97,10 @@ def build_grounding(facts: SessionDebriefFacts) -> str:
             f"repeatability prize: {pace.time_available_s:.3f} s "
             f"(optimistic, not one-lap achievable)",
         ]
+
+    rear_lines = rear_stability_lines(facts)
+    if rear_lines:
+        lines += ["", "REAR STABILITY (constrains the advice below)"] + rear_lines
 
     lines += ["", "LAPS (seg | lap | time | vs reference | clean)"]
     for lap in facts.laps[:_MAX_LAP_ROWS]:
@@ -99,6 +143,8 @@ def build_grounding(facts: SessionDebriefFacts) -> str:
     if session.unmeasurable_channels:
         lines += ["", "NOT MEASURABLE IN THIS RECORDING"]
         for channel, reason in sorted(session.unmeasurable_channels.items()):
+            if channel.startswith("wheel_ground_vel"):
+                continue  # one line for the rear-slip channels, below
             lines.append(f"{channel}: {reason}")
 
     lines += ["", "Every number you state must appear above."]

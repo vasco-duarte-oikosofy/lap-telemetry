@@ -52,11 +52,53 @@ def _facts():
     return build_session_facts(session, records, resolve_debrief_inputs(session))
 
 
+def _inject_slip(facts, corner_id: str, apices, braking=None):
+    """Synthetic rear-slip values on one corner, then rebuilt priorities."""
+    from lap_telemetry.session_priorities import build_priorities
+
+    braking = braking or {}
+    for lap in facts.laps:
+        for extra in lap.corners:
+            if extra.corner_id != corner_id:
+                continue
+            extra.rear_slip_apex_deg = apices.get(lap.segment_index, 1.7)
+            extra.rear_slip_braking_deg = braking.get(lap.segment_index)
+    facts.priorities = build_priorities(
+        facts.laps, facts.reference_corners,
+        total_gap_s=(facts.consistency.pace.mean_gap_s
+                     if facts.consistency.pace else None),
+        unmeasurable=facts.session.unmeasurable_channels)
+    return facts
+
+
+def test_rear_stability_section() -> None:
+    facts = _facts()
+    report = render_session_report(facts)
+    check("## Rear stability" in report, "the report has a rear-stability section")
+    check("Not measurable" in report.split("## Rear stability")[1].split("## Corners")[0],
+          "an unmeasured recording says so in that section")
+    section = report.split("## Rear stability")[1].split("## Corners")[0]
+    check("conditional test, not a confirmed fix" in section,
+          "and frames any change there as a test", section.strip()[:110])
+    check("not sliding" not in report.lower(),
+          "missing data is never reported as 'not sliding'")
+
+    injected = _inject_slip(_facts(), _facts().priorities[0].corner_id, {5: 5.2}, {5: 4.9})
+    text = render_session_report(injected)
+    section = text.split("## Rear stability")[1].split("## Corners")[0]
+    check("5.20 deg" in section and "clean-lap baseline" in section,
+          "a measured slide is cited with its value", section.strip()[:120])
+    check("while still on the brake" in section,
+          "the section states whether the brake was applied")
+    check("rear stability: **measured instability**" in text,
+          "the priority itself carries the caveat, not only the appendix")
+
+
 def test_sections() -> None:
     report = render_session_report(_facts())
     headings = re.findall(r"^#{1,2} (.+)$", report, flags=re.MULTILINE)
     expected = ["Session debrief", "Headline", "Lap by lap", "Consistency",
-                "What to change", "Corners", "Excluded laps",
+                "What to change", "Rear stability", "Corners", "Excluded laps",
                 "Not measurable", "How to read this"]
     trimmed = [h.split(" — ")[0] for h in headings[:len(expected)]]
     check(trimmed == expected, "the report has its sections in order",
@@ -172,6 +214,7 @@ def main() -> int:
     test_content()
     test_determinism()
     test_refusals()
+    test_rear_stability_section()
     test_baselines_explained()
     test_cli_out_dir()
     test_cli_default_location()

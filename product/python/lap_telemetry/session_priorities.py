@@ -19,6 +19,7 @@ from dataclasses import dataclass, field
 from typing import Any
 
 from .coach.facts import CornerLoss
+from .rear_stability import RearStability, assess_corner
 from .session_corner_extras import CornerExtras, aggregate_corners, median_of
 
 
@@ -173,6 +174,30 @@ _CLAUSE_ORDER = {
     "exit": ("exit", "exit_speed", "trail", "gear", "entry"),
 }
 
+# Clauses that ask the driver to brake later, hold the brake longer or carry
+# more speed through a corner whose rear was measured sliding under braking.
+_ASK_FOR_MORE = ("entry", "exit", "trail", "min_speed", "exit_speed")
+
+
+def _instability_clause(rear: RearStability) -> str:
+    """What to say instead of "brake later" when the rear was measured sliding."""
+    worst = rear.flagged[0] if rear.flagged else {}
+    where = ""
+    if worst.get("segment_index") is not None:
+        where = f" (segment {worst['segment_index']}, lap {worst.get('lap_number')})"
+    if rear.brake_overlap:
+        return (
+            f"the rear was measured sliding under braking{where}: "
+            f"{rear.value_deg:.2f} deg at the apex, {rear.braking_deg:.2f} deg with the "
+            f"brake still on, against a {rear.baseline_deg:.2f} deg clean-lap baseline — "
+            f"release the brake a little earlier and get the car settled before asking "
+            f"for more brake or speed, then re-measure")
+    return (
+        f"the rear slipped{where}: {rear.value_deg:.2f} deg at the apex against a "
+        f"{rear.baseline_deg:.2f} deg clean-lap baseline, with the brake released before "
+        f"it happened — so this is not evidence of brake-induced oversteer; "
+        f"the usual change is still the place to start, and watch the rear while doing it")
+
 
 def suggest_change(
     phases: list[CornerLoss],
@@ -181,12 +206,18 @@ def suggest_change(
     *,
     loss_s: float | None = None,
     headline_phase: str | None = None,
+    rear: RearStability | None = None,
 ) -> str:
     """The deterministic fix for one corner, from measured deltas only.
 
     Clauses are ordered by their relevance to the phase that is actually costing
     the time: telling a driver to "carry more minimum speed" when their loss is
     on the brake release would be advice about a different corner.
+
+    When the rear was measured sliding while the brake was applied, the braking
+    and speed clauses are **replaced**, not softened: asking a driver to brake
+    later into a corner that is already stepping is asking them to test the
+    limit that just bit them.
     """
     by_name = {
         "min_speed": _clause_min_speed(phases),
@@ -206,6 +237,14 @@ def suggest_change(
     # it once.
     if by_name["min_speed"] and by_name["exit_speed"] in chosen:
         chosen.remove(by_name["exit_speed"])
+
+    qualified = rear is not None and rear.measured
+    if qualified:
+        if rear.brake_overlap:
+            chosen = [c for c in chosen if c not in
+                      tuple(by_name[name] for name in _ASK_FOR_MORE)]
+        chosen.insert(0, _instability_clause(rear))
+
     # Two clauses that open with the same words ("hold the brake 7 m longer" and
     # "hold the brake 9 m past the apex") are one instruction said twice.
     unique: list[str] = []
@@ -240,8 +279,13 @@ def build_priorities(
     reference_corners: list[CornerExtras],
     *,
     total_gap_s: float | None = None,
+    unmeasurable: dict[str, str] | None = None,
 ) -> list[Priority]:
-    """One ranked opportunity per corner, from the clean laps only."""
+    """One ranked opportunity per corner, from the clean laps only.
+
+    The ranking, the recurring loss and the pace arithmetic are unchanged by
+    rear-slip evidence: it qualifies the *advice*, never the loss.
+    """
     clean = [lap for lap in laps if getattr(lap, "clean", True)]
     if total_gap_s is None:
         total_gap_s = _mean([lap.delta_s for lap in clean])
@@ -275,6 +319,7 @@ def build_priorities(
 
         extra = extras.get(corner_id)
         ref_extra = reference.get(corner_id)
+        rear = assess_corner(laps, corner_id, unmeasurable=unmeasurable)
         driver_value = _mean([i.driver_value for i in headline])
         reference_value = _mean([i.reference_value for i in headline])
         evidence: dict[str, Any] = {
@@ -282,6 +327,7 @@ def build_priorities(
             "driver_value": round(driver_value, 1),
             "reference_value": round(reference_value, 1),
             "unit": headline[0].unit,
+            "rear_stability": rear.to_dict(),
         }
         if extra and extra.gear_at_apex:
             evidence["driver_gear"] = extra.gear_at_apex
@@ -304,7 +350,7 @@ def build_priorities(
             laps=len(spread_phase),
             laps_affected=sum(1 for i in spread_phase if i.loss_s > 0.05),
             suggestion=suggest_change(items, extra, ref_extra, loss_s=max(0.0, recurring),
-                                      headline_phase=headline_phase),
+                                      headline_phase=headline_phase, rear=rear),
             evidence=evidence,
         ))
 

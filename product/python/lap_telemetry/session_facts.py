@@ -292,5 +292,6 @@ def build_session_facts(
         priorities=build_priorities(
             laps, reference_corners,
             total_gap_s=consistency.pace.mean_gap_s if consistency.pace else None,
+            unmeasurable=unmeasurable,
         ),
     )

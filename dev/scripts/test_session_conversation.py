@@ -24,6 +24,7 @@ from lap_telemetry.coach.debrief_coach import DebriefCoach  # noqa: E402
 from lap_telemetry.session_conversation import (  # noqa: E402
     Conversation,
     build_targets,
+    render_plan,
     repl_filenames,
 )
 from lap_telemetry.session_facts import build_session_facts  # noqa: E402
@@ -99,6 +100,58 @@ def test_questions_and_history() -> None:
               and convo.history[-1][0] == "coach",
               "the coach sees the running history, alternating",
               str([role for role, _ in convo.history]))
+
+
+def _inject_slip(facts, corner_id: str, apices, braking=None):
+    """Synthetic rear-slip values on one corner, then rebuilt priorities."""
+    from lap_telemetry.session_priorities import build_priorities
+
+    braking = braking or {}
+    for lap in facts.laps:
+        for extra in lap.corners:
+            if extra.corner_id != corner_id:
+                continue
+            extra.rear_slip_apex_deg = apices.get(lap.segment_index, 1.7)
+            extra.rear_slip_braking_deg = braking.get(lap.segment_index)
+    facts.priorities = build_priorities(
+        facts.laps, facts.reference_corners,
+        total_gap_s=(facts.consistency.pace.mean_gap_s
+                     if facts.consistency.pace else None),
+        unmeasurable=facts.session.unmeasurable_channels)
+    return facts
+
+
+def test_targets_respect_rear_instability() -> None:
+    facts = _facts()
+    target = build_targets(facts)[0]
+    check("controlled test" in target.caveat,
+          "an unmeasured session frames its targets as a test", target.caveat[:80])
+
+    sliding = _inject_slip(_facts(), _facts().priorities[0].corner_id,
+                           {5: 5.2}, {5: 4.9})
+    target = build_targets(sliding)[0]
+    check("peak rear slip under" in target.measure,
+          "an instability-qualified target is a stability target", target.measure[:90])
+    check("km/h" not in target.measure,
+          "and it does not keep the old higher-speed number", target.measure[:90])
+    check("measured sliding" in target.caveat,
+          "the caveat says what was measured", target.caveat[:90])
+    check(target.action == sliding.priorities[0].suggestion,
+          "the action and the suggestion are the same instruction")
+
+    text = render_plan(sliding, build_targets(sliding))
+    check("Caveat:" in text and "peak rear slip under" in text,
+          "the plan on disk carries the caveat next to the target",
+          text[text.index("Caveat:"):][:80])
+
+    # A slide outside the top targets still reaches the sheet the driver takes away.
+    other = _facts()
+    fourth = other.priorities[min(3, len(other.priorities) - 1)].corner_id
+    _inject_slip(other, fourth, {5: 4.4}, {5: 4.2})
+    text = render_plan(other, build_targets(other))
+    check("Also measured:" in text and "4.40 deg" in text,
+          "a measured slide outside the targets is still on the plan",
+          text[text.index("Also measured:"):][:90])
 
 
 def test_targets() -> None:
@@ -203,6 +256,7 @@ def main() -> int:
     test_corner_command()
     test_questions_and_history()
     test_targets()
+    test_targets_respect_rear_instability()
     test_plan_command()
     test_save_command()
     test_repl_piped()

@@ -45,6 +45,9 @@ class Target:
     measure: str
     loss_s: float
     share_of_gap: float
+    # Why this target is a test rather than a fix, when the rear was sliding or
+    # could not be measured. Empty when ordinary reference advice applies.
+    caveat: str = ""
 
     def to_dict(self) -> dict[str, Any]:
         return {
@@ -54,7 +57,35 @@ class Target:
             "measure": self.measure,
             "loss_s": round(self.loss_s, 3),
             "share_of_gap": round(self.share_of_gap, 3),
+            "caveat": self.caveat,
         }
+
+
+def rear_grip_target(measure: str, rear: dict[str, Any]) -> tuple[str, str]:
+    """``(measure, caveat)`` for a target whose corner has rear-slip evidence.
+
+    An instability-qualified action must not keep an unconditional higher-speed
+    number: the driver would chase exactly the thing that just bit them.
+    """
+    state = rear.get("state")
+    if state == "unknown":
+        return measure, ("rear stability was not measurable in this session, so this is "
+                         "a controlled test, not a confirmed fix — check what the rear "
+                         "feels like before chasing the number")
+    if state != "measured_instability":
+        return measure, ""
+    threshold = rear.get("threshold_deg")
+    braking = " with the brake applied" if rear.get("brake_overlap") else ""
+    if threshold is None:
+        stability = "match the reference brake point with the car settled"
+    else:
+        stability = (f"peak rear slip under {threshold:.1f} deg at the apex{braking}, "
+                     f"against {float(rear.get('value_deg') or 0.0):.1f} deg today, "
+                     f"while matching the reference brake point")
+    caveat = ("the rear was measured sliding here"
+              + (" while the brake was applied" if rear.get("brake_overlap") else "")
+              + ": stabilise first, and do not simply brake later until the slide is gone")
+    return stability, caveat
 
 
 def repl_filenames(stem: str) -> tuple[str, str]:
@@ -85,13 +116,17 @@ def build_targets(facts: SessionDebriefFacts) -> list[Target]:
             gear = (f"{ordinal(evidence['reference_gear'])} gear at the apex, "
                     f"against {ordinal(evidence['driver_gear'])} today")
             measure = f"{measure}; {gear}" if measure else gear
+        qualified, caveat = rear_grip_target(
+            measure or f"no more than {priority.recurring_loss_s:.3f} s lost here",
+            evidence.get("rear_stability") or {})
         targets.append(Target(
             corner_id=priority.corner_id,
             corner_name=priority.corner_name,
             action=priority.suggestion,
-            measure=measure or f"no more than {priority.recurring_loss_s:.3f} s lost here",
+            measure=qualified,
             loss_s=priority.recurring_loss_s,
             share_of_gap=priority.share_of_gap,
+            caveat=caveat,
         ))
     return targets
 
@@ -115,8 +150,27 @@ def render_plan(facts: SessionDebriefFacts, targets: list[Target]) -> str:
             f"   Measured now: {target.loss_s:.3f} s lost per lap, "
             f"{target.share_of_gap * 100:.0f}% of your gap.",
             f"   Target: {target.measure}.",
+            *([f"   Caveat: {target.caveat}."] if target.caveat else []),
             "",
         ]
+    # A measured slide outside the targets must not vanish from the sheet the
+    # driver takes away: the report carries it, the plan has to nod at it too.
+    qualified = {target.corner_id for target in targets if target.caveat}
+    for priority in facts.priorities:
+        if priority.corner_id in qualified:
+            continue
+        rear = priority.evidence.get("rear_stability") or {}
+        if rear.get("state") != "measured_instability":
+            continue
+        lines += [
+            f"Also measured: **{corner_label(priority.corner_name)}** — rear slip "
+            f"{float(rear.get('value_deg') or 0):.2f} deg at the apex"
+            + (" with the brake applied" if rear.get("brake_overlap") else "")
+            + f" against a {float(rear.get('baseline_deg') or 0):.2f} deg clean-lap "
+            f"baseline. Get the car settled there before chasing the loss.",
+            "",
+        ]
+        break
     return "\n".join(lines).rstrip() + "\n"
 
 
