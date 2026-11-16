@@ -220,6 +220,28 @@ def test_assessment() -> None:
           "a non-clean observation is reported separately, not hidden",
           str(measured.flagged[0] if measured.flagged else None))
 
+    # The worst lap is what gets cited, and a non-clean lap must say so on every
+    # surface: the report, the suggestion, the grounding and the plan.
+    messy = [FakeLap(i, 1.7, 1.5) for i in range(5)]
+    messy.append(FakeLap(5, 4.5, 4.1, clean=False))
+    messy.append(FakeLap(6, 6.0, 5.5))
+    two = rear_stability.assess_corner(messy, "c1", unmeasurable={})
+    check(two.worst.get("segment_index") == 6,
+          "the cited lap is the worst one, not the first one flagged",
+          str(two.worst))
+    phrase = rear_stability.lap_phrase(two.worst)
+    check("segment 6" in phrase and "not clean" not in phrase,
+          "a clean flagged lap reads plainly", phrase)
+    flagged_non_clean = next(f for f in two.flagged if not f["clean"])
+    check(", a lap excluded as not clean" in rear_stability.lap_phrase(flagged_non_clean),
+          "a non-clean observation is labelled, not presented as a clean-lap fact",
+          rear_stability.lap_phrase(flagged_non_clean))
+    non_clean_only = rear_stability.assess_corner(
+        [FakeLap(i, 1.7, 1.5) for i in range(5)] + [FakeLap(5, 6.0, 5.5, clean=False)],
+        "c1", unmeasurable={})
+    check("not clean" in rear_stability.describe(non_clean_only),
+          "describe() carries the same label")
+
     calm = rear_stability.assess_corner([FakeLap(i, 1.7, 1.5) for i in range(6)], "c1",
                                    unmeasurable={})
     check(calm.state == "no_detected_instability",

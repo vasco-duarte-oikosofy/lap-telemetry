@@ -10,7 +10,8 @@ the facts.
 """
 from __future__ import annotations
 
-from .rear_stability import assess_corner, assess_session, describe as describe_stability
+from .rear_stability import (assess_corner, assess_session,
+                             describe as describe_stability, lap_phrase)
 from .session_corner_extras import aggregate_corners, median_of
 from .session_facts import SessionDebriefFacts
 from .session_report import corner_label, format_lap_time
@@ -34,10 +35,12 @@ def rear_stability_lines(facts: SessionDebriefFacts) -> list[str]:
         if entry is None:
             continue
         if entry.measured:
+            where = lap_phrase(entry.worst)
             verdict = (f"measured instability: {entry.value_deg:.2f} deg at the apex"
                        f"{' (brake still on)' if entry.brake_overlap else ' (brake already released)'}"
                        f" against a {entry.baseline_deg:.2f} deg clean-lap baseline")
-            lines.append(f"{corner_label(entry.corner_name)}: {verdict}")
+            lines.append(f"{corner_label(entry.corner_name)}"
+                         + (f" on {where}" if where else "") + f": {verdict}")
         elif entry.unknown and corner.corner_id in coached:
             lines.append(f"{corner_label(entry.corner_name)}: unknown — {entry.reason}")
     if not lines:

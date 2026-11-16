@@ -102,12 +102,14 @@ def test_questions_and_history() -> None:
               str([role for role, _ in convo.history]))
 
 
-def _inject_slip(facts, corner_id: str, apices, braking=None):
+def _inject_slip(facts, corner_id: str, apices, braking=None, non_clean=()):
     """Synthetic rear-slip values on one corner, then rebuilt priorities."""
     from lap_telemetry.session_priorities import build_priorities
 
     braking = braking or {}
     for lap in facts.laps:
+        if lap.segment_index in non_clean:
+            lap.clean = False
         for extra in lap.corners:
             if extra.corner_id != corner_id:
                 continue
@@ -136,8 +138,23 @@ def test_targets_respect_rear_instability() -> None:
           "and it does not keep the old higher-speed number", target.measure[:90])
     check("measured sliding" in target.caveat,
           "the caveat says what was measured", target.caveat[:90])
+    check("not clean" not in target.caveat,
+          "a clean-lap slide carries no non-clean caveat", target.caveat[:120])
     check(target.action == sliding.priorities[0].suggestion,
           "the action and the suggestion are the same instruction")
+
+    dirty = _facts()
+    dirty_corner = dirty.priorities[0].corner_id
+    dirty_segment = next(lap.segment_index for lap in dirty.laps if lap.clean)
+    _inject_slip(dirty, dirty_corner, {dirty_segment: 5.2}, {dirty_segment: 4.9},
+                 non_clean={dirty_segment})
+    dirty_target = build_targets(dirty)[0]
+    check("a lap excluded as not clean" in dirty_target.caveat,
+          "a slide measured on a non-clean lap is labelled in the plan caveat",
+          dirty_target.caveat[:140])
+    dirty_plan = render_plan(dirty, build_targets(dirty))
+    check("a lap excluded as not clean" in dirty_plan,
+          "and the plan on disk says it too")
 
     text = render_plan(sliding, build_targets(sliding))
     check("Caveat:" in text and "peak rear slip under" in text,

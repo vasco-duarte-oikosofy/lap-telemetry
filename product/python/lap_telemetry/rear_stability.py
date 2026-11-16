@@ -49,6 +49,13 @@ class RearStability:
     def unknown(self) -> bool:
         return self.state == "unknown"
 
+    @property
+    def worst(self) -> dict[str, Any]:
+        """The flagged observation the prose cites: the highest apex slip."""
+        if not self.flagged:
+            return {}
+        return max(self.flagged, key=lambda item: item.get("apex_deg") or 0.0)
+
     def to_dict(self) -> dict[str, Any]:
         data: dict[str, Any] = {
             "corner_id": self.corner_id,
@@ -70,6 +77,24 @@ class RearStability:
         if self.reason:
             data["reason"] = self.reason
         return data
+
+
+CLEAN_LAP_SUFFIX = ", a lap excluded as not clean"
+
+
+def lap_phrase(flagged: dict[str, Any] | None) -> str:
+    """``"segment 32 (lap 32), a lap excluded as not clean"``.
+
+    Four surfaces quote this: the report sentence, the priority suggestion, the
+    grounding block and the plan. Built once so they cannot disagree about
+    whether an observation came from a clean lap.
+    """
+    if not flagged or flagged.get("segment_index") is None:
+        return ""
+    phrase = f"segment {flagged['segment_index']} (lap {flagged.get('lap_number')})"
+    if flagged.get("clean") is False:
+        phrase += CLEAN_LAP_SUFFIX
+    return phrase
 
 
 def _corner_extras(laps: list, corner_id: str) -> list[tuple[Any, Any]]:
@@ -160,11 +185,8 @@ def describe(stability: RearStability) -> str:
                 f"(peak {stability.threshold_deg:.2f} deg threshold, {baseline}) "
                 f"— no instability detected, which is not a claim that the car "
                 f"is stable everywhere")
-    worst = stability.flagged[0] if stability.flagged else {}
-    where = ""
-    if worst.get("segment_index") is not None:
-        where = (f" on segment {worst['segment_index']} (lap {worst.get('lap_number')})"
-                 + ("" if worst.get("clean") else ", a lap excluded as not clean"))
+    worst = stability.worst
+    where = f" on {lap_phrase(worst)}" if worst else ""
     phase = (f" and while still on the brake ({stability.braking_deg:.2f} deg with the "
              f"brake applied)" if stability.brake_overlap else
              " — the recording does not show the brake on during the slide, so it "

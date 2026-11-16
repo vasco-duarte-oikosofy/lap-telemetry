@@ -60,7 +60,7 @@ def _facts():
 
 
 def _inject_slip(facts, corner_id: str, apices: dict[int, float],
-                 braking: dict[int, float] | None = None):
+                 braking: dict[int, float] | None = None, non_clean=()):
     """Put synthetic rear-slip values on a corner, then rebuild the priorities.
 
     The measured numbers are synthetic; the plumbing under test is real.
@@ -69,6 +69,8 @@ def _inject_slip(facts, corner_id: str, apices: dict[int, float],
 
     braking = braking or {}
     for lap in facts.laps:
+        if lap.segment_index in non_clean:
+            lap.clean = False
         for extra in lap.corners:
             if extra.corner_id != corner_id:
                 continue
@@ -167,6 +169,19 @@ def test_rear_stability_grounding() -> None:
     check(len(grounding.encode("utf-8")) <= GROUNDING_BUDGET_BYTES,
           "the grounding still fits its budget",
           f"{len(grounding.encode('utf-8'))} / {GROUNDING_BUDGET_BYTES}")
+
+    dirty = _facts()
+    dirty_corner = dirty.priorities[0].corner_id
+    dirty_segment = next(lap.segment_index for lap in dirty.laps if lap.clean)
+    _inject_slip(dirty, dirty_corner, {dirty_segment: 5.2}, {dirty_segment: 4.9},
+                 non_clean={dirty_segment})
+    dirty_grounding = build_grounding(dirty)
+    check("a lap excluded as not clean" in dirty_grounding,
+          "the grounding labels a slide measured on a non-clean lap",
+          dirty_grounding[dirty_grounding.index("REAR STABILITY"):][:220])
+    check(len(dirty_grounding.encode("utf-8")) <= GROUNDING_BUDGET_BYTES,
+          "and it still fits the budget",
+          f"{len(dirty_grounding.encode('utf-8'))} bytes")
 
     model = FakeModel("The rear was measured sliding there. Get it settled first. "
                       "What did the car feel like?")

@@ -295,15 +295,16 @@ def rear_extra(corner: str, name: str, apex, braking, *, gear=3, trail=0.0) -> C
                         rear_slip_apex_deg=apex, rear_slip_braking_deg=braking)
 
 
-def rear_scenario(apex_of_lap, braking_of_lap) -> list:
-    """Six clean laps on one corner that keeps losing 0.6 s, with injected slip."""
+def rear_scenario(apex_of_lap, braking_of_lap, non_clean=()) -> list:
+    """Six laps on one corner that keeps losing 0.6 s, with injected slip."""
     laps = []
     for index in range(6):
         phases = [phase("slow", "Slow Corner", "minimum_speed", 0.60 + 0.02 * index,
                         78.0, 82.0, apex=1000.0)]
         laps.append(FakeLap(index, 1.5, phases,
                             [rear_extra("slow", "Slow Corner",
-                                        apex_of_lap(index), braking_of_lap(index))]))
+                                        apex_of_lap(index), braking_of_lap(index))],
+                            clean=index not in non_clean))
     return laps
 
 
@@ -342,6 +343,17 @@ def test_rear_slip_qualifies_advice() -> None:
           other.suggestion[:120])
     check(other.evidence["rear_stability"]["brake_overlap"] is False,
           "the structured evidence agrees with the prose")
+
+    dirty = rear_scenario(lambda i: 5.0 if i == 3 else 1.7,
+                          lambda i: 4.8 if i == 3 else 1.6, non_clean={3})
+    dirty_priority = build_priorities(dirty, reference, total_gap_s=1.5,
+                                      unmeasurable={})[0]
+    check("a lap excluded as not clean" in dirty_priority.suggestion,
+          "a slide measured on a non-clean lap says so in the advice",
+          dirty_priority.suggestion[:140])
+    check("not clean" not in priority.suggestion,
+          "a clean-lap slide is not hedged with a caveat it does not need",
+          priority.suggestion[:140])
 
     unknown = build_priorities(rear_scenario(lambda i: None, lambda i: None),
                                reference, total_gap_s=1.5, unmeasurable={})[0]

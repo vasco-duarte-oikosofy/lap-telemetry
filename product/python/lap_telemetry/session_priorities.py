@@ -19,7 +19,7 @@ from dataclasses import dataclass, field
 from typing import Any
 
 from .coach.facts import CornerLoss
-from .rear_stability import RearStability, assess_corner
+from .rear_stability import RearStability, assess_corner, lap_phrase
 from .session_corner_extras import CornerExtras, aggregate_corners, median_of
 
 
@@ -181,10 +181,8 @@ _ASK_FOR_MORE = ("entry", "exit", "trail", "min_speed", "exit_speed")
 
 def _instability_clause(rear: RearStability) -> str:
     """What to say instead of "brake later" when the rear was measured sliding."""
-    worst = rear.flagged[0] if rear.flagged else {}
-    where = ""
-    if worst.get("segment_index") is not None:
-        where = f" (segment {worst['segment_index']}, lap {worst.get('lap_number')})"
+    worst = rear.worst
+    where = f" on {lap_phrase(worst)}" if worst else ""
     if rear.brake_overlap:
         return (
             f"the rear was measured sliding under braking{where}: "

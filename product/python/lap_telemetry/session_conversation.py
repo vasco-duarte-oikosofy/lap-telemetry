@@ -18,6 +18,7 @@ from .coach.debrief_coach import DebriefCoach
 from .coach.llm_adapter import LLMAdapterError
 from .session_brief import corner_block, find_corner
 from .session_facts import SessionDebriefFacts
+from .rear_stability import lap_phrase
 from .session_priorities import ordinal
 from .session_report import corner_label, format_lap_time
 
@@ -82,8 +83,11 @@ def rear_grip_target(measure: str, rear: dict[str, Any]) -> tuple[str, str]:
         stability = (f"peak rear slip under {threshold:.1f} deg at the apex{braking}, "
                      f"against {float(rear.get('value_deg') or 0.0):.1f} deg today, "
                      f"while matching the reference brake point")
+    where = lap_phrase(max(rear.get("flagged") or [{}],
+                           key=lambda item: item.get("apex_deg") or 0.0))
     caveat = ("the rear was measured sliding here"
-              + (" while the brake was applied" if rear.get("brake_overlap") else "")
+              + (f" on {where}" if where else "")
+              + (", with the brake applied" if rear.get("brake_overlap") else "")
               + ": stabilise first, and do not simply brake later until the slide is gone")
     return stability, caveat
 
@@ -162,9 +166,12 @@ def render_plan(facts: SessionDebriefFacts, targets: list[Target]) -> str:
         rear = priority.evidence.get("rear_stability") or {}
         if rear.get("state") != "measured_instability":
             continue
+        where = lap_phrase(max(rear.get("flagged") or [{}],
+                               key=lambda item: item.get("apex_deg") or 0.0))
         lines += [
             f"Also measured: **{corner_label(priority.corner_name)}** — rear slip "
             f"{float(rear.get('value_deg') or 0):.2f} deg at the apex"
+            + (f" on {where}" if where else "")
             + (" with the brake applied" if rear.get("brake_overlap") else "")
             + f" against a {float(rear.get('baseline_deg') or 0):.2f} deg clean-lap "
             f"baseline. Get the car settled there before chasing the loss.",
