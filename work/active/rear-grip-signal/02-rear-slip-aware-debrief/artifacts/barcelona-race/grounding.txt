@@ -1,0 +1,63 @@
+SESSION
+track: Circuit de Barcelona | car: ginetta-lmp3
+eligible laps: 18 | clean laps: 16
+reference lap (curated): 1:36.040
+your best clean lap: 1:36.759 (+0.719 vs reference)
+mean gap to reference: 1.801 s over 16 clean laps
+median: 1:37.661 | spread: 3.041 s | sd: 0.821 s
+speed envelope: 1:36.326 | repeatability prize: 0.434 s (optimistic, not one-lap achievable)
+
+REAR STABILITY (constrains the advice below)
+Repsol: measured instability: 6.51 deg at the apex (brake still on) against a 1.74 deg clean-lap baseline
+
+LAPS (seg | lap | time | vs reference | clean)
+1 | 1 | 1:56.605 | +20.565 | no
+2 | 2 | 1:37.659 | +1.619 | yes
+3 | 3 | 1:37.361 | +1.321 | yes
+4 | 4 | 1:37.109 | +1.069 | yes
+5 | 5 | 1:37.050 | +1.010 | yes
+6 | 6 | 1:38.858 | +2.818 | yes
+7 | 7 | 1:37.663 | +1.623 | yes
+8 | 8 | 1:36.867 | +0.827 | yes
+9 | 9 | 1:38.016 | +1.976 | yes
+10 | 10 | 1:38.715 | +2.675 | yes
+11 | 11 | 1:37.429 | +1.389 | yes
+12 | 12 | 1:36.759 | +0.719 | yes
+13 | 13 | 1:37.924 | +1.884 | yes
+14 | 14 | 1:37.784 | +1.744 | yes
+15 | 15 | 1:43.551 | +7.511 | no
+16 | 16 | 1:39.800 | +3.760 | yes
+17 | 17 | 1:37.505 | +1.465 | yes
+18 | 18 | 1:38.957 | +2.917 | yes
+
+TOP PRIORITIES (rank | corner | phase | seconds per lap | share of gap | kind)
+1 | Twelve | exit_brake | 0.644 s | 36% | both
+  fix: back on the throttle 16 m earlier
+  evidence: exit_brake 89.3 km/h vs 109.9 km/h | gear 1 vs 1
+2 | corner 8 | exit | 0.444 s | 25% | both
+  fix: brake 16 m later
+  evidence: exit 137.4 km/h vs 186.4 km/h | gear 4 vs 4
+3 | Campsa | minimum_speed | 0.177 s | 10% | both
+  fix: carry 6 km/h more minimum speed
+  evidence: minimum_speed 158.8 km/h vs 164.7 km/h | gear 4 vs 4
+
+MOST INCONSISTENT CORNERS (spread in seconds)
+Campsa 1.579 s over 16 laps
+corner 8 1.159 s over 4 laps
+Repsol 0.818 s over 16 laps
+Fourteen 0.706 s over 16 laps
+corner 7 0.687 s over 16 laps
+
+EXCLUDED SEGMENTS (never analysed)
+seg 0 (lap 0): out-lap — first segment of a stint
+seg 19 (lap 19): incomplete — final segment of the session
+
+NOT MEASURABLE IN THIS RECORDING
+abs_active: only 0 of 147549 samples are recorded, so a duty cannot be computed
+grip_fraction_rl: the sim publishes mGripFract as a constant 0.0 in every sample of this recording (checked on every LMU session on disk), so it cannot separate a sliding contact patch from grip
+grip_fraction_rr: the sim publishes mGripFract as a constant 0.0 in every sample of this recording (checked on every LMU session on disk), so it cannot separate a sliding contact patch from grip
+slip_angle_rl_deg: the sim value is atan2 of two contact-patch velocities in the car frame, so it idles at ±180° on a straight and follows steering input (r=+0.52); a tyre slip angle needs the wheel's own heading, and no wheel heading is recorded
+slip_angle_rr_deg: the sim value is atan2 of two contact-patch velocities in the car frame, so it idles at ±180° on a straight and follows steering input (r=+0.52); a tyre slip angle needs the wheel's own heading, and no wheel heading is recorded
+tc_active: only 10596 of 147549 samples are recorded, so a duty cannot be computed
+
+Every number you state must appear above.

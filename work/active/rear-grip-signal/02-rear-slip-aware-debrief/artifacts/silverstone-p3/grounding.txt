@@ -1,0 +1,72 @@
+SESSION
+track: Silverstone National Circuit | car: ginetta-lmp3
+eligible laps: 34 | clean laps: 32
+reference lap (curated): 0:50.392
+your best clean lap: 0:50.763 (+0.371 vs reference)
+mean gap to reference: 1.105 s over 32 clean laps
+median: 0:51.300 | spread: 1.954 s | sd: 0.528 s
+speed envelope: 0:50.688 | repeatability prize: 0.075 s (optimistic, not one-lap achievable)
+
+REAR STABILITY (constrains the advice below)
+Becketts: measured instability: 13.78 deg at the apex (brake still on) against a 1.71 deg clean-lap baseline
+
+LAPS (seg | lap | time | vs reference | clean)
+1 | 1 | 0:51.789 | +1.397 | yes
+2 | 2 | 0:51.735 | +1.343 | yes
+3 | 3 | 0:51.158 | +0.766 | yes
+4 | 4 | 0:51.169 | +0.777 | yes
+5 | 5 | 0:51.250 | +0.858 | yes
+6 | 6 | 0:51.194 | +0.802 | yes
+7 | 7 | 0:51.042 | +0.650 | yes
+8 | 8 | 0:50.763 | +0.371 | yes
+9 | 9 | 0:51.121 | +0.729 | yes
+10 | 10 | 0:51.151 | +0.759 | yes
+11 | 11 | 0:51.012 | +0.620 | yes
+12 | 12 | 0:51.781 | +1.389 | yes
+13 | 13 | 0:52.688 | +2.296 | yes
+14 | 14 | 0:52.718 | +2.326 | yes
+15 | 15 | 0:52.318 | +1.926 | yes
+16 | 16 | 0:53.626 | +3.234 | no
+17 | 17 | 0:52.043 | +1.651 | yes
+18 | 18 | 0:58.538 | +8.146 | no
+19 | 19 | 0:51.284 | +0.892 | yes
+20 | 20 | 0:51.048 | +0.656 | yes
+21 | 21 | 0:50.970 | +0.578 | yes
+22 | 22 | 0:52.047 | +1.655 | yes
+23 | 23 | 0:52.284 | +1.892 | yes
+24 | 24 | 0:51.469 | +1.077 | yes
+25 | 25 | 0:52.268 | +1.876 | yes
+26 | 26 | 0:51.315 | +0.923 | yes
+… 8 more laps
+
+TOP PRIORITIES (rank | corner | phase | seconds per lap | share of gap | kind)
+1 | Becketts | exit_brake | 0.257 s | 23% | both
+  fix: the rear was measured sliding under braking (segment 14, lap 14): 13.78 deg at the apex, 5.61 deg with the brake still on, against a 1.71 deg clean-lap baseline — release the brake a little earlier and get the car settled before asking for more brake or speed, then re-measure
+  evidence: exit_brake 104.6 km/h vs 109.0 km/h | gear 2 vs 2
+2 | Copse | exit_brake | 0.177 s | 16% | both
+  fix: hold the brake 4 m longer and brake 11 m later
+  evidence: exit_brake 191.9 km/h vs 202.8 km/h | gear 5 vs 5
+3 | Woodcote | minimum_speed | 0.135 s | 12% | both
+  fix: carry 4 km/h more minimum speed
+  evidence: minimum_speed 186.3 km/h vs 190.6 km/h | gear 4 vs 4
+
+MOST INCONSISTENT CORNERS (spread in seconds)
+Becketts 0.715 s over 29 laps
+Woodcote 0.689 s over 32 laps
+Copse 0.644 s over 32 laps
+Luffield 0.389 s over 26 laps
+Brooklands 0.368 s over 28 laps
+
+EXCLUDED SEGMENTS (never analysed)
+seg 0 (lap 0): out-lap — first segment of a stint
+seg 35 (lap 35): incomplete — final segment of the session
+
+NOT MEASURABLE IN THIS RECORDING
+abs_active: only 0 of 239401 samples are recorded, so a duty cannot be computed
+grip_fraction_rl: the sim publishes mGripFract as a constant 0.0 in every sample of this recording (checked on every LMU session on disk), so it cannot separate a sliding contact patch from grip
+grip_fraction_rr: the sim publishes mGripFract as a constant 0.0 in every sample of this recording (checked on every LMU session on disk), so it cannot separate a sliding contact patch from grip
+slip_angle_rl_deg: the sim value is atan2 of two contact-patch velocities in the car frame, so it idles at ±180° on a straight and follows steering input (r=+0.52); a tyre slip angle needs the wheel's own heading, and no wheel heading is recorded
+slip_angle_rr_deg: the sim value is atan2 of two contact-patch velocities in the car frame, so it idles at ±180° on a straight and follows steering input (r=+0.52); a tyre slip angle needs the wheel's own heading, and no wheel heading is recorded
+tc_active: only 6159 of 239401 samples are recorded, so a duty cannot be computed
+
+Every number you state must appear above.

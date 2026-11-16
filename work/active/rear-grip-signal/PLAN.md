@@ -18,9 +18,11 @@ in the debrief where the tool goes quiet on the question that matters most.
 grows past two slices, write `docs/specs/rear-grip-signal.md` first.
 
 **Feature tests:** `bash scripts/test-summary.sh --feature rear-grip-signal`
-(registered in `package.json` `testFeatures` at `8a1011d`, 8 scripts / 283
-assertions, including the `test_runner_self_test.js` +
-`test_protocol_enforcement.js` infrastructure guards).
+(grown at slice 02 to 14 scripts / 582 assertions: the five shared debrief suites
+— consistency, priorities, brief, report, conversation — joined the mission's own
+`test_rear_grip_signal.js` and `test_rear_slip_facts.js`, together with the
+`test_runner_self_test.js` + `test_protocol_enforcement.js` infrastructure
+guards).
 
 ---
 
@@ -29,7 +31,7 @@ assertions, including the `test_runner_self_test.js` +
 | Slice | Status | Vertical outcome |
 |---|---|---|
 | `01-true-slip-angle` | ✅ Closed — phases A, B, C shipped | The recorded slip channel is proved to be `atan2` of two car-frame patch velocities (follows steering r=+0.52, idles at ±180° on a straight, no yaw information). The calibration gates were answered from recordings already on disk: rear slip from the wheels' ground velocities is **0.03° on a straight**, rises with lateral acceleration (0.03 → 0.66 → 1.46°), matches the yaw-rate sign on **99.9%** of rotating samples, and flags one real single-lap slide (Repsol **6.51°** against a 1.73° baseline, brake still on). `mGripFract` is **dead in LMU** — constant 0.0 in all 61 recordings that carry it — so it is refused, never read as "no slip". `CornerExtras` carries the rear-slip fact and the corner drill-down cites it |
-| [`02-rear-slip-aware-debrief`](02-rear-slip-aware-debrief/prompt.md) | 📋 Planned — implementation blocked on slice 01's validated facts or verified refusal | Make deterministic advice, model grounding, no-LLM answers, report and plan rear-slip aware without changing loss ranking; distinguish measured instability from unknown, qualify braking advice and preserve lap-level evidence. Planning audit finds the latest Silverstone P3 recording has all seven new channels, but both grip fractions are constant zero; see `artifacts/input-audit.md` in the slice folder. |
+| [`02-rear-slip-aware-debrief`](02-rear-slip-aware-debrief/prompt.md) | ✅ Implemented `c4a1fe3` | Advice, grounding, no-LLM answers, report and plan are rear-slip aware in three states (measured instability / nothing detected / unknown) without changing rank, recurring loss or pace. On the trigger session (Silverstone P3, 2026-11-14 19:04) Becketts measured **13.78°** apex slip with **5.61°** while braking, so "hold the brake 20 m longer" is replaced by a settle-first instruction and a stability target; on the Barcelona race the Repsol slide ranks #4 and still reaches the plan via an `Also measured:` line. One `RearStability` object feeds every surface, so they cannot disagree. Shared debrief suites added to the feature list: 14 scripts / 582 assertions; full `--pw` 3165 / 103 |
 
 **Where it is developed:** the recorder columns shipped in phase B4, so the
 remaining work happened on this workstation against sessions already on disk.
